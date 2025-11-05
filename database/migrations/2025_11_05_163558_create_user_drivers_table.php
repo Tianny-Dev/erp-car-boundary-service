@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('user_drivers', function (Blueprint $table) {
-            $table->unsignedBigInteger('driver_id')->primary();
-            $table->foreignId('status_id')->after('id')->constrained('statuses')->onDelete('restrict');
-            $table->foreignId('payment_option_id')->after('id')->constrained('payment_options')->onDelete('restrict');
+            $table->foreignId('id')->primary()->constrained('users')->onDelete('cascade');
+            $table->foreignId('status_id')->constrained('statuses')->onDelete('restrict');
+            $table->foreignId('payment_option_id')->constrained('payment_options')->onDelete('restrict');
             $table->string('license_number', 20)->unique();
             $table->boolean('is_verified')->default(false);
             $table->date('license_expiry');
@@ -22,10 +22,8 @@ return new class extends Migration
             $table->string('back_license_picture');
             $table->string('nbi_clearance');
             $table->string('selfie_picture');
-            $table->date('hire_date');
+            $table->date('hire_date')->nullable();
             $table->timestamps();
-
-            $table->foreign('driver_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 
