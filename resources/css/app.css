@@ -8,10 +8,16 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-    --font-sans:
-        Instrument Sans, ui-sans-serif, system-ui, sans-serif,
-        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
-        'Noto Color Emoji';
+    --font-sans: Arial, ui-sans-serif, system-ui, sans-serif;
+
+
+    --color-brand-red: #cd2e3a;
+    --color-brand-blue: #0047a0;
+    --color-brand-white: #f0f8ff;
+    --color-brand-green: #33cc66;
+
+    --shadow-brand-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+    --shadow-blue: rgba(0, 71, 160, 0.35) 0px 5px 15px;
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
@@ -82,10 +88,7 @@
 @layer utilities {
     body,
     html {
-        --font-sans:
-            'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
-            'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
-            'Noto Color Emoji';
+        --font-sans: Arial, ui-sans-serif, system-ui, sans-serif;
     }
 }
 
@@ -169,4 +172,8 @@
     body {
         @apply bg-background text-foreground;
     }
+}
+
+html {
+    scroll-behavior: smooth;
 }
