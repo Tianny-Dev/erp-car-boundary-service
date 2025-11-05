@@ -63,7 +63,7 @@ const toggle = (index: number) => {
 </script>
 
 <template>
-    <Head title=" | Home" />
+    <Head title="Home" />
 
     <HomeLayout>
         <div
