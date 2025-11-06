@@ -1,6 +1,11 @@
 <?php
 
 use App\Models\User;
+use Database\Seeders\UserTypeSeeder;
+
+beforeEach(function () {
+    $this->seed(UserTypeSeeder::class);
+});
 
 test('profile page is displayed', function () {
     $user = User::factory()->create();

@@ -1,5 +1,11 @@
 <?php
 
+use Database\Seeders\UserTypeSeeder;
+
+beforeEach(function () {
+    $this->seed(UserTypeSeeder::class);
+});
+
 test('registration screen can be rendered', function () {
     $response = $this->get(route('register'));
 
@@ -8,6 +14,7 @@ test('registration screen can be rendered', function () {
 
 test('new users can register', function () {
     $response = $this->post(route('register.store'), [
+        'user_type_id' => 1,
         'name' => 'Test User',
         'email' => 'test@example.com',
         'password' => 'password',
