@@ -148,7 +148,7 @@ const columns: ColumnDef<SupportTicket>[] = [
   {
     id: 'actions',
     header: 'Action',
-    cell: ({ row }) =>
+    cell: ({}) =>
       h('div', { class: 'flex gap-2' }, [
         h(
           Button,
