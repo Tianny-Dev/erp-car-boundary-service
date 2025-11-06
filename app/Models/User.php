@@ -10,6 +10,8 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -64,5 +66,41 @@ class User extends Authenticatable implements MustVerifyEmail
             ->saveSlugsTo('username')
             ->slugsShouldBeNoLongerThan(20)
             ->usingSeparator('_');
+    }
+
+    // relationship to user type, one to many
+    public function userType(): BelongsTo
+    {
+        return $this->belongsTo(UserType::class, 'user_type_id');
+    }
+
+    // relationship to driver, one to one
+    public function driverDetails(): HasOne
+    {
+        return $this->hasOne(UserDriver::class, 'id');
+    }
+
+    // relationship to technician, one to one
+    public function technicianDetails(): HasOne
+    {
+        return $this->hasOne(UserTechnician::class, 'id');
+    }
+
+    // relationship to passenger, one to one
+    public function passengerDetails(): HasOne
+    {
+        return $this->hasOne(UserPassenger::class, 'id');
+    }
+
+    // relationship to owner, one to one
+    public function ownerDetails(): HasOne
+    {
+        return $this->hasOne(UserOwner::class, 'id');
+    }
+
+    // relationship to manager, one to one
+    public function managerDetails(): HasOne
+    {
+        return $this->hasOne(UserManager::class, 'id');
     }
 }
