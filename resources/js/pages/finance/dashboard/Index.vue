@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import FranchiseMapCard from '@/components/finance/FranchiseMapCard.vue';
-import RevenueVsExpensesGraph from '@/components/finance/RevenueVsExpensesGraph.vue';
+import RevenueVsExpensesGraph from '@/components/finance/RevenueVsExpensesAreaChart.vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/AppLayout.vue';
 import finance from '@/routes/finance';
