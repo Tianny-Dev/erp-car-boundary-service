@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import RevenueBreakDownPieChart from '@/components/finance/RevenueBreakDownPieChart.vue';
-import RevenueTrendSparkLine from '@/components/finance/RevenueTrendSparkLine.vue';
+import RevenueBreakDownPieChart from '@/components/finance/charts/revenue-management/RevenueBreakDownPieChart.vue';
+import RevenueTrendSparkLine from '@/components/finance/charts/revenue-management/RevenueTrendSparkLine.vue';
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -229,6 +230,32 @@ const table = useVueTable({
     },
   },
 });
+
+const expenseBreakdownData = [
+  {
+    name: 'Trip',
+    total: Math.floor(Math.random() * 2000) + 500,
+  },
+  {
+    name: 'Ads',
+    total: Math.floor(Math.random() * 2000) + 500,
+  },
+  {
+    name: 'Logistics',
+    total: Math.floor(Math.random() * 2000) + 500,
+  },
+];
+
+const expenseTrendData = [
+  { year: 2018, 'Growth Rate': 2.45 },
+  { year: 2019, 'Growth Rate': 2.47 },
+  { year: 2020, 'Growth Rate': 2.48 },
+  { year: 2021, 'Growth Rate': 2.51 },
+  { year: 2022, 'Growth Rate': 2.55 },
+  { year: 2023, 'Growth Rate': 2.58 },
+  { year: 2024, 'Growth Rate': 2.6 },
+  { year: 2025, 'Growth Rate': 2.63 },
+];
 </script>
 
 <template>
@@ -369,7 +396,12 @@ const table = useVueTable({
             <CardTitle>Revenue Breakdown</CardTitle>
           </CardHeader>
           <CardContent>
-            <RevenueBreakDownPieChart />
+            <!-- <RevenueBreakDownPieChart /> -->
+            <RevenueBreakDownPieChart
+              :data="expenseBreakdownData"
+              category="total"
+              title="Monthly Revenue"
+            />
           </CardContent>
         </Card>
 
@@ -379,7 +411,11 @@ const table = useVueTable({
             <CardTitle>Net Profit Trend</CardTitle>
           </CardHeader>
           <CardContent>
-            <RevenueTrendSparkLine />
+            <RevenueTrendSparkLine
+              :data="expenseTrendData"
+              :colors="['#3b82f6']"
+              :y-formatter="(val) => `$ ${val.toFixed(2)}`"
+            />
           </CardContent>
         </Card>
       </div>
