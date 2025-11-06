@@ -20,9 +20,10 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('phone', 20)->unique();
             $table->string('address');
-            $table->string('city');
-            $table->string('province');
             $table->string('region');
+            $table->string('province');
+            $table->string('city');
+            $table->string('barangay');
             $table->string('postal_code', 20);
             $table->string('dti_registrarion_attachment');
             $table->string('mayor_permit_attachment');

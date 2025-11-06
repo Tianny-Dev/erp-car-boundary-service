@@ -15,6 +15,11 @@ return new class extends Migration
             $table->foreignId('user_type_id')->after('id')->constrained('user_types')->onDelete('restrict');
             $table->string('phone', 20)->unique()->nullable()->after('email_verified_at');
             $table->string('address')->nullable()->after('phone');
+            $table->string('region')->nullable()->after('address');
+            $table->string('province')->nullable()->after('region');
+            $table->string('city')->nullable()->after('province');
+            $table->string('barangay')->nullable()->after('city');
+            $table->string('postal_code', 20)->nullable()->after('barangay');
         });
     }
 
@@ -28,7 +33,12 @@ return new class extends Migration
             $table->dropColumn([
                 'user_type_id',
                 'phone',
-                'address'
+                'address',
+                'region',
+                'province',
+                'city',
+                'barangay',
+                'postal_code',
             ]);
         });
     }
