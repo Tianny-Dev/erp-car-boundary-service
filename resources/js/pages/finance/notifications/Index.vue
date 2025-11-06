@@ -128,6 +128,14 @@ function dismissNotification(id: number) {
     <div
       class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
     >
+      <!-- Header -->
+      <div class="mb-2">
+        <h1 class="mb-2 text-3xl font-bold">Notifications</h1>
+        <p class="text-gray-600">
+          Stay updated with the latest alerts and system updates
+        </p>
+      </div>
+
       <Card v-if="notifications.length" class="p-0">
         <CardContent class="divide-y p-0">
           <div

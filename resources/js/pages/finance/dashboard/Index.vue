@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import FranchiseMapCard from '@/components/finance/FranchiseMapCard.vue';
-import RevenueVsExpensesGraph from '@/components/finance/RevenueVsExpensesGraph.vue';
+import RevenueVsExpensesGraph from '@/components/finance/RevenueVsExpensesAreaChart.vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/AppLayout.vue';
 import finance from '@/routes/finance';
@@ -22,6 +22,11 @@ const breadcrumbs: BreadcrumbItem[] = [
     <div
       class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
     >
+      <!-- Header -->
+      <div class="mb-2">
+        <h1 class="mb-2 text-3xl font-bold">Dashboard</h1>
+        <p class="text-gray-600">Central Hub for Tracking and Management</p>
+      </div>
       <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader

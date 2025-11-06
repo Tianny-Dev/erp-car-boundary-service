@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { login } from '@/routes';
-import { Link } from '@inertiajs/vue3';
 import { onMounted, onUnmounted, ref } from 'vue';
 
 // -------------------- Reactive State --------------------
