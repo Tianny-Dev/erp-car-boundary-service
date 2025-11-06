@@ -22,6 +22,11 @@ const breadcrumbs: BreadcrumbItem[] = [
     <div
       class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
     >
+      <!-- Header -->
+      <div class="mb-2">
+        <h1 class="mb-2 text-3xl font-bold">Dashboard</h1>
+        <p class="text-gray-600">Central Hub for Tracking and Management</p>
+      </div>
       <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader
