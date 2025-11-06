@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class UserPassenger extends Model
 {
@@ -28,5 +29,11 @@ class UserPassenger extends Model
     public function paymentOption(): BelongsTo
     {
         return $this->belongsTo(PaymentOption::class);
+    }
+
+    // relationship to ratings, one to many
+    public function ratings(): HasMany
+    {
+        return $this->hasMany(Rating::class);
     }
 }

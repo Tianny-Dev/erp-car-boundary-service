@@ -55,4 +55,16 @@ class UserDriver extends Model
     {
         return $this->hasMany(Route::class);
     }
+
+    // relationship to violations, one to many
+    public function violations(): HasMany
+    {
+        return $this->hasMany(Violation::class);
+    }
+
+    // relationship to ratings, one to many
+    public function ratings(): HasMany
+    {
+        return $this->hasMany(Rating::class);
+    }
 }

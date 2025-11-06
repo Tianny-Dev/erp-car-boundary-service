@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Route extends Model
 {
@@ -28,5 +29,11 @@ class Route extends Model
     public function vehicle(): BelongsTo
     {
         return $this->belongsTo(Vehicle::class);
+    }
+
+    // relationship to ratings, one to many
+    public function ratings(): HasMany
+    {
+        return $this->hasMany(Rating::class);
     }
 }

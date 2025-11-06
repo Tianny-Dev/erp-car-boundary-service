@@ -73,4 +73,16 @@ class Franchise extends Model
     {
         return $this->hasMany(Vehicle::class);
     }
+
+    // relationship to violations, one to many
+    public function violations(): HasMany
+    {
+        return $this->hasMany(Violation::class);
+    }
+
+    // relationship to maintenances, one to many
+    public function maintenances(): HasMany
+    {
+        return $this->hasMany(Maintenance::class);
+    }
 }

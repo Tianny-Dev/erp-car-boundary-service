@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Expense extends Model
 {
@@ -34,5 +35,11 @@ class Expense extends Model
     public function paymentOption(): BelongsTo
     {
         return $this->belongsTo(PaymentOption::class);
+    }
+
+    // relationship to maintenances, one to many
+    public function maintenances(): HasMany
+    {
+        return $this->hasMany(Maintenance::class);
     }
 }

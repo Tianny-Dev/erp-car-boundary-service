@@ -83,4 +83,16 @@ class Status extends Model
     {
         return $this->hasMany(Route::class);
     }
+
+    // relationship to violations, one to many
+    public function violations(): HasMany
+    {
+        return $this->hasMany(Violation::class);
+    }
+
+    // relationship to maintenances, one to many
+    public function maintenances(): HasMany
+    {
+        return $this->hasMany(Maintenance::class);
+    }
 }
