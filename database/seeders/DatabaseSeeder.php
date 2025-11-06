@@ -15,6 +15,8 @@ class DatabaseSeeder extends Seeder
     {
         // fix value
         $this->call(UserTypeSeeder::class);
+        $this->call(StatusSeeder::class);
+        $this->call(PaymentOptionSeeder::class);
 
         User::factory()->create([
             'name' => 'Test User',
