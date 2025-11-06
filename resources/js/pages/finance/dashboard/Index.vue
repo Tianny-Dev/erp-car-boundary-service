@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import RevenueVsExpensesAreaChart from '@/components/finance/charts/dashboard/RevenueVsExpensesAreaChart.vue';
 import FranchiseMapCard from '@/components/finance/FranchiseMapCard.vue';
-import RevenueVsExpensesGraph from '@/components/finance/RevenueVsExpensesAreaChart.vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/AppLayout.vue';
 import finance from '@/routes/finance';
@@ -12,6 +12,16 @@ const breadcrumbs: BreadcrumbItem[] = [
     title: 'Dashboard',
     href: finance.dashboard().url,
   },
+];
+
+const data = [
+  { name: 'Jan', Revenue: 1300, Expenses: 700 },
+  { name: 'Feb', Revenue: 1100, Expenses: 800 },
+  { name: 'Mar', Revenue: 1500, Expenses: 900 },
+  { name: 'Apr', Revenue: 1800, Expenses: 1000 },
+  { name: 'May', Revenue: 1700, Expenses: 1200 },
+  { name: 'Jun', Revenue: 1900, Expenses: 1300 },
+  { name: 'Jul', Revenue: 2100, Expenses: 1500 },
 ];
 </script>
 
@@ -135,7 +145,11 @@ const breadcrumbs: BreadcrumbItem[] = [
             <CardTitle>Overview</CardTitle>
           </CardHeader>
           <CardContent class="pl-2">
-            <RevenueVsExpensesGraph />
+            <RevenueVsExpensesAreaChart
+              :data="data"
+              :categories="['Expenses', 'Revenue']"
+              :colors="['#005dcf', '#33cc66']"
+            />
           </CardContent>
         </Card>
         <Card class="col-span-3">
