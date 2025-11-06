@@ -1,7 +1,12 @@
 <?php
 
 use App\Models\User;
+use Database\Seeders\UserTypeSeeder;
 use Inertia\Testing\AssertableInertia as Assert;
+
+beforeEach(function () {
+    $this->seed(UserTypeSeeder::class);
+});
 
 test('confirm password screen can be rendered', function () {
     $user = User::factory()->create();

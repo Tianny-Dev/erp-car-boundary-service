@@ -1,7 +1,12 @@
 <?php
 
 use App\Models\User;
+use Database\Seeders\UserTypeSeeder;
 use Illuminate\Support\Facades\Hash;
+
+beforeEach(function () {
+    $this->seed(UserTypeSeeder::class);
+});
 
 test('password update page is displayed', function () {
     $user = User::factory()->create();

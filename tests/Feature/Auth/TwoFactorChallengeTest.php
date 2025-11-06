@@ -1,8 +1,13 @@
 <?php
 
 use App\Models\User;
+use Database\Seeders\UserTypeSeeder;
 use Inertia\Testing\AssertableInertia as Assert;
 use Laravel\Fortify\Features;
+
+beforeEach(function () {
+    $this->seed(UserTypeSeeder::class);
+});
 
 test('two factor challenge redirects to login when not authenticated', function () {
     if (! Features::canManageTwoFactorAuthentication()) {

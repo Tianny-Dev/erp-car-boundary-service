@@ -1,8 +1,13 @@
 <?php
 
 use App\Models\User;
+use Database\Seeders\UserTypeSeeder;
 use Illuminate\Support\Facades\RateLimiter;
 use Laravel\Fortify\Features;
+
+beforeEach(function () {
+    $this->seed(UserTypeSeeder::class);
+});
 
 test('login screen can be rendered', function () {
     $response = $this->get(route('login'));

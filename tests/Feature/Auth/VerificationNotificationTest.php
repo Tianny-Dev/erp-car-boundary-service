@@ -1,8 +1,13 @@
 <?php
 
 use App\Models\User;
+use Database\Seeders\UserTypeSeeder;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\Notification;
+
+beforeEach(function () {
+    $this->seed(UserTypeSeeder::class);
+});
 
 test('sends verification notification', function () {
     Notification::fake();
