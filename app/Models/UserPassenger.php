@@ -21,12 +21,12 @@ class UserPassenger extends Model
     // relationship to status, one to many
     public function status(): BelongsTo
     {
-        return $this->belongsTo(Status::class, 'status_id');
+        return $this->belongsTo(Status::class);
     }
 
     // relationship to payment option, one to many
     public function paymentOption(): BelongsTo
     {
-        return $this->belongsTo(PaymentOption::class, 'payment_option_id');
+        return $this->belongsTo(PaymentOption::class);
     }
 }

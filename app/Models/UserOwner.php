@@ -22,12 +22,12 @@ class UserOwner extends Model
     // relationship to status, one to many
     public function status(): BelongsTo
     {
-        return $this->belongsTo(Status::class, 'status_id');
+        return $this->belongsTo(Status::class);
     }
 
     // relationship to franchises, one to many
     public function franchises(): HasMany
     {
-        return $this->hasMany(Franchise::class, 'owner_id');
+        return $this->hasMany(Franchise::class);
     }
 }

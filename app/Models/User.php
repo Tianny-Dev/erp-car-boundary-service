@@ -71,7 +71,7 @@ class User extends Authenticatable implements MustVerifyEmail
     // relationship to user type, one to many
     public function userType(): BelongsTo
     {
-        return $this->belongsTo(UserType::class, 'user_type_id');
+        return $this->belongsTo(UserType::class);
     }
 
     // relationship to driver, one to one

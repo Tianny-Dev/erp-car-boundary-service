@@ -15,43 +15,43 @@ class Status extends Model
     // relationship to drivers, one to many
     public function drivers(): HasMany
     {
-        return $this->hasMany(UserDriver::class, 'status_id');
+        return $this->hasMany(UserDriver::class);
     }
 
     // relationship to owners, one to many
     public function owners(): HasMany
     {
-        return $this->hasMany(UserOwner::class, 'status_id');
+        return $this->hasMany(UserOwner::class);
     }
 
     // relationship to passengers, one to many
     public function passengers(): HasMany
     {
-        return $this->hasMany(UserPassenger::class, 'status_id');
+        return $this->hasMany(UserPassenger::class);
     }
 
     // relationship to managers, one to many
     public function managers(): HasMany
     {
-        return $this->hasMany(UserManager::class, 'status_id');
+        return $this->hasMany(UserManager::class);
     }
 
     // relationship to technicians, one to many
     public function technicians(): HasMany
     {
-        return $this->hasMany(UserTechnician::class, 'status_id');
+        return $this->hasMany(UserTechnician::class);
     }
 
     // relationship to franchises, one to many
     public function franchises(): HasMany
     {
-        return $this->hasMany(Franchise::class, 'status_id');
+        return $this->hasMany(Franchise::class);
     }
 
     // relationship to branches, one to many
     public function branches(): HasMany
     {
-        return $this->hasMany(Branch::class, 'status_id');
+        return $this->hasMany(Branch::class);
     }
 
 }

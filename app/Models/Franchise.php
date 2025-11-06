@@ -16,25 +16,25 @@ class Franchise extends Model
     // relationship to owner, one to many
     public function owner(): BelongsTo
     {
-        return $this->belongsTo(UserOwner::class, 'owner_id');
+        return $this->belongsTo(UserOwner::class);
     }
 
     // relationship to manager, one to many
     public function manager(): BelongsTo
     {
-        return $this->belongsTo(UserManager::class, 'manager_id');
+        return $this->belongsTo(UserManager::class);
     }
 
     // relationship to status, one to many
     public function status(): BelongsTo
     {
-        return $this->belongsTo(Status::class, 'status_id');
+        return $this->belongsTo(Status::class);
     }
 
     // relationship to payment option, one to many
     public function paymentOption(): BelongsTo
     {
-        return $this->belongsTo(PaymentOption::class, 'payment_option_id');
+        return $this->belongsTo(PaymentOption::class);
     }
 
     // relationship to drivers, many to many (pivot table)
