@@ -11,13 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('branch_technician', function (Blueprint $table) {
+        Schema::create('franchise_user_technician', function (Blueprint $table) {
             // composite primary key instead of auto-increment
-            $table->foreignId('branch_id')->constrained('branches')->onDelete('cascade');
-            $table->foreignId('technician_id')->constrained('user_technicians')->onDelete('cascade');
+            $table->foreignId('franchise_id')->constrained('franchises')->onDelete('cascade');
+            $table->foreignId('user_technician_id')->constrained('user_technicians')->onDelete('cascade');
 
             // Set composite primary key
-            $table->primary(['branch_id', 'technician_id']);
+            $table->primary(['franchise_id', 'user_technician_id']);
         });
     }
 
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('branch_technician');
+        Schema::dropIfExists('franchise_technician');
     }
 };
