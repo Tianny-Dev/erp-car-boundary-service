@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
             $table->foreignId('user_type_id')->after('id')->constrained('user_types')->onDelete('restrict');
             $table->string('phone', 20)->unique()->nullable()->after('email_verified_at');
-            $table->string('address')->nullable()->after('phone');
+            $table->enum('gender', ['Male', 'Female', 'Other', 'Prefer not to say' ])->nullable()->after('phone');
+            $table->string('address')->nullable()->after('gender');
             $table->string('region')->nullable()->after('address');
             $table->string('province')->nullable()->after('region');
             $table->string('city')->nullable()->after('province');
