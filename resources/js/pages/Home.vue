@@ -196,13 +196,11 @@ const toggle = (index: number) => {
           </div>
           <transition name="slide-fade">
             <p v-if="open[2]" class="mt-2 ps-10 text-gray-800">
-              Our system is optimized for e-vehicles, but traditional vehicles
-              can also be registered while transitioning to green fleets.
+              Yes, our system is optimized for e-vehicles only.
             </p>
           </transition>
           <p class="mt-2 block text-gray-800 md:hidden">
-            Our system is optimized for e-vehicles, but traditional vehicles can
-            also be registered while transitioning to green fleets.
+            Yes, our system is optimized for e-vehicles only.
           </p>
         </div>
 
@@ -274,7 +272,7 @@ const toggle = (index: number) => {
           </p>
 
           <p class="pt-4">
-            We ad here to the
+            We adhere to the
             <strong>Data Privacy Act of 2012 (RA 10173)</strong> and do not
             share your data with third parties without consent.
           </p>
@@ -301,7 +299,7 @@ const toggle = (index: number) => {
           class="mt-4 border-t-0 border-r-0 border-b-0 border-l-6 border-brand-blue bg-white p-4"
         >
           <h1 class="text-xl font-bold">
-            By register, users agree to abide by platform rules and community
+            By registering, users agree to abide by platform rules and community
             guidelines.
           </h1>
         </div>

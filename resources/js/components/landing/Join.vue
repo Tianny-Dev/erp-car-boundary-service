@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto w-full max-w-[780px] px-5 py-12">
+  <div class="mx-auto w-full max-w-[1000px] px-5 py-12">
     <h1 class="text-center text-3xl font-bold text-brand-blue">
       JOIN THE FUTURE OF SMART BOUNDARY SERVICE
     </h1>
@@ -20,7 +20,7 @@
       >
         <div>
           <h1 class="pt-4 text-center text-2xl font-bold text-brand-blue">
-            DRIVER APP:
+            DRIVER AND PASSENGER APP:
           </h1>
         </div>
 
@@ -43,7 +43,7 @@
       >
         <div>
           <h1 class="pt-4 text-center text-2xl font-bold text-brand-blue">
-            PASSENGER APP:
+            ADMIN AND FRANCHISE APP:
           </h1>
         </div>
 

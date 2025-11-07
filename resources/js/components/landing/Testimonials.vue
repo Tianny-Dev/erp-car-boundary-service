@@ -11,7 +11,7 @@
       <div class="grid grid-cols-12 items-center gap-5 pt-14 lg:gap-0">
         <div class="col-span-12 lg:col-span-5">
           <h1 class="text-3xl font-bold text-brand-blue">
-            REAL STORIES FROM OOUR <br />
+            REAL STORIES FROM OUR <br />
             DRIVERS, FRANCHISEES, <br />
             AND PASSENGERS
           </h1>
@@ -23,7 +23,7 @@
           </p>
           <p class="pt-6 text-lg/[22px]">
             From franchise owner to daily commuters, <br />
-            our system empowers everone in the <br />
+            our system empowers everyone in the <br />
             boundary ecosystem.
           </p>
 

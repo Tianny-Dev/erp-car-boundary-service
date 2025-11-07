@@ -268,7 +268,7 @@ const handleClick = (id: string) => {
             </div>
             <p class="pt-3 text-xl text-white">
               Empowering Every Ride. Connecting Drivers, Franchisees, and
-              Passenger Through Smart Mobility.
+              Passengers Through Smart Mobility.
             </p>
 
             <div class="pt-4">

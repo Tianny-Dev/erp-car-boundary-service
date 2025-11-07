@@ -3,14 +3,14 @@
     <div class="mx-auto w-full max-w-[1320px]">
       <div class="grid grid-cols-12 items-center gap-5">
         <div class="col-span-12 md:col-span-6">
-          <h1 class="text-4xl font-bold text-brand-blue">FRANCHISE NOW!</h1>
+          <h1 class="text-4xl font-bold text-brand-blue">FRANCHISED NOW!</h1>
           <h1 class="pt-4 text-4xl font-bold">
             OWN A
             <span class="text-brand-blue">SMART E-TAXI FLEET.</span>
             MANAGE WITH EASE.
           </h1>
           <p class="pt-4 text-xl">
-            As a Franchise Partner, you can oversee your vehicles, driver, and
+            As a Franchised Partner, you can oversee your vehicles, driver, and
             boundary payments effortlessly.
           </p>
           <p class="pt-4 text-xl">
@@ -57,7 +57,7 @@
             <div class="col-span-12 text-white sm:col-span-6">
               <h1 class="text-2xl font-bold">REQUIREMENTS:</h1>
               <p class="pt-3 text-lg">Valid Business Permit</p>
-              <p class="pt-3 text-lg">DT/SEC Registration</p>
+              <p class="pt-3 text-lg">DTI/SEC Registration</p>
               <p class="pt-3 text-lg">Bank Account for Payments</p>
               <p class="pt-3 text-lg">
                 Franchise Agreement (digital or physical)
@@ -69,7 +69,7 @@
             <button
               class="mt-6 rounded-xl bg-white px-5 py-2 text-xl text-brand-blue sm:px-12 sm:text-3xl"
             >
-              Apply as A Franchise Partner
+              Apply as A Franchised Partner
             </button>
           </div>
         </div>

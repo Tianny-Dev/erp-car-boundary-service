@@ -33,7 +33,7 @@
             REGISTER & VERIFY
           </p>
           <p>
-            Submit your details, upload the necessary documents, and wwait for
+            Submit your details, upload the necessary documents, and wait for
             verification
           </p>
         </div>

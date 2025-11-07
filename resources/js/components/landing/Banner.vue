@@ -42,7 +42,7 @@
           class="flex items-center gap-4 rounded-md bg-white px-7 py-2 text-xl text-brand-blue sm:text-2xl xl:px-12"
         >
           <img src="@/assets/join.png" class="h-8" alt="" />
-          Join as a Franchise
+          Join as a Franchised
         </button>
 
         <button

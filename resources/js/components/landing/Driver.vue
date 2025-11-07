@@ -38,7 +38,7 @@
           <img src="@/assets/df1.png" class="mx-auto h-[150px]" alt="" />
           <p class="pt-6 text-lg/[20px] font-bold text-brand-blue">
             VIEW ASSIGNED <br />
-            VEHICLE DETAIL
+            VEHICLE DETAILS
           </p>
         </div>
 
@@ -89,7 +89,7 @@
         <button
           class="mt-6 rounded-xl bg-brand-blue px-5 py-2 text-xl text-white sm:px-12 sm:text-3xl"
         >
-          Register as a Driver
+          Apply as a Driver
         </button>
       </div>
     </div>
