@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import DriverRegistrationForm from '@/components/auth/registration/DriverRegistrationForm.vue';
+import OwnerRegistrationForm from '@/components/auth/registration/OwnerRegistrationForm.vue';
 import PassengerRegisrationForm from '@/components/auth/registration/PassengerRegisrationForm.vue';
 import TechnicianRegistrationForm from '@/components/auth/registration/TechnicianRegistrationForm.vue';
 
@@ -47,5 +48,12 @@ defineProps<{
     :expertise="expertise"
     :user-type="userType"
     :id-types="idTypes"
+  />
+
+  <OwnerRegistrationForm
+    v-if="userType.name === 'owner'"
+    :gender-options="genderOptions"
+    :payment-options="paymentOptions"
+    :user-type="userType"
   />
 </template>
