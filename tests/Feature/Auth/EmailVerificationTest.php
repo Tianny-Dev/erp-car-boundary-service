@@ -2,12 +2,16 @@
 
 use App\Models\User;
 use Database\Seeders\UserTypeSeeder;
+use Database\Seeders\StatusSeeder;
+use Database\Seeders\PaymentOptionSeeder;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
 
 beforeEach(function () {
     $this->seed(UserTypeSeeder::class);
+    $this->seed(StatusSeeder::class);
+    $this->seed(PaymentOptionSeeder::class);
 });
 
 test('email verification screen can be rendered', function () {
