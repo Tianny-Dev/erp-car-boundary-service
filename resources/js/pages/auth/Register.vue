@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import DriverRegistrationForm from '@/components/auth/registration/DriverRegistrationForm.vue';
 import PassengerRegisrationForm from '@/components/auth/registration/PassengerRegisrationForm.vue';
+import TechnicianRegistrationForm from '@/components/auth/registration/TechnicianRegistrationForm.vue';
 
 defineProps<{
   genderOptions: { value: string; label: string }[];
   preferredLanguages: { value: string; label: string }[];
   accessibilityOptions: { value: string; label: string }[];
+
+  expertise: { value: string; label: string }[];
+  idTypes: { value: string; label: string }[];
 
   paymentOptions: {
     id: string;
@@ -35,5 +39,13 @@ defineProps<{
     :user-type="userType"
     :preferred-languages="preferredLanguages"
     :accessibility-options="accessibilityOptions"
+  />
+
+  <TechnicianRegistrationForm
+    v-if="userType.name === 'technician'"
+    :gender-options="genderOptions"
+    :expertise="expertise"
+    :user-type="userType"
+    :id-types="idTypes"
   />
 </template>

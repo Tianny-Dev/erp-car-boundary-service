@@ -1,7 +1,9 @@
 <?php
 
 use App\Enums\AccesibilityOption;
+use App\Enums\Expertise;
 use App\Enums\Gender;
+use App\Enums\IdType;
 use App\Enums\Language;
 use App\Models\PaymentOption;
 use App\Models\UserType;
@@ -45,6 +47,8 @@ Route::get('/register/{user_type}', function ($user_type) {
         ],
         'genderOptions' => Gender::options(),
         'preferredLanguages' => Language::options(),
+        'expertise' => Expertise::options(),
+        'idTypes' => IdType::options(),
         'accessibilityOptions' => AccesibilityOption::options(),
         'paymentOptions' => $paymentOptions,
     ]);

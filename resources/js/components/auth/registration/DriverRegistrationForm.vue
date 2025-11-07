@@ -207,7 +207,7 @@ onMounted(fetchRegions);
 <template>
   <AuthBase
     text-overlay="PLEASE FILL OUT THE FORM TO REGISTER AS A DRIVER UNDER ERP SYSTEM FOR CAR BOUNDARY SERVICE -PHILIPPINES. YOUR FRANCHISE WILL VERIFY YOUR ACCOUNT."
-    title-registration="Create an account"
+    title-registration="Driver Registration"
     :go-back-home-button="true"
     :user-type-name="userType.name"
   >
@@ -541,7 +541,7 @@ onMounted(fetchRegions);
                 'flex-1',
                 selectedShift === shift
                   ? 'bg-auth-blue hover:bg-blue-700'
-                  : 'border-gray-300 hover:bg-gray-50',
+                  : 'border-gray-300 bg-sky-100 hover:bg-gray-50',
               ]"
             >
               {{ shift }}
