@@ -11,14 +11,30 @@ import {
 import { home, login } from '@/routes';
 import { Link } from '@inertiajs/vue3';
 
-defineProps<{
+import defaultBg from '@/assets/auth/loginbg.jpg';
+import driverBg from '@/assets/auth/logindriver.jpg';
+import franchiseBg from '@/assets/auth/loginfranchise.jpg';
+import passengerBg from '@/assets/auth/loginpassenger.jpg';
+import technicianBg from '@/assets/auth/logintech.jpg';
+
+const props = defineProps<{
   textOverlay?: string;
   title?: string;
   description?: string;
   titleRegistration?: string;
-
   goBackHomeButton?: boolean;
+  userTypeName: string;
 }>();
+
+const userBackgrounds: Record<string, string> = {
+  driver: driverBg,
+  passenger: passengerBg,
+  technician: technicianBg,
+  franchise: franchiseBg,
+};
+
+// Access the prop via `props.userTypeName`
+const backgroundImage = userBackgrounds[props.userTypeName] || defaultBg;
 </script>
 
 <template>
@@ -32,7 +48,13 @@ defineProps<{
             <div class="relative hidden bg-muted p-6 md:block">
               <!-- Background -->
               <div
-                class="absolute inset-0 bg-[url(@/assets/auth/logindriver.jpg)] bg-cover bg-center bg-no-repeat dark:brightness-[0.2] dark:grayscale"
+                class="absolute inset-0 dark:brightness-[0.2] dark:grayscale"
+                :style="{
+                  backgroundImage: `url(${backgroundImage})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat',
+                }"
               ></div>
 
               <!-- Overlay -->

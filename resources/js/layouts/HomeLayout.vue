@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { login, selectUserType } from '@/routes';
+import { Link } from '@inertiajs/vue3';
 import { onMounted, onUnmounted, ref } from 'vue';
 
 // -------------------- Reactive State --------------------
@@ -122,11 +124,18 @@ const handleClick = (id: string) => {
         >
           Download App
         </button>
-        <button
+        <Link
+          :href="login()"
           class="flex-1 rounded-md bg-brand-green px-7 py-2 whitespace-nowrap text-white lg:px-5 xl:px-7"
         >
           Login
-        </button>
+        </Link>
+        <Link
+          :href="selectUserType()"
+          class="flex-1 rounded-md bg-brand-blue px-7 py-2 whitespace-nowrap text-white lg:px-5 xl:px-7"
+        >
+          Register
+        </Link>
       </div>
     </div>
 
