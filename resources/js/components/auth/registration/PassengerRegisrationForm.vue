@@ -191,7 +191,7 @@ onMounted(fetchRegions);
 <template>
   <AuthBase
     text-overlay="SIGN UP AND ENJOY FAST, SAFE, AND ECO-FRIENDLY RIDES WITH ERP E-TAXI."
-    title-registration="Create an account"
+    title-registration="Passenger Registration"
     :go-back-home-button="true"
     :user-type-name="userType.name"
   >
