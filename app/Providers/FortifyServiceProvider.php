@@ -69,7 +69,13 @@ class FortifyServiceProvider extends ServiceProvider
         ]));
 
         Fortify::registerView(function () {
-            $paymentOptions = PaymentOption::all();
+            $paymentOptions = PaymentOption::all()->map(function ($option) {
+                return [
+                    'id' => $option->id,
+                    'label' => $option->name, // This can be any field you want to display
+                    'color' => $option->color ?? 'bg-blue-500', // Default color, can be set dynamically
+                ];
+            });
 
             return Inertia::render('auth/Register', [
                 'genderOptions' => Gender::options(),

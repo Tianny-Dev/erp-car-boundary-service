@@ -3,6 +3,7 @@
 namespace App\Actions\Fortify;
 
 use App\Models\User;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
@@ -18,7 +19,13 @@ class CreateNewUser implements CreatesNewUsers
      */
     public function create(array $input): User
     {
-        dd($input);
+        try {
+            $userTypeId = Crypt::decryptString($input['user_type_id']);
+        } catch (\Exception $e) {
+            abort(403, 'Invalid user type.');
+        }
+
+        dd([$input, "User type id is $userTypeId"]);
 
         Validator::make($input, [
             'user_type_id' => ['required', 'exists:user_types,id'],

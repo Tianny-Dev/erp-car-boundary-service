@@ -1,0 +1,56 @@
+<?php
+
+use App\Enums\AccesibilityOption;
+use App\Enums\Gender;
+use App\Enums\Language;
+use App\Models\PaymentOption;
+use App\Models\UserType;
+use Illuminate\Support\Facades\Crypt;
+use Inertia\Inertia;
+
+Route::get('/select-user-type', function () {
+    $userTypes = UserType::whereNotIn('name', ['super_admin', 'manager'])
+        ->get()
+        ->map(fn($type) => [
+            'name' => $type->name,
+            'encrypted_id' => Crypt::encryptString($type->id),
+    ]);
+
+    return Inertia::render('auth/SelectUserType', [
+        'userTypes' => $userTypes,
+    ]);
+})->name('select-user-type');
+
+Route::get('/register/{user_type}', function ($user_type) {
+    try {
+        $userTypeId = Crypt::decryptString($user_type);
+    } catch (\Exception $e) {
+        abort(403, 'Invalid user type.');
+    }
+
+    $userType = UserType::where('name', '!=', 'super_admin')->findOrFail($userTypeId);
+
+    $paymentOptions = PaymentOption::all()->map(function ($option) {
+        return [
+            'id' => $option->id,
+            'label' => $option->name,
+            'color' => $option->color ?? 'bg-blue-500',
+        ];
+    });
+
+    return Inertia::render('auth/Register', [
+        'userType' => [
+            'name' => $userType->name,
+            'encrypted_id' => Crypt::encryptString($userType->id),
+        ],
+        'genderOptions' => Gender::options(),
+        'preferredLanguages' => Language::options(),
+        'accessibilityOptions' => AccesibilityOption::options(),
+        'paymentOptions' => $paymentOptions,
+    ]);
+})->name('register.dynamic');
+
+Route::get('/register', function () {
+    return redirect('select-user-type');
+});
+
