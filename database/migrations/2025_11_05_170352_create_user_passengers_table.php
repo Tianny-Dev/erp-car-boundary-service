@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('status_id')->constrained('statuses')->onDelete('restrict');
             $table->foreignId('payment_option_id')->constrained('payment_options')->onDelete('restrict');
             $table->enum('preferred_language', ['English', 'Filipino', 'Others'])->default('English');
-            $table->enum('accssibility_option', ['Normal', 'Wheelchair Access', 'Pet-Friendly Ride'])->default('Normal');
+            $table->enum('accessibility_option', ['Normal', 'Wheelchair Access', 'Pet-Friendly Ride'])->default('Normal');
             $table->date('birth_date');
             $table->unsignedTinyInteger('age');
             $table->timestamps();

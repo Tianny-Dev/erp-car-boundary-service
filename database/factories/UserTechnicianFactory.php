@@ -15,7 +15,7 @@ class UserTechnicianFactory extends Factory
         $expertises = ['Mechanical', 'Electrical', 'Battery'];
         $idTypes = ['National ID', 'Passport', 'Driver License', 'Voter ID', 'Unified Multi-Purpose ID', 'TIN ID'];
         $genders = ['Male', 'Female', 'Other', 'Prefer not to say'];
-        
+
         $birthDate = fake()->dateTimeBetween('-60 years', '-20 years');
 
         return [
@@ -29,7 +29,6 @@ class UserTechnicianFactory extends Factory
             'front_valid_id_picture' => fake()->imageUrl(640, 480, 'id', true),
             'back_valid_id_picture' => fake()->imageUrl(640, 480, 'id', true),
             'cv_attachment' => fake()->imageUrl(640, 480, 'document', true),
-            'gender' => fake()->randomElement($genders),
             'birth_date' => $birthDate,
             'age' => Carbon::parse($birthDate)->age,
         ];
