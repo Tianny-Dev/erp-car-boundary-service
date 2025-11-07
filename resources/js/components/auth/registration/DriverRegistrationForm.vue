@@ -541,7 +541,7 @@ onMounted(fetchRegions);
                 'flex-1',
                 selectedShift === shift
                   ? 'bg-auth-blue hover:bg-blue-700'
-                  : 'border-gray-300 hover:bg-gray-50',
+                  : 'border-gray-300 bg-sky-100 hover:bg-gray-50',
               ]"
             >
               {{ shift }}
