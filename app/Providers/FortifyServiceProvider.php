@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Enums\Gender;
+use App\Models\PaymentOption;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -68,8 +69,11 @@ class FortifyServiceProvider extends ServiceProvider
         ]));
 
         Fortify::registerView(function () {
+            $paymentOptions = PaymentOption::all();
+
             return Inertia::render('auth/Register', [
                 'genderOptions' => Gender::options(),
+                'paymentOptions' => $paymentOptions,
             ]);
         });
 

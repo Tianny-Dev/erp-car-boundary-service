@@ -4,6 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { store } from '@/routes/register';
@@ -19,10 +26,11 @@ import {
   IdCard,
   Lock,
   Mail,
+  MapPin,
   PhoneCall,
   User,
 } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 
 defineProps<{
   genderOptions: { value: string; label: string }[];
@@ -109,6 +117,75 @@ const goToStep = (step: number) => {
     currentStep.value = step;
   }
 };
+
+// State
+const regions = ref<any[]>([]);
+const provinces = ref<any[]>([]);
+const cities = ref<any[]>([]);
+const barangays = ref<any[]>([]);
+
+const selectedRegion = ref('');
+const selectedProvince = ref('');
+const selectedCity = ref('');
+const selectedBarangay = ref('');
+
+async function fetchRegions() {
+  const res = await fetch('https://psgc.gitlab.io/api/regions/');
+  regions.value = await res.json();
+}
+
+async function fetchProvinces(regionCode: string) {
+  const res = await fetch(
+    `https://psgc.gitlab.io/api/regions/${regionCode}/provinces/`,
+  );
+  provinces.value = await res.json();
+}
+
+async function fetchCities(provinceCode: string) {
+  const res = await fetch(
+    `https://psgc.gitlab.io/api/provinces/${provinceCode}/cities-municipalities/`,
+  );
+  cities.value = await res.json();
+}
+
+async function fetchBarangays(cityCode: string) {
+  const res = await fetch(
+    `https://psgc.gitlab.io/api/cities-municipalities/${cityCode}/barangays/`,
+  );
+  barangays.value = await res.json();
+}
+
+// When the user selects a region by name, find its code to fetch provinces
+watch(selectedRegion, async (name) => {
+  const region = regions.value.find((r) => r.name === name);
+  selectedProvince.value = '';
+  selectedCity.value = '';
+  selectedBarangay.value = '';
+  provinces.value = [];
+  cities.value = [];
+  barangays.value = [];
+  if (region) await fetchProvinces(region.code);
+});
+
+// When province is selected by name, fetch its cities
+watch(selectedProvince, async (name) => {
+  const province = provinces.value.find((p) => p.name === name);
+  selectedCity.value = '';
+  selectedBarangay.value = '';
+  cities.value = [];
+  barangays.value = [];
+  if (province) await fetchCities(province.code);
+});
+
+// When city is selected by name, fetch its barangays
+watch(selectedCity, async (name) => {
+  const city = cities.value.find((c) => c.name === name);
+  selectedBarangay.value = '';
+  barangays.value = [];
+  if (city) await fetchBarangays(city.code);
+});
+
+onMounted(fetchRegions);
 </script>
 
 <template>
@@ -131,558 +208,575 @@ const goToStep = (step: number) => {
       </h1>
 
       <!-- Step 1: Personal Information -->
-      <div v-if="currentStep === 1" class="space-y-4">
-        <div class="grid gap-2">
-          <Label for="name" class="text-auth-blue">Full Name</Label>
-          <div
-            class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
-          >
-            <div class="flex items-center justify-center bg-auth-blue px-3">
-              <User class="h-5 w-5 text-white" />
-            </div>
-            <Input
-              id="name"
-              type="text"
-              name="name"
-              required
-              autofocus
-              autocomplete="name"
-              placeholder="Juan Delacruz"
-              class="flex-1 border-0 focus-visible:ring-0"
-            />
+      <!-- <div v-if="currentStep === 1" class="space-y-4"> -->
+      <div class="grid gap-2">
+        <Label for="name" class="text-auth-blue">Full Name</Label>
+        <div
+          class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
+        >
+          <div class="flex items-center justify-center bg-auth-blue px-3">
+            <User class="h-5 w-5 text-white" />
           </div>
-          <InputError :message="errors.name" />
+          <Input
+            id="name"
+            type="text"
+            name="name"
+            required
+            autofocus
+            autocomplete="name"
+            placeholder="Juan Delacruz"
+            class="flex-1 border-0 focus-visible:ring-0"
+          />
         </div>
-
-        <div class="flex flex-wrap items-end gap-3">
-          <!-- Date of Birth -->
-          <div class="flex min-w-[200px] flex-1 flex-col">
-            <Label for="birthday" class="mb-1 text-auth-blue"
-              >Date of Birth</Label
-            >
-            <div class="flex overflow-hidden rounded-md border border-gray-300">
-              <div class="flex items-center justify-center bg-auth-blue px-3">
-                <Calendar class="h-5 w-5 text-white" />
-              </div>
-              <Input
-                id="birthday"
-                type="date"
-                name="birthday"
-                v-model="birthday"
-                :max="new Date().toISOString().split('T')[0]"
-                autocomplete="bday"
-                class="flex-1 border-0 focus-visible:ring-0"
-              />
-            </div>
-            <InputError :message="errors.birthday" />
-          </div>
-
-          <!-- Age -->
-          <div class="flex w-24 flex-col">
-            <Label for="age" class="mb-1 text-auth-blue">Age</Label>
-            <div
-              class="flex h-10 w-full items-center justify-center rounded-md border border-gray-300 bg-gray-50 text-lg font-bold text-auth-blue"
-            >
-              {{ calculatedAge !== null ? calculatedAge : '00' }}
-            </div>
-          </div>
-        </div>
-
-        <div class="grid gap-2">
-          <Label for="gender" class="text-auth-blue">Gender</Label>
-          <select
-            id="gender"
-            name="gender"
-            v-model="selectedGender"
-            class="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-auth-blue focus-visible:ring-2 focus-visible:ring-auth-blue focus-visible:ring-offset-2 focus-visible:outline-none"
-          >
-            <option value="" disabled>Select your gender</option>
-            <option
-              v-for="option in genderOptions"
-              :key="option.value"
-              :value="option.value"
-            >
-              {{ option.label }}
-            </option>
-          </select>
-          <InputError :message="errors.gender" />
-        </div>
-
-        <div class="grid gap-2">
-          <Label for="address" class="text-auth-blue">Home Address</Label>
-          <div
-            class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
-          >
-            <div class="flex items-center justify-center bg-auth-blue px-3">
-              <Home class="h-5 w-5 text-white" />
-            </div>
-            <Input
-              id="address"
-              type="text"
-              name="address"
-              required
-              autocomplete="address"
-              placeholder="123 St. Barangay City"
-              class="flex-1 border-0 focus-visible:ring-0"
-            />
-          </div>
-          <InputError :message="errors.address" />
-        </div>
+        <InputError :message="errors.name" />
       </div>
 
-      <!-- Step 2: Account Details -->
-      <div v-if="currentStep === 2" class="space-y-4">
-        <div class="grid gap-2">
-          <Label for="phone_number" class="text-auth-blue">Phone Number</Label>
-          <div
-            class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
+      <div class="flex flex-wrap items-end gap-3">
+        <!-- Date of Birth -->
+        <div class="flex min-w-[200px] flex-1 flex-col">
+          <Label for="birthday" class="mb-1 text-auth-blue"
+            >Date of Birth</Label
           >
-            <div class="flex items-center justify-center bg-auth-blue px-3">
-              <PhoneCall class="h-5 w-5 text-white" />
-            </div>
-            <Input
-              id="phone_number"
-              type="tel"
-              name="phone_number"
-              required
-              autocomplete="phone"
-              placeholder="639123456789"
-              class="flex-1 border-0 focus-visible:ring-0"
-            />
-          </div>
-          <InputError :message="errors.phone_number" />
-        </div>
-
-        <div class="grid gap-2">
-          <Label for="email" class="text-auth-blue">Email Address</Label>
-          <div
-            class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
-          >
-            <div class="flex items-center justify-center bg-auth-blue px-3">
-              <Mail class="h-5 w-5 text-white" />
-            </div>
-            <Input
-              id="email"
-              type="email"
-              name="email"
-              required
-              autocomplete="email"
-              placeholder="email@example.com"
-              class="flex-1 border-0 focus-visible:ring-0"
-            />
-          </div>
-          <InputError :message="errors.email" />
-        </div>
-
-        <div class="grid gap-2">
-          <Label for="licence_number" class="text-auth-blue"
-            >Driver's License Number</Label
-          >
-          <div
-            class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
-          >
-            <div class="flex items-center justify-center bg-auth-blue px-3">
-              <IdCard class="h-5 w-5 text-white" />
-            </div>
-            <Input
-              id="licence_number"
-              type="text"
-              name="licence_number"
-              required
-              autocomplete="licence_number"
-              placeholder="Driver's License Number"
-              class="flex-1 border-0 focus-visible:ring-0"
-            />
-          </div>
-          <InputError :message="errors.licence_number" />
-        </div>
-
-        <div class="grid gap-2">
-          <Label for="license_expiry_date" class="text-auth-blue"
-            >License Expiry Date</Label
-          >
-          <div
-            class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
-          >
+          <div class="flex overflow-hidden rounded-md border border-gray-300">
             <div class="flex items-center justify-center bg-auth-blue px-3">
               <Calendar class="h-5 w-5 text-white" />
             </div>
             <Input
-              id="license_expiry_date"
+              id="birthday"
               type="date"
-              name="license_expiry_date"
+              name="birthday"
               v-model="birthday"
               :max="new Date().toISOString().split('T')[0]"
-              autocomplete="license_expiry_date"
+              autocomplete="bday"
               class="flex-1 border-0 focus-visible:ring-0"
             />
           </div>
-          <InputError :message="errors.license_expiry_date" />
+          <InputError :message="errors.birthday" />
+        </div>
+
+        <!-- Age -->
+        <div class="flex w-24 flex-col">
+          <Label for="age" class="mb-1 text-auth-blue">Age</Label>
+          <div
+            class="flex h-10 w-full items-center justify-center rounded-md border border-gray-300 bg-gray-50 text-lg font-bold text-auth-blue"
+          >
+            {{ calculatedAge !== null ? calculatedAge : '00' }}
+          </div>
         </div>
       </div>
+
+      <div class="grid gap-2">
+        <Label for="gender" class="text-auth-blue">Gender</Label>
+        <select
+          id="gender"
+          name="gender"
+          v-model="selectedGender"
+          class="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-auth-blue focus-visible:ring-2 focus-visible:ring-auth-blue focus-visible:ring-offset-2 focus-visible:outline-none"
+        >
+          <option value="" disabled>Select your gender</option>
+          <option
+            v-for="option in genderOptions"
+            :key="option.value"
+            :value="option.value"
+          >
+            {{ option.label }}
+          </option>
+        </select>
+        <InputError :message="errors.gender" />
+      </div>
+
+      <!-- Region -->
+      <div class="grid gap-2">
+        <Label for="region" class="text-auth-blue">Region</Label>
+        <div
+          class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
+        >
+          <div class="flex items-center justify-center bg-auth-blue px-3">
+            <MapPin class="h-5 w-5 text-white" />
+          </div>
+          <Select v-model="selectedRegion" name="region">
+            <SelectTrigger class="flex-1 border-0 focus-visible:ring-0">
+              <SelectValue placeholder="Select Region" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="r in regions" :key="r.code" :value="r.name">
+                {{ r.name }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <InputError :message="errors?.region" />
+      </div>
+
+      <!-- Province -->
+      <div class="grid gap-2" v-if="provinces.length">
+        <Label for="province" class="text-auth-blue">Province</Label>
+        <div
+          class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
+        >
+          <div class="flex items-center justify-center bg-auth-blue px-3">
+            <MapPin class="h-5 w-5 text-white" />
+          </div>
+          <Select v-model="selectedProvince" name="province">
+            <SelectTrigger class="flex-1 border-0 focus-visible:ring-0">
+              <SelectValue placeholder="Select Province" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="p in provinces" :key="p.code" :value="p.name">
+                {{ p.name }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <InputError :message="errors?.province" />
+      </div>
+
+      <!-- City / Municipality -->
+      <div class="grid gap-2" v-if="cities.length">
+        <Label for="city" class="text-auth-blue">City / Municipality</Label>
+        <div
+          class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
+        >
+          <div class="flex items-center justify-center bg-auth-blue px-3">
+            <MapPin class="h-5 w-5 text-white" />
+          </div>
+          <Select v-model="selectedCity" name="city">
+            <SelectTrigger class="flex-1 border-0 focus-visible:ring-0">
+              <SelectValue placeholder="Select City / Municipality" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="c in cities" :key="c.code" :value="c.name">
+                {{ c.name }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <InputError :message="errors?.city" />
+      </div>
+
+      <!-- Barangay -->
+      <div class="grid gap-2" v-if="barangays.length">
+        <Label for="barangay" class="text-auth-blue">Barangay</Label>
+        <div
+          class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
+        >
+          <div class="flex items-center justify-center bg-auth-blue px-3">
+            <MapPin class="h-5 w-5 text-white" />
+          </div>
+          <Select v-model="selectedBarangay" name="barangay">
+            <SelectTrigger class="flex-1 border-0 focus-visible:ring-0">
+              <SelectValue placeholder="Select Barangay" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="b in barangays" :key="b.code" :value="b.name">
+                {{ b.name }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <InputError :message="errors?.barangay" />
+      </div>
+
+      <div class="grid gap-2">
+        <Label for="address" class="text-auth-blue">Home Address</Label>
+        <div
+          class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
+        >
+          <div class="flex items-center justify-center bg-auth-blue px-3">
+            <Home class="h-5 w-5 text-white" />
+          </div>
+          <Input
+            id="address"
+            type="text"
+            name="address"
+            required
+            autocomplete="address"
+            placeholder="123 St. Barangay City"
+            class="flex-1 border-0 focus-visible:ring-0"
+          />
+        </div>
+        <InputError :message="errors.address" />
+      </div>
+      <!-- </div> -->
+
+      <!-- Step 2: Account Details -->
+      <!-- <div v-if="currentStep === 2" class="space-y-4"> -->
+      <div class="grid gap-2">
+        <Label for="phone_number" class="text-auth-blue">Phone Number</Label>
+        <div
+          class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
+        >
+          <div class="flex items-center justify-center bg-auth-blue px-3">
+            <PhoneCall class="h-5 w-5 text-white" />
+          </div>
+          <Input
+            id="phone_number"
+            type="tel"
+            name="phone_number"
+            required
+            autocomplete="phone"
+            placeholder="639123456789"
+            class="flex-1 border-0 focus-visible:ring-0"
+          />
+        </div>
+        <InputError :message="errors.phone_number" />
+      </div>
+
+      <div class="grid gap-2">
+        <Label for="email" class="text-auth-blue">Email Address</Label>
+        <div
+          class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
+        >
+          <div class="flex items-center justify-center bg-auth-blue px-3">
+            <Mail class="h-5 w-5 text-white" />
+          </div>
+          <Input
+            id="email"
+            type="email"
+            name="email"
+            required
+            autocomplete="email"
+            placeholder="email@example.com"
+            class="flex-1 border-0 focus-visible:ring-0"
+          />
+        </div>
+        <InputError :message="errors.email" />
+      </div>
+
+      <div class="grid gap-2">
+        <Label for="licence_number" class="text-auth-blue"
+          >Driver's License Number</Label
+        >
+        <div
+          class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
+        >
+          <div class="flex items-center justify-center bg-auth-blue px-3">
+            <IdCard class="h-5 w-5 text-white" />
+          </div>
+          <Input
+            id="licence_number"
+            type="text"
+            name="licence_number"
+            required
+            autocomplete="licence_number"
+            placeholder="Driver's License Number"
+            class="flex-1 border-0 focus-visible:ring-0"
+          />
+        </div>
+        <InputError :message="errors.licence_number" />
+      </div>
+
+      <div class="grid gap-2">
+        <Label for="license_expiry_date" class="text-auth-blue"
+          >License Expiry Date</Label
+        >
+        <div
+          class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
+        >
+          <div class="flex items-center justify-center bg-auth-blue px-3">
+            <Calendar class="h-5 w-5 text-white" />
+          </div>
+          <Input
+            id="license_expiry_date"
+            type="date"
+            name="license_expiry_date"
+            v-model="birthday"
+            :max="new Date().toISOString().split('T')[0]"
+            autocomplete="license_expiry_date"
+            class="flex-1 border-0 focus-visible:ring-0"
+          />
+        </div>
+        <InputError :message="errors.license_expiry_date" />
+      </div>
+      <!-- </div> -->
 
       <!-- Step 3: Contact Information -->
-      <div v-if="currentStep === 3" class="space-y-4">
-        <div class="grid gap-2">
-          <Label for="phone" class="text-auth-blue">Phone Number</Label>
-          <div class="flex gap-2">
-            <Button
-              v-for="shift in shifts"
-              :key="shift"
-              :variant="selectedShift === shift ? 'default' : 'outline'"
-              @click="selectedShift = shift"
-              :class="[
-                'flex-1',
-                selectedShift === shift
-                  ? 'bg-auth-blue hover:bg-blue-700'
-                  : 'border-gray-300 hover:bg-gray-50',
-              ]"
-            >
-              {{ shift }}
-            </Button>
-          </div>
-          <InputError :message="errors.phone" />
+      <!-- <div v-if="currentStep === 3" class="space-y-4"> -->
+      <div class="grid gap-2">
+        <Label for="shift" class="text-auth-blue">Preferred Shift</Label>
+        <div class="flex gap-2">
+          <Button
+            v-for="shift in shifts"
+            :key="shift"
+            type="button"
+            :variant="selectedShift === shift ? 'default' : 'outline'"
+            @click="selectedShift = shift"
+            :class="[
+              'flex-1',
+              selectedShift === shift
+                ? 'bg-auth-blue hover:bg-blue-700'
+                : 'border-gray-300 hover:bg-gray-50',
+            ]"
+          >
+            {{ shift }}
+          </Button>
         </div>
+        <InputError :message="errors.shift" />
 
-        <div class="grid gap-2">
-          <Label for="address" class="text-auth-blue">Address</Label>
-          <div class="grid grid-cols-2 gap-2">
-            <Button
-              v-for="payout in payouts"
-              :key="payout.id"
-              variant="default"
-              @click="selectedPayout = payout.id"
-              :class="[
-                payout.color,
-                'relative h-12 text-base font-semibold text-white hover:opacity-90',
-                selectedPayout === payout.id
-                  ? 'ring-2 ring-auth-blue ring-offset-2'
-                  : '',
-              ]"
-            >
-              {{ payout.label }}
-            </Button>
-          </div>
-          <InputError :message="errors.address" />
-        </div>
+        <input type="hidden" name="shift" :value="selectedShift" />
       </div>
+
+      <div class="grid gap-2">
+        <Label for="payout" class="text-auth-blue">Preffered Payout</Label>
+        <div class="grid grid-cols-2 gap-2">
+          <Button
+            v-for="payout in payouts"
+            :key="payout.id"
+            type="button"
+            variant="default"
+            @click="selectedPayout = payout.id"
+            :class="[
+              payout.color,
+              'relative h-12 text-base font-semibold text-white hover:opacity-90',
+              selectedPayout === payout.id
+                ? 'ring-2 ring-auth-blue ring-offset-2'
+                : '',
+            ]"
+          >
+            {{ payout.label }}
+          </Button>
+        </div>
+        <InputError :message="errors.payout" />
+        <input type="hidden" name="payout_method" :value="selectedPayout" />
+      </div>
+      <!-- </div> -->
 
       <!-- Step 4: Additional Details -->
-      <div v-if="currentStep === 4" class="space-y-4">
-        <!-- Driver's License -->
-        <div class="space-y-3">
-          <Label class="text-base font-semibold text-auth-blue"
-            >Driver's License</Label
-          >
+      <!-- <div v-if="currentStep === 4" class="space-y-4"> -->
+      <!-- Driver's License -->
+      <div class="space-y-3">
+        <Label class="text-base font-semibold text-auth-blue"
+          >Driver's License</Label
+        >
 
-          <div class="grid grid-cols-2 gap-3">
-            <!-- Front -->
-            <div>
-              <Label class="mb-2 block text-sm text-gray-600">Front</Label>
-              <div
-                class="relative flex h-24 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 transition-colors hover:bg-gray-100"
-                @click="
-                  !driverLicenseFront &&
-                  ($refs.licenseFrontInput as HTMLInputElement)?.click()
-                "
-              >
-                <input
-                  ref="licenseFrontInput"
-                  type="file"
-                  accept="image/*"
-                  class="hidden"
-                  @change="handleFileUpload($event, driverLicenseFront)"
-                />
+        <div class="grid grid-cols-2 gap-3">
+          <!-- Front -->
+          <div>
+            <Label class="mb-2 block text-sm text-gray-600">Front</Label>
+            <div
+              class="relative flex h-24 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 transition-colors hover:bg-gray-100"
+              @click="
+                !driverLicenseFront &&
+                ($refs.licenseFrontInput as HTMLInputElement)?.click()
+              "
+            >
+              <input
+                ref="licenseFrontInput"
+                type="file"
+                name="front_license_picture"
+                accept="image/*"
+                class="hidden"
+                @change="handleFileUpload($event, driverLicenseFront)"
+              />
 
-                <template v-if="!driverLicenseFront">
-                  <Upload class="mb-1 h-6 w-6 text-auth-blue" />
-                  <span class="text-xs font-medium text-auth-blue"
-                    >Front +</span
-                  >
-                </template>
+              <template v-if="!driverLicenseFront">
+                <Upload class="mb-1 h-6 w-6 text-auth-blue" />
+                <span class="text-xs font-medium text-auth-blue">Front +</span>
+              </template>
 
-                <template v-else>
-                  <div class="flex items-center gap-2">
-                    <FileText class="h-5 w-5 text-auth-blue" />
-                    <span class="max-w-[100px] truncate text-xs text-gray-700">
-                      {{ driverLicenseFront.name }}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    @click.stop="removeFile(driverLicenseFront)"
-                    class="absolute top-1 right-1 rounded-full bg-red-500 p-1 text-white hover:bg-red-600"
-                  >
-                    <X class="h-3 w-3" />
-                  </button>
-                </template>
-              </div>
-            </div>
-
-            <!-- Back -->
-            <div>
-              <Label class="mb-2 block text-sm text-gray-600">Back</Label>
-              <div
-                class="relative flex h-24 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 transition-colors hover:bg-gray-100"
-                @click="
-                  !driverLicenseBack &&
-                  ($refs.licenseBackInput as HTMLInputElement)?.click()
-                "
-              >
-                <input
-                  ref="licenseBackInput"
-                  type="file"
-                  accept="image/*"
-                  class="hidden"
-                  @change="handleFileUpload($event, driverLicenseBack)"
-                />
-
-                <template v-if="!driverLicenseBack">
-                  <Upload class="mb-1 h-6 w-6 text-auth-blue" />
-                  <span class="text-xs font-medium text-auth-blue">Back +</span>
-                </template>
-
-                <template v-else>
-                  <div class="flex items-center gap-2">
-                    <FileText class="h-5 w-5 text-auth-blue" />
-                    <span class="max-w-[100px] truncate text-xs text-gray-700">
-                      {{ driverLicenseBack.name }}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    @click.stop="removeFile(driverLicenseBack)"
-                    class="absolute top-1 right-1 rounded-full bg-red-500 p-1 text-white hover:bg-red-600"
-                  >
-                    <X class="h-3 w-3" />
-                  </button>
-                </template>
-              </div>
+              <template v-else>
+                <div class="flex items-center gap-2">
+                  <FileText class="h-5 w-5 text-auth-blue" />
+                  <span class="max-w-[100px] truncate text-xs text-gray-700">
+                    {{ driverLicenseFront.name }}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  @click.stop="removeFile(driverLicenseFront)"
+                  class="absolute top-1 right-1 rounded-full bg-red-500 p-1 text-white hover:bg-red-600"
+                >
+                  <X class="h-3 w-3" />
+                </button>
+              </template>
             </div>
           </div>
-        </div>
 
-        <!-- NBI or Police Clearance -->
-        <div class="grid gap-2">
-          <Label for="clearance" class="text-auth-blue"
-            >NBI or Police Clearance</Label
-          >
-          <div
-            class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
-          >
-            <div class="flex items-center justify-center bg-auth-blue px-3">
-              <File class="h-5 w-5 text-white" />
-            </div>
-            <Input
-              id="clearance"
-              type="file"
-              name="clearance"
-              required
-              autocomplete="nbi"
-              class="flex-1 border-0 focus-visible:ring-0"
-            />
-          </div>
-          <InputError :message="errors.clearance" />
-        </div>
+          <!-- Back -->
+          <div>
+            <Label class="mb-2 block text-sm text-gray-600">Back</Label>
+            <div
+              class="relative flex h-24 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 transition-colors hover:bg-gray-100"
+              @click="
+                !driverLicenseBack &&
+                ($refs.licenseBackInput as HTMLInputElement)?.click()
+              "
+            >
+              <input
+                ref="licenseBackInput"
+                type="file"
+                name="back_license_picture"
+                accept="image/*"
+                class="hidden"
+                @change="handleFileUpload($event, driverLicenseBack)"
+              />
 
-        <!-- 1x1 Photo / Selfie -->
-        <div class="grid gap-2">
-          <Label for="photo" class="text-auth-blue">1x1 Photo/Selfie</Label>
-          <div
-            class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
-          >
-            <div class="flex items-center justify-center bg-auth-blue px-3">
-              <File class="h-5 w-5 text-white" />
+              <template v-if="!driverLicenseBack">
+                <Upload class="mb-1 h-6 w-6 text-auth-blue" />
+                <span class="text-xs font-medium text-auth-blue">Back +</span>
+              </template>
+
+              <template v-else>
+                <div class="flex items-center gap-2">
+                  <FileText class="h-5 w-5 text-auth-blue" />
+                  <span class="max-w-[100px] truncate text-xs text-gray-700">
+                    {{ driverLicenseBack.name }}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  @click.stop="removeFile(driverLicenseBack)"
+                  class="absolute top-1 right-1 rounded-full bg-red-500 p-1 text-white hover:bg-red-600"
+                >
+                  <X class="h-3 w-3" />
+                </button>
+              </template>
             </div>
-            <Input
-              id="photo"
-              type="file"
-              name="photo"
-              required
-              autocomplete="nbi"
-              class="flex-1 border-0 focus-visible:ring-0"
-            />
           </div>
-          <InputError :message="errors.photo" />
         </div>
       </div>
+
+      <!-- NBI or Police Clearance -->
+      <div class="grid gap-2">
+        <Label for="nbi_clearance" class="text-auth-blue"
+          >NBI or Police Clearance</Label
+        >
+        <div
+          class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
+        >
+          <div class="flex items-center justify-center bg-auth-blue px-3">
+            <File class="h-5 w-5 text-white" />
+          </div>
+          <Input
+            id="nbi_clearance"
+            type="file"
+            name="nbi_clearance"
+            required
+            autocomplete="nbi"
+            class="flex-1 border-0 focus-visible:ring-0"
+          />
+        </div>
+        <InputError :message="errors.nbi_clearance" />
+      </div>
+
+      <!-- 1x1 Photo / Selfie -->
+      <div class="grid gap-2">
+        <Label for="selfie_picture" class="text-auth-blue"
+          >1x1 Photo/Selfie</Label
+        >
+        <div
+          class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
+        >
+          <div class="flex items-center justify-center bg-auth-blue px-3">
+            <File class="h-5 w-5 text-white" />
+          </div>
+          <Input
+            id="selfie_picture"
+            type="file"
+            name="selfie_picture"
+            required
+            autocomplete="nbi"
+            class="flex-1 border-0 focus-visible:ring-0"
+          />
+        </div>
+        <InputError :message="errors.selfie_picture" />
+      </div>
+      <!-- </div> -->
 
       <!-- Step 5: Review -->
-      <div v-if="currentStep === 5" class="space-y-4">
-        <div class="grid gap-2">
-          <Label for="password" class="text-auth-blue">Password</Label>
-          <div
-            class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
-          >
-            <div class="flex items-center justify-center bg-auth-blue px-3">
-              <Lock class="h-5 w-5 text-white" />
-            </div>
-
-            <div class="relative w-full items-center">
-              <Input
-                id="password"
-                :type="showPassword ? 'text' : 'password'"
-                name="password"
-                required
-                autocomplete="new-password"
-                placeholder="Password"
-                class="flex-1 border-0 focus-visible:ring-0"
-              />
-
-              <button
-                type="button"
-                class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700"
-                @click="showPassword = !showPassword"
-              >
-                <Eye v-if="!showPassword" class="h-5 w-5" />
-                <EyeOff v-else class="h-5 w-5" />
-              </button>
-            </div>
+      <!-- <div v-if="currentStep === 5" class="space-y-4"> -->
+      <div class="grid gap-2">
+        <Label for="password" class="text-auth-blue">Password</Label>
+        <div
+          class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
+        >
+          <div class="flex items-center justify-center bg-auth-blue px-3">
+            <Lock class="h-5 w-5 text-white" />
           </div>
-          <InputError :message="errors.password" />
-        </div>
 
-        <div class="grid gap-2">
-          <Label for="password_confirmation" class="text-auth-blue"
-            >Confirm Password</Label
-          >
-          <div
-            class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
-          >
-            <div class="flex items-center justify-center bg-auth-blue px-3">
-              <Lock class="h-5 w-5 text-white" />
-            </div>
+          <div class="relative w-full items-center">
+            <Input
+              id="password"
+              :type="showPassword ? 'text' : 'password'"
+              name="password"
+              required
+              autocomplete="new-password"
+              placeholder="Password"
+              class="flex-1 border-0 focus-visible:ring-0"
+            />
 
-            <div class="relative w-full items-center">
-              <Input
-                id="password_confirmation"
-                :type="showConfirmPassword ? 'text' : 'password'"
-                name="password_confirmation"
-                required
-                autocomplete="new-password"
-                placeholder="Confirm Password"
-                class="flex-1 border-0 focus-visible:ring-0"
-              />
-
-              <button
-                type="button"
-                class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700"
-                @click="showConfirmPassword = !showConfirmPassword"
-              >
-                <Eye v-if="!showConfirmPassword" class="h-5 w-5" />
-                <EyeOff v-else class="h-5 w-5" />
-              </button>
-            </div>
-          </div>
-          <InputError :message="errors.password_confirmation" />
-        </div>
-
-        <div class="items-top flex gap-x-2">
-          <Checkbox id="terms1" />
-          <div class="grid gap-1.5 leading-none">
-            <label
-              for="terms1"
-              class="text-xs leading-none font-normal text-auth-blue peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            <button
+              type="button"
+              class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700"
+              @click="showPassword = !showPassword"
             >
-              I Agree to the Driver Terms and Code of Conduct
-            </label>
+              <Eye v-if="!showPassword" class="h-5 w-5" />
+              <EyeOff v-else class="h-5 w-5" />
+            </button>
           </div>
         </div>
-
-        <div class="items-top flex gap-x-2">
-          <Checkbox id="terms2" />
-          <div class="grid gap-1.5 leading-none">
-            <label
-              for="terms1"
-              class="text-xs leading-none font-normal text-auth-blue peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-            >
-              I consent to GPS tracking during active trips
-            </label>
-          </div>
-        </div>
-
-        <!-- <div class="space-y-4 rounded-lg bg-gray-50 p-4">
-          <h3 class="mb-3 font-semibold text-auth-blue">
-            Please review your information
-          </h3>
-
-          <div class="space-y-3">
-            <div class="flex items-start gap-3 border-b border-gray-200 pb-3">
-              <User class="mt-0.5 h-5 w-5 flex-shrink-0 text-auth-blue" />
-              <div class="flex-1">
-                <p class="text-xs font-medium text-gray-500 uppercase">
-                  Personal
-                </p>
-                <p class="mt-1 text-sm text-gray-900">
-                  {{ (store.form() as any).name || 'Not provided' }}
-                </p>
-                <p class="text-sm text-gray-600">
-                  @{{ (store.form() as any).username || 'username' }}
-                </p>
-                <p v-if="birthday" class="text-sm text-gray-600">
-                  Born: {{ new Date(birthday).toLocaleDateString() }}
-                  <span class="font-medium"
-                    >({{ calculatedAge }} years old)</span
-                  >
-                </p>
-                <p v-if="selectedGender" class="text-sm text-gray-600">
-                  Gender:
-                  {{
-                    genderOptions.find((g) => g.value === selectedGender)?.label
-                  }}
-                </p>
-              </div>
-            </div>
-
-            <div class="flex items-start gap-3 border-b border-gray-200 pb-3">
-              <Mail class="mt-0.5 h-5 w-5 flex-shrink-0 text-auth-blue" />
-              <div class="flex-1">
-                <p class="text-xs font-medium text-gray-500 uppercase">
-                  Account
-                </p>
-                <p class="mt-1 text-sm text-gray-900">
-                  {{ (store.form() as any).email || 'Not provided' }}
-                </p>
-                <p class="text-sm text-gray-600">Password: ••••••••</p>
-              </div>
-            </div>
-
-            <div class="flex items-start gap-3 border-b border-gray-200 pb-3">
-              <MapPin class="mt-0.5 h-5 w-5 flex-shrink-0 text-auth-blue" />
-              <div class="flex-1">
-                <p class="text-xs font-medium text-gray-500 uppercase">
-                  Contact
-                </p>
-                <p class="mt-1 text-sm text-gray-900">
-                  {{ (store.form() as any).phone || 'Not provided' }}
-                </p>
-                <p class="text-sm text-gray-600">
-                  {{ (store.form() as any).address || 'No address' }}
-                </p>
-                <p class="text-sm text-gray-600">
-                  {{ (store.form() as any).city || '' }}
-                  {{ (store.form() as any).postal_code || '' }}
-                </p>
-              </div>
-            </div>
-
-            <div class="flex items-start gap-3">
-              <Building class="mt-0.5 h-5 w-5 flex-shrink-0 text-auth-blue" />
-              <div class="flex-1">
-                <p class="text-xs font-medium text-gray-500 uppercase">
-                  Professional
-                </p>
-                <p class="mt-1 text-sm text-gray-900">
-                  {{ (store.form() as any).job_title || 'Not specified' }}
-                </p>
-                <p class="text-sm text-gray-600">
-                  {{ (store.form() as any).company || 'No company' }}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div> -->
+        <InputError :message="errors.password" />
       </div>
+
+      <div class="grid gap-2">
+        <Label for="password_confirmation" class="text-auth-blue"
+          >Confirm Password</Label
+        >
+        <div
+          class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
+        >
+          <div class="flex items-center justify-center bg-auth-blue px-3">
+            <Lock class="h-5 w-5 text-white" />
+          </div>
+
+          <div class="relative w-full items-center">
+            <Input
+              id="password_confirmation"
+              :type="showConfirmPassword ? 'text' : 'password'"
+              name="password_confirmation"
+              required
+              autocomplete="new-password"
+              placeholder="Confirm Password"
+              class="flex-1 border-0 focus-visible:ring-0"
+            />
+
+            <button
+              type="button"
+              class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700"
+              @click="showConfirmPassword = !showConfirmPassword"
+            >
+              <Eye v-if="!showConfirmPassword" class="h-5 w-5" />
+              <EyeOff v-else class="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+        <InputError :message="errors.password_confirmation" />
+      </div>
+
+      <div class="items-top flex gap-x-2">
+        <Checkbox id="terms1" />
+        <div class="grid gap-1.5 leading-none">
+          <label
+            for="terms1"
+            class="text-xs leading-none font-normal text-auth-blue peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
+            I Agree to the Driver Terms and Code of Conduct
+          </label>
+        </div>
+      </div>
+
+      <div class="items-top flex gap-x-2">
+        <Checkbox id="terms2" />
+        <div class="grid gap-1.5 leading-none">
+          <label
+            for="terms1"
+            class="text-xs leading-none font-normal text-auth-blue peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
+            I consent to GPS tracking during active trips
+          </label>
+        </div>
+      </div>
+      <!-- </div> -->
 
       <!-- Navigation Buttons -->
       <div class="mt-4 flex gap-3">

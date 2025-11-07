@@ -18,6 +18,8 @@ class CreateNewUser implements CreatesNewUsers
      */
     public function create(array $input): User
     {
+        dd($input);
+
         Validator::make($input, [
             'user_type_id' => ['required', 'exists:user_types,id'],
             'name' => ['required', 'string', 'max:255'],
