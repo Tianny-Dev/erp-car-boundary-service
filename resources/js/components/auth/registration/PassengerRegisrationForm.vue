@@ -21,9 +21,7 @@ import {
   ChevronRight,
   Eye,
   EyeOff,
-  File,
   Home,
-  IdCard,
   Lock,
   Mail,
   MapPin,
@@ -34,6 +32,8 @@ import { computed, onMounted, ref, watch } from 'vue';
 
 defineProps<{
   genderOptions: { value: string; label: string }[];
+  preferredLanguages: { value: string; label: string }[];
+  accessibilityOptions: { value: string; label: string }[];
   paymentOptions: {
     id: string;
     label: string;
@@ -48,28 +48,13 @@ defineProps<{
 const showPassword = ref(false);
 const showConfirmPassword = ref(false);
 const currentStep = ref(1);
-const totalSteps = 5;
+const totalSteps = 4;
 const birthday = ref('');
 const selectedGender = ref('');
 
-const selectedShift = ref('Morning');
+const selectedLanguage = ref('');
+const selectedAccessibilityOptions = ref('');
 const selectedPayout = ref('cash');
-const shifts = ['Morning', 'Evening', 'Night'];
-
-// File uploads
-const driverLicenseFront = ref<File | null>(null);
-const driverLicenseBack = ref<File | null>(null);
-
-const handleFileUpload = (event: Event, fileRef: any) => {
-  const target = event.target as HTMLInputElement;
-  if (target.files && target.files[0]) {
-    fileRef.value = target.files[0];
-  }
-};
-
-const removeFile = (fileRef: any) => {
-  fileRef.value = null;
-};
 
 // Calculate age from birthday
 const calculatedAge = computed(() => {
@@ -92,10 +77,9 @@ const calculatedAge = computed(() => {
 
 const stepTitles: Record<number, string> = {
   1: 'Basic Information',
-  2: 'Account Details',
-  3: 'Work Details',
-  4: 'Work Details',
-  5: 'Account Security',
+  2: 'Home Address',
+  3: 'Preferences',
+  4: 'Account Security',
 };
 
 const canProceed = computed(() => {
@@ -206,12 +190,12 @@ onMounted(fetchRegions);
 
 <template>
   <AuthBase
-    text-overlay="PLEASE FILL OUT THE FORM TO REGISTER AS A DRIVER UNDER ERP SYSTEM FOR CAR BOUNDARY SERVICE -PHILIPPINES. YOUR FRANCHISE WILL VERIFY YOUR ACCOUNT."
+    text-overlay="SIGN UP AND ENJOY FAST, SAFE, AND ECO-FRIENDLY RIDES WITH ERP E-TAXI."
     title-registration="Create an account"
     :go-back-home-button="true"
     :user-type-name="userType.name"
   >
-    <Head title="Driver Registration" />
+    <Head title="Passenger Registration" />
 
     <Form
       v-bind="store.form()"
@@ -249,6 +233,68 @@ onMounted(fetchRegions);
           <InputError :message="errors.name" />
         </div>
 
+        <div class="grid gap-2">
+          <Label for="phone" class="text-auth-blue">Phone Number</Label>
+          <div
+            class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
+          >
+            <div class="flex items-center justify-center bg-auth-blue px-3">
+              <PhoneCall class="h-5 w-5 text-white" />
+            </div>
+            <Input
+              id="phone"
+              type="tel"
+              name="phone"
+              required
+              autocomplete="phone"
+              placeholder="639123456789"
+              class="flex-1 border-0 focus-visible:ring-0"
+            />
+          </div>
+          <InputError :message="errors.phone" />
+        </div>
+
+        <div class="grid gap-2">
+          <Label for="email" class="text-auth-blue">Email Address</Label>
+          <div
+            class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
+          >
+            <div class="flex items-center justify-center bg-auth-blue px-3">
+              <Mail class="h-5 w-5 text-white" />
+            </div>
+            <Input
+              id="email"
+              type="email"
+              name="email"
+              required
+              autocomplete="email"
+              placeholder="email@example.com"
+              class="flex-1 border-0 focus-visible:ring-0"
+            />
+          </div>
+          <InputError :message="errors.email" />
+        </div>
+
+        <div class="grid gap-2">
+          <Label for="gender" class="text-auth-blue">Gender</Label>
+          <select
+            id="gender"
+            name="gender"
+            v-model="selectedGender"
+            class="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-auth-blue focus-visible:ring-2 focus-visible:ring-auth-blue focus-visible:ring-offset-2 focus-visible:outline-none"
+          >
+            <option value="" disabled>Select your gender</option>
+            <option
+              v-for="option in genderOptions"
+              :key="option.value"
+              :value="option.value"
+            >
+              {{ option.label }}
+            </option>
+          </select>
+          <InputError :message="errors.gender" />
+        </div>
+
         <div class="flex flex-wrap items-end gap-3">
           <!-- Date of Birth -->
           <div class="flex min-w-[200px] flex-1 flex-col">
@@ -282,27 +328,10 @@ onMounted(fetchRegions);
             </div>
           </div>
         </div>
+      </div>
 
-        <div class="grid gap-2">
-          <Label for="gender" class="text-auth-blue">Gender</Label>
-          <select
-            id="gender"
-            name="gender"
-            v-model="selectedGender"
-            class="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-auth-blue focus-visible:ring-2 focus-visible:ring-auth-blue focus-visible:ring-offset-2 focus-visible:outline-none"
-          >
-            <option value="" disabled>Select your gender</option>
-            <option
-              v-for="option in genderOptions"
-              :key="option.value"
-              :value="option.value"
-            >
-              {{ option.label }}
-            </option>
-          </select>
-          <InputError :message="errors.gender" />
-        </div>
-
+      <!-- Step 2: Account Details -->
+      <div v-show="currentStep === 2" class="space-y-4">
         <!-- Region -->
         <div class="grid gap-2">
           <Label for="region" class="text-auth-blue">Region</Label>
@@ -435,127 +464,12 @@ onMounted(fetchRegions);
         </div>
       </div>
 
-      <!-- Step 2: Account Details -->
-      <div v-show="currentStep === 2" class="space-y-4">
-        <div class="grid gap-2">
-          <Label for="phone" class="text-auth-blue">Phone Number</Label>
-          <div
-            class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
-          >
-            <div class="flex items-center justify-center bg-auth-blue px-3">
-              <PhoneCall class="h-5 w-5 text-white" />
-            </div>
-            <Input
-              id="phone"
-              type="tel"
-              name="phone"
-              required
-              autocomplete="phone"
-              placeholder="639123456789"
-              class="flex-1 border-0 focus-visible:ring-0"
-            />
-          </div>
-          <InputError :message="errors.phone" />
-        </div>
-
-        <div class="grid gap-2">
-          <Label for="email" class="text-auth-blue">Email Address</Label>
-          <div
-            class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
-          >
-            <div class="flex items-center justify-center bg-auth-blue px-3">
-              <Mail class="h-5 w-5 text-white" />
-            </div>
-            <Input
-              id="email"
-              type="email"
-              name="email"
-              required
-              autocomplete="email"
-              placeholder="email@example.com"
-              class="flex-1 border-0 focus-visible:ring-0"
-            />
-          </div>
-          <InputError :message="errors.email" />
-        </div>
-
-        <div class="grid gap-2">
-          <Label for="licence_number" class="text-auth-blue"
-            >Driver's License Number</Label
-          >
-          <div
-            class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
-          >
-            <div class="flex items-center justify-center bg-auth-blue px-3">
-              <IdCard class="h-5 w-5 text-white" />
-            </div>
-            <Input
-              id="licence_number"
-              type="text"
-              name="licence_number"
-              required
-              autocomplete="licence_number"
-              placeholder="Driver's License Number"
-              class="flex-1 border-0 focus-visible:ring-0"
-            />
-          </div>
-          <InputError :message="errors.licence_number" />
-        </div>
-
-        <div class="grid gap-2">
-          <Label for="license_expiry_date" class="text-auth-blue"
-            >License Expiry Date</Label
-          >
-          <div
-            class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
-          >
-            <div class="flex items-center justify-center bg-auth-blue px-3">
-              <Calendar class="h-5 w-5 text-white" />
-            </div>
-            <Input
-              id="license_expiry_date"
-              type="date"
-              name="license_expiry_date"
-              v-model="birthday"
-              :max="new Date().toISOString().split('T')[0]"
-              autocomplete="license_expiry_date"
-              class="flex-1 border-0 focus-visible:ring-0"
-            />
-          </div>
-          <InputError :message="errors.license_expiry_date" />
-        </div>
-      </div>
-
-      <!-- Step 3: Contact Information -->
+      <!-- Step 3: Preferences -->
       <div v-show="currentStep === 3" class="space-y-4">
+        <!-- Payment Option -->
         <div class="grid gap-2">
-          <Label for="shift" class="text-auth-blue">Preferred Shift</Label>
-          <div class="flex gap-2">
-            <Button
-              v-for="shift in shifts"
-              :key="shift"
-              type="button"
-              :variant="selectedShift === shift ? 'default' : 'outline'"
-              @click="selectedShift = shift"
-              :class="[
-                'flex-1',
-                selectedShift === shift
-                  ? 'bg-auth-blue hover:bg-blue-700'
-                  : 'border-gray-300 hover:bg-gray-50',
-              ]"
-            >
-              {{ shift }}
-            </Button>
-          </div>
-          <InputError :message="errors.shift" />
-
-          <input type="hidden" name="shift" :value="selectedShift" />
-        </div>
-
-        <div class="grid gap-2">
-          <Label for="payout" class="text-auth-blue">Preferred Payout</Label>
+          <Label for="payout" class="text-auth-blue">Payment Option</Label>
           <div class="grid grid-cols-2 gap-2">
-            <!-- Loop through paymentOptions and display a button for each -->
             <Button
               v-for="payout in paymentOptions"
               :key="payout.id"
@@ -580,154 +494,76 @@ onMounted(fetchRegions);
             :value="selectedPayout"
           />
         </div>
+
+        <!-- Preferred Language -->
+        <div class="grid gap-2">
+          <Label for="preferred-language" class="text-auth-blue">
+            Preferred Language
+          </Label>
+          <div class="flex gap-2">
+            <Button
+              v-for="language in preferredLanguages"
+              :key="language.value"
+              type="button"
+              :variant="
+                selectedLanguage === language.value ? 'default' : 'outline'
+              "
+              @click="selectedLanguage = language.value"
+              :class="[
+                'flex-1',
+                selectedLanguage === language.value
+                  ? 'bg-auth-blue text-white hover:bg-blue-700'
+                  : 'border-gray-300 bg-sky-100 text-gray-700 hover:bg-gray-50',
+              ]"
+            >
+              {{ language.label }}
+            </Button>
+          </div>
+          <InputError :message="errors.language" />
+          <input
+            type="hidden"
+            name="preferred_language"
+            :value="selectedLanguage"
+          />
+        </div>
+
+        <!-- Accessibility Options -->
+        <div class="grid gap-2">
+          <Label for="accessibility-option" class="text-auth-blue">
+            Accessibility Options
+          </Label>
+          <div class="flex flex-col gap-2">
+            <Button
+              v-for="option in accessibilityOptions"
+              :key="option.value"
+              type="button"
+              :variant="
+                selectedAccessibilityOptions === option.value
+                  ? 'default'
+                  : 'outline'
+              "
+              @click="selectedAccessibilityOptions = option.value"
+              :class="[
+                'flex-1',
+                selectedAccessibilityOptions === option.value
+                  ? 'bg-auth-blue text-white hover:bg-blue-700'
+                  : 'border-gray-300 bg-sky-100 text-gray-700 hover:bg-gray-50',
+              ]"
+            >
+              {{ option.label }}
+            </Button>
+          </div>
+          <InputError :message="errors.accessibility_option" />
+          <input
+            type="hidden"
+            name="accessibility_option"
+            :value="selectedAccessibilityOptions"
+          />
+        </div>
       </div>
 
-      <!-- Step 4: Additional Details -->
+      <!-- Step 4: Security -->
       <div v-show="currentStep === 4" class="space-y-4">
-        <!-- Driver's License -->
-        <div class="space-y-3">
-          <Label class="text-base font-semibold text-auth-blue"
-            >Driver's License</Label
-          >
-
-          <div class="grid grid-cols-2 gap-3">
-            <!-- Front -->
-            <div>
-              <Label class="mb-2 block text-sm text-gray-600">Front</Label>
-              <div
-                class="relative flex h-24 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 transition-colors hover:bg-gray-100"
-                @click="
-                  !driverLicenseFront &&
-                  ($refs.licenseFrontInput as HTMLInputElement)?.click()
-                "
-              >
-                <input
-                  ref="licenseFrontInput"
-                  type="file"
-                  name="front_license_picture"
-                  accept="image/*"
-                  class="hidden"
-                  @change="handleFileUpload($event, driverLicenseFront)"
-                />
-
-                <template v-if="!driverLicenseFront">
-                  <Upload class="mb-1 h-6 w-6 text-auth-blue" />
-                  <span class="text-xs font-medium text-auth-blue"
-                    >Front +</span
-                  >
-                </template>
-
-                <template v-else>
-                  <div class="flex items-center gap-2">
-                    <FileText class="h-5 w-5 text-auth-blue" />
-                    <span class="max-w-[100px] truncate text-xs text-gray-700">
-                      {{ driverLicenseFront.name }}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    @click.stop="removeFile(driverLicenseFront)"
-                    class="absolute top-1 right-1 rounded-full bg-red-500 p-1 text-white hover:bg-red-600"
-                  >
-                    <X class="h-3 w-3" />
-                  </button>
-                </template>
-              </div>
-            </div>
-
-            <!-- Back -->
-            <div>
-              <Label class="mb-2 block text-sm text-gray-600">Back</Label>
-              <div
-                class="relative flex h-24 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 transition-colors hover:bg-gray-100"
-                @click="
-                  !driverLicenseBack &&
-                  ($refs.licenseBackInput as HTMLInputElement)?.click()
-                "
-              >
-                <input
-                  ref="licenseBackInput"
-                  type="file"
-                  name="back_license_picture"
-                  accept="image/*"
-                  class="hidden"
-                  @change="handleFileUpload($event, driverLicenseBack)"
-                />
-
-                <template v-if="!driverLicenseBack">
-                  <Upload class="mb-1 h-6 w-6 text-auth-blue" />
-                  <span class="text-xs font-medium text-auth-blue">Back +</span>
-                </template>
-
-                <template v-else>
-                  <div class="flex items-center gap-2">
-                    <FileText class="h-5 w-5 text-auth-blue" />
-                    <span class="max-w-[100px] truncate text-xs text-gray-700">
-                      {{ driverLicenseBack.name }}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    @click.stop="removeFile(driverLicenseBack)"
-                    class="absolute top-1 right-1 rounded-full bg-red-500 p-1 text-white hover:bg-red-600"
-                  >
-                    <X class="h-3 w-3" />
-                  </button>
-                </template>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- NBI or Police Clearance -->
-        <div class="grid gap-2">
-          <Label for="nbi_clearance" class="text-auth-blue"
-            >NBI or Police Clearance</Label
-          >
-          <div
-            class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
-          >
-            <div class="flex items-center justify-center bg-auth-blue px-3">
-              <File class="h-5 w-5 text-white" />
-            </div>
-            <Input
-              id="nbi_clearance"
-              type="file"
-              name="nbi_clearance"
-              required
-              autocomplete="nbi"
-              class="flex-1 border-0 focus-visible:ring-0"
-            />
-          </div>
-          <InputError :message="errors.nbi_clearance" />
-        </div>
-
-        <!-- 1x1 Photo / Selfie -->
-        <div class="grid gap-2">
-          <Label for="selfie_picture" class="text-auth-blue"
-            >1x1 Photo/Selfie</Label
-          >
-          <div
-            class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
-          >
-            <div class="flex items-center justify-center bg-auth-blue px-3">
-              <File class="h-5 w-5 text-white" />
-            </div>
-            <Input
-              id="selfie_picture"
-              type="file"
-              name="selfie_picture"
-              required
-              autocomplete="nbi"
-              class="flex-1 border-0 focus-visible:ring-0"
-            />
-          </div>
-          <InputError :message="errors.selfie_picture" />
-        </div>
-      </div>
-
-      <!-- Step 5: Review -->
-      <div v-show="currentStep === 5" class="space-y-4">
         <div class="grid gap-2">
           <Label for="password" class="text-auth-blue">Password</Label>
           <div
