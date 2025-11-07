@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Branch extends Model
 {
@@ -41,5 +42,41 @@ class Branch extends Model
     public function technicians(): BelongsToMany
     {
         return $this->belongsToMany(UserTechnician::class);
+    }
+
+    // relationship to expenses, one to many
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(Expense::class);
+    }
+
+    // relationship to revenues, one to many
+    public function revenues(): HasMany
+    {
+        return $this->hasMany(Revenue::class);
+    }
+
+    // relationship to boundary contracts, one to many
+    public function boundaryContracts(): HasMany
+    {
+        return $this->hasMany(BoundaryContract::class);
+    }
+
+    // relationship to vehicles, one to many
+    public function vehicles(): HasMany
+    {
+        return $this->hasMany(Vehicle::class);
+    }
+
+    // relationship to violations, one to many
+    public function violations(): HasMany
+    {
+        return $this->hasMany(Violation::class);
+    }
+
+    // relationship to maintenances, one to many
+    public function maintenances(): HasMany
+    {
+        return $this->hasMany(Maintenance::class);
     }
 }

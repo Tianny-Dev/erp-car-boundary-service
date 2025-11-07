@@ -2,10 +2,14 @@
 
 use App\Models\User;
 use Database\Seeders\UserTypeSeeder;
+use Database\Seeders\StatusSeeder;
+use Database\Seeders\PaymentOptionSeeder;
 use Illuminate\Support\Facades\Hash;
 
 beforeEach(function () {
     $this->seed(UserTypeSeeder::class);
+    $this->seed(StatusSeeder::class);
+    $this->seed(PaymentOptionSeeder::class);
 });
 
 test('password update page is displayed', function () {

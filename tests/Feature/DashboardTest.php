@@ -2,9 +2,13 @@
 
 use App\Models\User;
 use Database\Seeders\UserTypeSeeder;
+use Database\Seeders\StatusSeeder;
+use Database\Seeders\PaymentOptionSeeder;
 
 beforeEach(function () {
     $this->seed(UserTypeSeeder::class);
+    $this->seed(StatusSeeder::class);
+    $this->seed(PaymentOptionSeeder::class);
 });
 
 test('guests are redirected to the login page', function () {

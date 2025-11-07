@@ -7,17 +7,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class UserPassenger extends Model
+class Route extends Model
 {
     use HasFactory;
 
     // protected $fillable = [];
-
-    // relationship to user, one to one
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'id');
-    }
 
     // relationship to status, one to many
     public function status(): BelongsTo
@@ -25,10 +19,16 @@ class UserPassenger extends Model
         return $this->belongsTo(Status::class);
     }
 
-    // relationship to payment option, one to many
-    public function paymentOption(): BelongsTo
+    // relationship to driver, one to many
+    public function driver(): BelongsTo
     {
-        return $this->belongsTo(PaymentOption::class);
+        return $this->belongsTo(UserDriver::class);
+    }
+
+    // relationship to vehicle, one to many
+    public function vehicle(): BelongsTo
+    {
+        return $this->belongsTo(Vehicle::class);
     }
 
     // relationship to ratings, one to many

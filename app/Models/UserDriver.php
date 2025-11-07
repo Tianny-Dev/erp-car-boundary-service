@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class UserDriver extends Model
 {
@@ -41,5 +42,29 @@ class UserDriver extends Model
     public function branches(): BelongsToMany
     {
         return $this->belongsToMany(Branch::class);
+    }
+
+    // relationship to vehicles, one to many
+    public function vehicles(): HasMany
+    {
+        return $this->hasMany(Vehicle::class);
+    }
+
+    // relationship to routes, one to many
+    public function routes(): HasMany
+    {
+        return $this->hasMany(Route::class);
+    }
+
+    // relationship to violations, one to many
+    public function violations(): HasMany
+    {
+        return $this->hasMany(Violation::class);
+    }
+
+    // relationship to ratings, one to many
+    public function ratings(): HasMany
+    {
+        return $this->hasMany(Rating::class);
     }
 }

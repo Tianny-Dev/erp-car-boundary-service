@@ -35,4 +35,16 @@ class PaymentOption extends Model
     {
         return $this->hasMany(Branch::class);
     }
+
+    // relationship to expenses, one to many
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(Expense::class);
+    }
+
+    // relationship to revenues, one to many
+    public function revenues(): HasMany
+    {
+        return $this->hasMany(Revenue::class);
+    }
 }

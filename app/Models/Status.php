@@ -54,4 +54,45 @@ class Status extends Model
         return $this->hasMany(Branch::class);
     }
 
+    // relationship to expenses, one to many
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(Expense::class);
+    }
+
+    // relationship to revenues, one to many
+    public function revenues(): HasMany
+    {
+        return $this->hasMany(Revenue::class);
+    }
+
+    // relationship to boundary contracts, one to many
+    public function boundaryContracts(): HasMany
+    {
+        return $this->hasMany(BoundaryContract::class);
+    }
+
+    // relationship to vehicles, one to many
+    public function vehicles(): HasMany
+    {
+        return $this->hasMany(Vehicle::class);
+    }
+
+    // relationship to routes, one to many
+    public function routes(): HasMany
+    {
+        return $this->hasMany(Route::class);
+    }
+
+    // relationship to violations, one to many
+    public function violations(): HasMany
+    {
+        return $this->hasMany(Violation::class);
+    }
+
+    // relationship to maintenances, one to many
+    public function maintenances(): HasMany
+    {
+        return $this->hasMany(Maintenance::class);
+    }
 }

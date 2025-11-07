@@ -1,9 +1,13 @@
 <?php
 
 use Database\Seeders\UserTypeSeeder;
+use Database\Seeders\StatusSeeder;
+use Database\Seeders\PaymentOptionSeeder;
 
 beforeEach(function () {
     $this->seed(UserTypeSeeder::class);
+    $this->seed(StatusSeeder::class);
+    $this->seed(PaymentOptionSeeder::class);
 });
 
 test('registration screen can be rendered', function () {

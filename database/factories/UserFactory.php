@@ -2,6 +2,12 @@
 
 namespace Database\Factories;
 
+use App\Models\User;
+use App\Models\UserDriver;
+use App\Models\UserManager;
+use App\Models\UserOwner;
+use App\Models\UserPassenger;
+use App\Models\UserTechnician;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
@@ -55,5 +61,37 @@ class UserFactory extends Factory
             'two_factor_recovery_codes' => null,
             'two_factor_confirmed_at' => null,
         ]);
+    }
+
+    /**
+     * Configure the model factory.
+     *
+     * This is the new method you need to add.
+     */
+    public function configure(): static
+    {
+        return $this->afterCreating(function (User $user) {
+            // Use the User Type IDs from your UserTypeSeeder
+            switch ($user->user_type_id) {
+                case 1: // super_admin
+                    // Do nothing
+                    break;
+                case 2: // owner
+                    UserOwner::factory()->create(['id' => $user->id]);
+                    break;
+                case 3: // manager
+                    UserManager::factory()->create(['id' => $user->id]);
+                    break;
+                case 4: // driver
+                    UserDriver::factory()->create(['id' => $user->id]);
+                    break;
+                case 5: // technician
+                    UserTechnician::factory()->create(['id' => $user->id]);
+                    break;
+                case 6: // passenger
+                    UserPassenger::factory()->create(['id' => $user->id]);
+                    break;
+            }
+        });
     }
 }
