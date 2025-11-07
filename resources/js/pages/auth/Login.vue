@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import AuthBase from '@/layouts/AuthLayout.vue';
-import { home, register } from '@/routes';
+import { home, selectUserType } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 import { Form, Head, Link } from '@inertiajs/vue3';
@@ -144,7 +144,7 @@ const showPassword = ref(false);
 
       <div class="text-center text-sm text-muted-foreground" v-if="canRegister">
         Don't have an account?
-        <TextLink :href="register()" :tabindex="6">Sign up</TextLink>
+        <TextLink :href="selectUserType()" :tabindex="6">Sign up</TextLink>
       </div>
     </Form>
   </AuthBase>
