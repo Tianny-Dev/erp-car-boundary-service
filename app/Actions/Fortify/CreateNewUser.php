@@ -330,7 +330,7 @@ class CreateNewUser implements CreatesNewUsers
         return redirect()->route('technician.dashboard');
     }
 
-    protected function createOwner(array $input, int $userTypeId): RedirectResponse
+    protected function createOwner(array $input, int $userTypeId): User
     {
 
         // 1. Validation (Same as before)
@@ -434,8 +434,8 @@ class CreateNewUser implements CreatesNewUsers
         });
 
         // 3. Return the created user
-        // return $user;
-        return redirect()->route('owner.dashboard');
+        return $user;
+        // return redirect()->route('owner.dashboard');
     }
 
     protected function createDefault(array $input, int $userTypeId): ?User
