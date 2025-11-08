@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import NavUser from '@/components/NavUser.vue';
-
 import {
   Sidebar,
   SidebarContent,
@@ -13,89 +12,162 @@ import {
 import { dashboard } from '@/routes';
 import finance from '@/routes/finance';
 import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import {
   BarChart3,
   Bell,
+  Clock,
   DollarSign,
   FileSpreadsheet,
   FileText,
   HelpCircle,
   LayoutGrid,
+  Settings,
+  Wrench,
 } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import NavMain from './NavMain.vue';
 
-// const page = usePage();
-// const user = page.props.auth.user;
+// 🧠 1. Get the logged-in user
+const page = usePage();
+const user = page.props.auth.user;
 
-const allNavItems: NavItem[] = [
-  {
-    title: 'Dashboard',
-    href: finance.dashboard(),
-    icon: LayoutGrid,
-    group: 'Overview',
-  },
-  {
-    title: 'Notifications',
-    href: finance.notifications(),
-    icon: Bell,
-    group: 'Overview',
-  },
+// 🧭 2. Map user_type_id to role name
+const typeMap: Record<number, string> = {
+  1: 'super_admin',
+  2: 'owner',
+  3: 'manager',
+  4: 'driver',
+  5: 'technician',
+  6: 'passenger',
+};
 
-  {
-    title: 'Boundary Contracts',
-    href: finance.boundaryContracts(),
-    icon: FileText,
-    group: 'Operations',
-  },
-  {
-    title: 'Reports & Analytics',
-    href: finance.reportsAndAnalytics(),
-    icon: BarChart3,
-    group: 'Operations',
-  },
+const userType = typeMap[user?.user_type_id] || 'guest';
 
-  {
-    title: 'Revenue Management',
-    href: finance.revenueManagement(),
-    icon: DollarSign,
-    group: 'Finance',
-  },
-  {
-    title: 'Expense Management',
-    href: finance.expenseManagement(),
-    icon: FileSpreadsheet,
-    group: 'Finance',
-  },
+// 🧱 3. Define navigation sets per user type
+const navConfig: Record<string, NavItem[]> = {
+  super_admin: [
+    {
+      title: 'Dashboard',
+      href: finance.dashboard(),
+      icon: LayoutGrid,
+      group: 'Overview',
+    },
+    {
+      title: 'Settings',
+      href: finance.dashboard?.() ?? '/settings',
+      icon: Settings,
+      group: 'Admin',
+    },
+  ],
 
-  {
-    title: 'Support Center',
-    href: finance.supportCenter(),
-    icon: HelpCircle,
-    group: 'Support',
-  },
+  manager: [
+    {
+      title: 'Dashboard',
+      href: finance.dashboard(),
+      icon: LayoutGrid,
+      group: 'Overview',
+    },
+    {
+      title: 'Reports & Analytics',
+      href: finance.reportsAndAnalytics(),
+      icon: BarChart3,
+      group: 'Operations',
+    },
+    {
+      title: 'Revenue Management',
+      href: finance.revenueManagement(),
+      icon: DollarSign,
+      group: 'Finance',
+    },
+  ],
 
-  // This is still in progress
-  //   ...(user.role === 'admin'
-  //   ? [
-  //       {
-  //         title: 'Admin Panel',
-  //         href: '/admin',
-  //         icon: Shield,
-  //       },
-  //     ]
-  //   : []),
-  // ...(user.role === 'user'
-  //   ? [
-  //       {
-  //         title: 'Profile',
-  //         href: '/profile',
-  //         icon: User,
-  //       },
-  //     ]
-  //   : []),
-];
+  owner: [
+    {
+      title: 'Dashboard',
+      href: finance.dashboard(),
+      icon: LayoutGrid,
+      group: 'Overview',
+    },
+    {
+      title: 'Notifications',
+      href: finance.notifications(),
+      icon: Bell,
+      group: 'Overview',
+    },
+
+    {
+      title: 'Boundary Contracts',
+      href: finance.boundaryContracts(),
+      icon: FileText,
+      group: 'Operations',
+    },
+    {
+      title: 'Reports & Analytics',
+      href: finance.reportsAndAnalytics(),
+      icon: BarChart3,
+      group: 'Operations',
+    },
+
+    {
+      title: 'Revenue Management',
+      href: finance.revenueManagement(),
+      icon: DollarSign,
+      group: 'Finance',
+    },
+    {
+      title: 'Expense Management',
+      href: finance.expenseManagement(),
+      icon: FileSpreadsheet,
+      group: 'Finance',
+    },
+
+    {
+      title: 'Support Center',
+      href: finance.supportCenter(),
+      icon: HelpCircle,
+      group: 'Support',
+    },
+  ],
+
+  driver: [
+    {
+      title: 'Boundary Contracts',
+      href: finance.boundaryContracts(),
+      icon: FileText,
+      group: 'Operations',
+    },
+    {
+      title: 'Support Center',
+      href: finance.supportCenter(),
+      icon: HelpCircle,
+      group: 'Support',
+    },
+  ],
+
+  technician: [
+    {
+      title: 'Maintenance Logs',
+      href: '/maintenance/logs',
+      icon: Wrench,
+      group: 'Operations',
+    },
+  ],
+
+  passenger: [
+    {
+      title: 'Trip History',
+      href: '/trips/history',
+      icon: Clock,
+      group: 'Overview',
+    },
+  ],
+
+  guest: [], // fallback
+};
+
+// 🧩 4. Load the correct nav items for the user
+const allNavItems = navConfig[userType] || [];
 </script>
 
 <template>
@@ -117,9 +189,9 @@ const allNavItems: NavItem[] = [
     </SidebarContent>
 
     <SidebarFooter>
-      <!-- <NavFooter :items="footerNavItems" /> -->
       <NavUser />
     </SidebarFooter>
   </Sidebar>
+
   <slot />
 </template>

@@ -16,5 +16,9 @@ Route::get('dashboard', function () {
     ->name('dashboard');
 
 require __DIR__ . '/settings.php';
+require __DIR__ . '/driver.php';
+require __DIR__ . '/passenger.php';
+require __DIR__ . '/technician.php';
+require __DIR__ . '/owner.php';
 require __DIR__ . '/finance.php';
 require __DIR__ .'/auth.php';
