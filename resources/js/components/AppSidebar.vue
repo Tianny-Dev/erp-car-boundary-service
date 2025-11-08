@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import finance from '@/routes/finance';
+import superAdmin from '@/routes/super-admin';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import {
@@ -49,7 +50,7 @@ const navConfig: Record<string, NavItem[]> = {
   super_admin: [
     {
       title: 'Dashboard',
-      href: finance.dashboard(),
+      href: superAdmin.dashboard(),
       icon: LayoutGrid,
       group: 'Overview',
     },
