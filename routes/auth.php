@@ -9,6 +9,7 @@ use App\Models\PaymentOption;
 use App\Models\UserType;
 use Illuminate\Support\Facades\Crypt;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/select-user-type', function () {
     $userTypes = UserType::whereNotIn('name', ['super_admin', 'manager'])
@@ -34,7 +35,7 @@ Route::get('/register/{user_type}', function ($user_type) {
 
     $paymentOptions = PaymentOption::all()->map(function ($option) {
         return [
-            'id' => $option->id,
+            'id' => (string) $option->id,
             'label' => $option->name,
             'color' => $option->color ?? 'bg-blue-500',
         ];

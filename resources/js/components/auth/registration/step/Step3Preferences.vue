@@ -1,0 +1,206 @@
+<script setup lang="ts">
+import InputError from '@/components/InputError.vue';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { computed } from 'vue';
+
+// --- TYPES ---
+interface FieldNames {
+  paymentOption: string;
+  shift: string;
+  language: string;
+  accessibility: string;
+}
+interface Labels {
+  paymentOption: string;
+  shift: string;
+  language: string;
+  accessibility: string;
+}
+interface ShowFields {
+  paymentOption: boolean;
+  shift: boolean;
+  language: boolean;
+  accessibility: boolean;
+}
+
+// --- PROPS ---
+const props = defineProps<{
+  errors?: Record<string, string>;
+  // Data props
+  paymentOptions?: { id: string; label: string; color: string }[];
+  shifts?: string[]; // Assuming shifts is an array of strings like ['Morning', 'Night']
+  preferredLanguages?: { value: string; label: string }[];
+  accessibilityOptions?: { value: string; label: string }[];
+  // v-model props
+  selectedPayout?: string;
+  selectedShift?: string;
+  selectedLanguage?: string;
+  selectedAccessibilityOptions?: string;
+  // Customization props (all optional)
+  fieldNames?: Partial<FieldNames>;
+  labels?: Partial<Labels>;
+  showFields?: Partial<ShowFields>;
+}>();
+
+const emit = defineEmits([
+  'update:selectedPayout',
+  'update:selectedShift',
+  'update:selectedLanguage',
+  'update:selectedAccessibilityOptions',
+]);
+
+// --- DEFAULTS ---
+const defaultFieldNames: FieldNames = {
+  paymentOption: 'payment_option_id',
+  shift: 'shift',
+  language: 'language',
+  accessibility: 'accessibility_option',
+};
+const defaultLabels: Labels = {
+  paymentOption: 'Payment Option',
+  shift: 'Preferred Shift',
+  language: 'Preferred Language',
+  accessibility: 'Accessibility Options',
+};
+const defaultShowFields: ShowFields = {
+  paymentOption: true,
+  shift: true,
+  language: true,
+  accessibility: true,
+};
+
+// --- MERGED COMPUTEDS ---
+const fields = computed(() => ({ ...defaultFieldNames, ...props.fieldNames }));
+const labels = computed(() => ({ ...defaultLabels, ...props.labels }));
+const show = computed(() => ({ ...defaultShowFields, ...props.showFields }));
+
+// --- V-MODEL COMPUTEDS ---
+const computedPayout = computed<string | undefined>({
+  get: () => props.selectedPayout,
+  set: (value) => emit('update:selectedPayout', value),
+});
+const computedShift = computed<string | undefined>({
+  get: () => props.selectedShift,
+  set: (value) => emit('update:selectedShift', value),
+});
+const computedLanguage = computed<string | undefined>({
+  get: () => props.selectedLanguage,
+  set: (value) => emit('update:selectedLanguage', value),
+});
+const computedAccessibility = computed<string | undefined>({
+  get: () => props.selectedAccessibilityOptions,
+  set: (value) => emit('update:selectedAccessibilityOptions', value),
+});
+</script>
+
+<template>
+  <!-- PAYMENT OPTION -->
+  <div v-if="show.paymentOption" class="grid gap-2">
+    <Label :for="fields.paymentOption" class="text-auth-blue">{{
+      labels.paymentOption
+    }}</Label>
+    <div class="grid grid-cols-2 gap-2">
+      <Button
+        v-for="payout in paymentOptions"
+        :key="payout.id"
+        type="button"
+        variant="default"
+        @click="computedPayout = payout.id"
+        :class="[
+          payout.color,
+          'relative h-12 text-base font-semibold text-white hover:opacity-90',
+          computedPayout === payout.id
+            ? 'ring-2 ring-auth-blue ring-offset-2'
+            : '',
+        ]"
+      >
+        {{ payout.label }}
+      </Button>
+    </div>
+    <InputError :message="errors?.[fields.paymentOption]" />
+    <input type="hidden" :name="fields.paymentOption" :value="computedPayout" />
+  </div>
+
+  <!-- SHIFT -->
+  <div v-if="show.shift" class="grid gap-2">
+    <Label :for="fields.shift" class="text-auth-blue">{{ labels.shift }}</Label>
+    <div class="flex gap-2">
+      <Button
+        v-for="shift in shifts"
+        :key="shift"
+        type="button"
+        :variant="computedShift === shift ? 'default' : 'outline'"
+        @click="computedShift = shift"
+        :class="[
+          'flex-1',
+          computedShift === shift
+            ? 'bg-auth-blue hover:bg-blue-700'
+            : 'border-gray-300 bg-sky-100 hover:bg-gray-50',
+        ]"
+      >
+        {{ shift }}
+      </Button>
+    </div>
+    <InputError :message="errors?.[fields.shift]" />
+    <input type="hidden" :name="fields.shift" :value="computedShift" />
+  </div>
+
+  <!-- LANGUAGE -->
+  <div v-if="show.language" class="grid gap-2">
+    <Label :for="fields.language" class="text-auth-blue">{{
+      labels.language
+    }}</Label>
+    <div class="flex gap-2">
+      <Button
+        v-for="language in preferredLanguages"
+        :key="language.value"
+        type="button"
+        :variant="computedLanguage === language.value ? 'default' : 'outline'"
+        @click="computedLanguage = language.value"
+        :class="[
+          'flex-1',
+          computedLanguage === language.value
+            ? 'bg-auth-blue text-white hover:bg-blue-700'
+            : 'border-gray-300 bg-sky-100 text-gray-700 hover:bg-gray-50',
+        ]"
+      >
+        {{ language.label }}
+      </Button>
+    </div>
+    <InputError :message="errors?.[fields.language]" />
+    <input type="hidden" :name="fields.language" :value="computedLanguage" />
+  </div>
+
+  <!-- ACCESSIBILITY -->
+  <div v-if="show.accessibility" class="grid gap-2">
+    <Label :for="fields.accessibility" class="text-auth-blue">{{
+      labels.accessibility
+    }}</Label>
+    <div class="flex flex-col gap-2">
+      <Button
+        v-for="option in accessibilityOptions"
+        :key="option.value"
+        type="button"
+        :variant="
+          computedAccessibility === option.value ? 'default' : 'outline'
+        "
+        @click="computedAccessibility = option.value"
+        :class="[
+          'flex-1',
+          computedAccessibility === option.value
+            ? 'bg-auth-blue text-white hover:bg-blue-700'
+            : 'border-gray-300 bg-sky-100 text-gray-700 hover:bg-gray-50',
+        ]"
+      >
+        {{ option.label }}
+      </Button>
+    </div>
+    <InputError :message="errors?.[fields.accessibility]" />
+    <input
+      type="hidden"
+      :name="fields.accessibility"
+      :value="computedAccessibility"
+    />
+  </div>
+</template>
