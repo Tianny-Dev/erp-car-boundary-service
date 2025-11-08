@@ -8,6 +8,9 @@ use App\Models\User;
 use App\Models\UserDriver;
 use App\Models\UserPassenger;
 use App\Models\UserTechnician;
+use App\Models\Franchise;
+use App\Models\UserOwner;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
@@ -325,7 +328,109 @@ class CreateNewUser implements CreatesNewUsers
 
     protected function createOwner(array $input, int $userTypeId): User
     {
+        
+        // 1. Validation (Same as before)
+        Validator::make($input, [
+            'name' => ['required', 'string', 'max:255'],
+            'email' => [
+                'required', 'string', 'email', 'max:255',
+                Rule::unique(User::class),
+                Rule::unique('franchises', 'email')
+            ],
+            'phone' => [
+                'required', 'string', 'max:20',
+                Rule::unique(User::class),
+                Rule::unique('franchises', 'phone')
+            ],
+            'password' => $this->passwordRules(),
+            'gender' => ['required', 'string', Rule::in(['Male', 'Female', 'Other', 'Prefer not to say'])],
+            'home_region' => ['required', 'string', 'max:255'],
+            'home_province' => ['required', 'string', 'max:255'],
+            'home_city' => ['required', 'string', 'max:255'],
+            'home_barangay' => ['required', 'string', 'max:255'],
+            'home_postal_code' => ['required', 'string', 'max:20'],
+            'home_address' => ['required', 'string', 'max:255'],
+            'franchise_region' => ['required', 'string', 'max:255'],
+            'franchise_province' => ['required', 'string', 'max:255'],
+            'franchise_city' => ['required', 'string', 'max:255'],
+            'franchise_barangay' => ['required', 'string', 'max:255'],
+            'franchise_postal_code' => ['required', 'string', 'max:20'],
+            'franchise_address' => ['required', 'string', 'max:255'],
+            'payment_option_id' => ['required', Rule::exists('payment_options', 'id')],
+            'valid_id_type' => ['required', 'string', Rule::in(['National ID', 'Passport', 'Driver License', 'Voter ID', 'Unified Multi-Purpose ID', 'TIN ID'])],
+            'valid_id_number' => ['required', 'string', 'max:20', Rule::unique('user_owners', 'valid_id_number')],
+            'front_valid_id_picture' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+            'back_valid_id_picture' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+            'dti_certificate' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf,docx', 'max:5120'],
+            'mayor_permit' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf,docx', 'max:5120'],
+            'proof_capital' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf,docx', 'max:5120'],
+        ])->validate();
 
+        
+
+        // 2. Create Records in a Transaction
+        $user = DB::transaction(function () use ($input, $userTypeId) {
+            
+            // 'pending' status ID is 6, based on your provided seeder
+            $pendingStatusId = 6;
+
+            // 2a. Store all files
+            $frontIdPath = $input['front_valid_id_picture']->store('owner_ids', 'public');
+            $backIdPath = $input['back_valid_id_picture']->store('owner_ids', 'public');
+            $dtiPath = $input['dti_certificate']->store('franchise_documents', 'public');
+            $mayorPermitPath = $input['mayor_permit']->store('franchise_documents', 'public');
+            $proofAgreementPath = $input['proof_capital']->store('franchise_documents', 'public');
+
+            // 2b. Create User
+            $newUser = User::create([
+                'user_type_id' => $userTypeId,
+                'name' => $input['name'],
+                'email' => $input['email'],
+                'phone' => $input['phone'],
+                'password' => Hash::make($input['password']),
+                'gender' => $input['gender'],
+                'address' => $input['home_address'],
+                'region' => $input['home_region'],
+                'province' => $input['home_province'],
+                'city' => $input['home_city'],
+                'barangay' => $input['home_barangay'],
+                'postal_code' => $input['home_postal_code'],
+            ]);
+
+            // 2c. Create UserOwner
+            $userOwner = UserOwner::create([
+                'id' => $newUser->id, // Use the new user's ID
+                'status_id' => $pendingStatusId,
+                'valid_id_type' => $input['valid_id_type'],
+                'valid_id_number' => $input['valid_id_number'],
+                'front_valid_id_picture' => $frontIdPath,
+                'back_valid_id_picture' => $backIdPath,
+            ]);
+
+            // 2d. Create Franchise
+            Franchise::create([
+                'owner_id' => $userOwner->id, // Use the ID from the created owner
+                'status_id' => $pendingStatusId,
+                'payment_option_id' => $input['payment_option_id'],
+                'email' => $input['email'], // Same as user
+                'phone' => $input['phone'], // Same as user
+                'address' => $input['franchise_address'],
+                'region' => $input['franchise_region'],
+                'province' => $input['franchise_province'],
+                'city' => $input['franchise_city'],
+                'barangay' => $input['franchise_barangay'],
+                'postal_code' => $input['franchise_postal_code'],
+                'dti_registrarion_attachment' => $dtiPath,
+                'mayor_permit_attachment' => $mayorPermitPath,
+                'proof_agreement_attachment' => $proofAgreementPath,
+            ]);
+
+            // Return the new user from the closure
+            return $newUser;
+        });
+
+        // 3. Return the created user
+        return $user;
     }
 
     protected function createDefault(array $input, int $userTypeId): ?User

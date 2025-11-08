@@ -11,7 +11,33 @@ class UserOwner extends Model
 {
     use HasFactory;
 
-    // protected $fillable = [];
+    /**
+     * The primary key for the model.
+     *
+     * @var string
+     */
+    protected $primaryKey = 'id';
+
+    /**
+     * Indicates if the model's ID is auto-incrementing.
+     *
+     * @var bool
+     */
+    public $incrementing = false;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'id',
+        'status_id',
+        'valid_id_type',
+        'valid_id_number',
+        'front_valid_id_picture',
+        'back_valid_id_picture',
+    ];
 
     // relationship to user, one to one
     public function user(): BelongsTo

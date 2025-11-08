@@ -55,5 +55,6 @@ defineProps<{
     :gender-options="genderOptions"
     :payment-options="paymentOptions"
     :user-type="userType"
+    :id-types="idTypes"
   />
 </template>

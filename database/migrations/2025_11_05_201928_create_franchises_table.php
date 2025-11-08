@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('franchises', function (Blueprint $table) {
             $table->id();
             $table->foreignId('owner_id')->constrained('user_owners')->onDelete('restrict');
-            $table->foreignId('manager_id')->constrained('user_managers')->onDelete('restrict');
+            $table->foreignId('manager_id')->nullable()->constrained('user_managers')->onDelete('restrict');
             $table->foreignId('status_id')->constrained('statuses')->onDelete('restrict');
             $table->foreignId('payment_option_id')->constrained('payment_options')->onDelete('restrict');
             $table->string('email')->unique();

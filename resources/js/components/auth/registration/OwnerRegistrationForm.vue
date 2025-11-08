@@ -18,7 +18,6 @@ import { store } from '@/routes/register';
 import { Form, Head } from '@inertiajs/vue3';
 import {
   Building2,
-  Calendar,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -26,6 +25,7 @@ import {
   EyeOff,
   File,
   Home,
+  IdCard,
   Lock,
   Mail,
   MapPin,
@@ -36,6 +36,7 @@ import { computed, reactive, ref } from 'vue';
 
 defineProps<{
   genderOptions: { value: string; label: string }[];
+  idTypes: { value: string; label: string }[];
   paymentOptions: {
     id: string;
     label: string;
@@ -53,8 +54,22 @@ const currentStep = ref(1);
 const totalSteps = 6;
 const birthday = ref('');
 const selectedGender = ref('');
-
+const selectedIdType = ref('');
 const selectedPayout = ref('cash');
+
+const validIdFront = ref<File | null>(null);
+const validIdBack = ref<File | null>(null);
+
+const handleFileUpload = (event: Event, fileRef: any) => {
+  const target = event.target as HTMLInputElement;
+  if (target.files && target.files[0]) {
+    fileRef.value = target.files[0];
+  }
+};
+
+const removeFile = (fileRef: any) => {
+  fileRef.value = null;
+};
 
 // Calculate age from birthday
 const calculatedAge = computed(() => {
@@ -216,40 +231,6 @@ const franchiseAddress = reactive(useAddress());
             </option>
           </select>
           <InputError :message="errors.gender" />
-        </div>
-
-        <div class="flex flex-wrap items-end gap-3">
-          <!-- Date of Birth -->
-          <div class="flex min-w-[200px] flex-1 flex-col">
-            <Label for="birthday" class="mb-1 text-auth-blue"
-              >Date of Birth</Label
-            >
-            <div class="flex overflow-hidden rounded-md border border-gray-300">
-              <div class="flex items-center justify-center bg-auth-blue px-3">
-                <Calendar class="h-5 w-5 text-white" />
-              </div>
-              <Input
-                id="birthday"
-                type="date"
-                name="birthday"
-                v-model="birthday"
-                :max="new Date().toISOString().split('T')[0]"
-                autocomplete="bday"
-                class="flex-1 border-0 focus-visible:ring-0"
-              />
-            </div>
-            <InputError :message="errors.birthday" />
-          </div>
-
-          <!-- Age -->
-          <div class="flex w-24 flex-col">
-            <Label for="age" class="mb-1 text-auth-blue">Age</Label>
-            <div
-              class="flex h-10 w-full items-center justify-center rounded-md border border-gray-300 bg-gray-50 text-lg font-bold text-auth-blue"
-            >
-              {{ calculatedAge !== null ? calculatedAge : '00' }}
-            </div>
-          </div>
         </div>
       </div>
 
@@ -420,6 +401,31 @@ const franchiseAddress = reactive(useAddress());
           <InputError :message="errors?.home_barangay" />
         </div>
 
+        <!-- Home Postal Code -->
+        <div class="grid gap-2">
+          <Label for="home_postal_code" class="text-auth-blue"
+            >Postal Code (home)</Label
+          >
+          <div
+            class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
+          >
+            <div class="flex items-center justify-center bg-auth-blue px-3">
+              <MapPin class="h-5 w-5 text-white" />
+            </div>
+            <Input
+              id="home_postal_code"
+              type="number"
+              name="home_postal_code"
+              required
+              autofocus
+              autocomplete="home_postal_code"
+              placeholder="2009"
+              class="flex-1 border-0 focus-visible:ring-0"
+            />
+          </div>
+          <InputError :message="errors.home_postal_code" />
+        </div>
+
         <!-- Home Address -->
         <div class="grid gap-2">
           <Label for="home_address" class="text-auth-blue">Home Address</Label>
@@ -454,7 +460,10 @@ const franchiseAddress = reactive(useAddress());
             <div class="flex items-center justify-center bg-auth-blue px-3">
               <MapPin class="h-5 w-5 text-white" />
             </div>
-            <Select v-model="franchiseAddress.selectedRegion" name="region">
+            <Select
+              v-model="franchiseAddress.selectedRegion"
+              name="franchise_region"
+            >
               <SelectTrigger
                 class="flex-1 border-0 focus-visible:ring-0"
                 :disabled="franchiseAddress.isLoadingRegions"
@@ -493,7 +502,10 @@ const franchiseAddress = reactive(useAddress());
             <div class="flex items-center justify-center bg-auth-blue px-3">
               <MapPin class="h-5 w-5 text-white" />
             </div>
-            <Select v-model="franchiseAddress.selectedProvince" name="province">
+            <Select
+              v-model="franchiseAddress.selectedProvince"
+              name="franchise_province"
+            >
               <SelectTrigger
                 class="flex-1 border-0 focus-visible:ring-0"
                 :disabled="
@@ -547,7 +559,10 @@ const franchiseAddress = reactive(useAddress());
             <div class="flex items-center justify-center bg-auth-blue px-3">
               <MapPin class="h-5 w-5 text-white" />
             </div>
-            <Select v-model="franchiseAddress.selectedCity" name="city">
+            <Select
+              v-model="franchiseAddress.selectedCity"
+              name="franchise_city"
+            >
               <SelectTrigger
                 class="flex-1 border-0 focus-visible:ring-0"
                 :disabled="franchiseAddress.isLoadingCities"
@@ -589,7 +604,10 @@ const franchiseAddress = reactive(useAddress());
             <div class="flex items-center justify-center bg-auth-blue px-3">
               <MapPin class="h-5 w-5 text-white" />
             </div>
-            <Select v-model="franchiseAddress.selectedBarangay" name="barangay">
+            <Select
+              v-model="franchiseAddress.selectedBarangay"
+              name="franchise_barangay"
+            >
               <SelectTrigger
                 class="flex-1 border-0 focus-visible:ring-0"
                 :disabled="franchiseAddress.isLoadingBarangays"
@@ -612,6 +630,31 @@ const franchiseAddress = reactive(useAddress());
             </Select>
           </div>
           <InputError :message="errors?.franchise_barangay" />
+        </div>
+
+        <!-- Franchise Postal Code -->
+        <div class="grid gap-2">
+          <Label for="franchise_postal_code" class="text-auth-blue"
+            >Postal Code (franchise)</Label
+          >
+          <div
+            class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
+          >
+            <div class="flex items-center justify-center bg-auth-blue px-3">
+              <MapPin class="h-5 w-5 text-white" />
+            </div>
+            <Input
+              id="franchise_postal_code"
+              type="number"
+              name="franchise_postal_code"
+              required
+              autofocus
+              autocomplete="franchise_postal_code"
+              placeholder="2009"
+              class="flex-1 border-0 focus-visible:ring-0"
+            />
+          </div>
+          <InputError :message="errors.franchise_postal_code" />
         </div>
 
         <!-- Franchise Address -->
@@ -740,6 +783,149 @@ const franchiseAddress = reactive(useAddress());
             />
           </div>
           <InputError :message="errors.proof_capital" />
+        </div>
+
+        <!-- Valid ID Type -->
+        <div class="grid gap-2">
+          <Label for="valid_id_type" class="text-auth-blue"
+            >Valid ID Type</Label
+          >
+          <select
+            id="valid_id_type"
+            name="valid_id_type"
+            v-model="selectedIdType"
+            class="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-auth-blue focus-visible:ring-2 focus-visible:ring-auth-blue focus-visible:ring-offset-2 focus-visible:outline-none"
+          >
+            <option value="" disabled>Valid ID Type</option>
+            <option
+              v-for="idType in idTypes"
+              :key="idType.value"
+              :value="idType.value"
+            >
+              {{ idType.label }}
+            </option>
+          </select>
+          <InputError :message="errors.valid_id_type" />
+        </div>
+
+        <!-- Valid ID -->
+        <div class="space-y-3">
+          <Label class="text-base font-semibold text-auth-blue"
+            >Upload Valid ID</Label
+          >
+
+          <div class="grid grid-cols-2 gap-3">
+            <!-- Front -->
+            <div>
+              <Label class="mb-2 block text-sm text-gray-600">Front</Label>
+              <div
+                class="relative flex h-24 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 transition-colors hover:bg-gray-100"
+                @click="
+                  !validIdFront &&
+                  ($refs.licenseFrontInput as HTMLInputElement)?.click()
+                "
+              >
+                <input
+                  ref="licenseFrontInput"
+                  type="file"
+                  name="front_valid_id_picture"
+                  accept="image/*"
+                  class="hidden"
+                  @change="handleFileUpload($event, validIdFront)"
+                />
+
+                <template v-if="!validIdFront">
+                  <Upload class="mb-1 h-6 w-6 text-auth-blue" />
+                  <span class="text-xs font-medium text-auth-blue"
+                    >Front +</span
+                  >
+                </template>
+
+                <template v-else>
+                  <div class="flex items-center gap-2">
+                    <FileText class="h-5 w-5 text-auth-blue" />
+                    <span class="max-w-[100px] truncate text-xs text-gray-700">
+                      {{ validIdFront.name }}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    @click.stop="removeFile(validIdFront)"
+                    class="absolute top-1 right-1 rounded-full bg-red-500 p-1 text-white hover:bg-red-600"
+                  >
+                    <X class="h-3 w-3" />
+                  </button>
+                </template>
+              </div>
+            </div>
+
+            <!-- Back -->
+            <div>
+              <Label class="mb-2 block text-sm text-gray-600">Back</Label>
+              <div
+                class="relative flex h-24 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 transition-colors hover:bg-gray-100"
+                @click="
+                  !validIdBack &&
+                  ($refs.licenseBackInput as HTMLInputElement)?.click()
+                "
+              >
+                <input
+                  ref="licenseBackInput"
+                  type="file"
+                  name="back_valid_id_picture"
+                  accept="image/*"
+                  class="hidden"
+                  @change="handleFileUpload($event, validIdBack)"
+                />
+
+                <template v-if="!validIdBack">
+                  <Upload class="mb-1 h-6 w-6 text-auth-blue" />
+                  <span class="text-xs font-medium text-auth-blue">Back +</span>
+                </template>
+
+                <template v-else>
+                  <div class="flex items-center gap-2">
+                    <FileText class="h-5 w-5 text-auth-blue" />
+                    <span class="max-w-[100px] truncate text-xs text-gray-700">
+                      {{ validIdBack.name }}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    @click.stop="removeFile(validIdBack)"
+                    class="absolute top-1 right-1 rounded-full bg-red-500 p-1 text-white hover:bg-red-600"
+                  >
+                    <X class="h-3 w-3" />
+                  </button>
+                </template>
+              </div>
+            </div>
+          </div>
+
+          <!-- Valid Id number -->
+          <div class="grid gap-2">
+            <Label for="valid_id_number" class="text-auth-blue"
+              >Valid ID Number</Label
+            >
+            <div
+              class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
+            >
+              <div class="flex items-center justify-center bg-auth-blue px-3">
+                <IdCard class="h-5 w-5 text-white" />
+              </div>
+              <Input
+                id="valid_id_number"
+                type="text"
+                name="valid_id_number"
+                required
+                autofocus
+                autocomplete="valid_id_number"
+                placeholder="123456789"
+                class="flex-1 border-0 focus-visible:ring-0"
+              />
+            </div>
+            <InputError :message="errors.valid_id_number" />
+          </div>
         </div>
       </div>
 

@@ -12,7 +12,28 @@ class Franchise extends Model
 {
     use HasFactory;
 
-    // protected $fillable = [];
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'owner_id',
+        'manager_id',
+        'status_id',
+        'payment_option_id',
+        'email',
+        'phone',
+        'address',
+        'region',
+        'province',
+        'city',
+        'barangay',
+        'postal_code',
+        'dti_registrarion_attachment',
+        'mayor_permit_attachment',
+        'proof_agreement_attachment',
+    ];
 
     // relationship to owner, one to many
     public function owner(): BelongsTo
