@@ -12,7 +12,20 @@ class UserDriver extends Model
 {
     use HasFactory;
 
-    // protected $fillable = [];
+    protected $fillable = [
+        'id',
+        'status_id',
+        'payment_option_id',
+        'license_number',
+        'is_verified',
+        'license_expiry',
+        'front_license_picture',
+        'back_license_picture',
+        'nbi_clearance',
+        'selfie_picture',
+        'hire_date',
+    ];
+
 
     // relationship to user, one to one
     public function user(): BelongsTo

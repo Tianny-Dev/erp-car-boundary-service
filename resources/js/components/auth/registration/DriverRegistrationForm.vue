@@ -433,6 +433,28 @@ onMounted(fetchRegions);
           </div>
           <InputError :message="errors.address" />
         </div>
+
+        <div class="grid gap-2">
+          <Label for="postal_code" class="text-auth-blue">Postal Code</Label>
+          <div
+            class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
+          >
+            <div class="flex items-center justify-center bg-auth-blue px-3">
+              <MapPin class="h-5 w-5 text-white" />
+            </div>
+            <Input
+              id="postal_code"
+              type="number"
+              name="postal_code"
+              required
+              autofocus
+              autocomplete="postal_code"
+              placeholder="2009"
+              class="flex-1 border-0 focus-visible:ring-0"
+            />
+          </div>
+          <InputError :message="errors.postal_code" />
+        </div>
       </div>
 
       <!-- Step 2: Account Details -->
@@ -480,7 +502,7 @@ onMounted(fetchRegions);
         </div>
 
         <div class="grid gap-2">
-          <Label for="licence_number" class="text-auth-blue"
+          <Label for="license_number" class="text-auth-blue"
             >Driver's License Number</Label
           >
           <div
@@ -490,20 +512,20 @@ onMounted(fetchRegions);
               <IdCard class="h-5 w-5 text-white" />
             </div>
             <Input
-              id="licence_number"
+              id="license_number"
               type="text"
-              name="licence_number"
+              name="license_number"
               required
-              autocomplete="licence_number"
+              autocomplete="license_number"
               placeholder="Driver's License Number"
               class="flex-1 border-0 focus-visible:ring-0"
             />
           </div>
-          <InputError :message="errors.licence_number" />
+          <InputError :message="errors.license_number" />
         </div>
 
         <div class="grid gap-2">
-          <Label for="license_expiry_date" class="text-auth-blue"
+          <Label for="license_expiry" class="text-auth-blue"
             >License Expiry Date</Label
           >
           <div
@@ -513,16 +535,16 @@ onMounted(fetchRegions);
               <Calendar class="h-5 w-5 text-white" />
             </div>
             <Input
-              id="license_expiry_date"
+              id="license_expiry"
               type="date"
-              name="license_expiry_date"
+              name="license_expiry"
               v-model="birthday"
               :max="new Date().toISOString().split('T')[0]"
-              autocomplete="license_expiry_date"
+              autocomplete="license_expiry"
               class="flex-1 border-0 focus-visible:ring-0"
             />
           </div>
-          <InputError :message="errors.license_expiry_date" />
+          <InputError :message="errors.license_expiry" />
         </div>
       </div>
 
