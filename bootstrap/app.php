@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\CheckActiveStatus;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\UserTypeMiddleware;
@@ -24,7 +25,8 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->alias([
-            'user_type' => UserTypeMiddleware::class
+            'user_type' => UserTypeMiddleware::class,
+            'check.active' => CheckActiveStatus::class
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

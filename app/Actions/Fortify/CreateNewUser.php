@@ -10,6 +10,7 @@ use App\Models\UserPassenger;
 use App\Models\UserTechnician;
 use App\Models\Franchise;
 use App\Models\UserOwner;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Crypt;
@@ -87,7 +88,7 @@ class CreateNewUser implements CreatesNewUsers
     }
 
 
-    protected function createDriver(array $input, int $userTypeId): User
+    protected function createDriver(array $input, int $userTypeId): RedirectResponse
     {
         Log::info('Creating driver user', ['user_type_id' => $userTypeId]);
 
@@ -166,10 +167,11 @@ class CreateNewUser implements CreatesNewUsers
 
         Log::info('Driver profile created successfully', ['user_id' => $user->id]);
 
-        return $user;
+        // return $user;
+        return redirect()->route('driver.dashboard');
     }
 
-    protected function createPassenger(array $input, int $userTypeId): User
+    protected function createPassenger(array $input, int $userTypeId): RedirectResponse
     {
         Log::info('Creating passenger user', ['user_type_id' => $userTypeId]);
         try {
@@ -232,10 +234,11 @@ class CreateNewUser implements CreatesNewUsers
 
         Log::info('Passenger profile created successfully', ['user_id' => $user->id]);
 
-        return $user;
+        // return $user;
+        return redirect()->route('passenger.dashboard');
     }
 
-    protected function createTechnician(array $input, int $userTypeId): User
+    protected function createTechnician(array $input, int $userTypeId): RedirectResponse
     {
         Log::info('Creating technician user', ['user_type_id' => $userTypeId]);
 
@@ -323,10 +326,11 @@ class CreateNewUser implements CreatesNewUsers
             'age' => $input['age'],
         ]);
 
-        return $user;
+        // return $user;
+        return redirect()->route('technician.dashboard');
     }
 
-    protected function createOwner(array $input, int $userTypeId): User
+    protected function createOwner(array $input, int $userTypeId): RedirectResponse
     {
 
         // 1. Validation (Same as before)
@@ -430,7 +434,8 @@ class CreateNewUser implements CreatesNewUsers
         });
 
         // 3. Return the created user
-        return $user;
+        // return $user;
+        return redirect()->route('owner.dashboard');
     }
 
     protected function createDefault(array $input, int $userTypeId): ?User

@@ -9,6 +9,10 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
+Route::get('/inactive', function () {
+    return Inertia::render('InactiveAccount');
+})->name('inactive');
+
 Route::get('dashboard', function () {
     return Inertia::render('Dashboard');
 })

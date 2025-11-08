@@ -4,7 +4,7 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
 
 
-Route::middleware(['auth', 'verified', 'user_type:owner,super_admin'])->prefix('finance')->name('finance.')->group(function () {
+Route::middleware(['auth', 'verified', 'user_type:owner,super_admin', 'check.active'])->prefix('finance')->name('finance.')->group(function () {
     Route::get('/dashboard', fn() => Inertia::render('finance/dashboard/Index'))->name('dashboard');
     Route::get('/boundary-contracts', fn() => Inertia::render('finance/boundary-contracts/Index'))->name('boundaryContracts');
     Route::get('/revenue-management', fn() => Inertia::render('finance/revenue-management/Index'))->name('revenueManagement');
