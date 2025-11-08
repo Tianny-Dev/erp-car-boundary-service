@@ -29,14 +29,14 @@ class CheckActiveStatus
             $statusModel = $user->driverDetails->status;
         } elseif ($user->technicianDetails) {
             $statusModel = $user->technicianDetails->status;
-        } elseif ($user->passengerDetails) {
-            $statusModel = $user->passengerDetails->status;
         } elseif ($user->managerDetails) {
             $statusModel = $user->managerDetails->status;
+        } elseif ($user->ownerDetails) {
+            $statusModel = $user->ownerDetails->status;
         }
-        // elseif ($user->ownerDetails) {
-        //     $statusModel = $user->ownerDetails->status;
-        // }
+        // elseif ($user->passengerDetails) {
+        //     $statusModel = $user->passengerDetails->status;
+        // } 
 
         // If no related model or status, block access
         if (!$statusModel || $statusModel->name !== 'active') {
