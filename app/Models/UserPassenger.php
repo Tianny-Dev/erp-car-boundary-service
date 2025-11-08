@@ -11,7 +11,15 @@ class UserPassenger extends Model
 {
     use HasFactory;
 
-    // protected $fillable = [];
+    protected $fillable = [
+        'id',
+        'status_id',
+        'payment_option_id',
+        'preferred_language',
+        'accessibility_option',
+        'birth_date',
+        'age',
+    ];
 
     // relationship to user, one to one
     public function user(): BelongsTo

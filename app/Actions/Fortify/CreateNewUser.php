@@ -2,8 +2,10 @@
 
 namespace App\Actions\Fortify;
 
+use App\Enums\AccesibilityOption;
 use App\Models\User;
 use App\Models\UserDriver;
+use App\Models\UserPassenger;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
@@ -11,6 +13,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Enum;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 
 
@@ -163,6 +166,7 @@ class CreateNewUser implements CreatesNewUsers
 
     protected function createPassenger(array $input, int $userTypeId): User
     {
+        Log::info('Creating passenger user', ['user_type_id' => $userTypeId]);
         try {
             Validator::make($input, [
                 'name' => ['required', 'string', 'max:255'],
@@ -177,12 +181,53 @@ class CreateNewUser implements CreatesNewUsers
                 'password' => $this->passwordRules(),
 
                 'payment_option_id' => ['required', 'exists:payment_options,id'],
-                'preferred_language' => ['required','exist:'],
+                'preferred_language' => ['required','in:English,Filipino,Others'],
+                'accessibility_option'=> ['required',new Enum(AccesibilityOption::class)],
+                'birth_date'=> ['required','date'],
+                'age'=> ['required','int', 'max:150'],
             ])->validate();
 
+            Log::info('Validation passed for passenger', ['email' => $input['email']]);
         } catch (\Illuminate\Validation\ValidationException $e) {
+             Log::error('Passenger validation failed', [
+        'errors' => $e->errors(),
+        'input_keys' => array_keys($input),
+    ]);
             throw $e;
         }
+
+        Log::info('Validation passed for passenger', ['email' => $input['email']]);
+
+        $user = User::create([
+            'user_type_id' => $userTypeId,
+            'name' => $input['name'],
+            'email' => $input['email'],
+            'phone' => $input['phone'],
+            'gender'=> $input['gender'],
+            'address'=> $input['address'],
+            'region' => $input['region'],
+            'province' => $input['province'] ?? 'N/A',
+            'city' => $input['city'],
+            'barangay' => $input['barangay'],
+            'postal_code' => $input['postal_code'],
+            'password' => Hash::make($input['password']),
+        ]);
+
+        Log::info('User created', ['user_id' => $user->id]);
+
+        UserPassenger::create([
+            'id' => $user->id,
+            'status_id' => 6,
+            'payment_option_id' => $input['payment_option_id'],
+            'preferred_language' => $input['preferred_language'],
+            'accessibility_option' => $input['accessibility_option'],
+            'birth_date' => $input['birth_date'],
+            'age' => $input['age'],
+        ]);
+
+        Log::info('Passenger profile created successfully', ['user_id' => $user->id]);
+
+         return $user;
     }
 
     protected function createTechnician(array $input, int $userTypeId): User

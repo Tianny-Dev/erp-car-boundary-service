@@ -298,7 +298,7 @@ onMounted(fetchRegions);
         <div class="flex flex-wrap items-end gap-3">
           <!-- Date of Birth -->
           <div class="flex min-w-[200px] flex-1 flex-col">
-            <Label for="birthday" class="mb-1 text-auth-blue"
+            <Label for="birth_date" class="mb-1 text-auth-blue"
               >Date of Birth</Label
             >
             <div class="flex overflow-hidden rounded-md border border-gray-300">
@@ -306,16 +306,16 @@ onMounted(fetchRegions);
                 <Calendar class="h-5 w-5 text-white" />
               </div>
               <Input
-                id="birthday"
+                id="birth_date"
                 type="date"
-                name="birthday"
+                name="birth_date"
                 v-model="birthday"
                 :max="new Date().toISOString().split('T')[0]"
                 autocomplete="bday"
                 class="flex-1 border-0 focus-visible:ring-0"
               />
             </div>
-            <InputError :message="errors.birthday" />
+            <InputError :message="errors.birth_date" />
           </div>
 
           <!-- Age -->
@@ -326,6 +326,7 @@ onMounted(fetchRegions);
             >
               {{ calculatedAge !== null ? calculatedAge : '00' }}
             </div>
+            <input type="hidden" name="age" :value="calculatedAge" />
           </div>
         </div>
       </div>
@@ -390,6 +391,7 @@ onMounted(fetchRegions);
           >
             N/A
           </div>
+          <input type="hidden" name="province" value="N/A" />
         </div>
 
         <!-- City / Municipality -->
@@ -461,6 +463,28 @@ onMounted(fetchRegions);
             />
           </div>
           <InputError :message="errors.address" />
+        </div>
+
+        <div class="grid gap-2">
+          <Label for="postal_code" class="text-auth-blue">Postal Code</Label>
+          <div
+            class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
+          >
+            <div class="flex items-center justify-center bg-auth-blue px-3">
+              <MapPin class="h-5 w-5 text-white" />
+            </div>
+            <Input
+              id="postal_code"
+              type="number"
+              name="postal_code"
+              required
+              autofocus
+              autocomplete="postal_code"
+              placeholder="2009"
+              class="flex-1 border-0 focus-visible:ring-0"
+            />
+          </div>
+          <InputError :message="errors.postal_code" />
         </div>
       </div>
 
