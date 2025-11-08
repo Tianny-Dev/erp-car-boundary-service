@@ -361,6 +361,7 @@ onMounted(fetchRegions);
           >
             N/A
           </div>
+          <input type="hidden" name="province" value="N/A" />
         </div>
 
         <!-- City / Municipality -->

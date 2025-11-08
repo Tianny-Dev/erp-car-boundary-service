@@ -81,7 +81,7 @@ class CreateNewUser implements CreatesNewUsers
 
     protected function createDriver(array $input, int $userTypeId): User
     {
-        // Log::info('Creating driver user', ['user_type_id' => $userTypeId]);
+        Log::info('Creating driver user', ['user_type_id' => $userTypeId]);
 
         try {
             Validator::make($input, [
@@ -104,44 +104,45 @@ class CreateNewUser implements CreatesNewUsers
                 'selfie_picture' => ['required', 'image', 'max:2048'],
             ])->validate();
 
-            // Log::info('Validation passed for driver', ['email' => $input['email']]);
+            Log::info('Validation passed for driver', ['email' => $input['email']]);
         } catch (\Illuminate\Validation\ValidationException $e) {
-            // Log::error('Validation failed', [
-            //     'errors' => $e->errors(),
-            //     'input_keys' => array_keys($input),
-            // ]);
+            Log::error('Validation failed', [
+                'errors' => $e->errors(),
+                'input_keys' => array_keys($input),
+            ]);
             throw $e;
         }
 
-        // Log::info('Validation passed for driver', ['email' => $input['email']]);
+        Log::info('Validation passed for driver', ['email' => $input['email']]);
 
         $user = User::create([
             'user_type_id' => $userTypeId,
             'name' => $input['name'],
             'email' => $input['email'],
             'phone' => $input['phone'],
+            'gender'=> $input['gender'],
             'address'=> $input['address'],
             'region' => $input['region'],
-            'province' => $input['province'],
+            'province' => $input['province'] ?? 'N/A',
             'city' => $input['city'],
             'barangay' => $input['barangay'],
             'postal_code' => $input['postal_code'],
             'password' => Hash::make($input['password']),
         ]);
 
-        // Log::info('User created', ['user_id' => $user->id]);
+        Log::info('User created', ['user_id' => $user->id]);
 
         $frontLicensePicturePath = $this->handleFileUpload($input['front_license_picture'], $user->id, 'front_license');
         $backLicensePicturePath = $this->handleFileUpload($input['back_license_picture'], $user->id, 'back_license');
         $nbiClearancePath = $this->handleFileUpload($input['nbi_clearance'], $user->id, 'nbi_clearance');
         $selfiePicturePath = $this->handleFileUpload($input['selfie_picture'], $user->id, 'selfie');
 
-        // Log::info('File upload paths', [
-        //     'front' => $frontLicensePicturePath,
-        //     'back' => $backLicensePicturePath,
-        //     'nbi' => $nbiClearancePath,
-        //     'selfie' => $selfiePicturePath,
-        // ]);
+        Log::info('File upload paths', [
+            'front' => $frontLicensePicturePath,
+            'back' => $backLicensePicturePath,
+            'nbi' => $nbiClearancePath,
+            'selfie' => $selfiePicturePath,
+        ]);
 
         UserDriver::create([
             'id' => $user->id,
@@ -155,16 +156,33 @@ class CreateNewUser implements CreatesNewUsers
             'selfie_picture' => $selfiePicturePath,
         ]);
 
-        // Log::info('Driver profile created successfully', ['user_id' => $user->id]);
+        Log::info('Driver profile created successfully', ['user_id' => $user->id]);
 
         return $user;
     }
 
     protected function createPassenger(array $input, int $userTypeId): User
     {
-        // Validator::make($input, [
-        //     'name'=> ['required', 'string',''],
-        //     'email'=> ['required', 'string','email','', Rule::Rule::unique(User::class)],
+        try {
+            Validator::make($input, [
+                'name' => ['required', 'string', 'max:255'],
+                'email' => ['required', 'string', 'email', 'max:255', Rule::unique(User::class)],
+                'phone' => ['required', 'string', 'max:25', Rule::unique(User::class)],
+                'address' => ['required', 'string', 'max:255'],
+                'region' => ['required', 'string', 'max:255'],
+                'province' => ['required', 'string', 'max:255'],
+                'city' => ['required', 'string', 'max:255'],
+                'barangay' => ['required', 'string', 'max:255'],
+                'postal_code' => ['required', 'string', 'max:20'],
+                'password' => $this->passwordRules(),
+
+                'payment_option_id' => ['required', 'exists:payment_options,id'],
+                'preferred_language' => ['required','exist:'],
+            ])->validate();
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
+        }
     }
 
     protected function createTechnician(array $input, int $userTypeId): User
