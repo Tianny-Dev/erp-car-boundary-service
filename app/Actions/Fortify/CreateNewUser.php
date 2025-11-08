@@ -3,9 +3,11 @@
 namespace App\Actions\Fortify;
 
 use App\Enums\AccesibilityOption;
+use App\Enums\IdType;
 use App\Models\User;
 use App\Models\UserDriver;
 use App\Models\UserPassenger;
+use App\Models\UserTechnician;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
@@ -227,12 +229,98 @@ class CreateNewUser implements CreatesNewUsers
 
         Log::info('Passenger profile created successfully', ['user_id' => $user->id]);
 
-         return $user;
+        return $user;
     }
 
     protected function createTechnician(array $input, int $userTypeId): User
     {
+        Log::info('Creating technician user', ['user_type_id' => $userTypeId]);
 
+        try {
+            Validator::make($input, [
+                'name' => ['required', 'string', 'max:255'],
+                'email' => ['required', 'string', 'email', 'max:255', Rule::unique(User::class)],
+                'phone' => ['required', 'string', 'max:25', Rule::unique(User::class)],
+                'gender' => ['required', 'in:Male,Female,Other'],
+                'address' => ['required', 'string', 'max:255'],
+                'region' => ['required', 'string', 'max:255'],
+                'province' => ['required', 'string', 'max:255'],
+                'city' => ['required', 'string', 'max:255'],
+                'barangay' => ['required', 'string', 'max:255'],
+                'postal_code' => ['required', 'string', 'max:20'],
+                'password' => $this->passwordRules(),
+
+                'expertise'=> ['nullable','string','in:Mechanical,Electrical,Battery'],
+                'year_experience'=> ['required','integer'],
+                'certificate_prc_no' => ['nullable','image','max:2048'],
+                'professional_license' => ['nullable','image','max:2048'],
+                'valid_id_type'=> ['required', new Enum(IdType::class)],
+                'valid_id_number'=> ['required','string'],
+                'front_valid_id_picture' => ['required', 'image', 'max:2048'],
+                'back_valid_id_picture' => ['required', 'image', 'max:2048'],
+                'cv_attachment' => ['required', 'image', 'max:2048'],
+                'birth_date'=> ['required','date'],
+                'age'=> ['required','integer','max:150'],
+            ])->validate();
+
+            Log::info('Technician validation passed', ['email' => $input['email']]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Technician validation failed', [
+                'errors' => $e->errors(),
+                'input_keys' => array_keys($input),
+            ]);
+            throw $e;
+        }
+
+        // Create User
+        $user = User::create([
+            'user_type_id' => $userTypeId,
+            'name' => $input['name'],
+            'email' => $input['email'],
+            'phone' => $input['phone'],
+            'gender'=> $input['gender'],
+            'address'=> $input['address'],
+            'region' => $input['region'],
+            'province' => $input['province'],
+            'city' => $input['city'],
+            'barangay' => $input['barangay'],
+            'postal_code' => $input['postal_code'],
+            'password' => Hash::make($input['password']),
+        ]);
+
+        // Handle file uploads
+        $frontIdPath = $this->handleFileUpload($input['front_valid_id_picture'], $user->id, 'front_valid_id');
+        $backIdPath = $this->handleFileUpload($input['back_valid_id_picture'], $user->id, 'back_valid_id');
+        $cvPath = $this->handleFileUpload($input['cv_attachment'], $user->id, 'cv_attachment');
+        $prcPath = isset($input['professional_license']) ? $this->handleFileUpload($input['professional_license'], $user->id, 'professional_license') : null;
+        $certificatePath = isset($input['certificate_prc_no']) ? $this->handleFileUpload($input['certificate_prc_no'], $user->id, 'certificate_prc_no') : null;
+
+        Log::info('File upload paths', [
+            'front_id' => $frontIdPath,
+            'back_id' => $backIdPath,
+            'cv' => $cvPath,
+            'prc' => $prcPath,
+            'certificate' => $certificatePath,
+        ]);
+
+        // Create Technician record
+        UserTechnician::create([
+            'id' => $user->id,
+            'status_id' => 6,
+            'expertise'=> $input['expertise'],
+            'year_experience'=> $input['year_experience'],
+            'certificate_prc_no' => $certificatePath,
+            'professional_license' => $prcPath,
+            'valid_id_type'=> $input['valid_id_type'],
+            'valid_id_number'=> $input['valid_id_number'],
+            'front_valid_id_picture' => $frontIdPath,
+            'back_valid_id_picture' => $backIdPath,
+            'cv_attachment' => $cvPath,
+            'birth_date' => $input['birth_date'],
+            'age' => $input['age'],
+        ]);
+
+        return $user;
     }
 
     protected function createOwner(array $input, int $userTypeId): User

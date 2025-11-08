@@ -11,7 +11,21 @@ class UserTechnician extends Model
 {
     use HasFactory;
 
-    // protected $fillable = [];
+    protected $fillable = [
+        'id',
+        'status_id',
+        'expertise',
+        'year_experience',
+        'certificate_prc_no',
+        'professional_license',
+        'valid_id_type',
+        'valid_id_number',
+        'front_valid_id_picture',
+        'back_valid_id_picture',
+        'cv_attachment',
+        'birth_date',
+        'age',
+    ];
 
     // relationship to user, one to one
     public function user(): BelongsTo
