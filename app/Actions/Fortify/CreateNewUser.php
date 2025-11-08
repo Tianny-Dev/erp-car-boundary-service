@@ -88,7 +88,7 @@ class CreateNewUser implements CreatesNewUsers
     }
 
 
-    protected function createDriver(array $input, int $userTypeId): RedirectResponse
+    protected function createDriver(array $input, int $userTypeId): User
     {
         Log::info('Creating driver user', ['user_type_id' => $userTypeId]);
 
@@ -167,11 +167,11 @@ class CreateNewUser implements CreatesNewUsers
 
         Log::info('Driver profile created successfully', ['user_id' => $user->id]);
 
-        // return $user;
-        return redirect()->route('driver.dashboard');
+        return $user;
+        // return redirect()->route('driver.dashboard');
     }
 
-    protected function createPassenger(array $input, int $userTypeId): RedirectResponse
+    protected function createPassenger(array $input, int $userTypeId): User
     {
         Log::info('Creating passenger user', ['user_type_id' => $userTypeId]);
         try {
@@ -234,11 +234,11 @@ class CreateNewUser implements CreatesNewUsers
 
         Log::info('Passenger profile created successfully', ['user_id' => $user->id]);
 
-        // return $user;
-        return redirect()->route('passenger.dashboard');
+        return $user;
+        // return redirect()->route('passenger.dashboard');
     }
 
-    protected function createTechnician(array $input, int $userTypeId): RedirectResponse
+    protected function createTechnician(array $input, int $userTypeId): User
     {
         Log::info('Creating technician user', ['user_type_id' => $userTypeId]);
 
@@ -326,8 +326,8 @@ class CreateNewUser implements CreatesNewUsers
             'age' => $input['age'],
         ]);
 
-        // return $user;
-        return redirect()->route('technician.dashboard');
+        return $user;
+        // return redirect()->route('technician.dashboard');
     }
 
     protected function createOwner(array $input, int $userTypeId): User
