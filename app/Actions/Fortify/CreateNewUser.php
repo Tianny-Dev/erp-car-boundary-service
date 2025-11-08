@@ -222,7 +222,7 @@ class CreateNewUser implements CreatesNewUsers
 
         UserPassenger::create([
             'id' => $user->id,
-            'status_id' => 6,
+            'status_id' => 1,
             'payment_option_id' => $input['payment_option_id'],
             'preferred_language' => $input['preferred_language'],
             'accessibility_option' => $input['accessibility_option'],
@@ -328,7 +328,7 @@ class CreateNewUser implements CreatesNewUsers
 
     protected function createOwner(array $input, int $userTypeId): User
     {
-        
+
         // 1. Validation (Same as before)
         Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
@@ -366,11 +366,11 @@ class CreateNewUser implements CreatesNewUsers
             'proof_capital' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf,docx', 'max:5120'],
         ])->validate();
 
-        
+
 
         // 2. Create Records in a Transaction
         $user = DB::transaction(function () use ($input, $userTypeId) {
-            
+
             // 'pending' status ID is 6, based on your provided seeder
             $pendingStatusId = 6;
 
