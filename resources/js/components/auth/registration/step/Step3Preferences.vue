@@ -97,7 +97,7 @@ const computedAccessibility = computed<string | undefined>({
 <template>
   <!-- PAYMENT OPTION -->
   <div v-if="show.paymentOption" class="grid gap-2">
-    <Label :for="fields.paymentOption" class="text-auth-blue">{{
+    <Label :for="fields.paymentOption" class="font-semibold text-auth-blue">{{
       labels.paymentOption
     }}</Label>
     <div class="grid grid-cols-2 gap-2">
@@ -109,9 +109,9 @@ const computedAccessibility = computed<string | undefined>({
         @click="computedPayout = payout.id"
         :class="[
           payout.color,
-          'relative h-12 text-base font-semibold text-white hover:opacity-90',
+          'relative h-12 cursor-pointer text-base font-semibold text-white hover:bg-gray-700',
           computedPayout === payout.id
-            ? 'ring-2 ring-auth-blue ring-offset-2'
+            ? 'bg-gray-700 ring-2 ring-auth-blue ring-offset-2'
             : '',
         ]"
       >
@@ -119,12 +119,19 @@ const computedAccessibility = computed<string | undefined>({
       </Button>
     </div>
     <InputError :message="errors?.[fields.paymentOption]" />
-    <input type="hidden" :name="fields.paymentOption" :value="computedPayout" />
+    <input
+      type="hidden"
+      :name="fields.paymentOption"
+      :value="computedPayout"
+      required
+    />
   </div>
 
   <!-- SHIFT -->
   <div v-if="show.shift" class="grid gap-2">
-    <Label :for="fields.shift" class="text-auth-blue">{{ labels.shift }}</Label>
+    <Label :for="fields.shift" class="font-semibold text-auth-blue">{{
+      labels.shift
+    }}</Label>
     <div class="flex gap-2">
       <Button
         v-for="shift in shifts"
@@ -143,12 +150,12 @@ const computedAccessibility = computed<string | undefined>({
       </Button>
     </div>
     <InputError :message="errors?.[fields.shift]" />
-    <input type="hidden" :name="fields.shift" :value="computedShift" />
+    <input type="hidden" :name="fields.shift" :value="computedShift" required />
   </div>
 
   <!-- LANGUAGE -->
   <div v-if="show.language" class="grid gap-2">
-    <Label :for="fields.language" class="text-auth-blue">{{
+    <Label :for="fields.language" class="font-semibold text-auth-blue">{{
       labels.language
     }}</Label>
     <div class="flex gap-2">
@@ -169,12 +176,17 @@ const computedAccessibility = computed<string | undefined>({
       </Button>
     </div>
     <InputError :message="errors?.[fields.language]" />
-    <input type="hidden" :name="fields.language" :value="computedLanguage" />
+    <input
+      type="hidden"
+      :name="fields.language"
+      :value="computedLanguage"
+      required
+    />
   </div>
 
   <!-- ACCESSIBILITY -->
   <div v-if="show.accessibility" class="grid gap-2">
-    <Label :for="fields.accessibility" class="text-auth-blue">{{
+    <Label :for="fields.accessibility" class="font-semibold text-auth-blue">{{
       labels.accessibility
     }}</Label>
     <div class="flex flex-col gap-2">
@@ -201,6 +213,7 @@ const computedAccessibility = computed<string | undefined>({
       type="hidden"
       :name="fields.accessibility"
       :value="computedAccessibility"
+      required
     />
   </div>
 </template>

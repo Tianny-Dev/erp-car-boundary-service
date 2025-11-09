@@ -1,29 +1,18 @@
 <script setup lang="ts">
-import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { useAddress } from '@/composables/useAddress';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { store } from '@/routes/register';
 import { Form, Head } from '@inertiajs/vue3';
-import {
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  Eye,
-  EyeOff,
-  File,
-  Lock,
-} from 'lucide-vue-next';
+import { Check, ChevronLeft, ChevronRight } from 'lucide-vue-next';
 import { computed, reactive, ref } from 'vue';
 import Step1Personal from './step/Step1Personal.vue';
 import Step2Address from './step/Step2Address.vue';
 import Step3Preferences from './step/Step3Preferences.vue';
 import Step4Account from './step/Step4Account.vue';
 import Step5Uploads from './step/Step5Uploads.vue';
+import Step6Security from './step/Step6Security.vue';
 
 defineProps<{
   genderOptions: { value: string; label: string }[];
@@ -39,8 +28,6 @@ defineProps<{
   };
 }>();
 
-const showPassword = ref(false);
-const showConfirmPassword = ref(false);
 const currentStep = ref(1);
 const totalSteps = 7;
 
@@ -81,6 +68,7 @@ const goToStep = (step: number) => {
 const selectedGender = ref('');
 const personalStep1Show = {
   birthday: false,
+  franchiseName: false,
 };
 
 // --- Step 2 (Home Address) State & Config ---
@@ -120,6 +108,13 @@ const franchiseAddressLabels = {
   postalCode: 'Postal Code (franchise)',
   address: 'Franchise Address',
 };
+const personalStep3Show = {
+  name: false,
+  phone: false,
+  email: false,
+  gender: false,
+  birthday: false,
+};
 
 // --- Step 4 (Preferences) State & Config ---
 const selectedPayout = ref('');
@@ -146,6 +141,12 @@ const documentsStep6Show = {
   prcCertificate: false,
   professionalLicense: false,
   cvAttachment: false,
+};
+
+// --- Step 7 (Account Security) State & Config ---
+const securityStep6Labels = {
+  terms1: 'I Agree to the Franchise Terms and Boundary Policy',
+  terms2: 'I confirm all details are true and valid',
 };
 </script>
 
@@ -192,6 +193,7 @@ const documentsStep6Show = {
 
       <!-- Step 3: Franchise Address -->
       <div v-show="currentStep === 3" class="space-y-4">
+        <Step1Personal :errors="errors" :show-fields="personalStep3Show" />
         <Step2Address
           :address-data="franchiseAddress"
           :errors="errors"
@@ -229,97 +231,7 @@ const documentsStep6Show = {
 
       <!-- Step 7: Security -->
       <div v-show="currentStep === 7" class="space-y-4">
-        <div class="grid gap-2">
-          <Label for="password" class="text-auth-blue">Password</Label>
-          <div
-            class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
-          >
-            <div class="flex items-center justify-center bg-auth-blue px-3">
-              <Lock class="h-5 w-5 text-white" />
-            </div>
-
-            <div class="relative w-full items-center">
-              <Input
-                id="password"
-                :type="showPassword ? 'text' : 'password'"
-                name="password"
-                required
-                autocomplete="new-password"
-                placeholder="Password"
-                class="flex-1 border-0 focus-visible:ring-0"
-              />
-
-              <button
-                type="button"
-                class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700"
-                @click="showPassword = !showPassword"
-              >
-                <Eye v-if="!showPassword" class="h-5 w-5" />
-                <EyeOff v-else class="h-5 w-5" />
-              </button>
-            </div>
-          </div>
-          <InputError :message="errors.password" />
-        </div>
-
-        <div class="grid gap-2">
-          <Label for="password_confirmation" class="text-auth-blue"
-            >Confirm Password</Label
-          >
-          <div
-            class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
-          >
-            <div class="flex items-center justify-center bg-auth-blue px-3">
-              <Lock class="h-5 w-5 text-white" />
-            </div>
-
-            <div class="relative w-full items-center">
-              <Input
-                id="password_confirmation"
-                :type="showConfirmPassword ? 'text' : 'password'"
-                name="password_confirmation"
-                required
-                autocomplete="new-password"
-                placeholder="Confirm Password"
-                class="flex-1 border-0 focus-visible:ring-0"
-              />
-
-              <button
-                type="button"
-                class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700"
-                @click="showConfirmPassword = !showConfirmPassword"
-              >
-                <Eye v-if="!showConfirmPassword" class="h-5 w-5" />
-                <EyeOff v-else class="h-5 w-5" />
-              </button>
-            </div>
-          </div>
-          <InputError :message="errors.password_confirmation" />
-        </div>
-
-        <div class="items-top flex gap-x-2">
-          <Checkbox id="terms1" />
-          <div class="grid gap-1.5 leading-none">
-            <label
-              for="terms1"
-              class="text-xs leading-none font-normal text-auth-blue peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-            >
-              I Agree to the Franchise Terms and Boundary Policy
-            </label>
-          </div>
-        </div>
-
-        <div class="items-top flex gap-x-2">
-          <Checkbox id="terms2" />
-          <div class="grid gap-1.5 leading-none">
-            <label
-              for="terms1"
-              class="text-xs leading-none font-normal text-auth-blue peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-            >
-              I confirm all details are true and valid
-            </label>
-          </div>
-        </div>
+        <Step6Security :errors="errors" :labels="securityStep6Labels" />
       </div>
 
       <!-- Navigation Buttons -->

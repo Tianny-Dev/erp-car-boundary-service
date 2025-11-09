@@ -152,7 +152,7 @@ function removeFile(side: 'front' | 'back') {
 <template>
   <!-- DRIVER'S LICENSE -->
   <div v-if="show.licenseNumber" class="grid gap-2">
-    <Label :for="fields.licenseNumber" class="text-auth-blue">{{
+    <Label :for="fields.licenseNumber" class="font-semibold text-auth-blue">{{
       labels.licenseNumber
     }}</Label>
     <div
@@ -168,7 +168,7 @@ function removeFile(side: 'front' | 'back') {
         required
         :autocomplete="fields.licenseNumber"
         placeholder="Driver's License Number"
-        class="flex-1 border-0 focus-visible:ring-0"
+        class="flex-1 border-0 font-mono font-semibold focus-visible:ring-0"
       />
     </div>
     <InputError :message="errors?.[fields.licenseNumber]" />
@@ -176,7 +176,7 @@ function removeFile(side: 'front' | 'back') {
 
   <!-- LICENSE EXPIRY -->
   <div v-if="show.licenseExpiry" class="grid gap-2">
-    <Label :for="fields.licenseExpiry" class="text-auth-blue">{{
+    <Label :for="fields.licenseExpiry" class="font-semibold text-auth-blue">{{
       labels.licenseExpiry
     }}</Label>
     <div
@@ -191,7 +191,7 @@ function removeFile(side: 'front' | 'back') {
         :name="fields.licenseExpiry"
         v-model="computedLicenseExpiry"
         :min="new Date().toISOString().split('T')[0]"
-        class="flex-1 border-0 focus-visible:ring-0"
+        class="flex-1 cursor-text border-0 font-mono font-semibold focus-visible:ring-0"
       />
     </div>
     <InputError :message="errors?.[fields.licenseExpiry]" />
@@ -199,14 +199,14 @@ function removeFile(side: 'front' | 'back') {
 
   <!-- VALID ID -->
   <div v-if="show.validIdType" class="grid gap-2">
-    <Label :for="fields.validIdType" class="text-auth-blue">{{
+    <Label :for="fields.validIdType" class="font-semibold text-auth-blue">{{
       labels.validIdType
     }}</Label>
     <select
       :id="fields.validIdType"
       :name="fields.validIdType"
       v-model="computedIdType"
-      class="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-auth-blue focus-visible:ring-2 focus-visible:ring-auth-blue focus-visible:ring-offset-2 focus-visible:outline-none"
+      class="flex h-10 w-full cursor-pointer rounded-md border border-gray-300 bg-white px-3 py-2 font-mono text-sm font-semibold focus-visible:ring-2 focus-visible:ring-auth-blue focus-visible:ring-offset-2 focus-visible:outline-none"
     >
       <option value="" disabled>Select Valid ID Type</option>
       <option
@@ -227,11 +227,12 @@ function removeFile(side: 'front' | 'back') {
     }}</Label>
     <div class="grid grid-cols-2 gap-3">
       <div>
-        <Label class="mb-2 block text-sm text-gray-600">{{
+        <Label class="mb-2 block text-sm font-semibold text-gray-600">{{
           labels.validIdUploadFront
         }}</Label>
         <div
-          class="relative flex h-24 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 transition-colors hover:bg-gray-100"
+          class="relative flex h-24 flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 transition-colors hover:bg-gray-100"
+          :class="{ 'cursor-pointer': !computedValidIdFront }"
           @click="!computedValidIdFront && licenseFrontInput?.click()"
         >
           <input
@@ -256,7 +257,7 @@ function removeFile(side: 'front' | 'back') {
             <button
               type="button"
               @click.stop="removeFile('front')"
-              class="absolute top-1 right-1 rounded-full bg-red-500 p-1 text-white hover:bg-red-600"
+              class="absolute top-1 right-1 cursor-pointer rounded-full bg-red-500 p-1 text-white hover:bg-red-600"
             >
               <X class="h-3 w-3" />
             </button>
@@ -264,11 +265,12 @@ function removeFile(side: 'front' | 'back') {
         </div>
       </div>
       <div>
-        <Label class="mb-2 block text-sm text-gray-600">{{
+        <Label class="mb-2 block text-sm font-semibold text-gray-600">{{
           labels.validIdUploadBack
         }}</Label>
         <div
-          class="relative flex h-24 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 transition-colors hover:bg-gray-100"
+          class="relative flex h-24 flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 transition-colors hover:bg-gray-100"
+          :class="{ 'cursor-pointer': !computedValidIdBack }"
           @click="!computedValidIdBack && licenseBackInput?.click()"
         >
           <input
@@ -293,7 +295,7 @@ function removeFile(side: 'front' | 'back') {
             <button
               type="button"
               @click.stop="removeFile('back')"
-              class="absolute top-1 right-1 rounded-full bg-red-500 p-1 text-white hover:bg-red-600"
+              class="absolute top-1 right-1 cursor-pointer rounded-full bg-red-500 p-1 text-white hover:bg-red-600"
             >
               <X class="h-3 w-3" />
             </button>
@@ -307,7 +309,7 @@ function removeFile(side: 'front' | 'back') {
 
   <!-- VALID ID NUMBER -->
   <div v-if="show.validIdNumber" class="grid gap-2">
-    <Label :for="fields.validIdNumber" class="text-auth-blue">{{
+    <Label :for="fields.validIdNumber" class="font-semibold text-auth-blue">{{
       labels.validIdNumber
     }}</Label>
     <div
@@ -323,7 +325,7 @@ function removeFile(side: 'front' | 'back') {
         required
         :autocomplete="fields.validIdNumber"
         placeholder="123456789"
-        class="flex-1 border-0 focus-visible:ring-0"
+        class="flex-1 border-0 font-mono font-semibold focus-visible:ring-0"
       />
     </div>
     <InputError :message="errors?.[fields.validIdNumber]" />
@@ -331,7 +333,7 @@ function removeFile(side: 'front' | 'back') {
 
   <!-- EXPERTISE -->
   <div v-if="show.expertise" class="grid gap-2">
-    <Label :for="fields.expertise" class="text-auth-blue">{{
+    <Label :for="fields.expertise" class="font-semibold text-auth-blue">{{
       labels.expertise
     }}</Label>
     <div class="flex gap-2">
@@ -357,7 +359,7 @@ function removeFile(side: 'front' | 'back') {
 
   <!-- YEAR EXPERIENCE -->
   <div v-if="show.yearExperience" class="grid gap-2">
-    <Label :for="fields.yearExperience" class="text-auth-blue">{{
+    <Label :for="fields.yearExperience" class="font-semibold text-auth-blue">{{
       labels.yearExperience
     }}</Label>
     <div
@@ -371,6 +373,7 @@ function removeFile(side: 'front' | 'back') {
         type="number"
         :name="fields.yearExperience"
         required
+        placeholder="7"
         :autocomplete="fields.yearExperience"
         class="flex-1 border-0 focus-visible:ring-0"
       />

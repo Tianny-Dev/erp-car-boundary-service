@@ -27,7 +27,9 @@ function handleFileChange(event: Event) {
 
 <template>
   <div class="grid gap-2">
-    <Label :for="id" class="text-auth-blue">{{ props.label }}</Label>
+    <Label :for="id" class="font-semibold text-auth-blue">{{
+      props.label
+    }}</Label>
     <div
       class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
     >
@@ -48,7 +50,7 @@ function handleFileChange(event: Event) {
       <!-- custom trigger -->
       <label
         :for="id"
-        class="flex-1 cursor-pointer truncate border-0 p-2 text-sm font-semibold text-auth-blue hover:bg-blue-50"
+        class="flex-1 cursor-pointer truncate border-0 p-2 font-mono text-sm font-semibold hover:bg-blue-50"
       >
         {{ selectedFile ? selectedFile.name : 'Upload file' }}
       </label>

@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
-import { Home, MapPin } from 'lucide-vue-next';
+import { MapPinIcon } from 'lucide-vue-next';
 
 // Define the shape of the address object from useAddress
 interface AddressData {
@@ -54,27 +54,27 @@ defineProps<{
   fieldNames: FieldNames;
   labels: Labels;
 }>();
-
-// No emits needed! v-model bindings below
-// will directly mutate the 'addressData' object,
-// which is reactive and lives in the parent.
 </script>
 
 <template>
   <!-- Region -->
   <div class="grid gap-2">
-    <Label :for="fieldNames.region" class="text-auth-blue">{{
+    <Label :for="fieldNames.region" class="font-semibold text-auth-blue">{{
       labels.region
     }}</Label>
     <div
       class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
     >
       <div class="flex items-center justify-center bg-auth-blue px-3">
-        <MapPin class="h-5 w-5 text-white" />
+        <MapPinIcon class="h-5 w-5 text-white" />
       </div>
-      <Select v-model="addressData.selectedRegion" :name="fieldNames.region">
+      <Select
+        v-model="addressData.selectedRegion"
+        :name="fieldNames.region"
+        required
+      >
         <SelectTrigger
-          class="flex-1 border-0 focus-visible:ring-0"
+          class="flex-1 cursor-pointer border-0 font-mono font-semibold focus-visible:ring-0"
           :disabled="addressData.isLoadingRegions"
         >
           <SelectValue placeholder="Select Region" />
@@ -83,11 +83,12 @@ defineProps<{
             class="ml-auto h-4 w-4"
           />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent class="font-mono font-semibold">
           <SelectItem
             v-for="r in addressData.regions"
             :key="r.code"
             :value="r.name"
+            class="cursor-pointer"
           >
             {{ r.name }}
           </SelectItem>
@@ -102,21 +103,22 @@ defineProps<{
     v-if="!addressData.isNcr && addressData.provinces.length"
     class="grid gap-2"
   >
-    <Label :for="fieldNames.province" class="text-auth-blue">{{
+    <Label :for="fieldNames.province" class="font-semibold text-auth-blue">{{
       labels.province
     }}</Label>
     <div
       class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
     >
       <div class="flex items-center justify-center bg-auth-blue px-3">
-        <MapPin class="h-5 w-5 text-white" />
+        <MapPinIcon class="h-5 w-5 text-white" />
       </div>
       <Select
         v-model="addressData.selectedProvince"
         :name="fieldNames.province"
+        required
       >
         <SelectTrigger
-          class="flex-1 border-0 focus-visible:ring-0"
+          class="flex-1 cursor-pointer border-0 font-mono font-semibold focus-visible:ring-0"
           :disabled="
             addressData.isLoadingProvinces || !addressData.selectedRegion
           "
@@ -127,11 +129,12 @@ defineProps<{
             class="ml-auto h-4 w-4"
           />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent class="font-mono font-semibold">
           <SelectItem
             v-for="p in addressData.provinces"
             :key="p.code"
             :value="p.name"
+            class="cursor-pointer"
           >
             {{ p.name }}
           </SelectItem>
@@ -147,7 +150,7 @@ defineProps<{
       labels.province
     }}</Label>
     <div
-      class="flex w-full max-w-sm items-center rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-gray-500"
+      class="flex w-full max-w-sm cursor-not-allowed items-center rounded-md border border-gray-300 bg-gray-50 px-3 py-2 font-mono font-semibold text-gray-500"
     >
       N/A
     </div>
@@ -158,28 +161,33 @@ defineProps<{
     class="grid gap-2"
     v-if="addressData.cities.length || addressData.isLoadingCities"
   >
-    <Label :for="fieldNames.city" class="text-auth-blue">{{
+    <Label :for="fieldNames.city" class="font-semibold text-auth-blue">{{
       labels.city
     }}</Label>
     <div
       class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
     >
       <div class="flex items-center justify-center bg-auth-blue px-3">
-        <MapPin class="h-5 w-5 text-white" />
+        <MapPinIcon class="h-5 w-5 text-white" />
       </div>
-      <Select v-model="addressData.selectedCity" :name="fieldNames.city">
+      <Select
+        v-model="addressData.selectedCity"
+        :name="fieldNames.city"
+        required
+      >
         <SelectTrigger
-          class="flex-1 border-0 focus-visible:ring-0"
+          class="flex-1 cursor-pointer border-0 font-mono font-semibold focus-visible:ring-0"
           :disabled="addressData.isLoadingCities"
         >
           <SelectValue placeholder="Select City / Municipality" />
           <Spinner v-if="addressData.isLoadingCities" class="ml-auto h-4 w-4" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent class="font-mono font-semibold">
           <SelectItem
             v-for="c in addressData.cities"
             :key="c.code"
             :value="c.name"
+            class="cursor-pointer"
           >
             {{ c.name }}
           </SelectItem>
@@ -194,21 +202,22 @@ defineProps<{
     class="grid gap-2"
     v-if="addressData.barangays.length || addressData.isLoadingBarangays"
   >
-    <Label :for="fieldNames.barangay" class="text-auth-blue">{{
+    <Label :for="fieldNames.barangay" class="font-semibold text-auth-blue">{{
       labels.barangay
     }}</Label>
     <div
       class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
     >
       <div class="flex items-center justify-center bg-auth-blue px-3">
-        <MapPin class="h-5 w-5 text-white" />
+        <MapPinIcon class="h-5 w-5 text-white" />
       </div>
       <Select
         v-model="addressData.selectedBarangay"
         :name="fieldNames.barangay"
+        required
       >
         <SelectTrigger
-          class="flex-1 border-0 focus-visible:ring-0"
+          class="flex-1 cursor-pointer border-0 font-mono font-semibold focus-visible:ring-0"
           :disabled="addressData.isLoadingBarangays"
         >
           <SelectValue placeholder="Select Barangay" />
@@ -217,11 +226,12 @@ defineProps<{
             class="ml-auto h-4 w-4"
           />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent class="font-mono font-semibold">
           <SelectItem
             v-for="b in addressData.barangays"
             :key="b.code"
             :value="b.name"
+            class="cursor-pointer"
           >
             {{ b.name }}
           </SelectItem>
@@ -233,14 +243,14 @@ defineProps<{
 
   <!-- Postal Code -->
   <div class="grid gap-2">
-    <Label :for="fieldNames.postalCode" class="text-auth-blue">{{
+    <Label :for="fieldNames.postalCode" class="font-semibold text-auth-blue">{{
       labels.postalCode
     }}</Label>
     <div
       class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
     >
       <div class="flex items-center justify-center bg-auth-blue px-3">
-        <MapPin class="h-5 w-5 text-white" />
+        <MapPinIcon class="h-5 w-5 text-white" />
       </div>
       <Input
         :id="fieldNames.postalCode"
@@ -249,7 +259,7 @@ defineProps<{
         required
         :autocomplete="fieldNames.postalCode"
         placeholder="2009"
-        class="flex-1 border-0 focus-visible:ring-0"
+        class="flex-1 border-0 font-mono font-semibold focus-visible:ring-0"
       />
     </div>
     <InputError :message="errors?.[fieldNames.postalCode]" />
@@ -257,14 +267,14 @@ defineProps<{
 
   <!-- Address -->
   <div class="grid gap-2">
-    <Label :for="fieldNames.address" class="text-auth-blue">{{
+    <Label :for="fieldNames.address" class="font-semibold text-auth-blue">{{
       labels.address
     }}</Label>
     <div
       class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
     >
       <div class="flex items-center justify-center bg-auth-blue px-3">
-        <Home class="h-5 w-5 text-white" />
+        <MapPinIcon class="h-5 w-5 text-white" />
       </div>
       <Input
         :id="fieldNames.address"
@@ -273,7 +283,7 @@ defineProps<{
         required
         autocomplete="address"
         placeholder="123 St. / Building Name"
-        class="flex-1 border-0 focus-visible:ring-0"
+        class="flex-1 border-0 font-mono font-semibold focus-visible:ring-0"
       />
     </div>
     <InputError :message="errors?.[fieldNames.address]" />

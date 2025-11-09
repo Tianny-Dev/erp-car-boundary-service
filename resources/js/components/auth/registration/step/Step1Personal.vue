@@ -2,7 +2,13 @@
 import InputError from '@/components/InputError.vue';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Calendar, Mail, PhoneCall, User } from 'lucide-vue-next';
+import {
+  Building2Icon,
+  CalendarIcon,
+  MailIcon,
+  PhoneCallIcon,
+  UserIcon,
+} from 'lucide-vue-next';
 import { computed } from 'vue';
 
 // --- TYPES ---
@@ -13,6 +19,7 @@ interface FieldNames {
   gender: string;
   birthDate: string;
   age: string;
+  franchiseName: string;
 }
 interface Labels {
   name: string;
@@ -21,6 +28,7 @@ interface Labels {
   gender: string;
   birthDate: string;
   age: string;
+  franchiseName: string;
 }
 interface ShowFields {
   name: boolean;
@@ -28,6 +36,7 @@ interface ShowFields {
   email: boolean;
   gender: boolean;
   birthday: boolean; // Controls the whole birthday/age block
+  franchiseName: boolean;
 }
 
 // --- PROPS ---
@@ -53,6 +62,7 @@ const defaultFieldNames: FieldNames = {
   gender: 'gender',
   birthDate: 'birth_date',
   age: 'age',
+  franchiseName: 'franchise_name',
 };
 const defaultLabels: Labels = {
   name: 'Full Name',
@@ -61,6 +71,7 @@ const defaultLabels: Labels = {
   gender: 'Gender',
   birthDate: 'Date of Birth',
   age: 'Age',
+  franchiseName: 'Business / Franchise Name',
 };
 const defaultShowFields: ShowFields = {
   name: true,
@@ -68,6 +79,7 @@ const defaultShowFields: ShowFields = {
   email: true,
   gender: true,
   birthday: true,
+  franchiseName: true,
 };
 
 // Merges defaults with any provided props. Props win.
@@ -103,14 +115,16 @@ const calculatedAge = computed(() => {
 </script>
 
 <template>
-  <!-- Name -->
+  <!-- Full Name -->
   <div v-if="show.name" class="grid gap-2">
-    <Label :for="fields.name" class="text-auth-blue">{{ labels.name }}</Label>
+    <Label :for="fields.name" class="font-semibold text-auth-blue">{{
+      labels.name
+    }}</Label>
     <div
       class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
     >
       <div class="flex items-center justify-center bg-auth-blue px-3">
-        <User class="h-5 w-5 text-white" />
+        <UserIcon class="h-5 w-5 text-white" />
       </div>
       <Input
         :id="fields.name"
@@ -120,7 +134,7 @@ const calculatedAge = computed(() => {
         autofocus
         :autocomplete="fields.name"
         placeholder="Juan Delacruz"
-        class="flex-1 border-0 focus-visible:ring-0"
+        class="flex-1 border-0 font-mono font-semibold focus-visible:ring-0"
       />
     </div>
     <InputError :message="errors?.[fields.name]" />
@@ -128,12 +142,14 @@ const calculatedAge = computed(() => {
 
   <!-- Phone -->
   <div v-if="show.phone" class="grid gap-2">
-    <Label :for="fields.phone" class="text-auth-blue">{{ labels.phone }}</Label>
+    <Label :for="fields.phone" class="font-semibold text-auth-blue">{{
+      labels.phone
+    }}</Label>
     <div
       class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
     >
       <div class="flex items-center justify-center bg-auth-blue px-3">
-        <PhoneCall class="h-5 w-5 text-white" />
+        <PhoneCallIcon class="h-5 w-5 text-white" />
       </div>
       <Input
         :id="fields.phone"
@@ -142,7 +158,7 @@ const calculatedAge = computed(() => {
         required
         :autocomplete="fields.phone"
         placeholder="639123456789"
-        class="flex-1 border-0 focus-visible:ring-0"
+        class="flex-1 border-0 font-mono font-semibold focus-visible:ring-0"
       />
     </div>
     <InputError :message="errors?.[fields.phone]" />
@@ -150,12 +166,14 @@ const calculatedAge = computed(() => {
 
   <!-- Email -->
   <div v-if="show.email" class="grid gap-2">
-    <Label :for="fields.email" class="text-auth-blue">{{ labels.email }}</Label>
+    <Label :for="fields.email" class="font-semibold text-auth-blue">{{
+      labels.email
+    }}</Label>
     <div
       class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
     >
       <div class="flex items-center justify-center bg-auth-blue px-3">
-        <Mail class="h-5 w-5 text-white" />
+        <MailIcon class="h-5 w-5 text-white" />
       </div>
       <Input
         :id="fields.email"
@@ -164,7 +182,7 @@ const calculatedAge = computed(() => {
         required
         :autocomplete="fields.email"
         placeholder="email@example.com"
-        class="flex-1 border-0 focus-visible:ring-0"
+        class="flex-1 border-0 font-mono font-semibold focus-visible:ring-0"
       />
     </div>
     <InputError :message="errors?.[fields.email]" />
@@ -172,14 +190,15 @@ const calculatedAge = computed(() => {
 
   <!-- Gender -->
   <div v-if="show.gender" class="grid gap-2">
-    <Label :for="fields.gender" class="text-auth-blue">{{
+    <Label :for="fields.gender" class="font-semibold text-auth-blue">{{
       labels.gender
     }}</Label>
     <select
       :id="fields.gender"
       :name="fields.gender"
+      required
       v-model="computedGender"
-      class="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-auth-blue focus-visible:ring-2 focus-visible:ring-auth-blue focus-visible:ring-offset-2 focus-visible:outline-none"
+      class="flex h-10 w-full cursor-pointer rounded-md border border-gray-300 bg-white px-3 py-2 font-mono text-sm font-semibold focus-visible:ring-2 focus-visible:ring-auth-blue focus-visible:ring-offset-2 focus-visible:outline-none"
     >
       <option value="" disabled>Select your gender</option>
       <option
@@ -196,34 +215,65 @@ const calculatedAge = computed(() => {
   <!-- Birthday -->
   <div v-if="show.birthday" class="flex flex-wrap items-end gap-3">
     <div class="flex min-w-[200px] flex-1 flex-col">
-      <Label :for="fields.birthDate" class="mb-1 text-auth-blue">{{
-        labels.birthDate
-      }}</Label>
+      <Label
+        :for="fields.birthDate"
+        class="mb-1 font-semibold text-auth-blue"
+        >{{ labels.birthDate }}</Label
+      >
       <div class="flex overflow-hidden rounded-md border border-gray-300">
         <div class="flex items-center justify-center bg-auth-blue px-3">
-          <Calendar class="h-5 w-5 text-white" />
+          <CalendarIcon class="h-5 w-5 text-white" />
         </div>
         <Input
           :id="fields.birthDate"
           type="date"
           :name="fields.birthDate"
           v-model="computedBirthday"
+          required
           :max="new Date().toISOString().split('T')[0]"
           autocomplete="bday"
-          class="flex-1 border-0 focus-visible:ring-0"
+          class="flex-1 cursor-text border-0 font-mono font-semibold focus-visible:ring-0"
         />
       </div>
       <InputError :message="errors?.[fields.birthDate]" />
     </div>
 
+    <!-- Age -->
     <div class="flex w-24 flex-col">
-      <Label for="age" class="mb-1 text-auth-blue">{{ labels.age }}</Label>
+      <Label for="age" class="mb-1 font-semibold text-auth-blue">{{
+        labels.age
+      }}</Label>
       <div
-        class="flex h-10 w-full items-center justify-center rounded-md border border-gray-300 bg-gray-50 text-lg font-bold text-auth-blue"
+        class="flex h-10 w-full items-center justify-center rounded-md border border-gray-300 bg-gray-50 font-mono text-lg font-semibold"
       >
         {{ calculatedAge !== null ? calculatedAge : '00' }}
       </div>
       <input type="hidden" :name="fields.age" :value="calculatedAge" />
     </div>
+  </div>
+
+  <!-- Franchise Name -->
+  <div v-if="show.franchiseName" class="grid gap-2">
+    <Label :for="fields.franchiseName" class="font-semibold text-auth-blue">{{
+      labels.franchiseName
+    }}</Label>
+    <div
+      class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
+    >
+      <div class="flex items-center justify-center bg-auth-blue px-3">
+        <Building2Icon class="h-5 w-5 text-white" />
+      </div>
+      <Input
+        :id="fields.franchiseName"
+        type="text"
+        :name="fields.franchiseName"
+        required
+        autofocus
+        :autocomplete="fields.franchiseName"
+        placeholder="Business / Franchise Name"
+        class="flex-1 border-0 font-mono font-semibold focus-visible:ring-0"
+      />
+    </div>
+    <InputError :message="errors?.[fields.franchiseName]" />
   </div>
 </template>

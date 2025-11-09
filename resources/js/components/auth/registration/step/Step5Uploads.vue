@@ -1,8 +1,4 @@
 <script setup lang="ts">
-import InputError from '@/components/InputError.vue';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { File } from 'lucide-vue-next';
 import { computed } from 'vue';
 import FileInput from './FileInput.vue';
 
@@ -86,6 +82,7 @@ const show = computed(() => ({ ...defaultShowFields, ...props.showFields }));
 </script>
 
 <template>
+  <!-- NBI or Police Clearance -->
   <FileInput
     v-if="show.nbiClearance"
     :id="fields.nbiClearance"
@@ -95,147 +92,71 @@ const show = computed(() => ({ ...defaultShowFields, ...props.showFields }));
     :errorMsg="errors?.[fields.nbiClearance]"
   />
 
-  <div v-if="show.selfiePicture" class="grid gap-2">
-    <Label :for="fields.selfiePicture" class="text-auth-blue">{{
-      labels.selfiePicture
-    }}</Label>
-    <div
-      class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
-    >
-      <div class="flex items-center justify-center bg-auth-blue px-3">
-        <File class="h-5 w-5 text-white" />
-      </div>
-      <Input
-        :id="fields.selfiePicture"
-        type="file"
-        :name="fields.selfiePicture"
-        required
-        class="flex-1 border-0 focus-visible:ring-0"
-      />
-    </div>
-    <InputError :message="errors?.[fields.selfiePicture]" />
-  </div>
+  <!-- 1x1 Photo / Selfie -->
+  <FileInput
+    v-if="show.selfiePicture"
+    :id="fields.selfiePicture"
+    :name="fields.selfiePicture"
+    :label="labels.selfiePicture"
+    :required="true"
+    :errorMsg="errors?.[fields.selfiePicture]"
+  />
 
-  <div v-if="show.prcCertificate" class="grid gap-2">
-    <Label :for="fields.prcCertificate" class="text-auth-blue">{{
-      labels.prcCertificate
-    }}</Label>
-    <div
-      class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
-    >
-      <div class="flex items-center justify-center bg-auth-blue px-3">
-        <File class="h-5 w-5 text-white" />
-      </div>
-      <Input
-        :id="fields.prcCertificate"
-        type="file"
-        :name="fields.prcCertificate"
-        class="flex-1 border-0 focus-visible:ring-0"
-      />
-    </div>
-    <InputError :message="errors?.[fields.prcCertificate]" />
-  </div>
+  <!-- Certification or PRC Number -->
+  <FileInput
+    v-if="show.prcCertificate"
+    :id="fields.prcCertificate"
+    :name="fields.prcCertificate"
+    :label="labels.prcCertificate"
+    :errorMsg="errors?.[fields.prcCertificate]"
+  />
 
-  <div v-if="show.professionalLicense" class="grid gap-2">
-    <Label :for="fields.professionalLicense" class="text-auth-blue">{{
-      labels.professionalLicense
-    }}</Label>
-    <div
-      class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
-    >
-      <div class="flex items-center justify-center bg-auth-blue px-3">
-        <File class="h-5 w-5 text-white" />
-      </div>
-      <Input
-        :id="fields.professionalLicense"
-        type="file"
-        :name="fields.professionalLicense"
-        class="flex-1 border-0 focus-visible:ring-0"
-      />
-    </div>
-    <InputError :message="errors?.[fields.professionalLicense]" />
-  </div>
+  <!-- Professional Licence -->
+  <FileInput
+    v-if="show.professionalLicense"
+    :id="fields.professionalLicense"
+    :name="fields.professionalLicense"
+    :label="labels.professionalLicense"
+    :errorMsg="errors?.[fields.professionalLicense]"
+  />
 
-  <div v-if="show.cvAttachment" class="grid gap-2">
-    <Label :for="fields.cvAttachment" class="text-auth-blue">{{
-      labels.cvAttachment
-    }}</Label>
-    <div
-      class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
-    >
-      <div class="flex items-center justify-center bg-auth-blue px-3">
-        <File class="h-5 w-5 text-white" />
-      </div>
-      <Input
-        :id="fields.cvAttachment"
-        type="file"
-        :name="fields.cvAttachment"
-        class="flex-1 border-0 focus-visible:ring-0"
-      />
-    </div>
-    <InputError :message="errors?.[fields.cvAttachment]" />
-  </div>
+  <!-- Photo or Resume -->
+  <FileInput
+    v-if="show.cvAttachment"
+    :id="fields.cvAttachment"
+    :name="fields.cvAttachment"
+    :label="labels.cvAttachment"
+    :required="true"
+    :errorMsg="errors?.[fields.cvAttachment]"
+  />
 
-  <div v-if="show.dtiCertificate" class="grid gap-2">
-    <Label :for="fields.dtiCertificate" class="text-auth-blue">{{
-      labels.dtiCertificate
-    }}</Label>
-    <div
-      class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
-    >
-      <div class="flex items-center justify-center bg-auth-blue px-3">
-        <File class="h-5 w-5 text-white" />
-      </div>
-      <Input
-        :id="fields.dtiCertificate"
-        type="file"
-        :name="fields.dtiCertificate"
-        required
-        class="flex-1 border-0 focus-visible:ring-0"
-      />
-    </div>
-    <InputError :message="errors?.[fields.dtiCertificate]" />
-  </div>
+  <!-- DTI/SEC Registration -->
+  <FileInput
+    v-if="show.dtiCertificate"
+    :id="fields.dtiCertificate"
+    :name="fields.dtiCertificate"
+    :label="labels.dtiCertificate"
+    :required="true"
+    :errorMsg="errors?.[fields.dtiCertificate]"
+  />
 
-  <div v-if="show.mayorPermit" class="grid gap-2">
-    <Label :for="fields.mayorPermit" class="text-auth-blue">{{
-      labels.mayorPermit
-    }}</Label>
-    <div
-      class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
-    >
-      <div class="flex items-center justify-center bg-auth-blue px-3">
-        <File class="h-5 w-5 text-white" />
-      </div>
-      <Input
-        :id="fields.mayorPermit"
-        type="file"
-        :name="fields.mayorPermit"
-        required
-        class="flex-1 border-0 focus-visible:ring-0"
-      />
-    </div>
-    <InputError :message="errors?.[fields.mayorPermit]" />
-  </div>
+  <!-- Mayor's Permit -->
+  <FileInput
+    v-if="show.mayorPermit"
+    :id="fields.mayorPermit"
+    :name="fields.mayorPermit"
+    :label="labels.mayorPermit"
+    :required="true"
+    :errorMsg="errors?.[fields.mayorPermit]"
+  />
 
-  <div v-if="show.proofOfCapital" class="grid gap-2">
-    <Label :for="fields.proofOfCapital" class="text-auth-blue">{{
-      labels.proofOfCapital
-    }}</Label>
-    <div
-      class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
-    >
-      <div class="flex items-center justify-center bg-auth-blue px-3">
-        <File class="h-5 w-5 text-white" />
-      </div>
-      <Input
-        :id="fields.proofOfCapital"
-        type="file"
-        :name="fields.proofOfCapital"
-        required
-        class="flex-1 border-0 focus-visible:ring-0"
-      />
-    </div>
-    <InputError :message="errors?.[fields.proofOfCapital]" />
-  </div>
+  <!-- Proof of Capital -->
+  <FileInput
+    v-if="show.proofOfCapital"
+    :id="fields.proofOfCapital"
+    :name="fields.proofOfCapital"
+    :label="labels.proofOfCapital"
+    :required="true"
+    :errorMsg="errors?.[fields.proofOfCapital]"
+  />
 </template>
