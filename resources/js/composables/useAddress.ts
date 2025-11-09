@@ -1,4 +1,3 @@
-// src/composables/useAddress.ts
 import { computed, onMounted, ref, watch } from 'vue';
 
 // Define types for clarity

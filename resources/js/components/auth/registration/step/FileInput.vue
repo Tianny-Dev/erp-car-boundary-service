@@ -43,6 +43,7 @@ function handleFileChange(event: Event) {
         type="file"
         :name="name"
         :required="required"
+        accept=".doc,.docx,application/pdf,image/*"
         class="hidden"
         @change="handleFileChange"
       />

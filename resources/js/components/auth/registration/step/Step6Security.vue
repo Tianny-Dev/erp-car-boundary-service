@@ -24,11 +24,27 @@ interface ShowFields {
 // --- PROPS ---
 const props = defineProps<{
   errors?: Record<string, string>;
+  // v-model props
+  terms1: boolean;
+  terms2: boolean;
   // Customization props (all optional)
   fieldNames?: Partial<FieldNames>;
   labels?: Partial<Labels>;
   showFields?: Partial<ShowFields>;
 }>();
+
+// --- EMITS ---
+const emit = defineEmits(['update:terms1', 'update:terms2']);
+
+// --- V-MODEL COMPUTEDS ---
+const computedTerms1 = computed<boolean>({
+  get: () => props.terms1,
+  set: (value) => emit('update:terms1', value),
+});
+const computedTerms2 = computed<boolean>({
+  get: () => props.terms2,
+  set: (value) => emit('update:terms2', value),
+});
 
 // --- DEFAULTS ---
 const defaultFieldNames: FieldNames = {
@@ -74,7 +90,6 @@ const showConfirmPassword = ref(false);
             :type="showPassword ? 'text' : 'password'"
             name="password"
             required
-            autocomplete="new-password"
             placeholder="Password"
             class="flex-1 border-0 font-mono font-semibold focus-visible:ring-0"
           />
@@ -108,7 +123,6 @@ const showConfirmPassword = ref(false);
             :type="showConfirmPassword ? 'text' : 'password'"
             name="password_confirmation"
             required
-            autocomplete="new-password"
             placeholder="Confirm Password"
             class="flex-1 border-0 font-mono font-semibold focus-visible:ring-0"
           />
@@ -128,7 +142,12 @@ const showConfirmPassword = ref(false);
 
   <!-- Terms 1 -->
   <div v-if="show.terms1" class="flex items-center gap-x-2">
-    <Checkbox :id="fields.terms1" :name="fields.terms1" class="border-black" />
+    <Checkbox
+      :id="fields.terms1"
+      :name="fields.terms1"
+      v-model="computedTerms1"
+      class="border-black"
+    />
     <div class="grid gap-1.5 leading-none">
       <label
         :for="fields.terms1"
@@ -142,7 +161,12 @@ const showConfirmPassword = ref(false);
 
   <!-- Terms 2 -->
   <div v-if="show.terms2" class="flex items-center gap-x-2">
-    <Checkbox :id="fields.terms2" :name="fields.terms2" class="border-black" />
+    <Checkbox
+      :id="fields.terms2"
+      :name="fields.terms2"
+      v-model="computedTerms2"
+      class="border-black"
+    />
     <div class="grid gap-1.5 leading-none">
       <label
         :for="fields.terms2"

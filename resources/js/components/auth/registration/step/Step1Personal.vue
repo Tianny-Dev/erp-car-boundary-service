@@ -177,7 +177,7 @@ const calculatedAge = computed(() => {
       </div>
       <Input
         :id="fields.email"
-        type="email"
+        type="text"
         :name="fields.email"
         required
         :autocomplete="fields.email"

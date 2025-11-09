@@ -1,12 +1,10 @@
 <script setup lang="ts">
-import { Button } from '@/components/ui/button';
-import { Spinner } from '@/components/ui/spinner';
 import { useAddress } from '@/composables/useAddress';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { store } from '@/routes/register';
 import { Form, Head } from '@inertiajs/vue3';
-import { Check, ChevronLeft, ChevronRight } from 'lucide-vue-next';
-import { computed, reactive, ref } from 'vue';
+import { computed, nextTick, reactive, ref, watch } from 'vue';
+import MultiStepFooter from './step/MultiStepFooter.vue';
 import Step1Personal from './step/Step1Personal.vue';
 import Step2Address from './step/Step2Address.vue';
 import Step3Preferences from './step/Step3Preferences.vue';
@@ -28,9 +26,6 @@ defineProps<{
   };
 }>();
 
-const currentStep = ref(1);
-const totalSteps = 7;
-
 const stepTitles: Record<number, string> = {
   1: 'Basic Information',
   2: 'Home Address',
@@ -41,11 +36,6 @@ const stepTitles: Record<number, string> = {
   7: 'Account Security',
 };
 
-const canProceed = computed(() => {
-  // Add your validation logic here
-  return true;
-});
-
 const nextStep = () => {
   if (currentStep.value < totalSteps) {
     currentStep.value++;
@@ -55,12 +45,6 @@ const nextStep = () => {
 const prevStep = () => {
   if (currentStep.value > 1) {
     currentStep.value--;
-  }
-};
-
-const goToStep = (step: number) => {
-  if (step <= totalSteps && step >= 1) {
-    currentStep.value = step;
   }
 };
 
@@ -137,6 +121,7 @@ const identityStep5Show = {
 
 // --- Step 6 (Documents to Upload) State & Config ---
 const documentsStep6Show = {
+  nbiClearance: false,
   selfiePicture: false,
   prcCertificate: false,
   professionalLicense: false,
@@ -148,6 +133,69 @@ const securityStep6Labels = {
   terms1: 'I Agree to the Franchise Terms and Boundary Policy',
   terms2: 'I confirm all details are true and valid',
 };
+
+// --- Multi-Step Form State & Config ---
+const currentStep = ref(1);
+const totalSteps = 7;
+const terms1 = ref(false);
+const terms2 = ref(false);
+const canSubmit = computed(() => {
+  if (currentStep.value === totalSteps) {
+    return terms1.value && terms2.value;
+  }
+  return true;
+});
+const handleStepChange = () => {
+  // This will trigger the validation in MultiStepFooter
+  nextTick(() => {
+    // Force validation update
+    const event = new Event('input', { bubbles: true });
+    document
+      .querySelector(`[data-step="${currentStep.value}"]`)
+      ?.dispatchEvent(event);
+  });
+};
+
+// --- Form Errors State & Config ---
+const formErrors = ref<Record<string, string>>({});
+const fieldStepMap: Record<string, number> = {
+  name: 1,
+  phone: 1,
+  email: 1,
+  gender: 1,
+  home_region: 2,
+  home_province: 2,
+  home_city: 2,
+  home_barangay: 2,
+  home_postal_code: 2,
+  home_address: 2,
+  franchise_name: 3,
+  franchise_region: 3,
+  franchise_province: 3,
+  franchise_city: 3,
+  franchise_barangay: 3,
+  franchise_postal_code: 3,
+  franchise_address: 3,
+  valid_id_type: 4,
+  front_valid_id_picture: 4,
+  back_valid_id_picture: 5,
+  valid_id_number: 5,
+  dti_certificate: 6,
+  mayor_permit: 6,
+  proof_capital: 6,
+};
+
+watch(
+  formErrors,
+  (newErrors) => {
+    if (newErrors && Object.keys(newErrors).length > 0) {
+      const firstErrorField = Object.keys(newErrors)[0];
+      const step = fieldStepMap[firstErrorField];
+      if (step) currentStep.value = step;
+    }
+  },
+  { deep: true, immediate: true },
+);
 </script>
 
 <template>
@@ -161,10 +209,21 @@ const securityStep6Labels = {
 
     <Form
       v-bind="store.form()"
-      :reset-on-success="['password', 'password_confirmation']"
       v-slot="{ errors, processing }"
       class="flex flex-col gap-6"
     >
+      <template v-if="errors">
+        <!-- Keep formErrors synced -->
+        <component
+          :is="
+            () => {
+              formErrors = errors;
+              return null;
+            }
+          "
+        />
+      </template>
+
       <input type="hidden" name="user_type_id" :value="userType.encrypted_id" />
       <!-- Step Title -->
       <h1 class="text-center text-2xl font-black text-auth-blue">
@@ -172,7 +231,7 @@ const securityStep6Labels = {
       </h1>
 
       <!-- Step 1: Personal Information -->
-      <div v-show="currentStep === 1" class="space-y-4">
+      <div v-show="currentStep === 1" class="space-y-4" data-step="1">
         <Step1Personal
           :errors="errors"
           :gender-options="genderOptions"
@@ -182,28 +241,30 @@ const securityStep6Labels = {
       </div>
 
       <!-- Step 2: Home Address -->
-      <div v-show="currentStep === 2" class="space-y-4">
+      <div v-show="currentStep === 2" class="space-y-4" data-step="2">
         <Step2Address
           :address-data="homeAddress"
           :errors="errors"
           :field-names="homeAddressFields"
           :labels="homeAddressLabels"
+          @change="handleStepChange"
         />
       </div>
 
       <!-- Step 3: Franchise Address -->
-      <div v-show="currentStep === 3" class="space-y-4">
+      <div v-show="currentStep === 3" class="space-y-4" data-step="3">
         <Step1Personal :errors="errors" :show-fields="personalStep3Show" />
         <Step2Address
           :address-data="franchiseAddress"
           :errors="errors"
           :field-names="franchiseAddressFields"
           :labels="franchiseAddressLabels"
+          @change="handleStepChange"
         />
       </div>
 
       <!-- Step 4: Preferences -->
-      <div v-show="currentStep === 4" class="space-y-4">
+      <div v-show="currentStep === 4" class="space-y-4" data-step="4">
         <Step3Preferences
           :errors="errors"
           :payment-options="paymentOptions"
@@ -213,7 +274,7 @@ const securityStep6Labels = {
       </div>
 
       <!-- Step 5: Identification -->
-      <div v-show="currentStep === 5" class="space-y-4">
+      <div v-show="currentStep === 5" class="space-y-4" data-step="5">
         <Step4Account
           :errors="errors"
           :id-types="idTypes"
@@ -225,93 +286,31 @@ const securityStep6Labels = {
       </div>
 
       <!-- Step 6: Uploads -->
-      <div v-show="currentStep === 6" class="space-y-4">
+      <div v-show="currentStep === 6" class="space-y-4" data-step="6">
         <Step5Uploads :errors="errors" :show-fields="documentsStep6Show" />
       </div>
 
       <!-- Step 7: Security -->
-      <div v-show="currentStep === 7" class="space-y-4">
-        <Step6Security :errors="errors" :labels="securityStep6Labels" />
+      <div v-show="currentStep === 7" class="space-y-4" data-step="7">
+        <Step6Security
+          :errors="errors"
+          :labels="securityStep6Labels"
+          @change="handleStepChange"
+          v-model:terms1="terms1"
+          v-model:terms2="terms2"
+        />
       </div>
 
-      <!-- Navigation Buttons -->
-      <div class="mt-4 flex gap-3">
-        <Button
-          v-if="currentStep > 1"
-          type="button"
-          variant="outline"
-          class="flex-1 cursor-pointer"
-          @click="prevStep"
-          :disabled="processing"
-        >
-          <ChevronLeft class="mr-2 h-4 w-4" />
-          Previous
-        </Button>
-
-        <Button
-          v-if="currentStep < totalSteps"
-          type="button"
-          class="flex-1 cursor-pointer bg-auth-blue text-white hover:bg-auth-blue hover:opacity-80"
-          @click="nextStep"
-          :disabled="!canProceed"
-        >
-          Next
-          <ChevronRight class="ml-2 h-4 w-4" />
-        </Button>
-
-        <Button
-          v-if="currentStep === totalSteps"
-          type="submit"
-          class="flex-1 cursor-pointer bg-brand-green hover:bg-brand-green hover:opacity-80"
-          :disabled="processing"
-          data-test="register-user-button"
-        >
-          <Spinner v-if="processing" />
-          Create account
-        </Button>
-      </div>
-
-      <!-- Progress Indicator -->
-      <div class="mb-4">
-        <!-- Progress Bar -->
-        <div class="h-2 w-full rounded-full bg-gray-200">
-          <div
-            class="h-2 rounded-full bg-auth-blue transition-all duration-300"
-            :style="{ width: `${(currentStep / totalSteps) * 100}%` }"
-          ></div>
-        </div>
-
-        <!-- Step Indicators -->
-        <div class="mt-4 flex justify-between">
-          <button
-            v-for="step in totalSteps"
-            :disabled="true"
-            :key="step"
-            type="button"
-            @click="goToStep(step)"
-            class="flex flex-col items-center gap-1"
-            :class="
-              step <= currentStep
-                ? 'cursor-not-allowed'
-                : 'cursor-not-allowed opacity-50'
-            "
-          >
-            <div
-              class="flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition-all"
-              :class="
-                step < currentStep
-                  ? 'bg-green-500 text-white'
-                  : step === currentStep
-                    ? 'bg-auth-blue text-white'
-                    : 'bg-gray-200 text-gray-500'
-              "
-            >
-              <Check v-if="step < currentStep" class="h-4 w-4" />
-              <span v-else>{{ step }}</span>
-            </div>
-          </button>
-        </div>
-      </div>
+      <MultiStepFooter
+        :current-step="currentStep"
+        :total-steps="totalSteps"
+        :processing="processing"
+        :errors="errors"
+        :can-submit="canSubmit"
+        @next="nextStep"
+        @prev="prevStep"
+        @submit="$event.target.closest('form')?.submit()"
+      />
     </Form>
   </AuthBase>
 </template>

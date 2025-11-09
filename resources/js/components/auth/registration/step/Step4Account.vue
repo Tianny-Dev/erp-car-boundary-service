@@ -188,6 +188,7 @@ function removeFile(side: 'front' | 'back') {
       <Input
         :id="fields.licenseExpiry"
         type="date"
+        required
         :name="fields.licenseExpiry"
         v-model="computedLicenseExpiry"
         :min="new Date().toISOString().split('T')[0]"
@@ -205,6 +206,7 @@ function removeFile(side: 'front' | 'back') {
     <select
       :id="fields.validIdType"
       :name="fields.validIdType"
+      required
       v-model="computedIdType"
       class="flex h-10 w-full cursor-pointer rounded-md border border-gray-300 bg-white px-3 py-2 font-mono text-sm font-semibold focus-visible:ring-2 focus-visible:ring-auth-blue focus-visible:ring-offset-2 focus-visible:outline-none"
     >
@@ -240,6 +242,7 @@ function removeFile(side: 'front' | 'back') {
             type="file"
             :name="fields.frontValidIdPicture"
             accept="image/*"
+            required
             class="hidden"
             @change="handleFileUpload($event, 'front')"
           />
@@ -277,6 +280,7 @@ function removeFile(side: 'front' | 'back') {
             ref="licenseBackInput"
             type="file"
             :name="fields.backValidIdPicture"
+            required
             accept="image/*"
             class="hidden"
             @change="handleFileUpload($event, 'back')"
@@ -354,7 +358,12 @@ function removeFile(side: 'front' | 'back') {
       </Button>
     </div>
     <InputError :message="errors?.[fields.expertise]" />
-    <input type="hidden" :name="fields.expertise" :value="computedExpertise" />
+    <input
+      type="hidden"
+      :name="fields.expertise"
+      :value="computedExpertise"
+      required
+    />
   </div>
 
   <!-- YEAR EXPERIENCE -->

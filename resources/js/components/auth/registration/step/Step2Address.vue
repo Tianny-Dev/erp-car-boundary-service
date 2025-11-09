@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { MapPinIcon } from 'lucide-vue-next';
+import { watch } from 'vue';
 
 // Define the shape of the address object from useAddress
 interface AddressData {
@@ -48,12 +49,44 @@ interface Labels {
   address: string;
 }
 
-defineProps<{
+const props = defineProps<{
   addressData: AddressData;
   errors?: Record<string, string>;
   fieldNames: FieldNames;
   labels: Labels;
 }>();
+
+// Emit events when address data changes
+const emit = defineEmits(['change']);
+
+// Watch for changes in address data and emit change events
+watch(
+  () => props.addressData.selectedRegion,
+  () => {
+    emit('change', new Event('change'));
+  },
+);
+
+watch(
+  () => props.addressData.selectedProvince,
+  () => {
+    emit('change', new Event('change'));
+  },
+);
+
+watch(
+  () => props.addressData.selectedCity,
+  () => {
+    emit('change', new Event('change'));
+  },
+);
+
+watch(
+  () => props.addressData.selectedBarangay,
+  () => {
+    emit('change', new Event('change'));
+  },
+);
 </script>
 
 <template>
@@ -72,6 +105,7 @@ defineProps<{
         v-model="addressData.selectedRegion"
         :name="fieldNames.region"
         required
+        @update:modelValue="$emit('change', $event)"
       >
         <SelectTrigger
           class="flex-1 cursor-pointer border-0 font-mono font-semibold focus-visible:ring-0"
@@ -116,6 +150,7 @@ defineProps<{
         v-model="addressData.selectedProvince"
         :name="fieldNames.province"
         required
+        @update:modelValue="$emit('change', $event)"
       >
         <SelectTrigger
           class="flex-1 cursor-pointer border-0 font-mono font-semibold focus-visible:ring-0"
@@ -174,6 +209,7 @@ defineProps<{
         v-model="addressData.selectedCity"
         :name="fieldNames.city"
         required
+        @update:modelValue="$emit('change', $event)"
       >
         <SelectTrigger
           class="flex-1 cursor-pointer border-0 font-mono font-semibold focus-visible:ring-0"
@@ -215,6 +251,7 @@ defineProps<{
         v-model="addressData.selectedBarangay"
         :name="fieldNames.barangay"
         required
+        @update:modelValue="$emit('change', $event)"
       >
         <SelectTrigger
           class="flex-1 cursor-pointer border-0 font-mono font-semibold focus-visible:ring-0"
