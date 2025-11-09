@@ -5,6 +5,7 @@ use App\Enums\Expertise;
 use App\Enums\Gender;
 use App\Enums\IdType;
 use App\Enums\Language;
+use App\Enums\Shifts;
 use App\Models\PaymentOption;
 use App\Models\UserType;
 use Illuminate\Support\Facades\Crypt;
@@ -52,6 +53,7 @@ Route::get('/register/{user_type}', function ($user_type) {
         'idTypes' => IdType::options(),
         'accessibilityOptions' => AccesibilityOption::options(),
         'paymentOptions' => $paymentOptions,
+        'shifts' => Shifts::options(),
     ]);
 })->name('register.dynamic');
 

@@ -8,6 +8,7 @@ defineProps<{
   genderOptions: { value: string; label: string }[];
   preferredLanguages: { value: string; label: string }[];
   accessibilityOptions: { value: string; label: string }[];
+  shifts: { value: string; label: string }[];
 
   expertise: { value: string; label: string }[];
   idTypes: { value: string; label: string }[];
@@ -31,6 +32,7 @@ defineProps<{
     :gender-options="genderOptions"
     :payment-options="paymentOptions"
     :user-type="userType"
+    :shifts="shifts"
   />
 
   <PassengerRegisrationForm

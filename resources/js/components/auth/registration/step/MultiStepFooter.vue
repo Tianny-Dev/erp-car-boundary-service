@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
-import { Check, ChevronLeft, ChevronRight } from 'lucide-vue-next';
+import { CheckIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-vue-next';
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 const props = defineProps<{
@@ -49,11 +49,6 @@ function validateRequiredInputs() {
     // Handle select elements
     if (input.tagName === 'SELECT') {
       return (input as HTMLSelectElement).value !== '';
-    }
-
-    // Handle passwords
-    if (input.type === 'password') {
-      return (input as HTMLInputElement).value.length > 0;
     }
 
     // Handle regular inputs
@@ -133,7 +128,7 @@ onBeforeUnmount(() => {
         @click="$emit('prev')"
         :disabled="props.processing"
       >
-        <ChevronLeft class="mr-2 h-4 w-4" />
+        <ChevronLeftIcon class="mr-2 h-4 w-4" />
         Previous
       </Button>
 
@@ -145,14 +140,14 @@ onBeforeUnmount(() => {
         :disabled="!canProceed || props.processing"
       >
         Next
-        <ChevronRight class="ml-2 h-4 w-4" />
+        <ChevronRightIcon class="ml-2 h-4 w-4" />
       </Button>
 
       <Button
         v-if="props.currentStep === props.totalSteps"
         type="submit"
         class="flex-1 cursor-pointer bg-brand-green font-semibold hover:bg-brand-green hover:opacity-80"
-        :disabled="props.processing || !props.canSubmit"
+        :disabled="props.processing || !props.canSubmit || !canProceed"
         @click="$emit('submit')"
       >
         <Spinner v-if="props.processing" />
@@ -185,7 +180,7 @@ onBeforeUnmount(() => {
             'bg-gray-200 text-gray-500': step > props.currentStep,
           }"
         >
-          <Check v-if="step < props.currentStep" class="h-4 w-4" />
+          <CheckIcon v-if="step < props.currentStep" class="h-4 w-4" />
           <span v-else>{{ step }}</span>
         </div>
       </button>

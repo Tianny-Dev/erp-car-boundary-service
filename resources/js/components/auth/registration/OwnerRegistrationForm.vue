@@ -295,7 +295,6 @@ watch(
         <Step6Security
           :errors="errors"
           :labels="securityStep6Labels"
-          @change="handleStepChange"
           v-model:terms1="terms1"
           v-model:terms2="terms2"
         />

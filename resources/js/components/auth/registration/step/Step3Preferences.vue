@@ -29,7 +29,7 @@ const props = defineProps<{
   errors?: Record<string, string>;
   // Data props
   paymentOptions?: { id: string; label: string; color: string }[];
-  shifts?: string[]; // Assuming shifts is an array of strings like ['Morning', 'Night']
+  shifts?: { value: string; label: string }[];
   preferredLanguages?: { value: string; label: string }[];
   accessibilityOptions?: { value: string; label: string }[];
   // v-model props
@@ -135,18 +135,18 @@ const computedAccessibility = computed<string | undefined>({
     <div class="flex gap-2">
       <Button
         v-for="shift in shifts"
-        :key="shift"
+        :key="shift.value"
         type="button"
-        :variant="computedShift === shift ? 'default' : 'outline'"
-        @click="computedShift = shift"
+        variant="default"
+        @click="computedShift = shift.value"
         :class="[
-          'flex-1',
-          computedShift === shift
-            ? 'bg-auth-blue hover:bg-blue-700'
-            : 'border-gray-300 bg-sky-100 hover:bg-gray-50',
+          'flex-1 cursor-pointer bg-auth-blue font-semibold text-white hover:bg-gray-700',
+          computedShift === shift.value
+            ? 'bg-gray-700 ring-2 ring-auth-blue ring-offset-2'
+            : '',
         ]"
       >
-        {{ shift }}
+        {{ shift.label }}
       </Button>
     </div>
     <InputError :message="errors?.[fields.shift]" />
