@@ -117,7 +117,7 @@ const toggle = (index: number) => {
     <div id="faq" class="scroll-mt-12 bg-[#e3f0fa] px-5">
       <div class="mx-auto w-full max-w-[1320px] py-10">
         <h1 class="text-center text-3xl font-bold text-brand-blue">
-          FREQUENTLY ASKED QUESTIONS (FAQ'S)
+          FREQUENTLY ASKED QUESTIONS (FAQ'S) 123
         </h1>
 
         <div
