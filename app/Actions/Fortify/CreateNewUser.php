@@ -10,6 +10,7 @@ use App\Models\UserPassenger;
 use App\Models\UserTechnician;
 use App\Models\Franchise;
 use App\Models\UserOwner;
+use App\Models\UserType;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\UploadedFile;
@@ -32,37 +33,6 @@ class CreateNewUser implements CreatesNewUsers
      *
      * @param  array<string, string>  $input
      */
-    // public function create(array $input): User
-    // {
-    //     try {
-    //         $userTypeId = Crypt::decryptString($input['user_type_id']);
-    //     } catch (\Exception $e) {
-    //         abort(403, 'Invalid user type.');
-    //     }
-
-    //     dd([$input, "User type id is $userTypeId"]);
-
-    //     Validator::make($input, [
-    //         'user_type_id' => ['required', 'exists:user_types,id'],
-    //         'name' => ['required', 'string', 'max:255'],
-    //         'email' => [
-    //             'required',
-    //             'string',
-    //             'email',
-    //             'max:255',
-    //             Rule::unique(User::class),
-    //         ],
-    //         'password' => $this->passwordRules(),
-    //     ])->validate();
-
-    //     return User::create([
-    //         'user_type_id' => $input['user_type_id'],
-    //         'name' => $input['name'],
-    //         'email' => $input['email'],
-    //         'password' => $input['password'],
-    //     ]);
-    // }
-
     public function create(array $input)
     {
         try {
@@ -71,7 +41,7 @@ class CreateNewUser implements CreatesNewUsers
             abort(403, 'Invalid user type.');
         }
 
-        $userType = \App\Models\UserType::findOrFail($userTypeId);
+        $userType = UserType::findOrFail($userTypeId);
 
         switch ($userType->name) {
             case 'driver':
@@ -332,30 +302,32 @@ class CreateNewUser implements CreatesNewUsers
 
     protected function createOwner(array $input, int $userTypeId): User
     {
-
-        // 1. Validation (Same as before)
+        // 1. Validation
         Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
             'email' => [
                 'required', 'string', 'email', 'max:255',
                 Rule::unique(User::class),
-                Rule::unique('franchises', 'email')
+                Rule::unique('franchises', 'email'),
+                Rule::unique('branches', 'email')
             ],
             'phone' => [
                 'required', 'string', 'max:20',
                 Rule::unique(User::class),
-                Rule::unique('franchises', 'phone')
+                Rule::unique('franchises', 'phone'),
+                Rule::unique('branches', 'phone')
             ],
             'password' => $this->passwordRules(),
             'gender' => ['required', 'string', Rule::in(['Male', 'Female', 'Other', 'Prefer not to say'])],
             'home_region' => ['required', 'string', 'max:255'],
-            'home_province' => ['required', 'string', 'max:255'],
+            'home_province' => ['nullable', 'string', 'max:255'],
             'home_city' => ['required', 'string', 'max:255'],
             'home_barangay' => ['required', 'string', 'max:255'],
             'home_postal_code' => ['required', 'string', 'max:20'],
             'home_address' => ['required', 'string', 'max:255'],
+            'franchise_name' => ['required', 'string', 'max:255'],
             'franchise_region' => ['required', 'string', 'max:255'],
-            'franchise_province' => ['required', 'string', 'max:255'],
+            'franchise_province' => ['nullable', 'string', 'max:255'],
             'franchise_city' => ['required', 'string', 'max:255'],
             'franchise_barangay' => ['required', 'string', 'max:255'],
             'franchise_postal_code' => ['required', 'string', 'max:20'],
@@ -365,17 +337,19 @@ class CreateNewUser implements CreatesNewUsers
             'valid_id_number' => ['required', 'string', 'max:20', Rule::unique('user_owners', 'valid_id_number')],
             'front_valid_id_picture' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
             'back_valid_id_picture' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
-            'dti_certificate' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf,docx', 'max:5120'],
-            'mayor_permit' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf,docx', 'max:5120'],
-            'proof_capital' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf,docx', 'max:5120'],
+            'dti_certificate' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf,docx,doc', 'max:5120'],
+            'mayor_permit' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf,docx,doc', 'max:5120'],
+            'proof_capital' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf,docx,doc', 'max:5120'],
         ])->validate();
 
-
+        Validator::make($userTypeId, [
+            'user_type_id' => ['required', Rule::exists('user_types', 'id')],
+        ])->validate();
 
         // 2. Create Records in a Transaction
         $user = DB::transaction(function () use ($input, $userTypeId) {
 
-            // 'pending' status ID is 6, based on your provided seeder
+            // 'pending' status ID is 6, default for owner and franchise
             $pendingStatusId = 6;
 
             // 2a. Store all files
@@ -416,6 +390,7 @@ class CreateNewUser implements CreatesNewUsers
                 'owner_id' => $userOwner->id, // Use the ID from the created owner
                 'status_id' => $pendingStatusId,
                 'payment_option_id' => $input['payment_option_id'],
+                'name' => $input['franchise_name'],
                 'email' => $input['email'], // Same as user
                 'phone' => $input['phone'], // Same as user
                 'address' => $input['franchise_address'],
@@ -435,7 +410,6 @@ class CreateNewUser implements CreatesNewUsers
 
         // 3. Return the created user
         return $user;
-        // return redirect()->route('owner.dashboard');
     }
 
     protected function createDefault(array $input, int $userTypeId): ?User
