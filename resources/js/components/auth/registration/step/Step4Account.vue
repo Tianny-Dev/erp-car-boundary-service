@@ -345,13 +345,13 @@ function removeFile(side: 'front' | 'back') {
         v-for="item in expertise"
         :key="item.value"
         type="button"
-        :variant="computedExpertise === item.value ? 'default' : 'outline'"
+        variant="default"
         @click="computedExpertise = item.value"
         :class="[
-          'flex-1',
+          'flex-1 cursor-pointer bg-blue-500 font-semibold text-white hover:bg-gray-700',
           computedExpertise === item.value
-            ? 'bg-auth-blue text-white hover:bg-blue-700'
-            : 'border-gray-300 bg-sky-100 text-gray-700 hover:bg-gray-50',
+            ? 'bg-gray-700 ring-2 ring-auth-blue ring-offset-2'
+            : '',
         ]"
       >
         {{ item.label }}
@@ -382,7 +382,7 @@ function removeFile(side: 'front' | 'back') {
         type="number"
         :name="fields.yearExperience"
         required
-        placeholder="7"
+        placeholder="0"
         :autocomplete="fields.yearExperience"
         class="flex-1 border-0 focus-visible:ring-0"
       />

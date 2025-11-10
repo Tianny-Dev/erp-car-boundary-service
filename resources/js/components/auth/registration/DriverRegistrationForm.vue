@@ -70,7 +70,7 @@ const addressLabels = {
   city: 'City / Municipality',
   barangay: 'Barangay',
   postalCode: 'Postal Code',
-  address: 'Franchise Address',
+  address: 'Address',
 };
 
 // Step 3 Identity State & Config ---
