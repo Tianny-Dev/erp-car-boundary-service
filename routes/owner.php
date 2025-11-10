@@ -1,15 +1,22 @@
 <?php
 
+use App\Http\Controllers\Owner\BoundaryContractController;
+use App\Http\Controllers\Owner\DashboardController;
+use App\Http\Controllers\Owner\ExpenseManagementController;
+use App\Http\Controllers\Owner\NotificationController;
+use App\Http\Controllers\Owner\ReportAndAnalyticController;
+use App\Http\Controllers\Owner\RevenueManagementController;
+use App\Http\Controllers\Owner\SupportCenterController;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
 
 
 Route::middleware(['auth', 'verified', 'user_type:owner', 'check.active'])->prefix('owner')->name('owner.')->group(function () {
-    Route::get('/dashboard', fn() => Inertia::render('owner/dashboard/Index'))->name('dashboard');
-    Route::get('/boundary-contracts', fn() => Inertia::render('owner/boundary-contracts/Index'))->name('boundaryContracts');
-    Route::get('/revenue-management', fn() => Inertia::render('owner/revenue-management/Index'))->name('revenueManagement');
-    Route::get('/expense-management', fn() => Inertia::render('owner/expense-management/Index'))->name('expenseManagement');
-    Route::get('/reports-and-analytics', fn() => Inertia::render('owner/reports-and-analytics/Index'))->name('reportsAndAnalytics');
-    Route::get('/support-center', fn() => Inertia::render('owner/support-center/Index'))->name('supportCenter');
-    Route::get('/notifications', fn() => Inertia::render('owner/notifications/Index'))->name('notifications');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/boundary-contracts', [BoundaryContractController::class, 'index'])->name('boundaryContracts');
+    Route::get('/revenue-management', [RevenueManagementController::class, 'index'])->name('revenueManagement');
+    Route::get('/expense-management', [ExpenseManagementController::class, 'index'])->name('expenseManagement');
+    Route::get('/reports-and-analytics', [ReportAndAnalyticController::class, 'index'])->name('reportsAndAnalytics');
+    Route::get('/support-center', [SupportCenterController::class, 'index'])->name('supportCenter');
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications');
 });
