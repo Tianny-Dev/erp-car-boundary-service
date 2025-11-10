@@ -109,7 +109,7 @@ const computedAccessibility = computed<string | undefined>({
         @click="computedPayout = payout.id"
         :class="[
           payout.color,
-          'relative h-12 cursor-pointer text-base font-semibold text-white hover:bg-gray-700',
+          'relative h-12 cursor-pointer bg-blue-500 text-base font-semibold text-white hover:bg-gray-700',
           computedPayout === payout.id
             ? 'bg-gray-700 ring-2 ring-auth-blue ring-offset-2'
             : '',
@@ -140,7 +140,7 @@ const computedAccessibility = computed<string | undefined>({
         variant="default"
         @click="computedShift = shift.value"
         :class="[
-          'flex-1 cursor-pointer bg-auth-blue font-semibold text-white hover:bg-gray-700',
+          'flex-1 cursor-pointer bg-blue-500 font-semibold text-white hover:bg-gray-700',
           computedShift === shift.value
             ? 'bg-gray-700 ring-2 ring-auth-blue ring-offset-2'
             : '',
@@ -163,13 +163,13 @@ const computedAccessibility = computed<string | undefined>({
         v-for="language in preferredLanguages"
         :key="language.value"
         type="button"
-        :variant="computedLanguage === language.value ? 'default' : 'outline'"
+        variant="default"
         @click="computedLanguage = language.value"
         :class="[
-          'flex-1',
+          'flex-1 cursor-pointer bg-blue-500 font-semibold text-white hover:bg-gray-700',
           computedLanguage === language.value
-            ? 'bg-auth-blue text-white hover:bg-blue-700'
-            : 'border-gray-300 bg-sky-100 text-gray-700 hover:bg-gray-50',
+            ? 'bg-gray-700 ring-2 ring-auth-blue ring-offset-2'
+            : '',
         ]"
       >
         {{ language.label }}
@@ -194,15 +194,13 @@ const computedAccessibility = computed<string | undefined>({
         v-for="option in accessibilityOptions"
         :key="option.value"
         type="button"
-        :variant="
-          computedAccessibility === option.value ? 'default' : 'outline'
-        "
+        variant="default"
         @click="computedAccessibility = option.value"
         :class="[
-          'flex-1',
+          'flex-1 cursor-pointer bg-blue-500 font-semibold text-white hover:bg-gray-700',
           computedAccessibility === option.value
-            ? 'bg-auth-blue text-white hover:bg-blue-700'
-            : 'border-gray-300 bg-sky-100 text-gray-700 hover:bg-gray-50',
+            ? 'bg-gray-700 ring-2 ring-auth-blue ring-offset-2'
+            : '',
         ]"
       >
         {{ option.label }}
