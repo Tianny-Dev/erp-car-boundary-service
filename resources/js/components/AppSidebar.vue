@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import finance from '@/routes/finance';
+import owner from '@/routes/owner';
 import superAdmin from '@/routes/super-admin';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
@@ -86,46 +87,46 @@ const navConfig: Record<string, NavItem[]> = {
   owner: [
     {
       title: 'Dashboard',
-      href: finance.dashboard(),
+      href: owner.dashboard(),
       icon: LayoutGrid,
       group: 'Overview',
     },
     {
       title: 'Notifications',
-      href: finance.notifications(),
+      href: owner.notifications(),
       icon: Bell,
       group: 'Overview',
     },
 
     {
       title: 'Boundary Contracts',
-      href: finance.boundaryContracts(),
+      href: owner.boundaryContracts(),
       icon: FileText,
       group: 'Operations',
     },
     {
       title: 'Reports & Analytics',
-      href: finance.reportsAndAnalytics(),
+      href: owner.reportsAndAnalytics(),
       icon: BarChart3,
       group: 'Operations',
     },
 
     {
       title: 'Revenue Management',
-      href: finance.revenueManagement(),
+      href: owner.revenueManagement(),
       icon: DollarSign,
       group: 'Finance',
     },
     {
       title: 'Expense Management',
-      href: finance.expenseManagement(),
+      href: owner.expenseManagement(),
       icon: FileSpreadsheet,
       group: 'Finance',
     },
 
     {
       title: 'Support Center',
-      href: finance.supportCenter(),
+      href: owner.supportCenter(),
       icon: HelpCircle,
       group: 'Support',
     },
