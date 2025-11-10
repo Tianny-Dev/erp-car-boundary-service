@@ -23,7 +23,7 @@ class CheckActiveStatus
 
         $status = $user->getStatusName();
 
-        if ($status === 'pending') {
+        if ($status !== 'active') {
             return redirect()->route('inactive');
         }
 
