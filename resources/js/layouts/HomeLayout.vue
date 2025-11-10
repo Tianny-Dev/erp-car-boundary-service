@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { login, selectUserType } from '@/routes';
-import { Link } from '@inertiajs/vue3';
+import { login, logout, selectUserType } from '@/routes';
+import { Link, router } from '@inertiajs/vue3';
+import { LogOut } from 'lucide-vue-next';
 import { onMounted, onUnmounted, ref } from 'vue';
 
 // -------------------- Reactive State --------------------
@@ -103,6 +104,10 @@ const handleClick = (id: string) => {
   activeSection.value = id;
   isMenuOpen.value = false;
 };
+
+const handleLogout = () => {
+  router.flushAll();
+};
 </script>
 
 <template>
@@ -124,18 +129,33 @@ const handleClick = (id: string) => {
         >
           Download App
         </button>
-        <Link
-          :href="login()"
-          class="flex-1 rounded-md bg-brand-green px-7 py-2 whitespace-nowrap text-white lg:px-5 xl:px-7"
-        >
-          Login
-        </Link>
-        <Link
-          :href="selectUserType()"
-          class="flex-1 rounded-md bg-brand-blue px-7 py-2 whitespace-nowrap text-white lg:px-5 xl:px-7"
-        >
-          Register
-        </Link>
+        <template v-if="!$page.props.auth.user">
+          <Link
+            :href="login()"
+            class="flex-1 rounded-md bg-brand-green px-7 py-2 whitespace-nowrap text-white lg:px-5 xl:px-7"
+          >
+            Login
+          </Link>
+          <Link
+            :href="selectUserType()"
+            class="flex-1 rounded-md bg-brand-blue px-7 py-2 whitespace-nowrap text-white lg:px-5 xl:px-7"
+          >
+            Register
+          </Link>
+        </template>
+
+        <template v-else>
+          <Link
+            class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-md bg-red-500 px-7 py-2 text-white hover:opacity-85"
+            :href="logout()"
+            @click.prevent="handleLogout"
+            as="button"
+            data-test="logout-button"
+          >
+            <LogOut class="h-4 w-4" />
+            Log out
+          </Link>
+        </template>
       </div>
     </div>
 

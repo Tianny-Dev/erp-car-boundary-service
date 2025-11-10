@@ -21,6 +21,10 @@ class CheckInactiveStatus
             return redirect()->route('login');
         }
 
+        if ($user->userType->name === 'super_admin') {
+            return $next($request);
+        }
+
         $status = $user->getStatusName();
 
         if ($status === 'active') {
