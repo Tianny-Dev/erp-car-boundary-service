@@ -112,4 +112,14 @@ class User extends Authenticatable
     {
         return $this->hasOne(UserManager::class, 'id');
     }
+
+    public function getStatusName(): ?string
+    {
+        return $this->driverDetails?->status->name
+            ?? $this->technicianDetails?->status->name
+            ?? $this->managerDetails?->status->name
+            ?? $this->ownerDetails?->status->name
+            ?? $this->passengerDetails?->status->name
+            ?? null;
+    }
 }
