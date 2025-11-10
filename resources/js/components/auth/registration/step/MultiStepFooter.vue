@@ -51,6 +51,33 @@ function validateRequiredInputs() {
       return (input as HTMLSelectElement).value !== '';
     }
 
+    // handle birthdate input should be a valid birthdate
+    if (input.type === 'date' && input.name === 'birth_date') {
+      const birthDate = new Date(input.value);
+      const isComplete = !isNaN(birthDate.getTime());
+
+      // Check min and max date
+      const minDate = new Date(1900, 0, 1);
+      const maxDate = new Date();
+      let age = maxDate.getFullYear() - birthDate.getFullYear();
+      if (
+        birthDate < minDate ||
+        birthDate > maxDate ||
+        age < 10 ||
+        !isComplete
+      ) {
+        console.log(birthDate);
+        return false;
+      }
+      return true;
+    }
+
+    // handle email input should be a valid email
+    if (input.type === 'email' && input.name === 'email') {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(input.value);
+    }
+
     // Handle regular inputs
     return input.value.trim() !== '';
   });

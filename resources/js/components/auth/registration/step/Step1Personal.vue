@@ -230,12 +230,9 @@ const calculatedAge = computed(() => {
           :name="fields.birthDate"
           v-model="computedBirthday"
           required
-          :max="new Date().toISOString().split('T')[0]"
-          autocomplete="bday"
           class="flex-1 cursor-text border-0 font-mono font-semibold focus-visible:ring-0"
         />
       </div>
-      <InputError :message="errors?.[fields.birthDate]" />
     </div>
 
     <!-- Age -->
@@ -250,6 +247,7 @@ const calculatedAge = computed(() => {
       </div>
       <input type="hidden" :name="fields.age" :value="calculatedAge" />
     </div>
+    <InputError :message="errors?.[fields.birthDate]" />
   </div>
 
   <!-- Franchise Name -->

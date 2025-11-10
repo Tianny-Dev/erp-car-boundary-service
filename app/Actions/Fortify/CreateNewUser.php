@@ -60,37 +60,46 @@ class CreateNewUser implements CreatesNewUsers
 
     protected function createDriver(array $input, int $userTypeId): User
     {
-        Log::info('Creating driver user', ['user_type_id' => $userTypeId]);
 
-        try {
-            Validator::make($input, [
-                'name' => ['required', 'string', 'max:255'],
-                'email' => ['required', 'string', 'email', 'max:255', Rule::unique(User::class)],
-                'phone' => ['required', 'string', 'max:25', Rule::unique(User::class)],
-                'address' => ['required', 'string', 'max:255'],
-                'region' => ['required', 'string', 'max:255'],
-                'province' => ['required', 'string', 'max:255'],
-                'city' => ['required', 'string', 'max:255'],
-                'barangay' => ['required', 'string', 'max:255'],
-                'postal_code' => ['required', 'string', 'max:20'],
-                'password' => $this->passwordRules(),
-                'payment_option_id'=> ['required', 'exists:payment_options,id'],
-                'license_number' => ['required', 'string', 'max:50'],
-                'license_expiry' => ['required', 'date'],
-                'front_license_picture' => ['required', 'image', 'max:2048'],
-                'back_license_picture' => ['required', 'image', 'max:2048'],
-                'nbi_clearance' => ['required', 'image', 'max:2048'],
-                'selfie_picture' => ['required', 'image', 'max:2048'],
-            ])->validate();
+        dd($input);
+        
+            // 1. Validation
+        Validator::make($input, [
+            'name' => ['required', 'string', 'max:255'],
+            'email' => [
+                'required', 'string', 'email', 'max:255',
+                Rule::unique(User::class),
+                Rule::unique('franchises', 'email'),
+                Rule::unique('branches', 'email')
+            ],
+            'phone' => [
+                'required', 'string', 'max:20',
+                Rule::unique(User::class),
+                Rule::unique('franchises', 'phone'),
+                Rule::unique('branches', 'phone')
+            ],
+            'password' => $this->passwordRules(),
+            'gender' => ['required', 'string', Rule::in(['Male', 'Female', 'Other', 'Prefer not to say'])],
+            'birth_date' => ['required','date','before_or_equal:' . now()->subYears(10)->toDateString(),'after_or_equal:' . now()->subYears(100)->toDateString(),],         
+            'address' => ['required', 'string', 'max:255'],
+            'region' => ['required', 'string', 'max:255'],
+            'province' => ['required', 'string', 'max:255'],
+            'city' => ['required', 'string', 'max:255'],
+            'barangay' => ['required', 'string', 'max:255'],
+            'postal_code' => ['required', 'string', 'max:20'],
+            'password' => $this->passwordRules(),
+            'license_number' => ['required', 'string', 'max:20'],
+            'license_expiry' => ['required', 'date','after_or_equal:' . now()->toDateString()],
+            'payment_option_id'=> ['required', 'exists:payment_options,id'],
+            'front_license_picture' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+            'back_license_picture' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+            'nbi_clearance' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+            'selfie_picture' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+            'terms1' => ['required', 'accepted'],
+            'terms2' => ['required', 'accepted'],
+        ])->validate();
 
-            Log::info('Validation passed for driver', ['email' => $input['email']]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            Log::error('Validation failed', [
-                'errors' => $e->errors(),
-                'input_keys' => array_keys($input),
-            ]);
-            throw $e;
-        }
+        
 
         Log::info('Validation passed for driver', ['email' => $input['email']]);
 
@@ -340,11 +349,14 @@ class CreateNewUser implements CreatesNewUsers
             'dti_certificate' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf,docx,doc', 'max:5120'],
             'mayor_permit' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf,docx,doc', 'max:5120'],
             'proof_capital' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf,docx,doc', 'max:5120'],
+            'terms1' => ['required', 'accepted'],
+            'terms2' => ['required', 'accepted'],
         ])->validate();
 
-        Validator::make($userTypeId, [
-            'user_type_id' => ['required', Rule::exists('user_types', 'id')],
-        ])->validate();
+        Validator::make(
+            ['user_type_id' => $userTypeId],
+            ['user_type_id' => ['required', 'integer', Rule::exists('user_types', 'id')]]
+        )->validate();
 
         // 2. Create Records in a Transaction
         $user = DB::transaction(function () use ($input, $userTypeId) {

@@ -191,7 +191,6 @@ function removeFile(side: 'front' | 'back') {
         required
         :name="fields.licenseExpiry"
         v-model="computedLicenseExpiry"
-        :min="new Date().toISOString().split('T')[0]"
         class="flex-1 cursor-text border-0 font-mono font-semibold focus-visible:ring-0"
       />
     </div>

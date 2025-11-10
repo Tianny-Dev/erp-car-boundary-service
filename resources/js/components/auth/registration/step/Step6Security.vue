@@ -155,8 +155,8 @@ const showConfirmPassword = ref(false);
       >
         {{ labels.terms1 }}
       </label>
+      <InputError :message="errors?.[fields.terms1]" />
     </div>
-    <InputError :message="errors?.[fields.terms1]" />
   </div>
 
   <!-- Terms 2 -->
@@ -174,7 +174,7 @@ const showConfirmPassword = ref(false);
       >
         {{ labels.terms2 }}
       </label>
+      <InputError :message="errors?.[fields.terms2]" />
     </div>
-    <InputError :message="errors?.[fields.terms2]" />
   </div>
 </template>
