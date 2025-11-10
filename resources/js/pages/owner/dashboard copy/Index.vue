@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import RevenueVsExpensesAreaChart from '@/components/finance/charts/dashboard/RevenueVsExpensesAreaChart.vue';
-import NetProfitTrendSparkLine from '@/components/finance/charts/reports-and-analytics/NetProfitTrendSparkLine.vue';
-import RevenueVsExpensesBarChart from '@/components/finance/charts/reports-and-analytics/RevenueVsExpensesBarChart.vue';
+import FranchiseMapCard from '@/components/finance/FranchiseMapCard.vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/AppLayout.vue';
 import finance from '@/routes/finance';
@@ -23,27 +22,6 @@ const data = [
   { name: 'May', Revenue: 1700, Expenses: 1200 },
   { name: 'Jun', Revenue: 1900, Expenses: 1300 },
   { name: 'Jul', Revenue: 2100, Expenses: 1500 },
-];
-
-const revenueExpensesData = [
-  { name: 'Jan', expenses: 1200, revenue: 1800 },
-  { name: 'Feb', expenses: 1500, revenue: 1900 },
-  { name: 'Mar', expenses: 1700, revenue: 2000 },
-  { name: 'Apr', expenses: 1300, revenue: 1600 },
-  { name: 'May', expenses: 1400, revenue: 1700 },
-  { name: 'Jun', expenses: 1800, revenue: 2100 },
-  { name: 'Jul', expenses: 1600, revenue: 2200 },
-];
-
-const netProfitData = [
-  { year: 2018, 'Growth Rate': 2.45 },
-  { year: 2019, 'Growth Rate': 2.47 },
-  { year: 2020, 'Growth Rate': 2.48 },
-  { year: 2021, 'Growth Rate': 2.51 },
-  { year: 2022, 'Growth Rate': 2.55 },
-  { year: 2023, 'Growth Rate': 2.58 },
-  { year: 2024, 'Growth Rate': 2.6 },
-  { year: 2025, 'Growth Rate': 2.63 },
 ];
 </script>
 
@@ -162,7 +140,7 @@ const netProfitData = [
       </div>
 
       <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card class="col-span-7">
+        <Card class="col-span-4">
           <CardHeader>
             <CardTitle>Overview</CardTitle>
           </CardHeader>
@@ -174,36 +152,12 @@ const netProfitData = [
             />
           </CardContent>
         </Card>
-      </div>
-
-      <!-- Charts Section -->
-      <div class="grid gap-6 md:grid-cols-2">
-        <!-- Revenue vs Expenses Chart -->
-        <Card>
+        <Card class="col-span-3">
           <CardHeader>
-            <CardTitle>Revenue vs Expenses</CardTitle>
+            <CardTitle>Top 5 Franchise Contributors</CardTitle>
           </CardHeader>
           <CardContent>
-            <RevenueVsExpensesBarChart
-              :data="revenueExpensesData"
-              :colors="['#ef4444', '#22c55e']"
-              :categories="['expenses', 'revenue']"
-              :y-formatter="(val) => `$ ${val.toLocaleString()}`"
-            />
-          </CardContent>
-        </Card>
-
-        <!-- Net Profit Trend Chart -->
-        <Card>
-          <CardHeader>
-            <CardTitle>Net Profit Trend</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <NetProfitTrendSparkLine
-              :data="netProfitData"
-              :colors="['#3b82f6']"
-              :y-formatter="(val) => `$ ${val.toFixed(2)}`"
-            />
+            <FranchiseMapCard />
           </CardContent>
         </Card>
       </div>
