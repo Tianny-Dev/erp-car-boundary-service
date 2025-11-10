@@ -17,20 +17,13 @@ class CheckInactiveStatus
     {
         $user = $request->user();
 
-        // Redirect guests to login
         if (!$user) {
             return redirect()->route('login');
         }
 
-        // Determine the status from related models
-        $statusModel = $user->driverDetails?->status
-                     ?? $user->technicianDetails?->status
-                     ?? $user->managerDetails?->status
-                     ?? $user->ownerDetails?->status;
-                     // ?? $user->passengerDetails?->status; // optional
+        $status = $user->getStatusName();
 
-        // If user is active, redirect them to their dashboard
-        if ($statusModel && $statusModel->name === 'active') {
+        if ($status === 'active') {
             $route = match ($user->userType->name) {
                 'driver' => route('driver.dashboard'),
                 'passenger' => route('passenger.dashboard'),
