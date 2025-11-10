@@ -125,31 +125,35 @@ function dismissNotification(id: number) {
   <Head title="Notifications" />
 
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div
-      class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
-    >
-      <!-- Header -->
-      <div class="mb-2">
-        <h1 class="mb-2 text-3xl font-bold">Notifications</h1>
-        <p class="text-gray-600">
-          Stay updated with the latest alerts and system updates
+    <div class="flex flex-col gap-6 p-6">
+      <!-- Page Header -->
+      <div>
+        <h1 class="text-3xl font-semibold text-gray-900 dark:text-gray-100">
+          Notifications
+        </h1>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          Stay informed about system updates, alerts, and reminders.
         </p>
       </div>
 
-      <Card v-if="notifications.length" class="p-0">
-        <CardContent class="divide-y p-0">
+      <!-- Notification List -->
+      <Card v-if="notifications.length" class="py-0">
+        <CardContent class="divide-y divide-border p-0">
           <div
             v-for="notif in notifications"
             :key="notif.id"
-            class="flex cursor-pointer items-start justify-between p-4 transition hover:opacity-80"
+            class="group flex items-start justify-between p-5 transition-colors hover:bg-gray-50 dark:hover:bg-gray-900/50"
             :class="{
-              'bg-red-50 dark:bg-red-950/30': notif.type === 'alert',
-              'bg-blue-50 dark:bg-blue-950/30': notif.type === 'reminder',
+              'border-l-4 border-red-500 bg-red-50/60 dark:bg-red-950/20':
+                notif.type === 'alert',
+              'border-l-4 border-blue-500 bg-blue-50/60 dark:bg-blue-950/20':
+                notif.type === 'reminder',
             }"
           >
-            <div>
+            <!-- Notification Content -->
+            <div class="flex flex-col gap-1 pr-4">
               <h2
-                class="text-sm font-medium"
+                class="text-sm font-medium tracking-tight"
                 :class="
                   notif.type === 'alert'
                     ? 'text-red-700 dark:text-red-400'
@@ -158,29 +162,55 @@ function dismissNotification(id: number) {
               >
                 {{ notif.title }}
               </h2>
-              <p class="text-xs text-muted-foreground">
+              <p class="text-sm leading-snug text-gray-700 dark:text-gray-300">
                 {{ notif.description }}
               </p>
-              <p class="mt-1 text-[10px] text-muted-foreground">
+              <span class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                 {{ notif.date }}
-              </p>
+              </span>
             </div>
 
-            <div class="flex gap-2">
+            <!-- Actions -->
+            <div
+              class="flex gap-2 opacity-0 transition-opacity group-hover:opacity-100"
+            >
               <Button size="sm" variant="outline">View</Button>
               <Button
                 size="sm"
                 variant="ghost"
+                class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100"
                 @click="dismissNotification(notif.id)"
-                >Dismiss</Button
               >
+                Dismiss
+              </Button>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <div v-else class="py-10 text-center text-sm text-muted-foreground">
-        🎉 No new notifications
+      <!-- Empty State -->
+      <div
+        v-else
+        class="flex flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 p-12 text-center text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="mb-2 h-10 w-10 text-gray-400 dark:text-gray-500"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 12h6m2 0a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v3a2 2 0 002 2zm2 3v1a3 3 0 11-6 0v-1m9 0H6"
+          />
+        </svg>
+        <p class="text-base font-medium">You're all caught up!</p>
+        <p class="mt-1 text-xs text-gray-400">
+          No new notifications at the moment.
+        </p>
       </div>
     </div>
   </AppLayout>
