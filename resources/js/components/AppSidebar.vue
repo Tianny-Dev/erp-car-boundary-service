@@ -25,6 +25,7 @@ import {
   HelpCircle,
   LayoutGrid,
   Settings,
+  Users,
   Wrench,
 } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
@@ -96,6 +97,13 @@ const navConfig: Record<string, NavItem[]> = {
       href: owner.notifications(),
       icon: Bell,
       group: 'Overview',
+    },
+
+    {
+      title: 'Driver Management',
+      href: owner.drivers.index(),
+      icon: Users,
+      group: 'Management',
     },
 
     {
