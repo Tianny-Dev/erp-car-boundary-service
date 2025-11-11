@@ -16,37 +16,47 @@ class VehicleDriverController extends Controller
      */
     public function index()
     {
-        $vehicles = Vehicle::with(['driver.user', 'status'])->get()->map(function($vehicle) {
-            return [
-                'id' => $vehicle->id,
-                'plate_number' => $vehicle->plate_number,
-                'vin' => $vehicle->vin,
-                'brand' => $vehicle->brand,
-                'model' => $vehicle->model,
-                'color' => $vehicle->color,
-                'year' => $vehicle->year,
-                'status_id' => $vehicle->status_id,
-                'status_name' => $vehicle->status->name,
-                'driver' => $vehicle->driver?->user ? [
-                    'id' => $vehicle->driver->user->id,
-                    'name' => $vehicle->driver->user->name,
-                    'email' => $vehicle->driver->user->email,
-                    'phone' => $vehicle->driver->user->phone,
-                ] : null,
-            ];
-        });
+        $franchise = auth()->user()->ownerDetails?->franchises()->first();
 
-        $drivers = User::with('driverDetails.vehicles', 'driverDetails.status')
-            ->whereHas('userType', fn($q) => $q->where('name', 'driver'))
+        if (!$franchise) {
+            abort(404, 'Franchise not found');
+        }
+
+        // Vehicles in this franchise
+        $vehicles = $franchise->vehicles()
+            ->with(['driver.user', 'status'])
             ->get()
-            ->filter(fn($user) => $user->driverDetails && $user->driverDetails->vehicles->isEmpty())
-            ->map(fn($user) => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'phone' => $user->phone,
-            ])
-            ->values();
+            ->map(function ($vehicle) {
+                return [
+                    'id' => $vehicle->id,
+                    'plate_number' => $vehicle->plate_number,
+                    'vin' => $vehicle->vin,
+                    'brand' => $vehicle->brand,
+                    'model' => $vehicle->model,
+                    'color' => $vehicle->color,
+                    'year' => $vehicle->year,
+                    'status_id' => $vehicle->status_id,
+                    'status_name' => $vehicle->status->name,
+                    'driver' => $vehicle->driver?->user ? [
+                        'id' => $vehicle->driver->user->id,
+                        'name' => $vehicle->driver->user->name,
+                        'email' => $vehicle->driver->user->email,
+                        'phone' => $vehicle->driver->user->phone,
+                    ] : null,
+                ];
+            });
+
+        // Drivers in this franchise who are NOT assigned to any vehicle
+        $drivers = $franchise->drivers()
+            ->whereDoesntHave('vehicles')
+            ->with('user')
+            ->get()
+            ->map(fn($driver) => [
+                'id' => $driver->id,
+                'name' => $driver->user?->name,
+                'email' => $driver->user?->email,
+                'phone' => $driver->user?->phone,
+            ]);
 
         return Inertia::render('owner/vehicle-drivers/Index', [
             'vehicles' => $vehicles,
