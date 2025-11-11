@@ -18,7 +18,6 @@ class UserPassenger extends Model
         'preferred_language',
         'accessibility_option',
         'birth_date',
-        'age',
     ];
 
     // relationship to user, one to one

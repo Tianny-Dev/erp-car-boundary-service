@@ -24,7 +24,6 @@ class UserTechnician extends Model
         'back_valid_id_picture',
         'cv_attachment',
         'birth_date',
-        'age',
     ];
 
     // relationship to user, one to one

@@ -54,7 +54,7 @@ const emit = defineEmits([
 const defaultFieldNames: FieldNames = {
   paymentOption: 'payment_option_id',
   shift: 'shift',
-  language: 'language',
+  language: 'preferred_language',
   accessibility: 'accessibility_option',
 };
 const defaultLabels: Labels = {

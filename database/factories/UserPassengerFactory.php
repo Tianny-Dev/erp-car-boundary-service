@@ -12,7 +12,6 @@ class UserPassengerFactory extends Factory
 
     public function definition(): array
     {
-        $genders = ['Male', 'Female', 'Other', 'Prefer not to say'];
         $languages = ['English', 'Filipino', 'Others'];
         $accessOptions = ['Normal', 'Wheelchair Access', 'Pet-Friendly Ride'];
 
@@ -25,7 +24,6 @@ class UserPassengerFactory extends Factory
             'preferred_language' => fake()->randomElement($languages),
             'accessibility_option' => fake()->randomElement($accessOptions),
             'birth_date' => $birthDate,
-            'age' => Carbon::parse($birthDate)->age,
         ];
     }
 }

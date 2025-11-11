@@ -10,6 +10,7 @@ const props = defineProps<{
   label: string;
   required?: boolean;
   errorMsg?: string;
+  accept?: string;
 }>();
 
 // track selected file
@@ -43,7 +44,7 @@ function handleFileChange(event: Event) {
         type="file"
         :name="name"
         :required="required"
-        accept=".doc,.docx,application/pdf,image/*"
+        :accept="accept || '.doc,.docx,application/pdf,image/*'"
         class="hidden"
         @change="handleFileChange"
       />

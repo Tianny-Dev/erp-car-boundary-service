@@ -122,7 +122,7 @@ const fieldStepMap: Record<string, number> = {
   postal_code: 2,
   payment_option_id: 3,
   preferred_language: 3,
-  accessibility_options: 3,
+  accessibility_option: 3,
 };
 
 watch(

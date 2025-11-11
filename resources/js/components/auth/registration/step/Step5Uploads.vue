@@ -98,6 +98,7 @@ const show = computed(() => ({ ...defaultShowFields, ...props.showFields }));
     :id="fields.selfiePicture"
     :name="fields.selfiePicture"
     :label="labels.selfiePicture"
+    accept="image/*"
     :required="true"
     :errorMsg="errors?.[fields.selfiePicture]"
   />

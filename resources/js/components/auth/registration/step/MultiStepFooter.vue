@@ -66,14 +66,13 @@ function validateRequiredInputs() {
         age < 10 ||
         !isComplete
       ) {
-        console.log(birthDate);
         return false;
       }
       return true;
     }
 
     // handle email input should be a valid email
-    if (input.type === 'email' && input.name === 'email') {
+    if (input.type === 'text' && input.name === 'email') {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       return emailRegex.test(input.value);
     }
