@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\UserDriver;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -16,6 +17,9 @@ class FranchiseDriverController extends Controller
     {
         $drivers = User::with('driverDetails.status')
             ->whereHas('userType', fn($q) => $q->where('name', 'driver'))
+            ->whereHas('driverDetails.status', fn($q) =>
+                $q->whereIn('name', ['pending', 'inactive'])
+            )
             ->get()
             ->map(fn($user) => [
                 'id' => $user->id,
@@ -23,6 +27,10 @@ class FranchiseDriverController extends Controller
                 'username' => $user->username,
                 'email' => $user->email,
                 'phone' => $user->phone,
+                'region' => $user->region,
+                'province' => $user->province,
+                'city' => $user->city,
+                'barangay' => $user->barangay,
                 'status' => $user->driverDetails?->status?->name,
             ]);
 
@@ -68,7 +76,23 @@ class FranchiseDriverController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $driver = UserDriver::findOrFail($id);
+
+        $ownerFranchises = auth()->user()->ownerDetails->franchises->pluck('id');
+
+        // Toggle status
+        $driver->status_id = $driver->status_id === 1 ? 2 : 1;
+        $driver->save();
+
+        if ($driver->status_id === 1) {
+            // Status is now active - attach to owner's franchises if not already attached
+            $driver->franchises()->syncWithoutDetaching($ownerFranchises);
+        } else {
+            // Status is now inactive - detach from owner's franchises only
+            $driver->franchises()->detach($ownerFranchises);
+        }
+
+        return back()->with('success', 'Driver status updated successfully.');
     }
 
     /**
@@ -79,19 +103,8 @@ class FranchiseDriverController extends Controller
         //
     }
 
-   public function updateStatus($id)
+    public function updateStatus(string $id)
     {
-        $driver = User::findOrFail($id);
-        $driverDetail = $driver->driverDetails;
-
-        if (!$driverDetail) {
-            abort(404, 'Driver details not found');
-        }
-
-        // Toggle between active and inactive
-        $driverDetail->status_id = $driverDetail->status_id === 1 ? 2 : 1;
-        $driverDetail->save();
-
-        return back()->with('success', 'Driver status updated successfully.');
+        //
     }
 }

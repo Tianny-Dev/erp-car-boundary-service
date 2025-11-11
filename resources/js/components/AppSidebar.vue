@@ -18,12 +18,14 @@ import { Link, usePage } from '@inertiajs/vue3';
 import {
   BarChart3,
   Bell,
+  CarTaxiFront,
   Clock,
   DollarSign,
   FileSpreadsheet,
   FileText,
   HelpCircle,
   LayoutGrid,
+  Octagon,
   Settings,
   Users,
   Wrench,
@@ -103,6 +105,18 @@ const navConfig: Record<string, NavItem[]> = {
       title: 'Driver Management',
       href: owner.drivers.index(),
       icon: Users,
+      group: 'Management',
+    },
+    {
+      title: 'Vehicle Management',
+      href: owner.vehicles.index(),
+      icon: CarTaxiFront,
+      group: 'Management',
+    },
+    {
+      title: 'Assign Drivers',
+      href: owner.vehicleDrivers.index(),
+      icon: Octagon,
       group: 'Management',
     },
 

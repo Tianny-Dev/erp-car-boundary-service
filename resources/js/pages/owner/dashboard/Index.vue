@@ -7,6 +7,13 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import finance from '@/routes/finance';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
+import {
+  CarTaxiFront,
+  CreditCard,
+  DollarSign,
+  Settings,
+  User,
+} from 'lucide-vue-next';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -60,103 +67,79 @@ const netProfitData = [
         <p class="text-gray-600">Central Hub for Tracking and Management</p>
       </div>
       <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <!-- My Active Vehicles -->
         <Card>
           <CardHeader
             class="flex flex-row items-center justify-between space-y-0 pb-2"
           >
-            <CardTitle class="text-sm font-medium">
-              Total Revenue (Today)</CardTitle
+            <CardTitle class="text-sm font-medium"
+              >My Active Vehicles</CardTitle
             >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              class="h-4 w-4 text-muted-foreground"
-            >
-              <path
-                d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"
-              />
-            </svg>
+            <CarTaxiFront class="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div class="text-2xl font-bold">12</div>
+            <p class="text-xs text-muted-foreground">+3% from yesterday</p>
+          </CardContent>
+        </Card>
+
+        <!-- My Active Drivers -->
+        <Card>
+          <CardHeader
+            class="flex flex-row items-center justify-between space-y-0 pb-2"
+          >
+            <CardTitle class="text-sm font-medium">My Active Drivers</CardTitle>
+            <User class="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div class="text-2xl font-bold">25</div>
+            <p class="text-xs text-muted-foreground">+5% from yesterday</p>
+          </CardContent>
+        </Card>
+
+        <!-- Daily Earnings -->
+        <Card>
+          <CardHeader
+            class="flex flex-row items-center justify-between space-y-0 pb-2"
+          >
+            <CardTitle class="text-sm font-medium">Daily Earnings</CardTitle>
+            <DollarSign class="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div class="text-2xl font-bold">₱80,000</div>
-            <p class="text-xs text-muted-foreground">+20.1% from yesterday</p>
+            <p class="text-xs text-muted-foreground">+20% from yesterday</p>
           </CardContent>
         </Card>
+
+        <!-- Pending Boundary Due -->
         <Card>
           <CardHeader
             class="flex flex-row items-center justify-between space-y-0 pb-2"
           >
-            <CardTitle class="text-sm font-medium"> Subscriptions </CardTitle>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              class="h-4 w-4 text-muted-foreground"
+            <CardTitle class="text-sm font-medium"
+              >Pending Boundary Due</CardTitle
             >
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-            </svg>
+            <CreditCard class="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div class="text-2xl font-bold">+2350</div>
-            <p class="text-xs text-muted-foreground">+180.1% from last month</p>
+            <div class="text-2xl font-bold">₱15,000</div>
+            <p class="text-xs text-muted-foreground">+10% from yesterday</p>
           </CardContent>
         </Card>
+
+        <!-- Vehicles Under Maintenance -->
         <Card>
           <CardHeader
             class="flex flex-row items-center justify-between space-y-0 pb-2"
           >
-            <CardTitle class="text-sm font-medium"> Sales </CardTitle>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              class="h-4 w-4 text-muted-foreground"
+            <CardTitle class="text-sm font-medium"
+              >Vehicles Under Maintenance</CardTitle
             >
-              <rect width="20" height="14" x="2" y="5" rx="2" />
-              <path d="M2 10h20" />
-            </svg>
+            <Settings class="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div class="text-2xl font-bold">+12,234</div>
-            <p class="text-xs text-muted-foreground">+19% from last month</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader
-            class="flex flex-row items-center justify-between space-y-0 pb-2"
-          >
-            <CardTitle class="text-sm font-medium"> Active Now </CardTitle>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              class="h-4 w-4 text-muted-foreground"
-            >
-              <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-            </svg>
-          </CardHeader>
-          <CardContent>
-            <div class="text-2xl font-bold">+573</div>
-            <p class="text-xs text-muted-foreground">+201 since last hour</p>
+            <div class="text-2xl font-bold">3</div>
+            <p class="text-xs text-muted-foreground">-1 from yesterday</p>
           </CardContent>
         </Card>
       </div>

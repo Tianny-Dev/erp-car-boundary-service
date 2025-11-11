@@ -8,29 +8,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Spinner } from '@/components/ui/spinner';
 import AppLayout from '@/layouts/AppLayout.vue';
 import owner from '@/routes/owner';
-import { type BreadcrumbItem } from '@/types';
+import type { BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
-import {
-  FlexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useVueTable,
-  type ColumnDef,
-} from '@tanstack/vue-table';
-import { ArrowUpDown, Search } from 'lucide-vue-next';
-import { computed, h, ref } from 'vue';
+import { Search } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
+import { toast } from 'vue-sonner';
 
 interface Driver {
   id: number;
@@ -39,6 +24,10 @@ interface Driver {
   email: string;
   phone: string;
   status: string;
+  region: string;
+  province: string;
+  city: string;
+  barangay: string;
 }
 
 const props = defineProps<{ drivers: Driver[] }>();
@@ -49,22 +38,18 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const globalFilter = ref('');
 const statusFilter = ref('all');
-const data = ref<Driver[]>(props.drivers);
 
-const filteredData = computed(() => {
-  let filtered = data.value;
+const filteredDrivers = computed(() => {
+  let filtered = props.drivers;
 
   if (statusFilter.value !== 'all') {
     filtered = filtered.filter((d) => d.status === statusFilter.value);
   }
 
   if (globalFilter.value) {
-    const search = globalFilter.value.toLowerCase();
-    filtered = filtered.filter(
-      (d) =>
-        d.name.toLowerCase().includes(search) ||
-        d.username.toLowerCase().includes(search) ||
-        d.email.toLowerCase().includes(search),
+    const term = globalFilter.value.toLowerCase();
+    filtered = filtered.filter((d) =>
+      [d.name, d.username, d.email].some((f) => f.toLowerCase().includes(term)),
     );
   }
 
@@ -74,7 +59,7 @@ const filteredData = computed(() => {
 const getStatusVariant = (status: string) => {
   switch (status) {
     case 'active':
-      return 'success';
+      return 'default';
     case 'pending':
       return 'secondary';
     case 'retired':
@@ -84,71 +69,51 @@ const getStatusVariant = (status: string) => {
   }
 };
 
-const columns: ColumnDef<Driver>[] = [
-  { accessorKey: 'name', header: 'Name' },
-  { accessorKey: 'username', header: 'Username' },
-  { accessorKey: 'email', header: 'Email' },
-  { accessorKey: 'phone', header: 'Phone' },
-  {
-    accessorKey: 'status',
-    header: 'Status',
-    cell: ({ row }) =>
-      h(
-        Badge,
-        { variant: getStatusVariant(row.getValue('status')) as any },
-        () => row.getValue('status'),
-      ),
-  },
-  {
-    id: 'actions',
-    header: 'Actions',
-    cell: ({ row }) =>
-      h(
-        Button,
-        {
-          size: 'sm',
-          variant: 'outline',
-          onClick: () => router.put(`/owner/drivers/${row.original.id}/status`),
-        },
-        () => 'Toggle Status',
-      ),
-  },
-];
+const updatingId = ref<number | null>(null);
 
-const table = useVueTable({
-  get data() {
-    return filteredData.value;
-  },
-  columns,
-  getCoreRowModel: getCoreRowModel(),
-  getSortedRowModel: getSortedRowModel(),
-  getFilteredRowModel: getFilteredRowModel(),
-  getPaginationRowModel: getPaginationRowModel(),
-  initialState: { pagination: { pageSize: 10 } },
-});
+const toggleStatus = (id: number) => {
+  updatingId.value = id;
+
+  // Show a loading toast
+  const toastId = toast.loading('Updating driver status...');
+
+  router.put(
+    `/owner/drivers/${id}`,
+    {},
+    {
+      onSuccess: () => {
+        toast.success('Driver status updated successfully!', { id: toastId });
+      },
+      onError: () => {
+        toast.error('Failed to update driver status.', { id: toastId });
+      },
+      onFinish: () => {
+        updatingId.value = null;
+      },
+    },
+  );
+};
 </script>
 
 <template>
   <Head title="Driver Management" />
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div
-      class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
-    >
+    <div class="space-y-6 p-6">
       <!-- Header -->
-      <div class="mb-8">
-        <h1 class="mb-2 text-3xl font-bold">Driver Management</h1>
+      <div>
+        <h1 class="mb-1 text-3xl font-bold">Driver Management</h1>
         <p class="text-gray-600">Manage all franchise drivers</p>
       </div>
 
       <!-- Filters -->
-      <div class="mb-6 flex flex-col gap-4 md:flex-row">
+      <div class="flex flex-col gap-4 md:flex-row md:items-center">
         <div class="relative flex-1">
           <Search
-            class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400"
+            class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400"
           />
           <input
             v-model="globalFilter"
-            placeholder="Search by name, username or email"
+            placeholder="Search drivers..."
             class="w-full rounded-md border px-10 py-2"
           />
         </div>
@@ -161,97 +126,69 @@ const table = useVueTable({
             <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="active">Active</SelectItem>
             <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="suspended">Suspended</SelectItem>
             <SelectItem value="retired">Retired</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       <!-- Table -->
-      <div class="rounded-lg border">
-        <Table>
-          <TableHeader>
-            <TableRow
-              v-for="headerGroup in table.getHeaderGroups()"
-              :key="headerGroup.id"
+      <div class="overflow-x-auto rounded-lg border">
+        <table class="min-w-full text-left text-sm">
+          <thead class="bg-gray-50 text-gray-700">
+            <tr>
+              <th class="px-4 py-3 font-semibold">Name</th>
+              <th class="px-4 py-3 font-semibold">Username</th>
+              <th class="px-4 py-3 font-semibold">Email</th>
+              <th class="px-4 py-3 font-semibold">Phone</th>
+              <th class="px-4 py-3 font-semibold">Region</th>
+              <th class="px-4 py-3 font-semibold">Province</th>
+              <th class="px-4 py-3 font-semibold">City</th>
+              <th class="px-4 py-3 font-semibold">Barangay</th>
+              <th class="px-4 py-3 font-semibold">Status</th>
+              <th class="px-4 py-3 font-semibold">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="driver in filteredDrivers"
+              :key="driver.id"
+              class="border-t hover:bg-gray-50"
             >
-              <TableHead v-for="header in headerGroup.headers" :key="header.id">
-                <div
-                  v-if="!header.isPlaceholder"
-                  @click="header.column.getToggleSortingHandler()?.($event)"
-                  :class="
-                    header.column.getCanSort()
-                      ? 'flex cursor-pointer items-center gap-2 select-none'
-                      : ''
-                  "
+              <td class="px-4 py-2">{{ driver.name }}</td>
+              <td class="px-4 py-2">{{ driver.username }}</td>
+              <td class="px-4 py-2">{{ driver.email }}</td>
+              <td class="px-4 py-2">{{ driver.phone }}</td>
+              <td class="px-4 py-2">{{ driver.region }}</td>
+              <td class="px-4 py-2">{{ driver.province }}</td>
+              <td class="px-4 py-2">{{ driver.city }}</td>
+              <td class="px-4 py-2">{{ driver.barangay }}</td>
+              <td class="px-4 py-2">
+                <Badge :variant="getStatusVariant(driver.status)">
+                  {{ driver.status }}
+                </Badge>
+              </td>
+              <td class="px-4 py-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  class="cursor-pointer"
+                  :disabled="updatingId === driver.id"
+                  @click="toggleStatus(driver.id)"
                 >
-                  <FlexRender
-                    :render="header.column.columnDef.header"
-                    :props="header.getContext()"
-                  />
-                  <ArrowUpDown
-                    v-if="header.column.getCanSort()"
-                    class="h-4 w-4"
-                  />
-                </div>
-              </TableHead>
-            </TableRow>
-          </TableHeader>
+                  <span v-if="updatingId === driver.id"><Spinner /></span>
+                  <span v-else>Toggle Status</span>
+                </Button>
+              </td>
+            </tr>
 
-          <TableBody>
-            <TableRow v-if="table.getRowModel().rows.length === 0">
-              <TableCell :colspan="columns.length" class="h-24 text-center">
+            <tr v-if="filteredDrivers.length === 0">
+              <td colspan="9" class="px-4 py-6 text-center text-gray-500">
                 No results found.
-              </TableCell>
-            </TableRow>
-            <TableRow v-for="row in table.getRowModel().rows" :key="row.id">
-              <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id">
-                <FlexRender
-                  :render="cell.column.columnDef.cell"
-                  :props="cell.getContext()"
-                />
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </div>
-
-      <!-- Pagination -->
-      <div class="mt-4 flex items-center justify-between">
-        <div class="text-sm text-gray-600">
-          Showing
-          {{
-            table.getState().pagination.pageIndex *
-              table.getState().pagination.pageSize +
-            1
-          }}
-          to
-          {{
-            Math.min(
-              (table.getState().pagination.pageIndex + 1) *
-                table.getState().pagination.pageSize,
-              filteredData.length,
-            )
-          }}
-          of {{ filteredData.length }} results
-        </div>
-        <div class="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            @click="table.previousPage()"
-            :disabled="!table.getCanPreviousPage()"
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            @click="table.nextPage()"
-            :disabled="!table.getCanNextPage()"
-          >
-            Next
-          </Button>
-        </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </AppLayout>

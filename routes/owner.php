@@ -8,7 +8,8 @@ use App\Http\Controllers\Owner\NotificationController;
 use App\Http\Controllers\Owner\ReportAndAnalyticController;
 use App\Http\Controllers\Owner\RevenueManagementController;
 use App\Http\Controllers\Owner\SupportCenterController;
-use Inertia\Inertia;
+use App\Http\Controllers\Owner\VehicleController;
+use App\Http\Controllers\Owner\VehicleDriverController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -22,6 +23,8 @@ Route::middleware(['auth', 'verified', 'user_type:owner', 'check.active'])->pref
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications');
 
     Route::resource('drivers', FranchiseDriverController::class);
+    Route::resource('vehicles', VehicleController::class);
+    Route::resource('vehicle-drivers', VehicleDriverController::class);
 
     Route::put('/drivers/{id}/status', [FranchiseDriverController::class, 'updateStatus'])
     ->name('drivers.updateStatus');
