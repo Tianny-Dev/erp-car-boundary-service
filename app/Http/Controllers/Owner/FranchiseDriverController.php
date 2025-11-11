@@ -16,6 +16,7 @@ class FranchiseDriverController extends Controller
     {
         $drivers = User::with('driverDetails.status')
             ->whereHas('userType', fn($q) => $q->where('name', 'driver'))
+            // ->whereHas('driverDetails.status', fn($q) => $q->where('name', 'pending'))
             ->get()
             ->map(fn($user) => [
                 'id' => $user->id,
@@ -23,6 +24,10 @@ class FranchiseDriverController extends Controller
                 'username' => $user->username,
                 'email' => $user->email,
                 'phone' => $user->phone,
+                'region' => $user->region,
+                'province' => $user->province,
+                'city' => $user->city,
+                'barangay' => $user->barangay,
                 'status' => $user->driverDetails?->status?->name,
             ]);
 
