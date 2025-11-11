@@ -11,7 +11,18 @@ class Vehicle extends Model
 {
     use HasFactory;
 
-    // protected $fillable = [];
+    protected $fillable = [
+        'status_id',
+        'franchise_id',
+        'branch_id',
+        'driver_id',
+        'plate_number',
+        'vin',
+        'brand',
+        'model',
+        'year',
+        'color',
+    ];
 
     // relationship to status, one to many
     public function status(): BelongsTo
@@ -22,7 +33,7 @@ class Vehicle extends Model
     // relationship to driver, one to many
     public function driver(): BelongsTo
     {
-        return $this->belongsTo(UserDriver::class);
+        return $this->belongsTo(UserDriver::class, 'driver_id');
     }
 
     // relationship to franchise, one to many

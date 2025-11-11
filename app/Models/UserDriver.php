@@ -61,7 +61,7 @@ class UserDriver extends Model
     // relationship to vehicles, one to many
     public function vehicles(): HasMany
     {
-        return $this->hasMany(Vehicle::class);
+        return $this->hasMany(Vehicle::class, 'driver_id');
     }
 
     // relationship to routes, one to many
