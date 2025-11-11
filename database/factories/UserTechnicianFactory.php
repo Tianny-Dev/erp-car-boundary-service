@@ -18,7 +18,7 @@ class UserTechnicianFactory extends Factory
         $birthDate = fake()->dateTimeBetween('-60 years', '-20 years');
 
         return [
-            'status_id' => random_int(1, 8),
+            'status_id' => 1,
             'expertise' => fake()->randomElement($expertises),
             'year_experience' => random_int(1, 30),
             'certificate_prc_no' => fake()->optional()->numerify('PRC-#######'),

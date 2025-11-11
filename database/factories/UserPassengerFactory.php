@@ -19,7 +19,7 @@ class UserPassengerFactory extends Factory
         $birthDate = fake()->dateTimeBetween('-80 years', '-18 years');
 
         return [
-            'status_id' => random_int(1, 8),
+            'status_id' => 1,
             'payment_option_id' => random_int(1, 4),
             'preferred_language' => fake()->randomElement($languages),
             'accessibility_option' => fake()->randomElement($accessOptions),
