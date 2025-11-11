@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
-use App\Models\UserDriver;
+use App\Models\Franchise;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -14,16 +14,13 @@ class DashboardController extends Controller
      */
     public function index(): Response
     {
-        // Fetch UserDrivers who have a status of 'pending'
-        // We eager-load the 'user' relationship to get name/email
-        $pendingDrivers = UserDriver::with('user')
-            ->whereHas('status', function ($query) {
-                $query->where('name', 'pending');
-            })
-            ->get();
+        $franchises = Franchise::with([
+            'owner.user',
+            'status'
+        ])->get();
 
         return Inertia::render('super-admin/dashboard/Index', [
-            'pendingDrivers' => $pendingDrivers,
+            'franchises' => $franchises,
         ]);
     }
 }

@@ -1,25 +1,44 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
-import superAdmin from '@/routes/super-admin';
-import { type BreadcrumbItem } from '@/types';
-import { Head, Link } from '@inertiajs/vue3';
-// Import shadcn-vue table components
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-// Import Button for styling
-import PendingDriverController from '@/actions/App/Http/Controllers/SuperAdmin/PendingDriverController';
-import { Button } from '@/components/ui/button';
+import AppLayout from '@/layouts/AppLayout.vue';
+import superAdmin from '@/routes/super-admin';
+import { type BreadcrumbItem } from '@/types';
+import { Head } from '@inertiajs/vue3';
+import { MoreHorizontal } from 'lucide-vue-next';
 
-// 1. Define the prop passed from the controller
+interface Franchise {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  status: {
+    name: string;
+  } | null;
+  owner: {
+    user: {
+      name: string;
+    } | null;
+  } | null;
+}
+
 defineProps<{
-  pendingDrivers: any[];
+  franchises: Franchise[];
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -38,47 +57,91 @@ const breadcrumbs: BreadcrumbItem[] = [
       class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
     >
       <div
-        class="relative flex-1 rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border"
+        class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border"
       >
-        <h2 class="mb-4 text-xl font-semibold">Pending Driver Applications</h2>
+        <h2 class="mb-4 font-mono text-xl font-semibold">
+          Franchise Management
+        </h2>
 
-        <Table>
-          <TableCaption v-if="pendingDrivers.length === 0">
-            No pending applications found.
-          </TableCaption>
+        <Table class="w-full table-fixed">
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>License Number</TableHead>
-              <TableHead class="text-right">Actions</TableHead>
+              <TableHead class="w-1/5 truncate text-center font-semibold"
+                >Franchise</TableHead
+              >
+              <TableHead class="w-1/5 truncate text-center font-semibold"
+                >Owner</TableHead
+              >
+              <TableHead class="w-1/5 truncate text-center font-semibold"
+                >Email</TableHead
+              >
+              <TableHead class="w-1/5 truncate text-center font-semibold"
+                >Phone</TableHead
+              >
+              <TableHead class="w-1/10 truncate text-center font-semibold"
+                >Status</TableHead
+              >
+              <TableHead class="w-1/10 truncate text-center font-semibold"
+                >Actions</TableHead
+              >
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow v-for="driver in pendingDrivers" :key="driver.id">
-              <TableCell class="font-medium">
-                {{ driver.user.name }}
-              </TableCell>
-              <TableCell>{{ driver.user.email }}</TableCell>
-              <TableCell>{{ driver.license_number }}</TableCell>
-              <TableCell class="flex justify-end gap-2">
-                <Link
-                  :href="PendingDriverController.accept(driver.id)"
-                  method="post"
-                  as="button"
-                  preserve-scroll
-                >
-                  <Button size="sm" variant="outline"> Accept </Button>
-                </Link>
+            <template v-if="franchises.length > 0">
+              <TableRow v-for="franchise in franchises" :key="franchise.id">
+                <TableCell class="w-1/5 truncate text-center">{{
+                  franchise.name
+                }}</TableCell>
 
-                <Link
-                  :href="PendingDriverController.deny(driver.id)"
-                  method="post"
-                  as="button"
-                  preserve-scroll
-                >
-                  <Button size="sm" variant="destructive"> Deny </Button>
-                </Link>
+                <TableCell class="w-1/5 truncate text-center">{{
+                  franchise.owner?.user?.name ?? 'N/A'
+                }}</TableCell>
+                <TableCell class="w-1/5 truncate text-center">{{
+                  franchise.email
+                }}</TableCell>
+                <TableCell class="w-1/5 truncate text-center">{{
+                  franchise.phone
+                }}</TableCell>
+                <TableCell class="truncates w-1/10 text-center">{{
+                  franchise.status?.name ?? 'N/A'
+                }}</TableCell>
+
+                <TableCell class="w-1/10 text-center">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger as-child class="cursor-pointer">
+                      <Button variant="ghost" class="h-8 w-8 p-0">
+                        <span class="sr-only">Open menu</span>
+                        <MoreHorizontal class="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" class="border-2">
+                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuItem class="cursor-pointer">
+                        View Franchise Details
+                      </DropdownMenuItem>
+                      <DropdownMenuItem class="cursor-pointer">
+                        View Owner Details
+                      </DropdownMenuItem>
+                      <div v-if="franchise.status?.name === 'active'">
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          class="cursor-pointer text-blue-500 focus:text-blue-600"
+                        >
+                          Accept Franchise
+                        </DropdownMenuItem>
+                      </div>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            </template>
+
+            <TableRow v-else>
+              <TableCell
+                colspan="6"
+                class="py-4 text-center text-sm text-muted-foreground"
+              >
+                No franchises found.
               </TableCell>
             </TableRow>
           </TableBody>
