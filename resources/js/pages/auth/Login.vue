@@ -23,9 +23,10 @@ const showPassword = ref(false);
 </script>
 
 <template>
+  <!-- Log in to your account -->
   <AuthBase
     text-overlay="Welcome Back, User!"
-    title="Log in to your account"
+    title="ACCOUNT LOGIN"
     description="Enter your email and password to log in "
   >
     <Head title="Log in" />
