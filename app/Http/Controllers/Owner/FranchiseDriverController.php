@@ -16,7 +16,7 @@ class FranchiseDriverController extends Controller
     {
         $drivers = User::with('driverDetails.status')
             ->whereHas('userType', fn($q) => $q->where('name', 'driver'))
-            // ->whereHas('driverDetails.status', fn($q) => $q->where('name', 'pending'))
+            ->whereHas('driverDetails.status', fn($q) => $q->where('name', 'pending'))
             ->get()
             ->map(fn($user) => [
                 'id' => $user->id,
