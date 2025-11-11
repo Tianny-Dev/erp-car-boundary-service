@@ -1,3 +1,60 @@
+<script setup lang="ts">
+import { nextTick, onMounted } from 'vue';
+
+// landing page import
+
+declare const $: any;
+
+onMounted(async () => {
+  await nextTick();
+
+  const $carousel = $('.owl-1');
+
+  if ($carousel.length > 0) {
+    const owl1 = $carousel.owlCarousel({
+      center: false,
+      items: 1,
+      loop: true,
+      stagePadding: 0,
+      margin: 20,
+      smartSpeed: 1000,
+      autoplay: false,
+      nav: false,
+      dots: false,
+      pauseOnHover: false,
+      responsive: {
+        850: {
+          margin: 20,
+          nav: false,
+          items: 1,
+        },
+        1000: {
+          margin: 20,
+          stagePadding: 0,
+          nav: false,
+          items: 1,
+        },
+        1280: {
+          margin: 20,
+          stagePadding: 0,
+          nav: false,
+          items: 2,
+        },
+      },
+    });
+
+    // Custom navigation buttons
+    $('.bg-left-half123').on('click', () => {
+      owl1.trigger('prev.owl.carousel', [1000]);
+    });
+
+    $('.bg-right-half').on('click', () => {
+      owl1.trigger('next.owl.carousel', [1000]);
+    });
+  }
+});
+</script>
+
 <template>
   <div id="testi" class="scroll-mt-12 px-5 py-10">
     <div class="mx-auto w-full max-w-[1320px]">
