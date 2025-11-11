@@ -139,7 +139,25 @@ const handleStepChange = () => {
 // --- Form Errors State & Config ---
 const formErrors = ref<Record<string, string>>({});
 const fieldStepMap: Record<string, number> = {
-  //
+  name: 1,
+  phone: 1,
+  email: 1,
+  gender: 1,
+  birth_date: 1,
+  address: 2,
+  region: 2,
+  province: 2,
+  city: 2,
+  barangay: 2,
+  postal_code: 2,
+  license_number: 3,
+  license_expiry: 3,
+  front_license_picture: 3,
+  back_license_picture: 3,
+  payment_option_id: 4,
+  shift: 4,
+  nbi_clearance: 5,
+  selfie_picture: 5,
 };
 
 watch(

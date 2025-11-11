@@ -24,7 +24,6 @@ return new class extends Migration
             $table->string('back_valid_id_picture');
             $table->string('cv_attachment');
             $table->date('birth_date');
-            $table->unsignedTinyInteger('age');
             $table->timestamps();
         });
     }

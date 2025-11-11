@@ -59,7 +59,7 @@ const defaultLabels: Labels = {
   selfiePicture: '1x1 Photo/Selfie',
   prcCertificate: 'Certification or PRC Number (if applicable)',
   professionalLicense: 'Professional Licence / Certificate (if applicable)',
-  cvAttachment: 'Photo or Resume',
+  cvAttachment: 'CV / Resume Attachment',
   dtiCertificate: 'DTI/SEC Registration',
   mayorPermit: "Mayor's Permit",
   proofOfCapital: 'Proof of Capital or Franchise Agreement',
