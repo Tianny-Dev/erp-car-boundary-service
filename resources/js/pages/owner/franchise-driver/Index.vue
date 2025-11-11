@@ -78,7 +78,7 @@ const toggleStatus = (id: number) => {
   const toastId = toast.loading('Updating driver status...');
 
   router.put(
-    `/owner/drivers/${id}/status`,
+    `/owner/drivers/${id}`,
     {},
     {
       onSuccess: () => {
