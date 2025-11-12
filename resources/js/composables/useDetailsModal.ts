@@ -52,11 +52,12 @@ export function useDetailsModal<TData = unknown>({
 
     try {
       const response = await fetchData(...args);
-      data.value = response.data;
+      data.value = response.data.data;
     } catch (error) {
       console.error('Error fetching details:', error);
       isError.value = true;
     } finally {
+      //await new Promise((resolve) => setTimeout(resolve, 500));
       isLoading.value = false;
     }
   };

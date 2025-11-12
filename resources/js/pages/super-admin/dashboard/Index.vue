@@ -1,11 +1,12 @@
 <script setup lang="ts">
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
-  // DialogDescription,
-  // DialogFooter,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -31,8 +32,8 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import superAdmin from '@/routes/super-admin';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
-import { MoreHorizontal } from 'lucide-vue-next';
-import { ref } from 'vue';
+import { AlertCircleIcon, MoreHorizontal } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
 
 interface FranchiseRow {
   id: number;
@@ -41,10 +42,15 @@ interface FranchiseRow {
   phone: string;
   status_name: string;
   owner_name: string;
+  owner_id: number;
 }
 
 defineProps<{
-  franchises: FranchiseRow[];
+  franchises: {
+    data: FranchiseRow[];
+    links: Record<string, any>;
+    meta: Record<string, any>;
+  };
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -54,52 +60,84 @@ const breadcrumbs: BreadcrumbItem[] = [
   },
 ];
 
-interface User {
+interface FranchiseModal {
   id: number;
-  name: string;
-  email: string;
-  phone?: string /* ... */;
-}
-interface Status {
-  id: number;
-  name: string;
-}
-interface UserOwner {
-  id: number;
-  user: User;
-  status: Status /* ... */;
-}
-interface FullFranchise {
-  id: number;
+  status: string;
   name: string;
   email: string;
   phone: string;
   address: string;
-  status: Status;
+  region: string;
+  city: string;
+  barangay: string;
+  province?: string;
+  postal_code: string;
+  created_at: string;
+  dti_registration_attachment?: string;
+  mayor_permit_attachment?: string;
+  proof_agreement_attachment?: string;
+}
+const franchiseDetails = computed(() => {
+  const data = franchiseModal.data.value;
+  if (!data) return [];
+
+  return [
+    { label: 'Name', value: data.name, type: 'text' },
+    { label: 'Email', value: data.email, type: 'text' },
+    { label: 'Phone', value: data.phone, type: 'text' },
+    { label: 'Status', value: data.status, type: 'text' },
+    { label: 'Region', value: data.region, type: 'text' },
+    { label: 'Province', value: data.province, type: 'text' },
+    { label: 'City', value: data.city, type: 'text' },
+    { label: 'Barangay', value: data.barangay, type: 'text' },
+    { label: 'Postal Code', value: data.postal_code, type: 'text' },
+    { label: 'Address', value: data.address, type: 'text' },
+    { label: 'Created At', value: data.created_at, type: 'text' },
+    {
+      label: 'DTI Registration',
+      value: data.dti_registration_attachment,
+      type: 'link',
+    },
+    {
+      label: "Mayor's Permit",
+      value: data.mayor_permit_attachment,
+      type: 'link',
+    },
+    {
+      label: 'Proof of Agreement',
+      value: data.proof_agreement_attachment,
+      type: 'link',
+    },
+  ].filter((item) => item.value);
+});
+
+interface OwnerModal {
+  id: number;
+  status: string;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  region: string;
+  city: string;
+  barangay: string;
+  province?: string;
+  postal_code: string;
+  valid_id_type: string;
+  valid_id_number: string;
+  front_valid_id_picture?: string;
+  back_valid_id_picture?: string;
+  created_at?: string;
 }
 
 // --- Modal State ---
-const franchiseModal = useDetailsModal<FullFranchise>({
-  baseUrl: '/super-admin/franchises',
+const franchiseModal = useDetailsModal<FranchiseModal>({
+  baseUrl: '/super-admin/franchise',
 });
 
-const ownerModal = useDetailsModal<UserOwner>({
-  baseUrl: '/super-admin/owners',
+const ownerModal = useDetailsModal<OwnerModal>({
+  baseUrl: '/super-admin/owner',
 });
-
-// --- Franchise Modal State ---
-const isFranchiseModalOpen = ref(false);
-const openFranchiseModal = (franchise: FranchiseRow) => {
-  selectedFranchise.value = franchise;
-  isFranchiseModalOpen.value = true;
-};
-
-// --- Owner Modal State ---
-const isOwnerModalOpen = ref(false);
-const openOwnerModal = (franchise: FranchiseRow) => {
-  selectedFranchise.value = franchise;
-  isOwnerModalOpen.value = true;
-};
 
 // --- Accept Modal State ---
 const isAcceptModalOpen = ref(false);
@@ -113,7 +151,7 @@ const openAcceptModal = (franchise: FranchiseRow) => {
 const handleAcceptFranchise = () => {
   if (!selectedFranchise.value?.id) return;
   router.patch(
-    superAdmin.dashboard.franchise.accept(selectedFranchise.value.id).url,
+    superAdmin.franchise.accept(selectedFranchise.value.id).url,
     {},
     {
       onSuccess: () => {
@@ -162,8 +200,11 @@ const handleAcceptFranchise = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            <template v-if="franchises.length > 0">
-              <TableRow v-for="franchise in franchises" :key="franchise.id">
+            <template v-if="franchises.data.length > 0">
+              <TableRow
+                v-for="franchise in franchises.data"
+                :key="franchise.id"
+              >
                 <TableCell class="w-1/5 truncate text-center">{{
                   franchise.name
                 }}</TableCell>
@@ -275,34 +316,64 @@ const handleAcceptFranchise = () => {
       <DialogHeader>
         <DialogTitle>Franchise Details</DialogTitle>
       </DialogHeader>
+      <DialogDescription>
+        <div
+          v-if="franchiseModal.isLoading.value"
+          class="grid grid-cols-2 gap-4"
+        >
+          <Skeleton class="h-5 w-24" />
+          <Skeleton class="h-5 w-3/4" />
+          <Skeleton class="h-5 w-24" />
+          <Skeleton class="h-5 w-3/4" />
+          <Skeleton class="h-5 w-24" />
+          <Skeleton class="h-5 w-3/4" />
+          <Skeleton class="h-5 w-24" />
+          <Skeleton class="h-5 w-3/4" />
+        </div>
 
-      <div v-if="franchiseModal.isLoading.value" class="grid grid-cols-2 gap-4">
-        <Skeleton class="h-5 w-24" />
-        <Skeleton class="h-5 w-3/4" />
-        <Skeleton class="h-5 w-24" />
-        <Skeleton class="h-5 w-3/4" />
-        <Skeleton class="h-5 w-24" />
-        <Skeleton class="h-5 w-3/4" />
-        <Skeleton class="h-5 w-24" />
-        <Skeleton class="h-5 w-3/4" />
-      </div>
+        <div
+          v-else-if="franchiseDetails.length > 0"
+          class="grid grid-cols-2 gap-4"
+        >
+          <template v-for="item in franchiseDetails" :key="item.label">
+            <div class="font-medium">{{ item.label }}:</div>
 
-      <div v-else-if="franchiseModal.data.value" class="grid grid-cols-2 gap-4">
-        <div class="font-medium">Name:</div>
-        <div>{{ franchiseModal.data.value.name }}</div>
-        <div class="font-medium">Email:</div>
-        <div>{{ franchiseModal.data.value.email }}</div>
-        <div class="font-medium">Phone:</div>
-        <div>{{ franchiseModal.data.value.phone }}</div>
-        <div class="font-medium">Status:</div>
-        <div>{{ franchiseModal.data.value.status?.name }}</div>
-        <div class="font-medium">Address:</div>
-        <div>{{ franchiseModal.data.value.address }}</div>
-      </div>
+            <div v-if="item.type === 'link'">
+              <a
+                :href="item.value"
+                target="_blank"
+                class="text-blue-500 hover:underline"
+                >View</a
+              >
+            </div>
 
-      <div v-else-if="franchiseModal.isError.value">
-        <p class="text-red-500">Failed to load franchise details.</p>
-      </div>
+            <div v-else>
+              {{ item.value }}
+            </div>
+          </template>
+        </div>
+
+        <div v-else-if="franchiseModal.isError.value">
+          <Alert
+            variant="destructive"
+            class="border-2 border-red-500 shadow-lg"
+          >
+            <AlertCircleIcon class="h-4 w-4" />
+            <AlertTitle class="font-bold">Error</AlertTitle>
+            <AlertDescription class="font-semibold">
+              Failed to load franchise details.
+            </AlertDescription>
+          </Alert>
+        </div>
+      </DialogDescription>
+      <DialogFooter class="mt-5">
+        <Button
+          variant="outline"
+          class="cursor-pointer"
+          @click="franchiseModal.close"
+          >Close</Button
+        >
+      </DialogFooter>
     </DialogContent>
   </Dialog>
 
@@ -311,64 +382,79 @@ const handleAcceptFranchise = () => {
       <DialogHeader>
         <DialogTitle>Owner Details</DialogTitle>
       </DialogHeader>
+      <DialogDescription>
+        <div
+          v-if="ownerModal.isLoading.value"
+          class="grid grid-cols-1 gap-6 md:grid-cols-2"
+        >
+          <section class="space-y-3 rounded-lg border p-4">
+            <Skeleton class="h-6 w-32" />
+            <div class="grid grid-cols-2 gap-2">
+              <Skeleton class="h-5 w-20" /><Skeleton class="h-5 w-3/4" />
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <Skeleton class="h-5 w-20" /><Skeleton class="h-5 w-3/4" />
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <Skeleton class="h-5 w-20" /><Skeleton class="h-5 w-3/4" />
+            </div>
+          </section>
+          <section class="space-y-3 rounded-lg border p-4">
+            <Skeleton class="h-6 w-40" />
+            <div class="grid grid-cols-2 gap-2">
+              <Skeleton class="h-5 w-24" /><Skeleton class="h-5 w-3/4" />
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <Skeleton class="h-5 w-24" /><Skeleton class="h-5 w-3/4" />
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <Skeleton class="h-5 w-24" /><Skeleton class="h-5 w-3/4" />
+            </div>
+          </section>
+        </div>
 
-      <div
-        v-if="ownerModal.isLoading.value"
-        class="grid grid-cols-1 gap-6 md:grid-cols-2"
-      >
-        <section class="space-y-3 rounded-lg border p-4">
-          <Skeleton class="h-6 w-32" />
-          <div class="grid grid-cols-2 gap-2">
-            <Skeleton class="h-5 w-20" /><Skeleton class="h-5 w-3/4" />
-          </div>
-          <div class="grid grid-cols-2 gap-2">
-            <Skeleton class="h-5 w-20" /><Skeleton class="h-5 w-3/4" />
-          </div>
-          <div class="grid grid-cols-2 gap-2">
-            <Skeleton class="h-5 w-20" /><Skeleton class="h-5 w-3/4" />
-          </div>
-        </section>
-        <section class="space-y-3 rounded-lg border p-4">
-          <Skeleton class="h-6 w-40" />
-          <div class="grid grid-cols-2 gap-2">
-            <Skeleton class="h-5 w-24" /><Skeleton class="h-5 w-3/4" />
-          </div>
-          <div class="grid grid-cols-2 gap-2">
-            <Skeleton class="h-5 w-24" /><Skeleton class="h-5 w-3/4" />
-          </div>
-          <div class="grid grid-cols-2 gap-2">
-            <Skeleton class="h-5 w-24" /><Skeleton class="h-5 w-3/4" />
-          </div>
-        </section>
-      </div>
+        <div
+          v-else-if="ownerModal.data.value"
+          class="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2"
+        >
+          <section class="rounded-lg border p-4">
+            <h3 class="mb-2 text-lg font-semibold">User Info</h3>
+            <div class="grid grid-cols-2 gap-2">
+              <div class="font-medium">Name:</div>
+              <div>{{ ownerModal.data.value.user?.name }}</div>
+            </div>
+          </section>
+          <section class="rounded-lg border p-4">
+            <h3 class="mb-2 text-lg font-semibold">Owner Verification</h3>
+            <div class="grid grid-cols-2 gap-2">
+              <div class="font-medium">Owner Status:</div>
+              <div>{{ ownerModal.data.value.status?.name }}</div>
+            </div>
+          </section>
+        </div>
 
-      <div
-        v-else-if="ownerModal.data.value"
-        class="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2"
-      >
-        <section class="rounded-lg border p-4">
-          <h3 class="mb-2 text-lg font-semibold">User Info</h3>
-          <div class="grid grid-cols-2 gap-2">
-            <div class="font-medium">Name:</div>
-            <div>{{ ownerModal.data.value.user?.name }}</div>
-          </div>
-        </section>
-        <section class="rounded-lg border p-4">
-          <h3 class="mb-2 text-lg font-semibold">Owner Verification</h3>
-          <div class="grid grid-cols-2 gap-2">
-            <div class="font-medium">Owner Status:</div>
-            <div>{{ ownerModal.data.value.status?.name }}</div>
-          </div>
-        </section>
-      </div>
+        <div v-else-if="ownerModal.isError.value">
+          <Alert
+            variant="destructive"
+            class="border-2 border-red-500 shadow-lg"
+          >
+            <AlertCircleIcon class="h-4 w-4" />
+            <AlertTitle class="font-bold">Error</AlertTitle>
+            <AlertDescription class="font-semibold">
+              Failed to load owner details.
+            </AlertDescription>
+          </Alert>
+        </div>
+      </DialogDescription>
 
-      <div v-else-if="ownerModal.isError.value">
-        <p class="text-red-500">Failed to load owner details.</p>
-      </div>
+      <DialogFooter class="mt-5">
+        <Button
+          variant="outline"
+          class="cursor-pointer"
+          @click="franchiseModal.close"
+          >Close</Button
+        >
+      </DialogFooter>
     </DialogContent>
-  </Dialog>
-
-  <Dialog v-model:open="isAcceptModalOpen">
-    <DialogContent class="max-w-md"> </DialogContent>
   </Dialog>
 </template>
