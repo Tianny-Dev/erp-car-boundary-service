@@ -56,6 +56,14 @@ class VehicleController extends Controller
             'status_id' => 'required|exists:statuses,id',
         ]);
 
+        $franchise = auth()->user()->ownerDetails?->franchises()->first();
+
+        if (!$franchise) {
+            return redirect()->back()->with('error', 'You do not have an assigned franchise.');
+        }
+
+        $data['franchise_id'] = $franchise->id;
+
         Vehicle::create($data);
 
         return redirect()->back()->with('success', 'Vehicle created!');
@@ -74,6 +82,14 @@ class VehicleController extends Controller
      */
     public function edit(Request $request, Vehicle $vehicle)
     {
+        //
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, Vehicle $vehicle)
+    {
         $data = $request->validate([
             'plate_number' => 'required|string|max:255',
             'vin' => 'required|string|max:255',
@@ -87,14 +103,6 @@ class VehicleController extends Controller
         $vehicle->update($data);
 
         return redirect()->back()->with('success', 'Vehicle updated!');
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
     }
 
     /**

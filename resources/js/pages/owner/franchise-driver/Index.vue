@@ -8,6 +8,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+
 import { Spinner } from '@/components/ui/spinner';
 import AppLayout from '@/layouts/AppLayout.vue';
 import owner from '@/routes/owner';
@@ -134,61 +143,67 @@ const toggleStatus = (id: number) => {
 
       <!-- Table -->
       <div class="overflow-x-auto rounded-lg border">
-        <table class="min-w-full text-left text-sm">
-          <thead class="bg-gray-50 text-gray-700">
-            <tr>
-              <th class="px-4 py-3 font-semibold">Name</th>
-              <th class="px-4 py-3 font-semibold">Username</th>
-              <th class="px-4 py-3 font-semibold">Email</th>
-              <th class="px-4 py-3 font-semibold">Phone</th>
-              <th class="px-4 py-3 font-semibold">Region</th>
-              <th class="px-4 py-3 font-semibold">Province</th>
-              <th class="px-4 py-3 font-semibold">City</th>
-              <th class="px-4 py-3 font-semibold">Barangay</th>
-              <th class="px-4 py-3 font-semibold">Status</th>
-              <th class="px-4 py-3 font-semibold">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Username</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Phone</TableHead>
+              <TableHead>Region</TableHead>
+              <TableHead>Province</TableHead>
+              <TableHead>City</TableHead>
+              <TableHead>Barangay</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+
+          <TableBody>
+            <TableRow
               v-for="driver in filteredDrivers"
               :key="driver.id"
-              class="border-t hover:bg-gray-50"
+              class="hover:bg-muted/50"
             >
-              <td class="px-4 py-2">{{ driver.name }}</td>
-              <td class="px-4 py-2">{{ driver.username }}</td>
-              <td class="px-4 py-2">{{ driver.email }}</td>
-              <td class="px-4 py-2">{{ driver.phone }}</td>
-              <td class="px-4 py-2">{{ driver.region }}</td>
-              <td class="px-4 py-2">{{ driver.province }}</td>
-              <td class="px-4 py-2">{{ driver.city }}</td>
-              <td class="px-4 py-2">{{ driver.barangay }}</td>
-              <td class="px-4 py-2">
+              <TableCell>{{ driver.name }}</TableCell>
+              <TableCell>{{ driver.username }}</TableCell>
+              <TableCell>{{ driver.email }}</TableCell>
+              <TableCell>{{ driver.phone }}</TableCell>
+              <TableCell>{{ driver.region }}</TableCell>
+              <TableCell>{{ driver.province }}</TableCell>
+              <TableCell>{{ driver.city }}</TableCell>
+              <TableCell>{{ driver.barangay }}</TableCell>
+              <TableCell>
                 <Badge :variant="getStatusVariant(driver.status)">
                   {{ driver.status }}
                 </Badge>
-              </td>
-              <td class="px-4 py-2">
+              </TableCell>
+              <TableCell>
                 <Button
                   size="sm"
                   variant="outline"
-                  class="cursor-pointer"
                   :disabled="updatingId === driver.id"
                   @click="toggleStatus(driver.id)"
                 >
-                  <span v-if="updatingId === driver.id"><Spinner /></span>
+                  <Spinner
+                    v-if="updatingId === driver.id"
+                    class="mr-2 h-4 w-4"
+                  />
                   <span v-else>Toggle Status</span>
                 </Button>
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
 
-            <tr v-if="filteredDrivers.length === 0">
-              <td colspan="9" class="px-4 py-6 text-center text-gray-500">
+            <TableRow v-if="filteredDrivers.length === 0">
+              <TableCell
+                colspan="10"
+                class="py-6 text-center text-muted-foreground"
+              >
                 No results found.
-              </td>
-            </tr>
-          </tbody>
-        </table>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
       </div>
     </div>
   </AppLayout>

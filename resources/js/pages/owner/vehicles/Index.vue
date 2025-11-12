@@ -1,4 +1,15 @@
 <script setup lang="ts">
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -16,6 +27,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Spinner } from '@/components/ui/spinner';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
@@ -47,6 +67,12 @@ const breadcrumbs = [{ title: 'Vehicle Management', href: '/owner/vehicles' }];
 const globalFilter = ref('');
 const statusFilter = ref('all');
 
+// State
+const isSaving = ref(false);
+const deletingId = ref<number | null>(null);
+const selectedVehicleToDelete = ref<Vehicle | null>(null);
+
+// Filtered Vehicles
 const filteredVehicles = computed(() => {
   let filtered = props.vehicles;
 
@@ -68,15 +94,15 @@ const filteredVehicles = computed(() => {
   return filtered;
 });
 
-// Statuses
+// Status options
 const statuses = ref<Status[]>([
   { id: 1, name: 'active' },
-  { id: 2, name: 'pending' },
+  { id: 6, name: 'pending' },
   { id: 3, name: 'suspended' },
   { id: 4, name: 'retired' },
 ]);
 
-// Dialog
+// Dialogs
 const showDialog = ref(false);
 const dialogMode = ref<'create' | 'edit'>('create');
 const editingVehicle = ref<Vehicle | null>(null);
@@ -112,7 +138,7 @@ const openEditDialog = (vehicle: Vehicle) => {
   showDialog.value = true;
 };
 
-// Status badge
+// Status badge style
 const getStatusVariant = (status: string) => {
   switch (status) {
     case 'active':
@@ -128,8 +154,8 @@ const getStatusVariant = (status: string) => {
   }
 };
 
-// Save vehicle
-const saveVehicle = async () => {
+// Save vehicle (create or update)
+const saveVehicle = () => {
   const payload = {
     plate_number: plate_number.value,
     vin: vin.value,
@@ -140,40 +166,47 @@ const saveVehicle = async () => {
     status_id: statusId.value,
   };
 
-  try {
-    if (dialogMode.value === 'create') {
-      await router.post('/owner/vehicles', payload, {
-        onSuccess: () => {
-          toast.success('Vehicle Created!');
-          showDialog.value = false;
-        },
-      });
-    } else if (editingVehicle.value) {
-      await router.put(`/owner/vehicles/${editingVehicle.value.id}`, payload, {
-        onSuccess: () => {
-          toast.success('Vehicle Updated!');
-          showDialog.value = false;
-        },
-      });
-    }
-  } catch (e) {
-    console.error(e);
-    toast.error('Something went wrong');
-  }
+  router.visit(
+    dialogMode.value === 'create'
+      ? '/owner/vehicles'
+      : `/owner/vehicles/${editingVehicle.value?.id}`,
+    {
+      method: dialogMode.value === 'create' ? 'post' : 'put',
+      data: payload,
+      onStart: () => (isSaving.value = true),
+      onFinish: () => (isSaving.value = false),
+      onSuccess: () => {
+        toast.success(
+          dialogMode.value === 'create'
+            ? 'Vehicle Created!'
+            : 'Vehicle Updated!',
+        );
+        showDialog.value = false;
+      },
+      onError: () => toast.error('Something went wrong'),
+    },
+  );
 };
 
-// Delete vehicle
-const deleteVehicle = async (vehicle: Vehicle) => {
-  if (!confirm(`Delete ${vehicle.plate_number}?`)) return;
-  try {
-    await router.delete(`/owner/vehicles/${vehicle.id}`, {
-      onSuccess: () => toast.success('Deleted!'),
-      onError: () => toast.error('Failed'),
-    });
-  } catch (e) {
-    console.error(e);
-    toast.error('Something went wrong');
-  }
+// Confirm delete (open AlertDialog)
+const confirmDeleteVehicle = (vehicle: Vehicle) => {
+  selectedVehicleToDelete.value = vehicle;
+};
+
+// Perform delete
+const deleteVehicle = () => {
+  if (!selectedVehicleToDelete.value) return;
+  const id = selectedVehicleToDelete.value.id;
+
+  router.delete(`/owner/vehicles/${id}`, {
+    onStart: () => (deletingId.value = id),
+    onFinish: () => {
+      deletingId.value = null;
+      selectedVehicleToDelete.value = null;
+    },
+    onSuccess: () => toast.success('Vehicle Deleted!'),
+    onError: () => toast.error('Failed to delete vehicle'),
+  });
 };
 </script>
 
@@ -210,56 +243,91 @@ const deleteVehicle = async (vehicle: Vehicle) => {
       </div>
 
       <!-- Vehicles Table -->
-      <div class="overflow-x-auto rounded-lg border">
-        <table class="min-w-full text-left text-sm">
-          <thead class="bg-gray-50 text-gray-700">
-            <tr>
-              <th class="px-4 py-3 font-semibold">Plate</th>
-              <th class="px-4 py-3 font-semibold">VIN</th>
-              <th class="px-4 py-3 font-semibold">Brand</th>
-              <th class="px-4 py-3 font-semibold">Model</th>
-              <th class="px-4 py-3 font-semibold">Color</th>
-              <th class="px-4 py-3 font-semibold">Year</th>
-              <th class="px-4 py-3 font-semibold">Status</th>
-              <th class="px-4 py-3 font-semibold">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
+      <div class="rounded-lg border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Plate</TableHead>
+              <TableHead>VIN</TableHead>
+              <TableHead>Brand</TableHead>
+              <TableHead>Model</TableHead>
+              <TableHead>Color</TableHead>
+              <TableHead>Year</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+
+          <TableBody>
+            <TableRow
               v-for="v in filteredVehicles"
               :key="v.id"
-              class="border-t hover:bg-gray-50"
+              class="hover:bg-muted/50"
             >
-              <td class="px-4 py-2">{{ v.plate_number }}</td>
-              <td class="px-4 py-2">{{ v.vin }}</td>
-              <td class="px-4 py-2">{{ v.brand }}</td>
-              <td class="px-4 py-2">{{ v.model }}</td>
-              <td class="px-4 py-2">{{ v.color }}</td>
-              <td class="px-4 py-2">{{ v.year }}</td>
-              <td class="px-4 py-2">
-                <Badge :variant="getStatusVariant(v.status_name)">{{
-                  v.status_name
-                }}</Badge>
-              </td>
-              <td class="flex gap-2 px-4 py-2">
-                <Button size="sm" variant="outline" @click="openEditDialog(v)"
-                  >Edit</Button
-                >
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  @click="deleteVehicle(v)"
-                  >Delete</Button
-                >
-              </td>
-            </tr>
-            <tr v-if="filteredVehicles.length === 0">
-              <td colspan="8" class="px-4 py-6 text-center text-gray-500">
+              <TableCell>{{ v.plate_number }}</TableCell>
+              <TableCell>{{ v.vin }}</TableCell>
+              <TableCell>{{ v.brand }}</TableCell>
+              <TableCell>{{ v.model }}</TableCell>
+              <TableCell>{{ v.color }}</TableCell>
+              <TableCell>{{ v.year }}</TableCell>
+              <TableCell>
+                <Badge :variant="getStatusVariant(v.status_name)">
+                  {{ v.status_name }}
+                </Badge>
+              </TableCell>
+              <TableCell class="flex gap-2">
+                <Button size="sm" variant="outline" @click="openEditDialog(v)">
+                  Edit
+                </Button>
+
+                <!-- Delete -->
+                <AlertDialog>
+                  <AlertDialogTrigger as-child>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      :disabled="deletingId === v.id"
+                      @click="confirmDeleteVehicle(v)"
+                    >
+                      <Spinner
+                        v-if="deletingId === v.id"
+                        class="mr-2 h-4 w-4"
+                      />
+                      Delete
+                    </Button>
+                  </AlertDialogTrigger>
+
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        Are you sure you want to delete this vehicle?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will permanently remove
+                        <b>{{ v.plate_number }}</b> from the system.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction @click="deleteVehicle">
+                        Confirm
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </TableCell>
+            </TableRow>
+
+            <TableRow v-if="filteredVehicles.length === 0">
+              <TableCell
+                colspan="8"
+                class="py-6 text-center text-muted-foreground"
+              >
                 No results found.
-              </td>
-            </tr>
-          </tbody>
-        </table>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
       </div>
     </div>
 
@@ -267,10 +335,11 @@ const deleteVehicle = async (vehicle: Vehicle) => {
     <Dialog v-model:open="showDialog">
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{{
-            dialogMode === 'create' ? 'Add Vehicle' : 'Edit Vehicle'
-          }}</DialogTitle>
+          <DialogTitle>
+            {{ dialogMode === 'create' ? 'Add Vehicle' : 'Edit Vehicle' }}
+          </DialogTitle>
         </DialogHeader>
+
         <div class="grid gap-4 py-4">
           <Input v-model="plate_number" placeholder="Plate Number" />
           <Input v-model="vin" placeholder="VIN" />
@@ -279,19 +348,25 @@ const deleteVehicle = async (vehicle: Vehicle) => {
           <Input v-model="color" placeholder="Color" />
           <Input v-model="year" type="number" placeholder="Year" />
           <Select v-model="statusId">
-            <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="s in statuses" :key="s.id" :value="s.id">{{
-                s.name
-              }}</SelectItem>
+              <SelectItem v-for="s in statuses" :key="s.id" :value="s.id">
+                {{ s.name }}
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
+
         <DialogFooter class="flex justify-end gap-2">
-          <Button variant="outline" @click="showDialog = false">Cancel</Button>
-          <Button @click="saveVehicle">{{
-            dialogMode === 'create' ? 'Create' : 'Update'
-          }}</Button>
+          <Button variant="outline" @click="showDialog = false">
+            Cancel
+          </Button>
+          <Button @click="saveVehicle" :disabled="isSaving">
+            <Spinner v-if="isSaving" class="mr-2 h-4 w-4" />
+            {{ dialogMode === 'create' ? 'Create' : 'Update' }}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
