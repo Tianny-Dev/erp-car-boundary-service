@@ -27,6 +27,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 import AppLayout from '@/layouts/AppLayout.vue';
 import owner from '@/routes/owner';
@@ -197,42 +205,43 @@ const removeDriver = async () => {
       </div>
 
       <!-- Vehicles Table -->
-      <div class="overflow-x-auto rounded-lg border">
-        <table class="min-w-full text-left text-sm">
-          <thead class="bg-muted text-muted-foreground">
-            <tr>
-              <th class="px-4 py-2 font-medium">Plate</th>
-              <th class="px-4 py-2 font-medium">VIN</th>
-              <th class="px-4 py-2 font-medium">Brand</th>
-              <th class="px-4 py-2 font-medium">Model</th>
-              <th class="px-4 py-2 font-medium">Color</th>
-              <th class="px-4 py-2 font-medium">Year</th>
-              <th class="px-4 py-2 font-medium">Driver</th>
-              <th class="px-4 py-2 font-medium">Email</th>
-              <th class="px-4 py-2 font-medium">Status</th>
-              <th class="px-4 py-2 font-medium">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
+      <div class="rounded-lg border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Plate</TableHead>
+              <TableHead>VIN</TableHead>
+              <TableHead>Brand</TableHead>
+              <TableHead>Model</TableHead>
+              <TableHead>Color</TableHead>
+              <TableHead>Year</TableHead>
+              <TableHead>Driver</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+
+          <TableBody>
+            <TableRow
               v-for="v in filteredVehicles"
               :key="v.id"
-              class="border-t hover:bg-muted/50"
+              class="hover:bg-muted/50"
             >
-              <td class="px-4 py-2">{{ v.plate_number }}</td>
-              <td class="px-4 py-2">{{ v.vin }}</td>
-              <td class="px-4 py-2">{{ v.brand }}</td>
-              <td class="px-4 py-2">{{ v.model }}</td>
-              <td class="px-4 py-2">{{ v.color }}</td>
-              <td class="px-4 py-2">{{ v.year }}</td>
-              <td class="px-4 py-2">{{ v.driver?.name ?? '-' }}</td>
-              <td class="px-4 py-2">{{ v.driver?.email ?? '-' }}</td>
-              <td class="px-4 py-2">
+              <TableCell>{{ v.plate_number }}</TableCell>
+              <TableCell>{{ v.vin }}</TableCell>
+              <TableCell>{{ v.brand }}</TableCell>
+              <TableCell>{{ v.model }}</TableCell>
+              <TableCell>{{ v.color }}</TableCell>
+              <TableCell>{{ v.year }}</TableCell>
+              <TableCell>{{ v.driver?.name ?? '-' }}</TableCell>
+              <TableCell>{{ v.driver?.email ?? '-' }}</TableCell>
+              <TableCell>
                 <Badge :variant="getStatusVariant(v.status_name)">
                   {{ v.status_name }}
                 </Badge>
-              </td>
-              <td class="flex gap-2 px-4 py-2">
+              </TableCell>
+              <TableCell class="flex gap-2">
                 <Button
                   size="sm"
                   variant="outline"
@@ -246,7 +255,7 @@ const removeDriver = async () => {
                   Assign / Edit
                 </Button>
 
-                <!-- AlertDialog for Unassign -->
+                <!-- Unassign -->
                 <AlertDialog>
                   <AlertDialogTrigger as-child>
                     <Button
@@ -262,6 +271,7 @@ const removeDriver = async () => {
                       Unassign
                     </Button>
                   </AlertDialogTrigger>
+
                   <AlertDialogContent v-if="confirmVehicle?.id === v.id">
                     <AlertDialogHeader>
                       <AlertDialogTitle>
@@ -283,19 +293,19 @@ const removeDriver = async () => {
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
 
-            <tr v-if="filteredVehicles.length === 0">
-              <td
+            <TableRow v-if="filteredVehicles.length === 0">
+              <TableCell
                 colspan="10"
-                class="px-4 py-6 text-center text-muted-foreground"
+                class="py-6 text-center text-muted-foreground"
               >
                 No results found.
-              </td>
-            </tr>
-          </tbody>
-        </table>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
       </div>
     </div>
 

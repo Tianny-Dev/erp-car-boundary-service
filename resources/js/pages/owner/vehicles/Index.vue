@@ -28,6 +28,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
@@ -235,43 +243,44 @@ const deleteVehicle = () => {
       </div>
 
       <!-- Vehicles Table -->
-      <div class="overflow-x-auto rounded-lg border">
-        <table class="min-w-full text-left text-sm">
-          <thead class="bg-gray-50 text-gray-700">
-            <tr>
-              <th class="px-4 py-3 font-semibold">Plate</th>
-              <th class="px-4 py-3 font-semibold">VIN</th>
-              <th class="px-4 py-3 font-semibold">Brand</th>
-              <th class="px-4 py-3 font-semibold">Model</th>
-              <th class="px-4 py-3 font-semibold">Color</th>
-              <th class="px-4 py-3 font-semibold">Year</th>
-              <th class="px-4 py-3 font-semibold">Status</th>
-              <th class="px-4 py-3 font-semibold">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
+      <div class="rounded-lg border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Plate</TableHead>
+              <TableHead>VIN</TableHead>
+              <TableHead>Brand</TableHead>
+              <TableHead>Model</TableHead>
+              <TableHead>Color</TableHead>
+              <TableHead>Year</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+
+          <TableBody>
+            <TableRow
               v-for="v in filteredVehicles"
               :key="v.id"
-              class="border-t hover:bg-gray-50"
+              class="hover:bg-muted/50"
             >
-              <td class="px-4 py-2">{{ v.plate_number }}</td>
-              <td class="px-4 py-2">{{ v.vin }}</td>
-              <td class="px-4 py-2">{{ v.brand }}</td>
-              <td class="px-4 py-2">{{ v.model }}</td>
-              <td class="px-4 py-2">{{ v.color }}</td>
-              <td class="px-4 py-2">{{ v.year }}</td>
-              <td class="px-4 py-2">
+              <TableCell>{{ v.plate_number }}</TableCell>
+              <TableCell>{{ v.vin }}</TableCell>
+              <TableCell>{{ v.brand }}</TableCell>
+              <TableCell>{{ v.model }}</TableCell>
+              <TableCell>{{ v.color }}</TableCell>
+              <TableCell>{{ v.year }}</TableCell>
+              <TableCell>
                 <Badge :variant="getStatusVariant(v.status_name)">
                   {{ v.status_name }}
                 </Badge>
-              </td>
-              <td class="flex gap-2 px-4 py-2">
+              </TableCell>
+              <TableCell class="flex gap-2">
                 <Button size="sm" variant="outline" @click="openEditDialog(v)">
                   Edit
                 </Button>
 
-                <!-- AlertDialog for delete -->
+                <!-- Delete -->
                 <AlertDialog>
                   <AlertDialogTrigger as-child>
                     <Button
@@ -287,14 +296,15 @@ const deleteVehicle = () => {
                       Delete
                     </Button>
                   </AlertDialogTrigger>
+
                   <AlertDialogContent>
                     <AlertDialogHeader>
                       <AlertDialogTitle>
                         Are you sure you want to delete this vehicle?
                       </AlertDialogTitle>
                       <AlertDialogDescription>
-                        This action cannot be undone. This will permanently
-                        delete <b>{{ v.plate_number }}</b> from the system.
+                        This will permanently remove
+                        <b>{{ v.plate_number }}</b> from the system.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -305,16 +315,19 @@ const deleteVehicle = () => {
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
 
-            <tr v-if="filteredVehicles.length === 0">
-              <td colspan="8" class="px-4 py-6 text-center text-gray-500">
+            <TableRow v-if="filteredVehicles.length === 0">
+              <TableCell
+                colspan="8"
+                class="py-6 text-center text-muted-foreground"
+              >
                 No results found.
-              </td>
-            </tr>
-          </tbody>
-        </table>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
       </div>
     </div>
 
