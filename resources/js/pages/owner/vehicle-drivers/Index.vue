@@ -1,4 +1,15 @@
 <script setup lang="ts">
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,6 +26,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Spinner } from '@/components/ui/spinner';
+
 import AppLayout from '@/layouts/AppLayout.vue';
 import owner from '@/routes/owner';
 import { type BreadcrumbItem } from '@/types';
@@ -48,18 +61,17 @@ const breadcrumbs: BreadcrumbItem[] = [
   { title: 'Assign Drivers', href: owner.vehicleDrivers.index().url },
 ];
 
+// filters
 const globalFilter = ref('');
 const statusFilter = ref('all');
 
 const filteredVehicles = computed(() => {
   let filtered = props.vehicles;
-
   if (statusFilter.value !== 'all') {
     filtered = filtered.filter(
       (v) => v.status_name.toLowerCase() === statusFilter.value,
     );
   }
-
   if (globalFilter.value) {
     const term = globalFilter.value.toLowerCase();
     filtered = filtered.filter((v) =>
@@ -75,7 +87,6 @@ const filteredVehicles = computed(() => {
       ].some((f) => String(f).toLowerCase().includes(term)),
     );
   }
-
   return filtered;
 });
 
@@ -94,9 +105,12 @@ const getStatusVariant = (status: string) => {
   }
 };
 
+// state
 const showDialog = ref(false);
 const editingVehicle = ref<Vehicle | null>(null);
 const driverId = ref<number | null>(null);
+const loading = ref(false);
+const confirmVehicle = ref<Vehicle | null>(null);
 
 const openAssignDialog = (vehicle: Vehicle) => {
   editingVehicle.value = vehicle;
@@ -106,40 +120,55 @@ const openAssignDialog = (vehicle: Vehicle) => {
 
 const assignDriver = async () => {
   if (!editingVehicle.value) return;
+  loading.value = true;
 
+  const toastId = toast.loading('Assigning driver...');
   try {
     await router.put(
       `/owner/vehicle-drivers/${editingVehicle.value.id}`,
-      { driver_id: driverId.value }, // only driver_id
+      { driver_id: driverId.value },
       {
         onSuccess: () => {
-          toast.success('Driver assigned successfully!');
+          toast.success('Driver assigned successfully!', { id: toastId });
           showDialog.value = false;
         },
-        onError: () => toast.error('Failed to assign driver'),
+        onError: () => toast.error('Failed to assign driver', { id: toastId }),
       },
     );
   } catch (e) {
     console.error(e);
-    toast.error('Something went wrong');
+    toast.error('Something went wrong', { id: toastId });
+  } finally {
+    loading.value = false;
   }
 };
 
-const removeDriver = async (vehicle: Vehicle) => {
-  if (!confirm(`Unassign driver from ${vehicle.plate_number}?`)) return;
+const confirmUnassign = (vehicle: Vehicle) => {
+  confirmVehicle.value = vehicle;
+};
 
+const removeDriver = async () => {
+  if (!confirmVehicle.value) return;
+  loading.value = true;
+
+  const toastId = toast.loading('Unassigning driver...');
   try {
     await router.put(
-      `/owner/vehicle-drivers/${vehicle.id}`,
-      { driver_id: null }, // unassign
+      `/owner/vehicle-drivers/${confirmVehicle.value.id}`,
+      { driver_id: null },
       {
-        onSuccess: () => toast.success('Driver unassigned successfully!'),
-        onError: () => toast.error('Failed to unassign driver'),
+        onSuccess: () =>
+          toast.success('Driver unassigned successfully!', { id: toastId }),
+        onError: () =>
+          toast.error('Failed to unassign driver', { id: toastId }),
       },
     );
   } catch (e) {
     console.error(e);
-    toast.error('Something went wrong');
+    toast.error('Something went wrong', { id: toastId });
+  } finally {
+    loading.value = false;
+    confirmVehicle.value = null;
   }
 };
 </script>
@@ -208,19 +237,55 @@ const removeDriver = async (vehicle: Vehicle) => {
                   size="sm"
                   variant="outline"
                   @click="openAssignDialog(v)"
+                  :disabled="loading"
                 >
+                  <Spinner
+                    v-if="loading && editingVehicle?.id === v.id"
+                    class="mr-2 h-4 w-4"
+                  />
                   Assign / Edit
                 </Button>
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  :disabled="!v.driver"
-                  @click="removeDriver(v)"
-                >
-                  Unassign
-                </Button>
+
+                <!-- AlertDialog for Unassign -->
+                <AlertDialog>
+                  <AlertDialogTrigger as-child>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      :disabled="!v.driver || loading"
+                      @click="confirmUnassign(v)"
+                    >
+                      <Spinner
+                        v-if="loading && confirmVehicle?.id === v.id"
+                        class="mr-2 h-4 w-4"
+                      />
+                      Unassign
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent v-if="confirmVehicle?.id === v.id">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        Are you sure you want to unassign this driver?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will remove the driver from
+                        <strong>{{ confirmVehicle.plate_number }}</strong
+                        >. This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel @click="confirmVehicle = null">
+                        Cancel
+                      </AlertDialogCancel>
+                      <AlertDialogAction @click="removeDriver">
+                        Continue
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </td>
             </tr>
+
             <tr v-if="filteredVehicles.length === 0">
               <td
                 colspan="10"
@@ -243,9 +308,9 @@ const removeDriver = async (vehicle: Vehicle) => {
 
         <div class="grid gap-4 py-4">
           <Select v-model="driverId">
-            <SelectTrigger
-              ><SelectValue placeholder="Select Driver"
-            /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue placeholder="Select Driver" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem v-for="d in props.drivers" :key="d.id" :value="d.id">
                 {{ d.name }}
@@ -256,7 +321,10 @@ const removeDriver = async (vehicle: Vehicle) => {
 
         <DialogFooter class="flex justify-end gap-2">
           <Button variant="outline" @click="showDialog = false">Cancel</Button>
-          <Button @click="assignDriver">Save</Button>
+          <Button @click="assignDriver" :disabled="loading">
+            <Spinner v-if="loading" class="mr-2 h-4 w-4" />
+            Save
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
