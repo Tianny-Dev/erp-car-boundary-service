@@ -10,7 +10,19 @@ class BoundaryContract extends Model
 {
     use HasFactory;
 
-    // protected $fillable = [];
+    protected $fillable = [
+        'status_id',
+        'franchise_id',
+        'branch_id',
+        'name',
+        'coverage_area',
+        'contract_terms',
+        'start_date',
+        'end_date',
+        'renewal_terms',
+        'amount',
+        'due_date',
+    ];
 
     // relationship to status, one to many
     public function status(): BelongsTo
