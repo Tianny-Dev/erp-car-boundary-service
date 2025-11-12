@@ -34,6 +34,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import { AlertCircleIcon, MoreHorizontal } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
+import { toast } from 'vue-sonner';
 
 interface FranchiseRow {
   id: number;
@@ -92,7 +93,7 @@ const franchiseDetails = computed(() => {
     { label: 'Barangay', value: data.barangay, type: 'text' },
     { label: 'Postal Code', value: data.postal_code, type: 'text' },
     { label: 'Address', value: data.address, type: 'text' },
-    { label: 'Created At', value: data.created_at, type: 'text' },
+    { label: 'Registered At', value: data.created_at, type: 'text' },
     {
       label: 'DTI Registration',
       value: data.dti_registration_attachment,
@@ -129,6 +130,36 @@ interface OwnerModal {
   back_valid_id_picture?: string;
   created_at?: string;
 }
+const ownerDetails = computed(() => {
+  const data = ownerModal.data.value;
+  if (!data) return [];
+
+  return [
+    { label: 'Name', value: data.name, type: 'text' },
+    { label: 'Email', value: data.email, type: 'text' },
+    { label: 'Phone', value: data.phone, type: 'text' },
+    { label: 'Status', value: data.status, type: 'text' },
+    { label: 'Region', value: data.region, type: 'text' },
+    { label: 'Province', value: data.province, type: 'text' },
+    { label: 'City', value: data.city, type: 'text' },
+    { label: 'Barangay', value: data.barangay, type: 'text' },
+    { label: 'Postal Code', value: data.postal_code, type: 'text' },
+    { label: 'Address', value: data.address, type: 'text' },
+    { label: 'Registered At', value: data.created_at, type: 'text' },
+    { label: 'Valid ID Type', value: data.valid_id_type, type: 'text' },
+    { label: 'Valid ID Number', value: data.valid_id_number, type: 'text' },
+    {
+      label: 'Front Valid ID Picture',
+      value: data.front_valid_id_picture,
+      type: 'link',
+    },
+    {
+      label: 'Back Valid ID Picture',
+      value: data.back_valid_id_picture,
+      type: 'link',
+    },
+  ].filter((item) => item.value);
+});
 
 // --- Modal State ---
 const franchiseModal = useDetailsModal<FranchiseModal>({
@@ -142,6 +173,7 @@ const ownerModal = useDetailsModal<OwnerModal>({
 // --- Accept Modal State ---
 const isAcceptModalOpen = ref(false);
 const selectedFranchise = ref<Partial<FranchiseRow>>({});
+const isAcceptingFranchise = ref(false);
 
 const openAcceptModal = (franchise: FranchiseRow) => {
   selectedFranchise.value = franchise;
@@ -150,12 +182,19 @@ const openAcceptModal = (franchise: FranchiseRow) => {
 
 const handleAcceptFranchise = () => {
   if (!selectedFranchise.value?.id) return;
+  isAcceptingFranchise.value = true;
   router.patch(
     superAdmin.franchise.accept(selectedFranchise.value.id).url,
     {},
     {
       onSuccess: () => {
         isAcceptModalOpen.value = false;
+        toast.success('Franchise accepted successfully!');
+      },
+      onFinish: () => {
+        setTimeout(() => {
+          isAcceptingFranchise.value = false;
+        }, 500);
       },
     },
   );
@@ -224,8 +263,8 @@ const handleAcceptFranchise = () => {
                     :class="{
                       'bg-blue-500 hover:bg-blue-600':
                         franchise.status_name === 'active',
-                      'bg-orange-500 hover:bg-orange-600':
-                        franchise.status_name === 'ending',
+                      'bg-amber-500 hover:bg-amber-600':
+                        franchise.status_name === 'pending',
                     }"
                     class="text-white"
                   >
@@ -255,7 +294,7 @@ const handleAcceptFranchise = () => {
                       >
                         View Owner Details
                       </DropdownMenuItem>
-                      <div v-if="franchise.status_name === 'active'">
+                      <div v-if="franchise.status_name === 'pending'">
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           class="cursor-pointer text-blue-500 focus:text-blue-600"
@@ -284,32 +323,34 @@ const handleAcceptFranchise = () => {
     </div>
   </AppLayout>
 
-  <!-- <Dialog v-model:open="isAcceptModalOpen">
-    <DialogContent class="max-w-md">
+  <Dialog v-model:open="isAcceptModalOpen">
+    <DialogContent class="max-w-md font-mono">
       <DialogHeader>
-        <DialogTitle>Accept Franchise?</DialogTitle>
-        <DialogDescription>
+        <DialogTitle class="text-2xl">Accept Franchise?</DialogTitle>
+        <DialogDescription class="text-md font-semibold">
           Are you sure you want to accept the franchise
-          <strong>{{ selectedFranchise.name }}</strong
-          >? This will also activate the owner's account. This action cannot be
-          undone.
+          <strong class="text-blue-500">{{ selectedFranchise.name }}</strong
+          >? This will also activate the owner's account.
         </DialogDescription>
       </DialogHeader>
       <DialogFooter>
-        <Button variant="outline" @click="isAcceptModalOpen = false"
+        <Button
+          variant="outline"
+          @click="isAcceptModalOpen = false"
+          class="cursor-pointer"
           >Cancel</Button
         >
         <Button
           variant="default"
-          class="bg-blue-500 hover:bg-blue-600"
+          class="cursor-pointer"
           @click="handleAcceptFranchise"
-          :disabled="router.processing"
+          :disabled="isAcceptingFranchise"
         >
-          {{ router.processing ? 'Accepting...' : 'Yes, Accept' }}
+          {{ isAcceptingFranchise ? 'Accepting...' : 'Yes, Accept' }}
         </Button>
       </DialogFooter>
     </DialogContent>
-  </Dialog> -->
+  </Dialog>
 
   <Dialog v-model:open="franchiseModal.isOpen.value">
     <DialogContent class="max-w-2xl overflow-y-auto">
@@ -321,14 +362,10 @@ const handleAcceptFranchise = () => {
           v-if="franchiseModal.isLoading.value"
           class="grid grid-cols-2 gap-4"
         >
-          <Skeleton class="h-5 w-24" />
-          <Skeleton class="h-5 w-3/4" />
-          <Skeleton class="h-5 w-24" />
-          <Skeleton class="h-5 w-3/4" />
-          <Skeleton class="h-5 w-24" />
-          <Skeleton class="h-5 w-3/4" />
-          <Skeleton class="h-5 w-24" />
-          <Skeleton class="h-5 w-3/4" />
+          <template v-for="item in 10" :key="item">
+            <Skeleton class="h-5 w-24" />
+            <Skeleton class="h-5 w-3/4" />
+          </template>
         </div>
 
         <div
@@ -383,54 +420,30 @@ const handleAcceptFranchise = () => {
         <DialogTitle>Owner Details</DialogTitle>
       </DialogHeader>
       <DialogDescription>
-        <div
-          v-if="ownerModal.isLoading.value"
-          class="grid grid-cols-1 gap-6 md:grid-cols-2"
-        >
-          <section class="space-y-3 rounded-lg border p-4">
-            <Skeleton class="h-6 w-32" />
-            <div class="grid grid-cols-2 gap-2">
-              <Skeleton class="h-5 w-20" /><Skeleton class="h-5 w-3/4" />
-            </div>
-            <div class="grid grid-cols-2 gap-2">
-              <Skeleton class="h-5 w-20" /><Skeleton class="h-5 w-3/4" />
-            </div>
-            <div class="grid grid-cols-2 gap-2">
-              <Skeleton class="h-5 w-20" /><Skeleton class="h-5 w-3/4" />
-            </div>
-          </section>
-          <section class="space-y-3 rounded-lg border p-4">
-            <Skeleton class="h-6 w-40" />
-            <div class="grid grid-cols-2 gap-2">
-              <Skeleton class="h-5 w-24" /><Skeleton class="h-5 w-3/4" />
-            </div>
-            <div class="grid grid-cols-2 gap-2">
-              <Skeleton class="h-5 w-24" /><Skeleton class="h-5 w-3/4" />
-            </div>
-            <div class="grid grid-cols-2 gap-2">
-              <Skeleton class="h-5 w-24" /><Skeleton class="h-5 w-3/4" />
-            </div>
-          </section>
+        <div v-if="ownerModal.isLoading.value" class="grid grid-cols-2 gap-4">
+          <template v-for="item in 10" :key="item">
+            <Skeleton class="h-5 w-24" />
+            <Skeleton class="h-5 w-3/4" />
+          </template>
         </div>
 
-        <div
-          v-else-if="ownerModal.data.value"
-          class="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2"
-        >
-          <section class="rounded-lg border p-4">
-            <h3 class="mb-2 text-lg font-semibold">User Info</h3>
-            <div class="grid grid-cols-2 gap-2">
-              <div class="font-medium">Name:</div>
-              <div>{{ ownerModal.data.value.user?.name }}</div>
+        <div v-else-if="ownerDetails.length > 0" class="grid grid-cols-2 gap-4">
+          <template v-for="item in ownerDetails" :key="item.label">
+            <div class="font-medium">{{ item.label }}:</div>
+
+            <div v-if="item.type === 'link'">
+              <a
+                :href="item.value"
+                target="_blank"
+                class="text-blue-500 hover:underline"
+                >View</a
+              >
             </div>
-          </section>
-          <section class="rounded-lg border p-4">
-            <h3 class="mb-2 text-lg font-semibold">Owner Verification</h3>
-            <div class="grid grid-cols-2 gap-2">
-              <div class="font-medium">Owner Status:</div>
-              <div>{{ ownerModal.data.value.status?.name }}</div>
+
+            <div v-else>
+              {{ item.value }}
             </div>
-          </section>
+          </template>
         </div>
 
         <div v-else-if="ownerModal.isError.value">
