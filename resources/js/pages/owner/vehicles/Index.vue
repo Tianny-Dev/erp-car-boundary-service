@@ -97,7 +97,7 @@ const filteredVehicles = computed(() => {
 // Status options
 const statuses = ref<Status[]>([
   { id: 1, name: 'active' },
-  { id: 2, name: 'pending' },
+  { id: 6, name: 'pending' },
   { id: 3, name: 'suspended' },
   { id: 4, name: 'retired' },
 ]);

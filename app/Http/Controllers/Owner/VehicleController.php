@@ -56,6 +56,14 @@ class VehicleController extends Controller
             'status_id' => 'required|exists:statuses,id',
         ]);
 
+        $franchise = auth()->user()->ownerDetails?->franchises()->first();
+
+        if (!$franchise) {
+            return redirect()->back()->with('error', 'You do not have an assigned franchise.');
+        }
+
+        $data['franchise_id'] = $franchise->id;
+
         Vehicle::create($data);
 
         return redirect()->back()->with('success', 'Vehicle created!');
