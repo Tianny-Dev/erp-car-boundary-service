@@ -25,7 +25,7 @@ interface Props {
   dailyEarnings: number;
   yesterdayEarnings: number;
 
-  pendingBoundaryDueCount: Number;
+  pendingBoundaryDueCount: number;
 
   vehiclesUnderMaintenance: number;
 
