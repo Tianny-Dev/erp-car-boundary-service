@@ -26,7 +26,6 @@ import {
   HelpCircle,
   LayoutGrid,
   Octagon,
-  Settings,
   Users,
   Wrench,
 } from 'lucide-vue-next';
@@ -59,10 +58,16 @@ const navConfig: Record<string, NavItem[]> = {
       group: 'Overview',
     },
     {
-      title: 'Settings',
-      href: finance.dashboard?.() ?? '/settings',
-      icon: Settings,
-      group: 'Admin',
+      title: 'Driver Management',
+      href: superAdmin.driver.index(),
+      icon: Users,
+      group: 'Fleet',
+    },
+    {
+      title: 'Vehicle Management',
+      href: superAdmin.vehicle.index(),
+      icon: CarTaxiFront,
+      group: 'Fleet',
     },
   ],
 
