@@ -14,19 +14,22 @@ class VehicleController extends Controller
      */
     public function index()
     {
-        $vehicles = Vehicle::with('status')->get()->map(function($vehicle) {
-            return [
-                'id' => $vehicle->id,
-                'plate_number' => $vehicle->plate_number,
-                'vin' => $vehicle->vin,
-                'brand' => $vehicle->brand,
-                'model' => $vehicle->model,
-                'color' => $vehicle->color,
-                'year' => $vehicle->year,
-                'status_id' => $vehicle->status_id,
-                'status_name' => $vehicle->status->name,
-            ];
-        });
+        $vehicles = Vehicle::with('status')
+            ->orderByDesc('created_at')
+            ->paginate(10)
+            ->through(function ($vehicle) {
+                return [
+                    'id' => $vehicle->id,
+                    'plate_number' => $vehicle->plate_number,
+                    'vin' => $vehicle->vin,
+                    'brand' => $vehicle->brand,
+                    'model' => $vehicle->model,
+                    'color' => $vehicle->color,
+                    'year' => $vehicle->year,
+                    'status_id' => $vehicle->status_id,
+                    'status_name' => $vehicle->status?->name,
+                ];
+            });
 
         return Inertia::render('owner/vehicles/Index', [
             'vehicles' => $vehicles,
