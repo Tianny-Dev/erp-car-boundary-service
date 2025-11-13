@@ -58,6 +58,13 @@ interface BranchRow {
   manager_id: number;
 }
 
+interface Stats {
+  total_revenue: number;
+  total_expenses: number;
+  total_franchises: number;
+  total_branches: number;
+}
+
 defineProps<{
   franchises: {
     data: FranchiseRow[];
@@ -65,7 +72,16 @@ defineProps<{
   branches: {
     data: BranchRow[];
   };
+  stats: Stats;
 }>();
+
+const formatCurrency = (amount: number): string => {
+  return new Intl.NumberFormat('en-PH', {
+    style: 'currency',
+    currency: 'PHP',
+    minimumFractionDigits: 2,
+  }).format(amount);
+};
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -500,7 +516,9 @@ const branchColumns: ColumnDef<BranchRow>[] = [
             <BanknoteArrowUpIcon class="h-6 w-6 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div class="font-mono text-2xl font-semibold">₱80,000</div>
+            <div class="font-mono text-2xl font-semibold">
+              {{ formatCurrency(stats.total_revenue) }}
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -516,7 +534,9 @@ const branchColumns: ColumnDef<BranchRow>[] = [
             <BanknoteArrowDownIcon class="h-6 w-6 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div class="font-mono text-2xl font-semibold">₱80,000</div>
+            <div class="font-mono text-2xl font-semibold">
+              {{ formatCurrency(stats.total_expenses) }}
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -527,7 +547,9 @@ const branchColumns: ColumnDef<BranchRow>[] = [
             <LandmarkIcon class="h-6 w-6 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div class="font-mono text-2xl font-semibold">5</div>
+            <div class="font-mono text-2xl font-semibold">
+              {{ stats.total_franchises }}
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -538,7 +560,9 @@ const branchColumns: ColumnDef<BranchRow>[] = [
             <WarehouseIcon class="h-6 w-6 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div class="font-mono text-2xl font-semibold">21</div>
+            <div class="font-mono text-2xl font-semibold">
+              {{ stats.total_branches }}
+            </div>
           </CardContent>
         </Card>
       </div>
