@@ -25,8 +25,8 @@ class VehicleDriverController extends Controller
         // Vehicles in this franchise
         $vehicles = $franchise->vehicles()
             ->with(['driver.user', 'status'])
-            ->get()
-            ->map(function ($vehicle) {
+            ->paginate(10)
+            ->through(function ($vehicle) {
                 return [
                     'id' => $vehicle->id,
                     'plate_number' => $vehicle->plate_number,
