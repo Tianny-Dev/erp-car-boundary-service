@@ -330,7 +330,7 @@ const goToPage = (pageUrl: string | null) => {
             <RevenueBreakDownPieChart
               :data="revenueServiceTypeBreakdownData"
               category="total"
-              title="Monthly Revenue"
+              title="Revenue"
             />
           </CardContent>
         </Card>
@@ -345,7 +345,7 @@ const goToPage = (pageUrl: string | null) => {
             <RevenuePaymentOptionsBreakDownPieChart
               :data="revenueByPaymentOption"
               category="total"
-              title="Monthly Revenue"
+              title="Revenue"
             />
           </CardContent>
         </Card>
