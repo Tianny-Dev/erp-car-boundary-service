@@ -21,6 +21,14 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -38,7 +46,7 @@ import {
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 
 interface Vehicle {
@@ -53,12 +61,44 @@ interface Vehicle {
   status_name: string;
 }
 
+interface VehiclesPaginator {
+  current_page: number;
+  data: Vehicle[];
+  first_page_url: string | null;
+  from: number | null;
+  last_page: number;
+  last_page_url: string | null;
+  links: Array<{ url: string | null; label: string; active: boolean }>;
+  next_page_url: string | null;
+  path: string;
+  per_page: number;
+  prev_page_url: string | null;
+  to: number | null;
+  total: number;
+}
+
 interface Status {
   id: number;
   name: string;
 }
 
-const props = defineProps<{ vehicles: Vehicle[] }>();
+interface Props {
+  vehicles: VehiclesPaginator;
+}
+
+const { vehicles } = defineProps<Props>();
+const paginator = ref(vehicles);
+
+// -------------------------
+// Watcher: update paginator when props change
+// -------------------------
+watch(
+  () => vehicles,
+  (newVehicles) => {
+    paginator.value = newVehicles;
+  },
+  { deep: true },
+);
 
 // Breadcrumb
 const breadcrumbs = [{ title: 'Vehicle Management', href: '/owner/vehicles' }];
@@ -74,7 +114,7 @@ const selectedVehicleToDelete = ref<Vehicle | null>(null);
 
 // Filtered Vehicles
 const filteredVehicles = computed(() => {
-  let filtered = props.vehicles;
+  let filtered = paginator.value.data;
 
   if (statusFilter.value !== 'all') {
     filtered = filtered.filter(
@@ -208,6 +248,20 @@ const deleteVehicle = () => {
     onError: () => toast.error('Failed to delete vehicle'),
   });
 };
+
+// -------------------------
+// Pagination Helpers
+// -------------------------
+const paginationLinks = computed(() =>
+  paginator.value.links.filter(
+    (link) => link.label !== 'Previous' && link.label !== 'Next',
+  ),
+);
+
+const goToPage = (url: string | null) => {
+  if (!url) return;
+  router.get(url, {}, { preserveState: true, preserveScroll: true });
+};
 </script>
 
 <template>
@@ -328,6 +382,51 @@ const deleteVehicle = () => {
             </TableRow>
           </TableBody>
         </Table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="flex items-center justify-between pt-4">
+        <span class="text-sm text-gray-600">
+          Showing {{ paginator.from || 0 }} to {{ paginator.to || 0 }} of
+          {{ paginator.total }} entries
+        </span>
+
+        <Pagination
+          :items-per-page="paginator.per_page"
+          :total="paginator.total"
+          :default-page="paginator.current_page"
+          class="w-auto"
+        >
+          <PaginationContent>
+            <PaginationPrevious
+              :disabled="!paginator.prev_page_url"
+              @click="goToPage(paginator.prev_page_url)"
+            />
+
+            <template v-for="link in paginationLinks" :key="link.label">
+              <PaginationItem
+                v-if="!isNaN(Number(link.label))"
+                :value="Number(link.label)"
+              >
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  :class="{ 'bg-gray-100': link.active }"
+                  :disabled="!link.url"
+                  @click="goToPage(link.url)"
+                >
+                  {{ link.label }}
+                </Button>
+              </PaginationItem>
+              <PaginationEllipsis v-else-if="link.label.includes('...')" />
+            </template>
+
+            <PaginationNext
+              :disabled="!paginator.next_page_url"
+              @click="goToPage(paginator.next_page_url)"
+            />
+          </PaginationContent>
+        </Pagination>
       </div>
     </div>
 

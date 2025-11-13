@@ -20,6 +20,14 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -40,7 +48,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import owner from '@/routes/owner';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 
 interface Driver {
@@ -63,23 +71,55 @@ interface Vehicle {
   driver: Driver | null;
 }
 
-const props = defineProps<{ vehicles: Vehicle[]; drivers: Driver[] }>();
+interface VehiclesPaginator {
+  current_page: number;
+  data: Vehicle[];
+  first_page_url: string | null;
+  from: number | null;
+  last_page: number;
+  last_page_url: string | null;
+  links: Array<{ url: string | null; label: string; active: boolean }>;
+  next_page_url: string | null;
+  path: string;
+  per_page: number;
+  prev_page_url: string | null;
+  to: number | null;
+  total: number;
+}
 
+const props = defineProps<{ vehicles: VehiclesPaginator; drivers: Driver[] }>();
+const paginator = ref(props.vehicles);
+
+// -------------------------
+// Watch for prop updates
+// -------------------------
+watch(
+  () => props.vehicles,
+  (newVal) => {
+    paginator.value = newVal;
+  },
+  { deep: true },
+);
+
+// Breadcrumbs
 const breadcrumbs: BreadcrumbItem[] = [
   { title: 'Assign Drivers', href: owner.vehicleDrivers.index().url },
 ];
 
-// filters
+// Filters
 const globalFilter = ref('');
 const statusFilter = ref('all');
 
+// Filtered Vehicles
 const filteredVehicles = computed(() => {
-  let filtered = props.vehicles;
+  let filtered = paginator.value.data;
+
   if (statusFilter.value !== 'all') {
     filtered = filtered.filter(
       (v) => v.status_name.toLowerCase() === statusFilter.value,
     );
   }
+
   if (globalFilter.value) {
     const term = globalFilter.value.toLowerCase();
     filtered = filtered.filter((v) =>
@@ -95,9 +135,11 @@ const filteredVehicles = computed(() => {
       ].some((f) => String(f).toLowerCase().includes(term)),
     );
   }
+
   return filtered;
 });
 
+// Status badge style
 const getStatusVariant = (status: string) => {
   switch (status) {
     case 'active':
@@ -113,23 +155,24 @@ const getStatusVariant = (status: string) => {
   }
 };
 
-// state
+// State
 const showDialog = ref(false);
 const editingVehicle = ref<Vehicle | null>(null);
 const driverId = ref<number | null>(null);
 const loading = ref(false);
 const confirmVehicle = ref<Vehicle | null>(null);
 
+// Dialogs
 const openAssignDialog = (vehicle: Vehicle) => {
   editingVehicle.value = vehicle;
   driverId.value = vehicle.driver?.id ?? null;
   showDialog.value = true;
 };
 
+// Assign / update driver
 const assignDriver = async () => {
   if (!editingVehicle.value) return;
   loading.value = true;
-
   const toastId = toast.loading('Assigning driver...');
   try {
     await router.put(
@@ -151,14 +194,15 @@ const assignDriver = async () => {
   }
 };
 
+// Confirm unassign
 const confirmUnassign = (vehicle: Vehicle) => {
   confirmVehicle.value = vehicle;
 };
 
+// Remove driver
 const removeDriver = async () => {
   if (!confirmVehicle.value) return;
   loading.value = true;
-
   const toastId = toast.loading('Unassigning driver...');
   try {
     await router.put(
@@ -178,6 +222,18 @@ const removeDriver = async () => {
     loading.value = false;
     confirmVehicle.value = null;
   }
+};
+
+// Pagination Helpers
+const paginationLinks = computed(() =>
+  paginator.value.links.filter(
+    (link) => link.label !== 'Previous' && link.label !== 'Next',
+  ),
+);
+
+const goToPage = (url: string | null) => {
+  if (!url) return;
+  router.get(url, {}, { preserveState: true, preserveScroll: true });
 };
 </script>
 
@@ -202,6 +258,16 @@ const removeDriver = async () => {
           placeholder="Search vehicles..."
           class="w-full rounded-md border px-3 py-2"
         />
+        <select
+          v-model="statusFilter"
+          class="w-full rounded-md border px-3 py-2 md:w-48"
+        >
+          <option value="all">All Status</option>
+          <option value="active">Active</option>
+          <option value="pending">Pending</option>
+          <option value="suspended">Suspended</option>
+          <option value="retired">Retired</option>
+        </select>
       </div>
 
       <!-- Vehicles Table -->
@@ -280,7 +346,7 @@ const removeDriver = async () => {
                       <AlertDialogDescription>
                         This will remove the driver from
                         <strong>{{ confirmVehicle.plate_number }}</strong
-                        >. This action cannot be undone.
+                        >.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -306,6 +372,51 @@ const removeDriver = async () => {
             </TableRow>
           </TableBody>
         </Table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="flex items-center justify-between pt-4">
+        <span class="text-sm text-gray-600">
+          Showing {{ paginator.from || 0 }} to {{ paginator.to || 0 }} of
+          {{ paginator.total }} entries
+        </span>
+
+        <Pagination
+          :items-per-page="paginator.per_page"
+          :total="paginator.total"
+          :default-page="paginator.current_page"
+          class="w-auto"
+        >
+          <PaginationContent>
+            <PaginationPrevious
+              :disabled="!paginator.prev_page_url"
+              @click="goToPage(paginator.prev_page_url)"
+            />
+
+            <template v-for="link in paginationLinks" :key="link.label">
+              <PaginationItem
+                v-if="!isNaN(Number(link.label))"
+                :value="Number(link.label)"
+              >
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  :class="{ 'bg-gray-100': link.active }"
+                  :disabled="!link.url"
+                  @click="goToPage(link.url)"
+                >
+                  {{ link.label }}
+                </Button>
+              </PaginationItem>
+              <PaginationEllipsis v-else-if="link.label.includes('...')" />
+            </template>
+
+            <PaginationNext
+              :disabled="!paginator.next_page_url"
+              @click="goToPage(paginator.next_page_url)"
+            />
+          </PaginationContent>
+        </Pagination>
       </div>
     </div>
 

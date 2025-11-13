@@ -18,9 +18,76 @@ class DashboardController extends Controller
         $franchise = $this->getFranchiseOrDefault();
         $franchiseId = $franchise?->id;
 
-        $year = Carbon::now()->year;
+        $year = now()->year;
 
-        // Get daily revenue
+        return Inertia::render('owner/dashboard/Index', [
+            'franchiseExists' => (bool) $franchise,
+            'activeVehicles' => $this->countVehicles($franchiseId, 1),
+            'pendingVehicles' => $this->countVehicles($franchiseId, 6),
+            'vehiclesUnderMaintenance' => $this->countVehicles($franchiseId, 5),
+            'activeDrivers' => $this->countDrivers($franchiseId, 1),
+            'pendingDrivers' => $this->countDrivers($franchiseId, 6),
+            'dailyEarnings' => $this->dailyEarnings($franchiseId),
+            'yesterdayEarnings' => $this->yesterdayEarnings($franchiseId),
+            'pendingBoundaryDueCount' => $this->countPendingBoundaryContracts($franchiseId),
+            'revenueExpensesData' => $this->getRevenueExpensesData($franchiseId, $year),
+            'netProfitData' => $this->getNetProfitData($franchiseId, $year, 7),
+        ]);
+    }
+
+    protected function getFranchiseOrDefault()
+    {
+        return auth()->user()->ownerDetails?->franchises()->first();
+    }
+
+    protected function countVehicles(?int $franchiseId, int $statusId): int
+    {
+        return $franchiseId
+            ? Vehicle::where('franchise_id', $franchiseId)->where('status_id', $statusId)->count()
+            : 0;
+    }
+
+    protected function countDrivers(?int $franchiseId, int $statusId): int
+    {
+        return $franchiseId
+            ? UserDriver::whereHas('franchises', fn($q) => $q->where('franchise_id', $franchiseId))
+                ->where('status_id', $statusId)
+                ->count()
+            : 0;
+    }
+
+    protected function dailyEarnings(?int $franchiseId): float
+    {
+        return $this->sumRevenueByDate($franchiseId, today());
+    }
+
+    protected function yesterdayEarnings(?int $franchiseId): float
+    {
+        return $this->sumRevenueByDate($franchiseId, Carbon::yesterday());
+    }
+
+    protected function sumRevenueByDate(?int $franchiseId, $date): float
+    {
+        if (!$franchiseId) return 0.0;
+
+        return Revenue::where('franchise_id', $franchiseId)
+            ->whereDate('created_at', $date)
+            ->sum('amount');
+    }
+
+    protected function countPendingBoundaryContracts(?int $franchiseId): int
+    {
+        if (!$franchiseId) return 0;
+
+        return BoundaryContract::where('franchise_id', $franchiseId)
+            ->whereHas('status', fn($q) => $q->where('name', 'pending'))
+            ->count();
+    }
+
+    protected function getRevenueExpensesData(?int $franchiseId, int $year): array
+    {
+        if (!$franchiseId) return [];
+
         $revenues = Revenue::where('franchise_id', $franchiseId)
             ->whereYear('payment_date', $year)
             ->selectRaw('DATE(payment_date) as date, SUM(amount) as Revenue')
@@ -28,7 +95,6 @@ class DashboardController extends Controller
             ->orderBy('date')
             ->get();
 
-        // Get daily expenses
         $expenses = Expense::where('franchise_id', $franchiseId)
             ->whereYear('payment_date', $year)
             ->selectRaw('DATE(payment_date) as date, SUM(amount) as Expenses')
@@ -36,103 +102,25 @@ class DashboardController extends Controller
             ->orderBy('date')
             ->get();
 
-        // Merge dates and create array
         $dates = $revenues->pluck('date')->merge($expenses->pluck('date'))->unique()->sort();
-        $revenueExpensesData = $dates->map(function ($date) use ($revenues, $expenses) {
-            return [
-                'date' => $date,
-                'Revenue' => $revenues->firstWhere('date', $date)?->Revenue ?? 0,
-                'Expenses' => $expenses->firstWhere('date', $date)?->Expenses ?? 0,
-            ];
-        })->values()->toArray();
 
-        $years = range($year - 7, $year);
-        $netProfitData = collect($years)->map(function ($y) use ($franchiseId) {
-            $yearRevenue = Revenue::where('franchise_id', $franchiseId)
-                ->whereYear('payment_date', $y)
-                ->sum('amount');
-            $yearExpense = Expense::where('franchise_id', $franchiseId)
-                ->whereYear('payment_date', $y)
-                ->sum('amount');
-
-            return [
-                'year' => $y,
-                'Growth Rate' => $yearRevenue - $yearExpense,
-            ];
-        })->toArray();
-
-        $pendingBoundaryDueCount = BoundaryContract::where('franchise_id', $franchiseId)
-            ->whereHas('status', fn($q) => $q->where('name', 'pending'))
-            ->count();
-
-        return Inertia::render('owner/dashboard/Index', [
-            'activeVehicles' => $this->countVehicles($franchiseId, 1),
-            'pendingVehicles' => $this->countVehicles($franchiseId, 6),
-            'activeDrivers' => $this->countDrivers($franchiseId, 1),
-            'pendingDrivers' => $this->countDrivers($franchiseId, 6),
-            'dailyEarnings' => $this->dailyEarnings($franchiseId),
-            'pendingBoundaryDueCount' => $pendingBoundaryDueCount,
-            'yesterdayEarnings' => $this->yesterdayEarnings($franchiseId),
-            'vehiclesUnderMaintenance' => $this->countVehicles($franchiseId, 5),
-            'franchiseExists' => (bool) $franchise,
-            'revenueExpensesData' => $revenueExpensesData,
-            'netProfitData' => $netProfitData,
-        ]);
+        return $dates->map(fn($date) => [
+            'date' => $date,
+            'Revenue' => $revenues->firstWhere('date', $date)?->Revenue ?? 0,
+            'Expenses' => $expenses->firstWhere('date', $date)?->Expenses ?? 0,
+        ])->values()->toArray();
     }
 
-    /**
-     * Return the franchise if exists, otherwise null.
-     */
-    protected function getFranchiseOrDefault()
+    protected function getNetProfitData(?int $franchiseId, int $currentYear, int $yearsBack = 7): array
     {
-        return auth()->user()->ownerDetails?->franchises()->first();
-    }
+        if (!$franchiseId) return [];
 
-    /**
-     * Count vehicles by franchise and status.
-     */
-    protected function countVehicles(?int $franchiseId, int $statusId): int
-    {
-        if (!$franchiseId) return 0;
-
-        return Vehicle::where('franchise_id', $franchiseId)
-            ->where('status_id', $statusId)
-            ->count();
-    }
-
-    /**
-     * Count drivers by franchise and status.
-     */
-    protected function countDrivers(?int $franchiseId, int $statusId): int
-    {
-        if (!$franchiseId) return 0;
-
-        return UserDriver::whereHas('franchises', fn($q) => $q->where('franchise_id', $franchiseId))
-            ->where('status_id', $statusId)
-            ->count();
-    }
-
-    /**
-     * Calculate daily earnings for a franchise.
-     */
-    protected function dailyEarnings(?int $franchiseId): float
-    {
-        if (!$franchiseId) return 0.0;
-
-        return Revenue::where('franchise_id', $franchiseId)
-            ->whereDate('created_at', today())
-            ->sum('amount') ?? 0.0;
-    }
-
-    /**
-     * Calculate revenue from yesterday.
-     */
-    protected function yesterdayEarnings(?int $franchiseId): float
-    {
-        if (!$franchiseId) return 0.0;
-
-        return Revenue::where('franchise_id', $franchiseId)
-            ->whereDate('created_at', Carbon::yesterday())
-            ->sum('amount') ?? 0.0;
+        return collect(range($currentYear - $yearsBack, $currentYear))
+            ->map(fn($year) => [
+                'year' => $year,
+                'Growth Rate' => Revenue::where('franchise_id', $franchiseId)->whereYear('payment_date', $year)->sum('amount')
+                    - Expense::where('franchise_id', $franchiseId)->whereYear('payment_date', $year)->sum('amount'),
+            ])
+            ->toArray();
     }
 }

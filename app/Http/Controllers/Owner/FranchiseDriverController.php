@@ -15,24 +15,33 @@ class FranchiseDriverController extends Controller
      */
     public function index()
     {
-        $drivers = User::with('driverDetails.status')
+        $driversQuery = User::with('driverDetails.status')
             ->whereHas('userType', fn($q) => $q->where('name', 'driver'))
             ->whereHas('driverDetails.status', fn($q) =>
                 $q->whereIn('name', ['pending', 'inactive'])
-            )
-            ->get()
-            ->map(fn($user) => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'username' => $user->username,
-                'email' => $user->email,
-                'phone' => $user->phone,
-                'region' => $user->region,
-                'province' => $user->province,
-                'city' => $user->city,
-                'barangay' => $user->barangay,
-                'status' => $user->driverDetails?->status?->name,
-            ]);
+            );
+
+        // Global search
+        if ($search = request('search')) {
+            $driversQuery->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                ->orWhere('username', 'like', "%{$search}%")
+                ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        $drivers = $driversQuery->paginate(10)->through(fn($user) => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'username' => $user->username,
+            'email' => $user->email,
+            'phone' => $user->phone,
+            'region' => $user->region,
+            'province' => $user->province,
+            'city' => $user->city,
+            'barangay' => $user->barangay,
+            'status' => $user->driverDetails?->status?->name,
+        ]);
 
         return Inertia::render('owner/franchise-driver/Index', [
             'drivers' => $drivers,
