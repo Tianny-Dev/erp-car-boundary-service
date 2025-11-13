@@ -28,7 +28,7 @@ class RevenueFactory extends Factory
             'amount' => $this->faker->randomFloat(2, 100, 5000),
             'currency' => 'PHP',
             'service_type' => $this->faker->randomElement($serviceTypes),
-            'payment_date' => $this->faker->date(),
+            'payment_date' => $this->faker->dateTimeBetween(now()->startOfWeek(),now()->endOfWeek()),
             'notes' => $this->faker->sentence(),
         ];
     }

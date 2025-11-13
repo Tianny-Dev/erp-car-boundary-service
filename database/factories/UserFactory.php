@@ -41,6 +41,12 @@ class UserFactory extends Factory
             // 'two_factor_secret' => Str::random(10),
             // 'two_factor_recovery_codes' => Str::random(10),
             // 'two_factor_confirmed_at' => now(),
+            'address' => fake()->address(),
+            'region' => fake()->state(),
+            'province' => fake()->state(),
+            'city' => fake()->city(),
+            'barangay' => fake()->streetName(),
+            'postal_code' => fake()->postcode(),
         ];
     }
 

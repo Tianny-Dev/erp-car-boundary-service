@@ -27,7 +27,7 @@ class ExpenseFactory extends Factory
             'amount' => $this->faker->randomFloat(2, 50, 5000),
             'currency' => 'PHP',
             'expense_type' => $this->faker->randomElement($expenseTypes),
-            'payment_date' => $this->faker->date(),
+            'payment_date' => $this->faker->dateTimeBetween(now()->startOfWeek(),now()->endOfWeek()),
             'notes' => $this->faker->sentence(),
         ];
     }
