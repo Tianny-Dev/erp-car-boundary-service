@@ -10,6 +10,14 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -27,9 +35,9 @@ import {
 import AppLayout from '@/layouts/AppLayout.vue';
 import finance from '@/routes/finance';
 import type { BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import { Calendar, Check, Search, X } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 interface Contract {
   id: number;
@@ -44,56 +52,81 @@ interface Contract {
   depositStatus?: 'pending' | 'approved' | 'flagged';
 }
 
-const props = defineProps<{ contracts: Contract[] }>();
-const data = ref(props.contracts);
+interface ContractsPaginator {
+  current_page: number;
+  data: Contract[];
+  first_page_url: string | null;
+  from: number | null;
+  last_page: number;
+  last_page_url: string | null;
+  links: Array<{ url: string | null; label: string; active: boolean }>;
+  next_page_url: string | null;
+  path: string;
+  per_page: number;
+  prev_page_url: string | null;
+  to: number | null;
+  total: number;
+}
 
-const breadcrumbs: BreadcrumbItem[] = [
-  {
-    title: 'Boundary Contracts',
-    href: finance.boundaryContracts().url,
+interface Props {
+  contracts: ContractsPaginator;
+}
+
+const { contracts } = defineProps<Props>();
+const paginator = ref(contracts);
+
+// -------------------------
+// Watcher: update paginator when props change
+// -------------------------
+watch(
+  () => contracts,
+  (newContracts) => {
+    paginator.value = newContracts;
   },
+  { deep: true },
+);
+
+// -------------------------
+// Breadcrumbs
+// -------------------------
+const breadcrumbs: BreadcrumbItem[] = [
+  { title: 'Boundary Contracts', href: finance.boundaryContracts().url },
 ];
 
+// -------------------------
+// Filters / Search
+// -------------------------
 const globalFilter = ref('');
 const statusFilter = ref('all');
 const depositFilter = ref('all');
-const showDepositDialog = ref(false);
+
+// -------------------------
+// Dialog
+// -------------------------
 const selectedContract = ref<Contract | null>(null);
+const showDepositDialog = ref(false);
 
-// Filter logic
-const filteredData = computed(() => {
-  let filtered = data.value;
+const openDepositDialog = (contract: Contract) => {
+  selectedContract.value = contract;
+  showDepositDialog.value = true;
+};
 
-  // Status filter
-  if (statusFilter.value !== 'all') {
-    filtered = filtered.filter((item) => item.status === statusFilter.value);
-  }
-
-  // Deposit filter
-  if (depositFilter.value !== 'all') {
-    filtered = filtered.filter(
-      (item) => item.depositStatus === depositFilter.value,
+const handleDepositAction = (action: 'approved' | 'flagged') => {
+  if (selectedContract.value) {
+    const index = paginator.value.data.findIndex(
+      (item) => item.id === selectedContract.value!.id,
     );
+    if (index !== -1) {
+      paginator.value.data[index].depositStatus = action;
+    }
   }
+  showDepositDialog.value = false;
+};
 
-  // Global search
-  if (globalFilter.value) {
-    const search = globalFilter.value.toLowerCase();
-    filtered = filtered.filter(
-      (item) =>
-        item.name.toLowerCase().includes(search) ||
-        item.coverage_area.toLowerCase().includes(search) ||
-        item.contract_terms.toLowerCase().includes(search) ||
-        (item.franchise?.toLowerCase() ?? '').includes(search) ||
-        (item.branch?.toLowerCase() ?? '').includes(search),
-    );
-  }
-
-  return filtered;
-});
-
+// -------------------------
 // Helpers
-const getStatusVariant = (status: 'pending' | 'paid' | 'overdue' | string) => {
+// -------------------------
+const getStatusVariant = (status: string | undefined) => {
   switch (status) {
     case 'pending':
       return 'secondary';
@@ -106,7 +139,7 @@ const getStatusVariant = (status: 'pending' | 'paid' | 'overdue' | string) => {
   }
 };
 
-const getDepositVariant = (status?: 'pending' | 'approved' | 'flagged') => {
+const getDepositVariant = (status?: string) => {
   switch (status) {
     case 'pending':
       return 'secondary';
@@ -119,22 +152,59 @@ const getDepositVariant = (status?: 'pending' | 'approved' | 'flagged') => {
   }
 };
 
-const openDepositDialog = (contract: Contract) => {
-  selectedContract.value = contract;
-  showDepositDialog.value = true;
+// -------------------------
+// Computed: Filtered data for client-side search
+// -------------------------
+const filteredData = computed(() => {
+  if (!globalFilter.value) return paginator.value.data;
+  const search = globalFilter.value.toLowerCase();
+  return paginator.value.data.filter((item) =>
+    Object.values(item)
+      .filter((v) => v !== null && v !== undefined)
+      .some((v) => v.toString().toLowerCase().includes(search)),
+  );
+});
+
+// -------------------------
+// Pagination links without Previous/Next
+// -------------------------
+const paginationLinks = computed(() =>
+  paginator.value.links.filter(
+    (link) => link.label !== 'Previous' && link.label !== 'Next',
+  ),
+);
+
+// -------------------------
+// Pagination / server-side navigation
+// -------------------------
+const goToPage = (url: string | null) => {
+  if (!url) return;
+  router.get(
+    url,
+    {
+      status: statusFilter.value !== 'all' ? statusFilter.value : undefined,
+      depositStatus:
+        depositFilter.value !== 'all' ? depositFilter.value : undefined,
+      search: globalFilter.value || undefined,
+    },
+    { preserveState: true, preserveScroll: true },
+  );
 };
 
-const handleDepositAction = (action: 'approved' | 'flagged') => {
-  if (selectedContract.value) {
-    const index = data.value.findIndex(
-      (item) => item.id === selectedContract.value!.id,
-    );
-    if (index !== -1) {
-      data.value[index].depositStatus = action;
-    }
-  }
-  showDepositDialog.value = false;
-};
+// Watch filters / search and reload table
+watch([statusFilter, depositFilter, globalFilter], () => {
+  router.get(
+    paginator.value.path,
+    {
+      status: statusFilter.value !== 'all' ? statusFilter.value : undefined,
+      depositStatus:
+        depositFilter.value !== 'all' ? depositFilter.value : undefined,
+      search: globalFilter.value || undefined,
+      per_page: paginator.value.per_page,
+    },
+    { preserveState: true, preserveScroll: true },
+  );
+});
 </script>
 
 <template>
@@ -165,7 +235,9 @@ const handleDepositAction = (action: 'approved' | 'flagged') => {
 
         <Select v-model="statusFilter">
           <SelectTrigger class="w-full md:w-48">
-            <SelectValue placeholder="Filter by status" />
+            <SelectValue>{{
+              statusFilter === 'all' ? 'Filter by status' : statusFilter
+            }}</SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
@@ -175,9 +247,11 @@ const handleDepositAction = (action: 'approved' | 'flagged') => {
           </SelectContent>
         </Select>
 
-        <Select v-model="depositFilter">
+        <!-- <Select v-model="depositFilter">
           <SelectTrigger class="w-full md:w-48">
-            <SelectValue placeholder="Deposit status" />
+            <SelectValue>{{
+              depositFilter === 'all' ? 'Deposit status' : depositFilter
+            }}</SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Deposits</SelectItem>
@@ -185,7 +259,7 @@ const handleDepositAction = (action: 'approved' | 'flagged') => {
             <SelectItem value="approved">Approved</SelectItem>
             <SelectItem value="flagged">Flagged</SelectItem>
           </SelectContent>
-        </Select>
+        </Select> -->
       </div>
 
       <!-- Table -->
@@ -204,14 +278,14 @@ const handleDepositAction = (action: 'approved' | 'flagged') => {
 
           <TableBody>
             <TableRow v-if="filteredData.length === 0">
-              <TableCell colspan="8" class="py-6 text-center text-gray-500">
+              <TableCell colspan="6" class="py-6 text-center text-gray-500">
                 No results found.
               </TableCell>
             </TableRow>
 
             <TableRow v-for="contract in filteredData" :key="contract.id">
               <TableCell class="font-medium">{{ contract.name }}</TableCell>
-              <TableCell>{{ contract.franchise }}</TableCell>
+              <TableCell>{{ contract.franchise || '—' }}</TableCell>
               <TableCell class="max-w-xs truncate">{{
                 contract.coverage_area
               }}</TableCell>
@@ -221,9 +295,9 @@ const handleDepositAction = (action: 'approved' | 'flagged') => {
                 {{ new Date(contract.end_date).toLocaleDateString() }}
               </TableCell>
               <TableCell>
-                <Badge :variant="getStatusVariant(contract.status)">{{
-                  contract.status
-                }}</Badge>
+                <Badge :variant="getStatusVariant(contract.status)">
+                  {{ contract.status }}
+                </Badge>
               </TableCell>
               <TableCell>
                 <Button
@@ -239,18 +313,66 @@ const handleDepositAction = (action: 'approved' | 'flagged') => {
         </Table>
       </div>
 
-      <!-- Deposit Review Dialog -->
+      <!-- Pagination -->
+      <div class="flex items-center justify-between pt-4">
+        <span class="text-sm text-gray-600">
+          Showing {{ paginator.from || 0 }} to {{ paginator.to || 0 }} of
+          {{ paginator.total }} entries
+        </span>
+
+        <Pagination
+          :items-per-page="paginator.per_page"
+          :total="paginator.total"
+          :default-page="paginator.current_page"
+          class="w-auto"
+        >
+          <PaginationContent>
+            <PaginationPrevious
+              :disabled="!paginator.prev_page_url"
+              @click="goToPage(paginator.prev_page_url)"
+            />
+
+            <template v-for="link in paginationLinks" :key="link.label">
+              <PaginationItem
+                v-if="!isNaN(Number(link.label))"
+                :value="Number(link.label)"
+              >
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  :class="{ 'bg-gray-100': link.active }"
+                  :disabled="!link.url"
+                  @click="goToPage(link.url)"
+                >
+                  {{ link.label }}
+                </Button>
+              </PaginationItem>
+              <PaginationEllipsis v-else-if="link.label.includes('...')" />
+            </template>
+
+            <PaginationNext
+              :disabled="!paginator.next_page_url"
+              @click="goToPage(paginator.next_page_url)"
+            />
+          </PaginationContent>
+        </Pagination>
+      </div>
+
+      <!-- Deposit Dialog -->
       <Dialog v-model:open="showDepositDialog">
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Review Deposit</DialogTitle>
-            <DialogDescription>
-              Contract: {{ selectedContract?.name }}
-            </DialogDescription>
+            <DialogDescription
+              >Contract: {{ selectedContract?.name }}</DialogDescription
+            >
           </DialogHeader>
 
           <div v-if="selectedContract" class="space-y-2 py-4">
-            <p><strong>Franchise:</strong> {{ selectedContract.franchise }}</p>
+            <p>
+              <strong>Franchise:</strong>
+              {{ selectedContract.franchise || '—' }}
+            </p>
             <p>
               <strong>Coverage Area:</strong>
               {{ selectedContract.coverage_area }}
