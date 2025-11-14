@@ -23,7 +23,7 @@ class VehicleController extends Controller
         }
 
         // 2. Start base query
-        $query = Vehicle::select('id', 'vin', 'plate_number', 'status_id')
+        $query = Vehicle::select('id', 'franchise_id', 'branch_id', 'vin', 'plate_number', 'status_id')
         ->with([
             'status:id,name',
         ]);

@@ -16,21 +16,12 @@ class VehicleDatatableResource extends JsonResource
     {
         $data = [
             'id' => $this->id,
-            'vin' => $this->whenLoaded('user', $this->user->name),
-            'plate_number' => $this->whenLoaded('user', $this->user->email),
+            'vin' => $this->vin,
+            'plate_number' => $this->plate_number,
             'status_name' => $this->whenLoaded('status', $this->status->name),
+            'franchise_name' => $this->whenLoaded('franchise', fn () => $this->franchise?->name),
+            'branch_name' => $this->whenLoaded('branch', fn () => $this->branch?->name),
         ];
-
-        // Conditionally add franchise_name if the relation is loaded and not empty
-        if ($this->relationLoaded('franchises') && $this->franchises->isNotEmpty()) {
-            // We'll just show the first one for the datatable cell
-            $data['franchise_name'] = $this->franchises->first()->name;
-        }
-
-        // Conditionally add branch_name if the relation is loaded and not empty
-        if ($this->relationLoaded('branches') && $this->branches->isNotEmpty()) {
-            $data['branch_name'] = $this->branches->first()->name;
-        }
 
         return $data;
     }

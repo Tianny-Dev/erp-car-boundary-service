@@ -135,10 +135,6 @@ const vehicleModal = useDetailsModal<VehicleModal>({
 // Computed columns for the data table
 const vehicleColumns = computed<ColumnDef<VehicleRow>[]>(() => {
   const baseColumns: ColumnDef<VehicleRow>[] = [
-    {
-      accessorKey: 'name',
-      header: 'Name',
-    },
     // Conditionally add the correct column
     activeTab.value === 'franchise'
       ? { accessorKey: 'franchise_name', header: 'Franchise' }
