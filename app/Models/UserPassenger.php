@@ -38,6 +38,12 @@ class UserPassenger extends Model
         return $this->belongsTo(PaymentOption::class);
     }
 
+    // relationship to routes, one to many
+    public function routes(): HasMany
+    {
+        return $this->hasMany(Route::class);
+    }
+
     // relationship to ratings, one to many
     public function ratings(): HasMany
     {

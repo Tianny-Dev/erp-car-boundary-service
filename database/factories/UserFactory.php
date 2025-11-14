@@ -31,7 +31,7 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_type_id' => random_int(1, 6),
+            'user_type_id' => random_int(2, 6),
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),

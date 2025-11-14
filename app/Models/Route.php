@@ -25,6 +25,12 @@ class Route extends Model
         return $this->belongsTo(UserDriver::class);
     }
 
+    // relationship to passenger, one to many
+    public function passenger(): BelongsTo
+    {
+        return $this->belongsTo(UserPassenger::class);
+    }
+
     // relationship to vehicle, one to many
     public function vehicle(): BelongsTo
     {
