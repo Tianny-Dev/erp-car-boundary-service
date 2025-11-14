@@ -23,6 +23,7 @@ import {
   FileSpreadsheet,
   FileText,
   HelpCircle,
+  History,
   LayoutGrid,
   Settings,
   Users,
@@ -55,6 +56,12 @@ const navConfig: Record<string, NavItem[]> = {
       href: superAdmin.dashboard(),
       icon: LayoutGrid,
       group: 'Overview',
+    },
+    {
+      title: 'Revenues History',
+      href: superAdmin.revenues(),
+      icon: History,
+      group: 'History',
     },
     {
       title: 'Settings',
