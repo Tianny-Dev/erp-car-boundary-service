@@ -8,6 +8,7 @@ use App\Http\Controllers\Owner\NotificationController;
 use App\Http\Controllers\Owner\ReportAndAnalyticController;
 use App\Http\Controllers\Owner\RevenueManagementController;
 use App\Http\Controllers\Owner\SupportCenterController;
+use App\Http\Controllers\Owner\SuspendDriverController;
 use App\Http\Controllers\Owner\VehicleController;
 use App\Http\Controllers\Owner\VehicleDriverController;
 use Illuminate\Support\Facades\Route;
@@ -28,4 +29,7 @@ Route::middleware(['auth', 'verified', 'user_type:owner', 'check.active'])->pref
 
     Route::put('/drivers/{id}/status', [FranchiseDriverController::class, 'updateStatus'])
     ->name('drivers.updateStatus');
+
+    // Suspend Driver
+    Route::resource('suspend-drivers', SuspendDriverController::class);
 });
