@@ -2,6 +2,7 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import superAdmin from '@/routes/super-admin';
 import { type BreadcrumbItem } from '@/types';
+import { Head } from '@inertiajs/vue3';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -12,7 +13,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 </script>
 
 <template>
-  <Head title="Super Admin Dashboard" />
+  <Head title="Vehicle Management" />
 
   <AppLayout :breadcrumbs="breadcrumbs">
     <div

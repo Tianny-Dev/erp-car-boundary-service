@@ -13,6 +13,6 @@ class VehicleController extends Controller
     {
         
 
-        return Inertia::render('super-admin/fleet/DriverManagement',);
+        return Inertia::render('super-admin/fleet/VehicleManagement',);
     }
 }

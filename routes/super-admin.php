@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\SuperAdmin\RevenuesController;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SuperAdmin\DashboardController;
 use App\Http\Controllers\SuperAdmin\OwnerController;
@@ -23,19 +22,16 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
     Route::get('/revenues', [RevenuesController::class, 'index'])->name('revenues');
 
     // Export All Route must be before the generic ID route
-    Route::get('/revenues/all/export/{format}', [RevenuesController::class, 'exportAll'])->name('revenues.exportAll'); // ADDED & MOVED
+    Route::get('/revenues/all/export/{format}', [RevenuesController::class, 'exportAll'])->name('revenues.exportAll');
     // Show All Route must be before the generic ID route
-    Route::get('/revenues/all', [RevenuesController::class, 'showAll'])->name('revenues.showAll'); // ADDED & MOVED
+    Route::get('/revenues/all', [RevenuesController::class, 'showAll'])->name('revenues.showAll');
 
     Route::get('/revenues/{id}', [RevenuesController::class, 'show'])->name('revenues.show');
 
     // Export routes
     Route::get('/revenues/{id}/export/{format}', [RevenuesController::class, 'export'])->name('revenues.export');
 
-    // Driver accept/deny
-    Route::post('/drivers/{userDriver}/accept', [PendingDriverController::class, 'accept'])->name('drivers.accept');
-    Route::post('/drivers/{userDriver}/deny', [PendingDriverController::class, 'deny'])->name('drivers.deny');
-
     Route::get('/driver', [DriverController::class, 'index'])->name('driver.index');
+    Route::get('/driver/{driver}', [DriverController::class, 'show'])->name('driver.show');
     Route::get('/vehicle', [VehicleController::class, 'index'])->name('vehicle.index');
 });

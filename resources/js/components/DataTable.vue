@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/table';
 import {
   type ColumnDef,
-  FlexRender, // Correct import
+  FlexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
