@@ -7,6 +7,7 @@ use App\Models\BoundaryContract;
 use App\Models\Expense;
 use App\Models\Revenue;
 use App\Models\UserDriver;
+use App\Models\UserTechnician;
 use App\Models\Vehicle;
 use Inertia\Inertia;
 use Carbon\Carbon;
@@ -22,15 +23,34 @@ class DashboardController extends Controller
 
         return Inertia::render('owner/dashboard/Index', [
             'franchiseExists' => (bool) $franchise,
+
+
             'activeVehicles' => $this->countVehicles($franchiseId, 1),
             'pendingVehicles' => $this->countVehicles($franchiseId, 6),
             'vehiclesUnderMaintenance' => $this->countVehicles($franchiseId, 5),
+
+
             'activeDrivers' => $this->countDrivers($franchiseId, 1),
             'pendingDrivers' => $this->countDrivers($franchiseId, 6),
+
+            'activeTechnicians' => $this->countTechnicians($franchiseId, 1),
+            'pendingTechnicians' => $this->countTechnicians($franchiseId, 1),
+
+
             'dailyEarnings' => $this->dailyEarnings($franchiseId),
             'yesterdayEarnings' => $this->yesterdayEarnings($franchiseId),
+
+
+            'dailyTrips' => $this->dailyTrips($franchiseId),
+            'yesterdayTrips' => $this->yesterdayTrips($franchiseId),
+
+
             'pendingBoundaryDueCount' => $this->countPendingBoundaryContracts($franchiseId),
+
+
             'revenueExpensesData' => $this->getRevenueExpensesData($franchiseId, $year),
+
+
             'netProfitData' => $this->getNetProfitData($franchiseId, $year, 7),
         ]);
     }
@@ -56,6 +76,15 @@ class DashboardController extends Controller
             : 0;
     }
 
+    protected function countTechnicians(?int $franchiseId, int $statusId): int
+    {
+        return $franchiseId
+            ? UserTechnician::whereHas('franchises', fn($q) => $q->where('franchise_id', $franchiseId))
+                ->where('status_id', $statusId)
+                ->count()
+            : 0;
+    }
+
     protected function dailyEarnings(?int $franchiseId): float
     {
         return $this->sumRevenueByDate($franchiseId, today());
@@ -64,6 +93,16 @@ class DashboardController extends Controller
     protected function yesterdayEarnings(?int $franchiseId): float
     {
         return $this->sumRevenueByDate($franchiseId, Carbon::yesterday());
+    }
+
+    protected function dailyTrips(?int $franchiseId): int
+    {
+        return $this->countTotalPaidTrips($franchiseId, today());
+    }
+
+    protected function yesterdayTrips(?int $franchiseId): int
+    {
+        return $this->countTotalPaidTrips($franchiseId, Carbon::yesterday());
     }
 
     protected function sumRevenueByDate(?int $franchiseId, $date): float
@@ -84,6 +123,19 @@ class DashboardController extends Controller
 
         return BoundaryContract::where('franchise_id', $franchiseId)
             ->whereHas('status', fn($q) => $q->where('name', 'pending'))
+            ->count();
+    }
+
+    protected function countTotalPaidTrips(?int $franchiseId, $date): int
+    {
+        if (!$franchiseId) return 0;
+
+        return Revenue::where('franchise_id', $franchiseId)
+            ->whereHas('status', function ($query) {
+                $query->where('name', 'paid');
+            })
+            ->whereDate('created_at', $date)
+            ->where('service_type', 'Trips')
             ->count();
     }
 
