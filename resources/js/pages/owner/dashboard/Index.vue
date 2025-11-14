@@ -197,7 +197,7 @@ const mappedRevenueExpensesData = revenueExpensesData.map((item) => ({
             <div class="text-2xl font-bold">
               {{ new Intl.NumberFormat().format(dailyTrips) }}
             </div>
-            <p class="text-xs text-muted-foreground">
+            <!-- <p class="text-xs text-muted-foreground">
               {{
                 yesterdayTrips
                   ? (
@@ -206,6 +206,9 @@ const mappedRevenueExpensesData = revenueExpensesData.map((item) => ({
                     ).toFixed(0)
                   : 0
               }}% from yesterday
+            </p> -->
+            <p class="text-xs text-muted-foreground">
+              {{ pendingTechnicians }} yesterday trips
             </p>
           </CardContent>
         </Card>
