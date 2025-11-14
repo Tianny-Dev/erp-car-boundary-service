@@ -22,15 +22,31 @@ class DashboardController extends Controller
 
         return Inertia::render('owner/dashboard/Index', [
             'franchiseExists' => (bool) $franchise,
+
+
             'activeVehicles' => $this->countVehicles($franchiseId, 1),
             'pendingVehicles' => $this->countVehicles($franchiseId, 6),
             'vehiclesUnderMaintenance' => $this->countVehicles($franchiseId, 5),
+
+
             'activeDrivers' => $this->countDrivers($franchiseId, 1),
             'pendingDrivers' => $this->countDrivers($franchiseId, 6),
+
+
             'dailyEarnings' => $this->dailyEarnings($franchiseId),
             'yesterdayEarnings' => $this->yesterdayEarnings($franchiseId),
+
+
+            'dailyTrips' => $this->dailyTrips($franchiseId),
+            'yesterdayTrips' => $this->yesterdayTrips($franchiseId),
+
+
             'pendingBoundaryDueCount' => $this->countPendingBoundaryContracts($franchiseId),
+
+
             'revenueExpensesData' => $this->getRevenueExpensesData($franchiseId, $year),
+
+
             'netProfitData' => $this->getNetProfitData($franchiseId, $year, 7),
         ]);
     }
@@ -66,6 +82,16 @@ class DashboardController extends Controller
         return $this->sumRevenueByDate($franchiseId, Carbon::yesterday());
     }
 
+    protected function dailyTrips(?int $franchiseId): int
+    {
+        return $this->countTotalPaidTrips($franchiseId, today());
+    }
+
+    protected function yesterdayTrips(?int $franchiseId): int
+    {
+        return $this->countTotalPaidTrips($franchiseId, Carbon::yesterday());
+    }
+
     protected function sumRevenueByDate(?int $franchiseId, $date): float
     {
         if (!$franchiseId) return 0.0;
@@ -84,6 +110,19 @@ class DashboardController extends Controller
 
         return BoundaryContract::where('franchise_id', $franchiseId)
             ->whereHas('status', fn($q) => $q->where('name', 'pending'))
+            ->count();
+    }
+
+    protected function countTotalPaidTrips(?int $franchiseId, $date): int
+    {
+        if (!$franchiseId) return 0;
+
+        return Revenue::where('franchise_id', $franchiseId)
+            ->whereHas('status', function ($query) {
+                $query->where('name', 'paid');
+            })
+            ->whereDate('created_at', $date)
+            ->where('service_type', 'Trips')
             ->count();
     }
 
