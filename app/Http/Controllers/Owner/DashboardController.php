@@ -7,6 +7,7 @@ use App\Models\BoundaryContract;
 use App\Models\Expense;
 use App\Models\Revenue;
 use App\Models\UserDriver;
+use App\Models\UserTechnician;
 use App\Models\Vehicle;
 use Inertia\Inertia;
 use Carbon\Carbon;
@@ -31,6 +32,9 @@ class DashboardController extends Controller
 
             'activeDrivers' => $this->countDrivers($franchiseId, 1),
             'pendingDrivers' => $this->countDrivers($franchiseId, 6),
+
+            'activeTechnicians' => $this->countTechnicians($franchiseId, 1),
+            'pendingTechnicians' => $this->countTechnicians($franchiseId, 1),
 
 
             'dailyEarnings' => $this->dailyEarnings($franchiseId),
@@ -67,6 +71,15 @@ class DashboardController extends Controller
     {
         return $franchiseId
             ? UserDriver::whereHas('franchises', fn($q) => $q->where('franchise_id', $franchiseId))
+                ->where('status_id', $statusId)
+                ->count()
+            : 0;
+    }
+
+    protected function countTechnicians(?int $franchiseId, int $statusId): int
+    {
+        return $franchiseId
+            ? UserTechnician::whereHas('franchises', fn($q) => $q->where('franchise_id', $franchiseId))
                 ->where('status_id', $statusId)
                 ->count()
             : 0;
