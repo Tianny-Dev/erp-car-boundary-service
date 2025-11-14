@@ -37,5 +37,7 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
     Route::get('/revenues/{id}/export/{format}', [RevenuesController::class, 'export'])->name('revenues.export');
 
     Route::get('/driver', [DriverController::class, 'index'])->name('driver.index');
+    Route::get('/driver/{driver}', [DriverController::class, 'show'])->name('driver.show');
     Route::get('/vehicle', [VehicleController::class, 'index'])->name('vehicle.index');
+    Route::get('/vehicle/{vehicle}', [VehicleController::class, 'show'])->name('vehicle.show');
 });

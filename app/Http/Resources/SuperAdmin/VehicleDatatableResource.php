@@ -1,0 +1,37 @@
+<?php
+
+namespace App\Http\Resources\SuperAdmin;
+
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class VehicleDatatableResource extends JsonResource
+{
+    /**
+     * Transform the resource into an array.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(Request $request): array
+    {
+        $data = [
+            'id' => $this->id,
+            'vin' => $this->whenLoaded('user', $this->user->name),
+            'plate_number' => $this->whenLoaded('user', $this->user->email),
+            'status_name' => $this->whenLoaded('status', $this->status->name),
+        ];
+
+        // Conditionally add franchise_name if the relation is loaded and not empty
+        if ($this->relationLoaded('franchises') && $this->franchises->isNotEmpty()) {
+            // We'll just show the first one for the datatable cell
+            $data['franchise_name'] = $this->franchises->first()->name;
+        }
+
+        // Conditionally add branch_name if the relation is loaded and not empty
+        if ($this->relationLoaded('branches') && $this->branches->isNotEmpty()) {
+            $data['branch_name'] = $this->branches->first()->name;
+        }
+
+        return $data;
+    }
+}
