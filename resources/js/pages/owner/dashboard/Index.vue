@@ -12,7 +12,8 @@ import {
   CreditCard,
   DollarSign,
   Settings,
-  User,
+  UserCog,
+  Users,
 } from 'lucide-vue-next';
 
 interface Props {
@@ -21,6 +22,9 @@ interface Props {
 
   activeDrivers: number;
   pendingDrivers: number;
+
+  activeTechnicians: number;
+  pendingTechnicians: number;
 
   dailyEarnings: number;
   yesterdayEarnings: number;
@@ -46,6 +50,9 @@ const {
 
   activeDrivers,
   pendingDrivers,
+
+  activeTechnicians,
+  pendingTechnicians,
 
   dailyEarnings,
   yesterdayEarnings,
@@ -126,12 +133,30 @@ const mappedRevenueExpensesData = revenueExpensesData.map((item) => ({
             class="flex flex-row items-center justify-between space-y-0 pb-2"
           >
             <CardTitle class="text-sm font-medium">My Active Drivers</CardTitle>
-            <User class="h-4 w-4 text-muted-foreground" />
+            <Users class="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div class="text-2xl font-bold">{{ activeDrivers }}</div>
             <p class="text-xs text-muted-foreground">
               {{ pendingDrivers }} unassigned drivers
+            </p>
+          </CardContent>
+        </Card>
+
+        <!-- Active Technicians -->
+        <Card>
+          <CardHeader
+            class="flex flex-row items-center justify-between space-y-0 pb-2"
+          >
+            <CardTitle class="text-sm font-medium"
+              >My Active Technicians</CardTitle
+            >
+            <UserCog class="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div class="text-2xl font-bold">{{ activeTechnicians }}</div>
+            <p class="text-xs text-muted-foreground">
+              {{ pendingTechnicians }} unassigned technicians
             </p>
           </CardContent>
         </Card>
