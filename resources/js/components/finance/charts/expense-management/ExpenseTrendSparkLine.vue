@@ -14,7 +14,6 @@ import {
 import { computed, ref } from 'vue';
 import { Line } from 'vue-chartjs';
 
-// Register Chart.js components
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -27,17 +26,21 @@ ChartJS.register(
 
 interface DataItem {
   year: number;
-  'Growth Rate': number;
+  value: number;
 }
 
 const props = defineProps<{
   data: DataItem[];
+  label?: string;
   colors?: string[];
   yFormatter?: (value: number) => string;
 }>();
 
 // Default color
-const chartColor = props.colors?.[0] ?? '#3b82f6'; // Tailwind blue-500
+const chartColor = props.colors?.[0] ?? '#3b82f6';
+
+// Default label
+const chartLabel = props.label ?? 'Value';
 
 // Format numbers (fallback)
 const formatY = props.yFormatter ?? ((val: number) => `$ ${val.toFixed(2)}`);
@@ -46,8 +49,8 @@ const chartData = computed<ChartData<'line'>>(() => ({
   labels: props.data.map((item) => item.year),
   datasets: [
     {
-      label: 'Growth Rate',
-      data: props.data.map((item) => item['Growth Rate']),
+      label: chartLabel,
+      data: props.data.map((item) => item.value),
       borderColor: chartColor,
       backgroundColor: chartColor + '33',
       tension: 0.3,
@@ -62,37 +65,31 @@ const chartOptions = ref<ChartOptions<'line'>>({
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
-    legend: {
-      display: true,
-      position: 'top',
-      labels: { color: '#374151' },
-    },
+    legend: { display: true, position: 'top', labels: { color: '#374151' } },
     tooltip: {
       backgroundColor: '#111827',
       titleColor: '#f9fafb',
       bodyColor: '#f9fafb',
-      borderColor: '#3b82f6',
+      borderColor: chartColor,
       borderWidth: 1,
       callbacks: {
         label: (context) => {
           const value = context.parsed.y;
-          if (value === null) return 'Growth Rate: N/A';
-          return `Growth Rate: ${formatY(value)}`;
+          return value !== null
+            ? `${chartLabel}: ${formatY(value)}`
+            : `${chartLabel}: N/A`;
         },
       },
     },
     title: {
       display: true,
-      text: 'Growth Rate Over Years',
+      text: chartLabel + ' Over Years',
       color: '#111827',
       font: { size: 16, weight: 'bold' },
     },
   },
   scales: {
-    x: {
-      ticks: { color: '#6b7280' },
-      grid: { display: false },
-    },
+    x: { ticks: { color: '#6b7280' }, grid: { display: false } },
     y: {
       ticks: {
         color: '#6b7280',

@@ -24,5 +24,9 @@ class DatabaseSeeder extends Seeder
         ]);
 
         User::factory(30)->create();
+
+        $this->call(RevenueSeeder::class);
+        $this->call(ExpenseSeeder::class);
+        $this->call(BoundaryContractSeeder::class);
     }
 }

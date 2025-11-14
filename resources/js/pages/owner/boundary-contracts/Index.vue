@@ -9,14 +9,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select/';
+} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -27,146 +34,77 @@ import {
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
 import finance from '@/routes/finance';
-import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/vue3';
-import {
-  FlexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useVueTable,
-  type ColumnDef,
-} from '@tanstack/vue-table';
-import { ArrowUpDown, Calendar, Check, Search, X } from 'lucide-vue-next';
-import { computed, h, ref } from 'vue';
+import type { BreadcrumbItem } from '@/types';
+import { Head, router } from '@inertiajs/vue3';
+import { Calendar, Check, Search, X } from 'lucide-vue-next';
+import { computed, ref, watch } from 'vue';
 
 interface Contract {
   id: number;
-  contractNumber: string;
-  propertyAddress: string;
-  client: string;
-  dueDate: string;
-  amount: number;
-  status: 'pending' | 'paid' | 'overdue';
-  depositStatus: 'pending' | 'approved' | 'flagged';
-  depositAmount: number;
+  name: string;
+  coverage_area: string;
+  contract_terms: string;
+  start_date: string;
+  end_date: string;
+  status: 'pending' | 'paid' | 'overdue' | string;
+  franchise: string | null;
+  branch: string | null;
+  depositStatus?: 'pending' | 'approved' | 'flagged';
 }
 
-const breadcrumbs: BreadcrumbItem[] = [
-  {
-    title: 'Boundary Contracts',
-    href: finance.boundaryContracts().url,
+interface ContractsPaginator {
+  current_page: number;
+  data: Contract[];
+  first_page_url: string | null;
+  from: number | null;
+  last_page: number;
+  last_page_url: string | null;
+  links: Array<{ url: string | null; label: string; active: boolean }>;
+  next_page_url: string | null;
+  path: string;
+  per_page: number;
+  prev_page_url: string | null;
+  to: number | null;
+  total: number;
+}
+
+interface Props {
+  contracts: ContractsPaginator;
+}
+
+const { contracts } = defineProps<Props>();
+const paginator = ref(contracts);
+
+// -------------------------
+// Watcher: update paginator when props change
+// -------------------------
+watch(
+  () => contracts,
+  (newContracts) => {
+    paginator.value = newContracts;
   },
+  { deep: true },
+);
+
+// -------------------------
+// Breadcrumbs
+// -------------------------
+const breadcrumbs: BreadcrumbItem[] = [
+  { title: 'Boundary Contracts', href: finance.boundaryContracts().url },
 ];
 
-// Sample data
-const data = ref<Contract[]>([
-  {
-    id: 1,
-    contractNumber: 'BC-2024-001',
-    propertyAddress: '123 Main St, Springfield',
-    client: 'John Doe',
-    dueDate: '2024-12-15',
-    amount: 5000,
-    status: 'pending',
-    depositStatus: 'pending',
-    depositAmount: 1000,
-  },
-  {
-    id: 2,
-    contractNumber: 'BC-2024-002',
-    propertyAddress: '456 Oak Ave, Riverside',
-    client: 'Jane Smith',
-    dueDate: '2024-11-20',
-    amount: 7500,
-    status: 'paid',
-    depositStatus: 'approved',
-    depositAmount: 1500,
-  },
-  {
-    id: 3,
-    contractNumber: 'BC-2024-003',
-    propertyAddress: '789 Pine Rd, Lakeside',
-    client: 'Bob Johnson',
-    dueDate: '2024-11-08',
-    amount: 3200,
-    status: 'overdue',
-    depositStatus: 'flagged',
-    depositAmount: 800,
-  },
-  {
-    id: 4,
-    contractNumber: 'BC-2024-004',
-    propertyAddress: '321 Elm St, Hilltown',
-    client: 'Alice Brown',
-    dueDate: '2024-12-01',
-    amount: 4500,
-    status: 'pending',
-    depositStatus: 'pending',
-    depositAmount: 900,
-  },
-]);
-
+// -------------------------
+// Filters / Search
+// -------------------------
 const globalFilter = ref('');
 const statusFilter = ref('all');
 const depositFilter = ref('all');
-const showDepositDialog = ref(false);
+
+// -------------------------
+// Dialog
+// -------------------------
 const selectedContract = ref<Contract | null>(null);
-
-// Filtered data
-const filteredData = computed(() => {
-  let filtered = data.value;
-
-  if (statusFilter.value !== 'all') {
-    filtered = filtered.filter((item) => item.status === statusFilter.value);
-  }
-
-  if (depositFilter.value !== 'all') {
-    filtered = filtered.filter(
-      (item) => item.depositStatus === depositFilter.value,
-    );
-  }
-
-  if (globalFilter.value) {
-    const search = globalFilter.value.toLowerCase();
-    filtered = filtered.filter(
-      (item) =>
-        item.contractNumber.toLowerCase().includes(search) ||
-        item.client.toLowerCase().includes(search) ||
-        item.propertyAddress.toLowerCase().includes(search),
-    );
-  }
-
-  return filtered;
-});
-
-// Helper functions
-const getStatusVariant = (status: string) => {
-  switch (status) {
-    case 'paid':
-      return 'success';
-    case 'pending':
-      return 'secondary';
-    case 'overdue':
-      return 'destructive';
-    default:
-      return 'secondary';
-  }
-};
-
-const getDepositVariant = (status: string) => {
-  switch (status) {
-    case 'approved':
-      return 'success';
-    case 'pending':
-      return 'secondary';
-    case 'flagged':
-      return 'destructive';
-    default:
-      return 'secondary';
-  }
-};
+const showDepositDialog = ref(false);
 
 const openDepositDialog = (contract: Contract) => {
   selectedContract.value = contract;
@@ -175,106 +113,97 @@ const openDepositDialog = (contract: Contract) => {
 
 const handleDepositAction = (action: 'approved' | 'flagged') => {
   if (selectedContract.value) {
-    const index = data.value.findIndex(
+    const index = paginator.value.data.findIndex(
       (item) => item.id === selectedContract.value!.id,
     );
     if (index !== -1) {
-      data.value[index].depositStatus = action;
+      paginator.value.data[index].depositStatus = action;
     }
   }
   showDepositDialog.value = false;
 };
 
-// Table columns
-const columns: ColumnDef<Contract>[] = [
-  {
-    accessorKey: 'contractNumber',
-    header: 'Contract #',
-    cell: ({ row }) =>
-      h('div', { class: 'font-medium' }, row.getValue('contractNumber')),
-  },
-  {
-    accessorKey: 'client',
-    header: 'Client',
-  },
-  {
-    accessorKey: 'propertyAddress',
-    header: 'Property',
-    cell: ({ row }) =>
-      h('div', { class: 'max-w-xs truncate' }, row.getValue('propertyAddress')),
-  },
-  {
-    accessorKey: 'dueDate',
-    header: 'Due Date',
-    cell: ({ row }) =>
-      h('div', { class: 'flex items-center gap-2' }, [
-        h(Calendar, { class: 'h-4 w-4 text-gray-400' }),
-        new Date(row.getValue('dueDate')).toLocaleDateString(),
-      ]),
-  },
-  {
-    accessorKey: 'amount',
-    header: 'Amount',
-    cell: ({ row }) =>
-      h(
-        'div',
-        { class: 'font-medium' },
-        `$${(row.getValue('amount') as number).toLocaleString()}`,
-      ),
-  },
-  {
-    accessorKey: 'status',
-    header: 'Status',
-    cell: ({ row }) =>
-      h(
-        Badge,
-        { variant: getStatusVariant(row.getValue('status')) as any },
-        () => row.getValue('status'),
-      ),
-  },
-  {
-    accessorKey: 'depositStatus',
-    header: 'Deposit',
-    cell: ({ row }) =>
-      h(
-        Badge,
-        { variant: getDepositVariant(row.getValue('depositStatus')) as any },
-        () => row.getValue('depositStatus'),
-      ),
-  },
-  {
-    id: 'actions',
-    header: 'Actions',
-    cell: ({ row }) =>
-      h('div', { class: 'flex gap-2' }, [
-        h(
-          Button,
-          {
-            size: 'sm',
-            variant: 'outline',
-            onClick: () => openDepositDialog(row.original),
-          },
-          () => 'Review Deposit',
-        ),
-      ]),
-  },
-];
+// -------------------------
+// Helpers
+// -------------------------
+const getStatusVariant = (status: string | undefined) => {
+  switch (status) {
+    case 'pending':
+      return 'secondary';
+    case 'paid':
+      return 'default';
+    case 'overdue':
+      return 'destructive';
+    default:
+      return 'secondary';
+  }
+};
 
-// Table instance
-const table = useVueTable({
-  get data() {
-    return filteredData.value;
-  },
-  columns,
-  getCoreRowModel: getCoreRowModel(),
-  getSortedRowModel: getSortedRowModel(),
-  getFilteredRowModel: getFilteredRowModel(),
-  getPaginationRowModel: getPaginationRowModel(),
-  initialState: {
-    pagination: {
-      pageSize: 10,
+const getDepositVariant = (status?: string) => {
+  switch (status) {
+    case 'pending':
+      return 'secondary';
+    case 'approved':
+      return 'default';
+    case 'flagged':
+      return 'destructive';
+    default:
+      return 'secondary';
+  }
+};
+
+// -------------------------
+// Computed: Filtered data for client-side search
+// -------------------------
+const filteredData = computed(() => {
+  if (!globalFilter.value) return paginator.value.data;
+  const search = globalFilter.value.toLowerCase();
+  return paginator.value.data.filter((item) =>
+    Object.values(item)
+      .filter((v) => v !== null && v !== undefined)
+      .some((v) => v.toString().toLowerCase().includes(search)),
+  );
+});
+
+// -------------------------
+// Pagination links without Previous/Next
+// -------------------------
+const paginationLinks = computed(() =>
+  paginator.value.links.filter(
+    (link) => link.label !== 'Previous' && link.label !== 'Next',
+  ),
+);
+
+// -------------------------
+// Pagination / server-side navigation
+// -------------------------
+const goToPage = (url: string | null) => {
+  if (!url) return;
+  router.get(
+    url,
+    {
+      status: statusFilter.value !== 'all' ? statusFilter.value : undefined,
+      depositStatus:
+        depositFilter.value !== 'all' ? depositFilter.value : undefined,
+      search: globalFilter.value || undefined,
     },
-  },
+    { preserveState: true, preserveScroll: true },
+  );
+};
+
+// Watch filters / search and reload table
+watch([statusFilter, depositFilter, globalFilter], () => {
+  router.get(
+    paginator.value.path,
+    {
+      status: statusFilter.value !== 'all' ? statusFilter.value : undefined,
+      depositStatus:
+        depositFilter.value !== 'all' ? depositFilter.value : undefined,
+      search: globalFilter.value || undefined,
+      per_page: paginator.value.per_page,
+    },
+    { preserveState: true, preserveScroll: true },
+  );
 });
 </script>
 
@@ -282,33 +211,33 @@ const table = useVueTable({
   <Head title="Boundary Contracts" />
 
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div
-      class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
-    >
+    <div class="space-y-6 p-6">
       <!-- Header -->
-      <div class="mb-8">
-        <h1 class="mb-2 text-3xl font-bold">Boundary Contracts</h1>
+      <div>
+        <h1 class="mb-1 text-3xl font-bold">Boundary Contracts</h1>
         <p class="text-gray-600">
           Monitor due payments, set schedules, and approve boundary deposits
         </p>
       </div>
 
-      <!-- Filters and Search -->
-      <div class="mb-6 flex flex-col gap-4 md:flex-row">
+      <!-- Filters -->
+      <div class="flex flex-col gap-4 md:flex-row md:items-center">
         <div class="relative flex-1">
           <Search
-            class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400"
+            class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400"
           />
-          <Input
+          <input
             v-model="globalFilter"
             placeholder="Search contracts..."
-            class="pl-10"
+            class="w-full rounded-md border px-10 py-2"
           />
         </div>
 
         <Select v-model="statusFilter">
           <SelectTrigger class="w-full md:w-48">
-            <SelectValue placeholder="Filter by status" />
+            <SelectValue>{{
+              statusFilter === 'all' ? 'Filter by status' : statusFilter
+            }}</SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
@@ -318,9 +247,11 @@ const table = useVueTable({
           </SelectContent>
         </Select>
 
-        <Select v-model="depositFilter">
+        <!-- <Select v-model="depositFilter">
           <SelectTrigger class="w-full md:w-48">
-            <SelectValue placeholder="Deposit status" />
+            <SelectValue>{{
+              depositFilter === 'all' ? 'Deposit status' : depositFilter
+            }}</SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Deposits</SelectItem>
@@ -328,55 +259,54 @@ const table = useVueTable({
             <SelectItem value="approved">Approved</SelectItem>
             <SelectItem value="flagged">Flagged</SelectItem>
           </SelectContent>
-        </Select>
+        </Select> -->
       </div>
 
       <!-- Table -->
       <div class="rounded-lg border">
         <Table>
           <TableHeader>
-            <TableRow
-              v-for="headerGroup in table.getHeaderGroups()"
-              :key="headerGroup.id"
-            >
-              <TableHead v-for="header in headerGroup.headers" :key="header.id">
-                <div
-                  v-if="!header.isPlaceholder"
-                  @click="header.column.getToggleSortingHandler()?.($event)"
-                  :class="
-                    header.column.getCanSort()
-                      ? 'flex cursor-pointer items-center gap-2 select-none'
-                      : ''
-                  "
-                >
-                  <FlexRender
-                    :render="header.column.columnDef.header"
-                    :props="header.getContext()"
-                  />
-                  <ArrowUpDown
-                    v-if="header.column.getCanSort()"
-                    class="h-4 w-4"
-                  />
-                </div>
-              </TableHead>
+            <TableRow>
+              <TableHead>Contract Name</TableHead>
+              <TableHead>Franchise</TableHead>
+              <TableHead>Coverage Area</TableHead>
+              <TableHead>Duration</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
+
           <TableBody>
-            <TableRow v-if="table.getRowModel().rows?.length === 0">
-              <TableCell :colspan="columns.length" class="h-24 text-center">
+            <TableRow v-if="filteredData.length === 0">
+              <TableCell colspan="6" class="py-6 text-center text-gray-500">
                 No results found.
               </TableCell>
             </TableRow>
-            <TableRow
-              v-for="row in table.getRowModel().rows"
-              :key="row.id"
-              :data-state="row.getIsSelected() ? 'selected' : undefined"
-            >
-              <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id">
-                <FlexRender
-                  :render="cell.column.columnDef.cell"
-                  :props="cell.getContext()"
-                />
+
+            <TableRow v-for="contract in filteredData" :key="contract.id">
+              <TableCell class="font-medium">{{ contract.name }}</TableCell>
+              <TableCell>{{ contract.franchise || '—' }}</TableCell>
+              <TableCell class="max-w-xs truncate">{{
+                contract.coverage_area
+              }}</TableCell>
+              <TableCell class="flex items-center gap-2">
+                <Calendar class="h-4 w-4 text-gray-400" />
+                {{ new Date(contract.start_date).toLocaleDateString() }} -
+                {{ new Date(contract.end_date).toLocaleDateString() }}
+              </TableCell>
+              <TableCell>
+                <Badge :variant="getStatusVariant(contract.status)">
+                  {{ contract.status }}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  @click="openDepositDialog(contract)"
+                >
+                  Review Deposit
+                </Button>
               </TableCell>
             </TableRow>
           </TableBody>
@@ -384,77 +314,79 @@ const table = useVueTable({
       </div>
 
       <!-- Pagination -->
-      <div class="mt-4 flex items-center justify-between">
-        <div class="text-sm text-gray-600">
-          Showing
-          {{
-            table.getState().pagination.pageIndex *
-              table.getState().pagination.pageSize +
-            1
-          }}
-          to
-          {{
-            Math.min(
-              (table.getState().pagination.pageIndex + 1) *
-                table.getState().pagination.pageSize,
-              filteredData.length,
-            )
-          }}
-          of {{ filteredData.length }} results
-        </div>
-        <div class="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            @click="table.previousPage()"
-            :disabled="!table.getCanPreviousPage()"
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            @click="table.nextPage()"
-            :disabled="!table.getCanNextPage()"
-          >
-            Next
-          </Button>
-        </div>
+      <div class="flex items-center justify-between pt-4">
+        <span class="text-sm text-gray-600">
+          Showing {{ paginator.from || 0 }} to {{ paginator.to || 0 }} of
+          {{ paginator.total }} entries
+        </span>
+
+        <Pagination
+          :items-per-page="paginator.per_page"
+          :total="paginator.total"
+          :default-page="paginator.current_page"
+          class="w-auto"
+        >
+          <PaginationContent>
+            <PaginationPrevious
+              :disabled="!paginator.prev_page_url"
+              @click="goToPage(paginator.prev_page_url)"
+            />
+
+            <template v-for="link in paginationLinks" :key="link.label">
+              <PaginationItem
+                v-if="!isNaN(Number(link.label))"
+                :value="Number(link.label)"
+              >
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  :class="{ 'bg-gray-100': link.active }"
+                  :disabled="!link.url"
+                  @click="goToPage(link.url)"
+                >
+                  {{ link.label }}
+                </Button>
+              </PaginationItem>
+              <PaginationEllipsis v-else-if="link.label.includes('...')" />
+            </template>
+
+            <PaginationNext
+              :disabled="!paginator.next_page_url"
+              @click="goToPage(paginator.next_page_url)"
+            />
+          </PaginationContent>
+        </Pagination>
       </div>
 
-      <!-- Deposit Action Dialog -->
+      <!-- Deposit Dialog -->
       <Dialog v-model:open="showDepositDialog">
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Review Deposit</DialogTitle>
-            <DialogDescription>
-              Contract: {{ selectedContract?.contractNumber }}
-            </DialogDescription>
+            <DialogDescription
+              >Contract: {{ selectedContract?.name }}</DialogDescription
+            >
           </DialogHeader>
-          <div v-if="selectedContract" class="py-4">
-            <div class="space-y-2">
-              <p><strong>Client:</strong> {{ selectedContract.client }}</p>
-              <p>
-                <strong>Property:</strong>
-                {{ selectedContract.propertyAddress }}
-              </p>
-              <p>
-                <strong>Deposit Amount:</strong> ${{
-                  selectedContract.depositAmount.toLocaleString()
-                }}
-              </p>
-              <p>
-                <strong>Current Status:</strong>
-                <Badge
-                  :variant="
-                    getDepositVariant(selectedContract.depositStatus) as any
-                  "
-                >
-                  {{ selectedContract.depositStatus }}
-                </Badge>
-              </p>
-            </div>
+
+          <div v-if="selectedContract" class="space-y-2 py-4">
+            <p>
+              <strong>Franchise:</strong>
+              {{ selectedContract.franchise || '—' }}
+            </p>
+            <p>
+              <strong>Coverage Area:</strong>
+              {{ selectedContract.coverage_area }}
+            </p>
+            <p>
+              <strong>Current Status:</strong>
+              <Badge
+                :variant="getDepositVariant(selectedContract.depositStatus)"
+              >
+                {{ selectedContract.depositStatus ?? 'N/A' }}
+              </Badge>
+            </p>
           </div>
+
           <DialogFooter>
             <Button variant="outline" @click="showDepositDialog = false"
               >Cancel</Button
@@ -463,12 +395,10 @@ const table = useVueTable({
               variant="destructive"
               @click="handleDepositAction('flagged')"
             >
-              <X class="mr-2 h-4 w-4" />
-              Flag
+              <X class="mr-2 h-4 w-4" /> Flag
             </Button>
             <Button @click="handleDepositAction('approved')">
-              <Check class="mr-2 h-4 w-4" />
-              Approve
+              <Check class="mr-2 h-4 w-4" /> Approve
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -18,6 +18,7 @@ import { Link, usePage } from '@inertiajs/vue3';
 import {
   BarChart3,
   Bell,
+  CarTaxiFront,
   Clock,
   DollarSign,
   FileSpreadsheet,
@@ -25,7 +26,7 @@ import {
   HelpCircle,
   History,
   LayoutGrid,
-  Settings,
+  Octagon,
   Users,
   Wrench,
 } from 'lucide-vue-next';
@@ -58,16 +59,22 @@ const navConfig: Record<string, NavItem[]> = {
       group: 'Overview',
     },
     {
+      title: 'Driver Management',
+      href: superAdmin.driver.index(),
+      icon: Users,
+      group: 'Fleet',
+    },
+    {
       title: 'Revenues History',
       href: superAdmin.revenues(),
       icon: History,
       group: 'History',
     },
     {
-      title: 'Settings',
-      href: finance.dashboard?.() ?? '/settings',
-      icon: Settings,
-      group: 'Admin',
+      title: 'Vehicle Management',
+      href: superAdmin.vehicle.index(),
+      icon: CarTaxiFront,
+      group: 'Fleet',
     },
   ],
 
@@ -110,6 +117,18 @@ const navConfig: Record<string, NavItem[]> = {
       title: 'Driver Management',
       href: owner.drivers.index(),
       icon: Users,
+      group: 'Management',
+    },
+    {
+      title: 'Vehicle Management',
+      href: owner.vehicles.index(),
+      icon: CarTaxiFront,
+      group: 'Management',
+    },
+    {
+      title: 'Assign Drivers',
+      href: owner.vehicleDrivers.index(),
+      icon: Octagon,
       group: 'Management',
     },
 

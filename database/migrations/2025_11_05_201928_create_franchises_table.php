@@ -26,7 +26,7 @@ return new class extends Migration
             $table->string('city');
             $table->string('barangay');
             $table->string('postal_code', 20);
-            $table->string('dti_registrarion_attachment');
+            $table->string('dti_registration_attachment');
             $table->string('mayor_permit_attachment');
             $table->string('proof_agreement_attachment');
             $table->timestamps();

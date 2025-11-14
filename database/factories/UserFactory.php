@@ -9,6 +9,7 @@ use App\Models\UserOwner;
 use App\Models\UserPassenger;
 use App\Models\UserTechnician;
 use App\Models\Franchise;
+use App\Models\Branch;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
@@ -37,9 +38,15 @@ class UserFactory extends Factory
             'phone' => fake()->unique()->phoneNumber(),
             'password' => static::$password ??= 'password',
             'remember_token' => Str::random(10),
-            'two_factor_secret' => Str::random(10),
-            'two_factor_recovery_codes' => Str::random(10),
-            'two_factor_confirmed_at' => now(),
+            // 'two_factor_secret' => Str::random(10),
+            // 'two_factor_recovery_codes' => Str::random(10),
+            // 'two_factor_confirmed_at' => now(),
+            'address' => fake()->address(),
+            'region' => fake()->state(),
+            'province' => fake()->state(),
+            'city' => fake()->city(),
+            'barangay' => fake()->streetName(),
+            'postal_code' => fake()->postcode(),
         ];
     }
 
@@ -84,6 +91,7 @@ class UserFactory extends Factory
                     break;
                 case 3: // manager
                     UserManager::factory()->create(['id' => $user->id]);
+                    Branch::factory()->create(['manager_id' => $user->id]);
                     break;
                 case 4: // driver
                     UserDriver::factory()->create(['id' => $user->id]);

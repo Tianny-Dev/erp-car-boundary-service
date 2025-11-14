@@ -1,18 +1,28 @@
 <script setup lang="ts">
 import RevenueBreakDownPieChart from '@/components/finance/charts/revenue-management/RevenueBreakDownPieChart.vue';
+import RevenuePaymentOptionsBreakDownPieChart from '@/components/finance/charts/revenue-management/RevenuePaymentOptionsBreakDownPieChart.vue';
 import RevenueTrendSparkLine from '@/components/finance/charts/revenue-management/RevenueTrendSparkLine.vue';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select/';
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 import {
   Table,
   TableBody,
@@ -23,239 +33,159 @@ import {
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
 import finance from '@/routes/finance';
-import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/vue3';
-import {
-  FlexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useVueTable,
-  type ColumnDef,
-} from '@tanstack/vue-table';
-import { ArrowUpDown, FileDown } from 'lucide-vue-next';
-import { computed, h, ref } from 'vue';
+import type { BreadcrumbItem } from '@/types';
+import { Head, router } from '@inertiajs/vue3';
+import { FileDown } from 'lucide-vue-next';
+import { computed, ref, watch } from 'vue';
 
-interface RevenueRecord {
-  id: string;
-  source: string;
+// -------------------------
+// Interfaces
+// -------------------------
+interface Revenue {
+  id: number;
+  invoice_no: string;
   amount: number;
-  date: string;
-  status: 'Flagged' | 'Received' | 'Pending';
+  currency: string;
+  service_type: string;
+  payment_date: string | null;
+  notes: string | null;
+  status: string | null;
+  franchise: string | null;
+  branch: string | null;
+  payment_option: string | null;
 }
 
+interface RevenuesPaginator {
+  current_page: number;
+  data: Revenue[];
+  first_page_url: string | null;
+  from: number | null;
+  last_page: number;
+  last_page_url: string | null;
+  links: Array<{
+    url: string | null;
+    label: string;
+    active: boolean;
+  }>;
+  next_page_url: string | null;
+  path: string;
+  per_page: number;
+  prev_page_url: string | null;
+  to: number | null;
+  total: number;
+}
+
+interface Props {
+  revenues: RevenuesPaginator;
+
+  revenueServiceTypeBreakdownData: { name: string; total: number }[];
+  revenueByPaymentOption: { name: string; total: number }[];
+
+  revenueTrendData: { year: number; revenue: number }[];
+}
+
+// -------------------------
+// Props and State
+// -------------------------
+const {
+  revenueServiceTypeBreakdownData,
+  revenueByPaymentOption,
+  revenues,
+  revenueTrendData,
+} = defineProps<Props>();
+const paginator = ref(revenues);
+
 const breadcrumbs: BreadcrumbItem[] = [
-  {
-    title: 'Revenue Management',
-    href: finance.revenueManagement().url,
-  },
+  { title: 'Revenue Management', href: finance.revenueManagement().url },
 ];
 
-// Sample data
-const data = ref<RevenueRecord[]>([
-  {
-    id: 'R-004',
-    source: 'Trip',
-    amount: 1500,
-    date: '2025-11-04',
-    status: 'Flagged',
-  },
-  {
-    id: 'R-003',
-    source: 'Logistics',
-    amount: 2800,
-    date: '2025-11-03',
-    status: 'Received',
-  },
-  {
-    id: 'R-002',
-    source: 'Ads',
-    amount: 3500,
-    date: '2025-11-02',
-    status: 'Pending',
-  },
-  {
-    id: 'R-001',
-    source: 'Trip',
-    amount: 1200,
-    date: '2025-11-01',
-    status: 'Received',
-  },
-]);
-
 const globalFilter = ref('');
-const pageSize = ref(10);
+const pageSize = ref('10');
 
-// Filtered data
+// Dialog
+const selectedRevenue = ref<Revenue | null>(null);
+const dialogOpen = ref(false);
+
+const viewRevenue = (revenue: Revenue) => {
+  selectedRevenue.value = revenue;
+  dialogOpen.value = true;
+};
+
+// -------------------------
+// Computed: Filtered Data
+// -------------------------
 const filteredData = computed(() => {
-  let filtered = data.value;
+  if (!globalFilter.value) return paginator.value.data;
+  const search = globalFilter.value.toLowerCase();
 
-  if (globalFilter.value) {
-    const search = globalFilter.value.toLowerCase();
-    filtered = filtered.filter(
-      (item) =>
-        item.id.toLowerCase().includes(search) ||
-        item.source.toLowerCase().includes(search) ||
-        item.status.toLowerCase().includes(search) ||
-        item.date.includes(search),
-    );
-  }
-
-  return filtered;
+  return paginator.value.data.filter((item) =>
+    Object.values(item)
+      .filter((v) => v !== null && v !== undefined)
+      .some((v) => v.toString().toLowerCase().includes(search)),
+  );
 });
 
-// Helper functions
-const getStatusVariant = (status: string) => {
+// Computed: Pagination links without Previous/Next
+const paginationLinks = computed(() => {
+  return paginator.value.links.filter(
+    (link) => link.label !== 'Previous' && link.label !== 'Next',
+  );
+});
+
+// -------------------------
+// Watchers
+// -------------------------
+watch(
+  () => revenues,
+  (newRevenues) => {
+    paginator.value = newRevenues;
+  },
+  { deep: true },
+);
+
+watch(pageSize, (newSize) => {
+  router.get(
+    paginator.value.path,
+    { per_page: newSize },
+    {
+      preserveState: true,
+      preserveScroll: true,
+    },
+  );
+});
+
+// -------------------------
+// Helpers
+// -------------------------
+const getStatusVariant = (status: string | null) => {
   switch (status) {
     case 'Flagged':
       return 'destructive';
     case 'Received':
-      return 'success';
+      return 'default';
     case 'Pending':
-      return 'secondary';
+      return 'outline';
     default:
       return 'secondary';
-  }
-};
-
-const getStatusClass = (status: string) => {
-  switch (status) {
-    case 'Flagged':
-      return 'bg-red-500 hover:bg-red-600';
-    case 'Received':
-      return 'bg-green-600 hover:bg-green-700';
-    case 'Pending':
-      return 'bg-amber-500 hover:bg-amber-600';
-    default:
-      return '';
   }
 };
 
 const exportPDF = () => {
   console.log('Exporting PDF...');
-  // Add your PDF export logic here
 };
 
-const handleFlag = (record: RevenueRecord) => {
-  const index = data.value.findIndex((item) => item.id === record.id);
-  if (index !== -1) {
-    data.value[index].status = 'Flagged';
+const goToPage = (pageUrl: string | null) => {
+  if (pageUrl) {
+    router.get(
+      pageUrl,
+      {},
+      {
+        preserveState: true,
+        preserveScroll: true,
+      },
+    );
   }
 };
-
-// Table columns
-const columns: ColumnDef<RevenueRecord>[] = [
-  {
-    accessorKey: 'id',
-    header: 'ID',
-    cell: ({ row }) => h('div', { class: 'font-medium' }, row.getValue('id')),
-  },
-  {
-    accessorKey: 'source',
-    header: 'Source',
-  },
-  {
-    accessorKey: 'amount',
-    header: 'Amount',
-    cell: ({ row }) =>
-      h(
-        'div',
-        { class: 'font-medium' },
-        `$${(row.getValue('amount') as number).toLocaleString()}`,
-      ),
-  },
-  {
-    accessorKey: 'date',
-    header: 'Date',
-  },
-  {
-    accessorKey: 'status',
-    header: 'Status',
-    cell: ({ row }) =>
-      h(
-        Badge,
-        {
-          variant: getStatusVariant(row.getValue('status')) as any,
-          class: getStatusClass(row.getValue('status')),
-        },
-        () => row.getValue('status'),
-      ),
-  },
-  {
-    id: 'actions',
-    header: 'Action',
-    cell: ({ row }) => {
-      const status = row.original.status;
-      const record = row.original;
-
-      return h('div', { class: 'flex gap-2' }, [
-        h(
-          Button,
-          {
-            size: 'sm',
-            variant: status === 'Flagged' ? 'destructive' : 'default',
-          },
-          () => (status === 'Flagged' ? 'Review' : 'View'),
-        ),
-        record.id === 'R-001'
-          ? h(
-              Button,
-              {
-                size: 'sm',
-                variant: 'destructive',
-                onClick: () => handleFlag(record),
-              },
-              () => 'Flag',
-            )
-          : null,
-      ]);
-    },
-  },
-];
-
-// Table instance
-const table = useVueTable({
-  get data() {
-    return filteredData.value;
-  },
-  columns,
-  getCoreRowModel: getCoreRowModel(),
-  getSortedRowModel: getSortedRowModel(),
-  getFilteredRowModel: getFilteredRowModel(),
-  getPaginationRowModel: getPaginationRowModel(),
-  initialState: {
-    pagination: {
-      pageSize: 10,
-    },
-  },
-});
-
-const expenseBreakdownData = [
-  {
-    name: 'Trip',
-    total: Math.floor(Math.random() * 2000) + 500,
-  },
-  {
-    name: 'Ads',
-    total: Math.floor(Math.random() * 2000) + 500,
-  },
-  {
-    name: 'Logistics',
-    total: Math.floor(Math.random() * 2000) + 500,
-  },
-];
-
-const expenseTrendData = [
-  { year: 2018, 'Growth Rate': 2.45 },
-  { year: 2019, 'Growth Rate': 2.47 },
-  { year: 2020, 'Growth Rate': 2.48 },
-  { year: 2021, 'Growth Rate': 2.51 },
-  { year: 2022, 'Growth Rate': 2.55 },
-  { year: 2023, 'Growth Rate': 2.58 },
-  { year: 2024, 'Growth Rate': 2.6 },
-  { year: 2025, 'Growth Rate': 2.63 },
-];
 </script>
 
 <template>
@@ -269,80 +199,76 @@ const expenseTrendData = [
       <div class="flex items-center justify-between border-b pb-4">
         <h1 class="text-xl font-semibold">Revenue Records</h1>
         <Button @click="exportPDF" class="bg-red-600 hover:bg-red-700">
-          <FileDown class="mr-2 h-4 w-4" />
-          Export PDF
+          <FileDown class="mr-2 h-4 w-4" /> Export PDF
         </Button>
       </div>
 
       <!-- Controls -->
       <div class="flex items-center justify-between border-b pb-4">
         <div class="flex items-center gap-2">
-          <span class="text-sm text-gray-600">Show</span>
-          <Select v-model="pageSize">
-            <SelectTrigger class="w-20">
-              <SelectValue placeholder="10" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="10">10</SelectItem>
-              <SelectItem value="25">25</SelectItem>
-              <SelectItem value="50">50</SelectItem>
-            </SelectContent>
-          </Select>
-          <span class="text-sm text-gray-600">entries</span>
-        </div>
-
-        <div class="flex items-center gap-2">
           <span class="text-sm text-gray-600">Search:</span>
-          <Input v-model="globalFilter" placeholder="" class="w-48" />
+          <Input
+            v-model="globalFilter"
+            placeholder="Search revenues..."
+            class="w-48"
+          />
         </div>
       </div>
 
-      <!-- Table -->
+      <!-- ShadCN Table -->
       <div class="rounded-lg border">
         <Table>
           <TableHeader>
-            <TableRow
-              v-for="headerGroup in table.getHeaderGroups()"
-              :key="headerGroup.id"
-            >
-              <TableHead v-for="header in headerGroup.headers" :key="header.id">
-                <div
-                  v-if="!header.isPlaceholder"
-                  @click="header.column.getToggleSortingHandler()?.($event)"
-                  :class="
-                    header.column.getCanSort()
-                      ? 'flex cursor-pointer items-center gap-2 select-none'
-                      : ''
-                  "
-                >
-                  <FlexRender
-                    :render="header.column.columnDef.header"
-                    :props="header.getContext()"
-                  />
-                  <ArrowUpDown
-                    v-if="header.column.getCanSort()"
-                    class="h-4 w-4"
-                  />
-                </div>
-              </TableHead>
+            <TableRow>
+              <TableHead>Invoice No</TableHead>
+              <TableHead>Service Type</TableHead>
+              <TableHead>Amount</TableHead>
+              <TableHead>Payment Date</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Franchise</TableHead>
+              <TableHead>Branch</TableHead>
+              <TableHead>Payment Option</TableHead>
+              <TableHead>Action</TableHead>
             </TableRow>
           </TableHeader>
+
           <TableBody>
-            <TableRow v-if="table.getRowModel().rows?.length === 0">
-              <TableCell :colspan="columns.length" class="h-24 text-center">
+            <TableRow v-if="filteredData.length === 0">
+              <TableCell colspan="9" class="py-6 text-center text-gray-500">
                 No results found.
               </TableCell>
             </TableRow>
+
             <TableRow
-              v-for="(row, index) in table.getRowModel().rows"
-              :key="row.id"
-              :class="index % 2 === 0 ? 'bg-white' : 'bg-gray-50'"
+              v-for="record in filteredData"
+              :key="record.id"
+              class="hover:bg-gray-50"
             >
-              <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id">
-                <FlexRender
-                  :render="cell.column.columnDef.cell"
-                  :props="cell.getContext()"
-                />
+              <TableCell class="font-medium">{{ record.invoice_no }}</TableCell>
+              <TableCell>{{ record.service_type }}</TableCell>
+              <TableCell class="font-medium">
+                {{ record.currency }} {{ record.amount.toLocaleString() }}
+              </TableCell>
+              <TableCell>{{ record.payment_date || '—' }}</TableCell>
+              <TableCell>
+                <Badge
+                  :variant="getStatusVariant(record.status)"
+                  class="px-2 py-1"
+                >
+                  {{ record.status }}
+                </Badge>
+              </TableCell>
+              <TableCell>{{ record.franchise || '—' }}</TableCell>
+              <TableCell>{{ record.branch || '—' }}</TableCell>
+              <TableCell>{{ record.payment_option || '—' }}</TableCell>
+              <TableCell>
+                <Button
+                  size="sm"
+                  variant="default"
+                  @click="viewRevenue(record)"
+                >
+                  View
+                </Button>
               </TableCell>
             </TableRow>
           </TableBody>
@@ -350,75 +276,141 @@ const expenseTrendData = [
       </div>
 
       <!-- Pagination -->
-      <div class="mt-4 flex items-center justify-between">
-        <div class="text-sm text-gray-600">
-          Showing
-          {{
-            table.getState().pagination.pageIndex *
-              table.getState().pagination.pageSize +
-            1
-          }}
-          to
-          {{
-            Math.min(
-              (table.getState().pagination.pageIndex + 1) *
-                table.getState().pagination.pageSize,
-              filteredData.length,
-            )
-          }}
-          of {{ filteredData.length }} results
-        </div>
-        <div class="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            @click="table.previousPage()"
-            :disabled="!table.getCanPreviousPage()"
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            @click="table.nextPage()"
-            :disabled="!table.getCanNextPage()"
-          >
-            Next
-          </Button>
-        </div>
+      <div class="flex items-center justify-between pt-4">
+        <span class="text-sm text-gray-600">
+          Showing {{ paginator.from || 0 }} to {{ paginator.to || 0 }} of
+          {{ paginator.total }} entries
+        </span>
+
+        <Pagination
+          :items-per-page="paginator.per_page"
+          :total="paginator.total"
+          :default-page="paginator.current_page"
+          class="w-auto"
+        >
+          <PaginationContent>
+            <PaginationPrevious
+              :disabled="!paginator.prev_page_url"
+              @click="goToPage(paginator.prev_page_url)"
+            />
+
+            <template v-for="(link, index) in paginationLinks" :key="index">
+              <PaginationItem
+                v-if="!isNaN(Number(link.label))"
+                :value="Number(link.label)"
+              >
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  :class="{ 'bg-gray-100': link.active }"
+                  :disabled="!link.url"
+                  @click="goToPage(link.url)"
+                >
+                  {{ link.label }}
+                </Button>
+              </PaginationItem>
+              <PaginationEllipsis v-else-if="link.label.includes('...')" />
+            </template>
+
+            <PaginationNext
+              :disabled="!paginator.next_page_url"
+              @click="goToPage(paginator.next_page_url)"
+            />
+          </PaginationContent>
+        </Pagination>
       </div>
 
       <!-- Charts Section -->
       <div class="grid gap-6 md:grid-cols-2">
-        <!-- Revenue vs Expenses Chart -->
         <Card>
-          <CardHeader>
-            <CardTitle>Revenue Breakdown</CardTitle>
-          </CardHeader>
+          <CardHeader
+            ><CardTitle>Revenue Breakdown by Type</CardTitle></CardHeader
+          >
           <CardContent>
-            <!-- <RevenueBreakDownPieChart /> -->
             <RevenueBreakDownPieChart
-              :data="expenseBreakdownData"
+              :data="revenueServiceTypeBreakdownData"
               category="total"
-              title="Monthly Revenue"
+              title="Revenue"
             />
           </CardContent>
         </Card>
 
-        <!-- Net Profit Trend Chart -->
         <Card>
-          <CardHeader>
-            <CardTitle>Net Profit Trend</CardTitle>
-          </CardHeader>
+          <CardHeader
+            ><CardTitle
+              >Revenue Breakdown by Payment Options</CardTitle
+            ></CardHeader
+          >
           <CardContent>
-            <RevenueTrendSparkLine
-              :data="expenseTrendData"
-              :colors="['#3b82f6']"
-              :y-formatter="(val) => `$ ${val.toFixed(2)}`"
+            <RevenuePaymentOptionsBreakDownPieChart
+              :data="revenueByPaymentOption"
+              category="total"
+              title="Revenue"
             />
           </CardContent>
         </Card>
       </div>
+      <Card>
+        <CardHeader><CardTitle>Net Profit Trend</CardTitle></CardHeader>
+        <CardContent>
+          <RevenueTrendSparkLine
+            :data="
+              revenueTrendData.map((item) => ({
+                year: item.year,
+                value: item.revenue,
+              }))
+            "
+            label="Revenue"
+            :colors="['#3b82f6']"
+            :y-formatter="
+              (val) =>
+                `₱ ${val.toLocaleString(undefined, { minimumFractionDigits: 2 })}`
+            "
+          />
+        </CardContent>
+      </Card>
     </div>
+
+    <Dialog v-model:open="dialogOpen">
+      <DialogContent class="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Revenue Details</DialogTitle>
+          <DialogDescription>
+            Detailed information for invoice
+            <strong>{{ selectedRevenue?.invoice_no }}</strong
+            >.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div class="mt-2 space-y-2">
+          <p><strong>Invoice No:</strong> {{ selectedRevenue?.invoice_no }}</p>
+          <p>
+            <strong>Service Type:</strong> {{ selectedRevenue?.service_type }}
+          </p>
+          <p>
+            <strong>Amount:</strong> {{ selectedRevenue?.currency }}
+            {{ selectedRevenue?.amount.toLocaleString() }}
+          </p>
+          <p>
+            <strong>Payment Date:</strong>
+            {{ selectedRevenue?.payment_date || '—' }}
+          </p>
+          <p><strong>Status:</strong> {{ selectedRevenue?.status || '—' }}</p>
+          <p>
+            <strong>Franchise:</strong> {{ selectedRevenue?.franchise || '—' }}
+          </p>
+          <p><strong>Branch:</strong> {{ selectedRevenue?.branch || '—' }}</p>
+          <p>
+            <strong>Payment Option:</strong>
+            {{ selectedRevenue?.payment_option || '—' }}
+          </p>
+          <p><strong>Notes:</strong> {{ selectedRevenue?.notes || '—' }}</p>
+        </div>
+
+        <DialogFooter>
+          <Button @click="dialogOpen = false">Close</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </AppLayout>
 </template>

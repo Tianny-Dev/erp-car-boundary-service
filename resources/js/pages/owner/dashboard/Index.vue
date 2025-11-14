@@ -7,44 +7,71 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import finance from '@/routes/finance';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
+import {
+  CarTaxiFront,
+  CreditCard,
+  DollarSign,
+  Settings,
+  User,
+} from 'lucide-vue-next';
 
+interface Props {
+  activeVehicles: number;
+  pendingVehicles: number;
+
+  activeDrivers: number;
+  pendingDrivers: number;
+
+  dailyEarnings: number;
+  yesterdayEarnings: number;
+
+  pendingBoundaryDueCount: number;
+
+  vehiclesUnderMaintenance: number;
+
+  franchiseExists: boolean;
+
+  revenueExpensesData: { date: string; Revenue: number; Expenses: number }[];
+
+  netProfitData: { year: number; 'Growth Rate': number }[];
+}
+
+// Props from controller
+const {
+  activeVehicles,
+  pendingVehicles,
+
+  activeDrivers,
+  pendingDrivers,
+
+  dailyEarnings,
+  yesterdayEarnings,
+
+  pendingBoundaryDueCount,
+
+  vehiclesUnderMaintenance,
+
+  franchiseExists,
+  revenueExpensesData,
+  netProfitData,
+} = defineProps<Props>();
+
+// Breadcrumbs
 const breadcrumbs: BreadcrumbItem[] = [
-  {
-    title: 'Dashboard',
-    href: finance.dashboard().url,
-  },
+  { title: 'Dashboard', href: finance.dashboard().url },
 ];
 
-const data = [
-  { name: 'Jan', Revenue: 1300, Expenses: 700 },
-  { name: 'Feb', Revenue: 1100, Expenses: 800 },
-  { name: 'Mar', Revenue: 1500, Expenses: 900 },
-  { name: 'Apr', Revenue: 1800, Expenses: 1000 },
-  { name: 'May', Revenue: 1700, Expenses: 1200 },
-  { name: 'Jun', Revenue: 1900, Expenses: 1300 },
-  { name: 'Jul', Revenue: 2100, Expenses: 1500 },
-];
-
-const revenueExpensesData = [
-  { name: 'Jan', expenses: 1200, revenue: 1800 },
-  { name: 'Feb', expenses: 1500, revenue: 1900 },
-  { name: 'Mar', expenses: 1700, revenue: 2000 },
-  { name: 'Apr', expenses: 1300, revenue: 1600 },
-  { name: 'May', expenses: 1400, revenue: 1700 },
-  { name: 'Jun', expenses: 1800, revenue: 2100 },
-  { name: 'Jul', expenses: 1600, revenue: 2200 },
-];
-
-const netProfitData = [
-  { year: 2018, 'Growth Rate': 2.45 },
-  { year: 2019, 'Growth Rate': 2.47 },
-  { year: 2020, 'Growth Rate': 2.48 },
-  { year: 2021, 'Growth Rate': 2.51 },
-  { year: 2022, 'Growth Rate': 2.55 },
-  { year: 2023, 'Growth Rate': 2.58 },
-  { year: 2024, 'Growth Rate': 2.6 },
-  { year: 2025, 'Growth Rate': 2.63 },
-];
+// Map backend data for chart components
+const mappedRevenueExpensesData = revenueExpensesData.map((item) => ({
+  // For Bar Chart
+  name: item.date,
+  revenue: item.Revenue,
+  expenses: item.Expenses,
+  // For Area Chart
+  date: item.date,
+  Revenue: item.Revenue,
+  Expenses: item.Expenses,
+}));
 </script>
 
 <template>
@@ -59,108 +86,109 @@ const netProfitData = [
         <h1 class="mb-2 text-3xl font-bold">Dashboard</h1>
         <p class="text-gray-600">Central Hub for Tracking and Management</p>
       </div>
-      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+
+      <!-- No Franchise -->
+      <div v-if="!franchiseExists">
+        <p>No franchise assigned. Dashboard data is not available.</p>
+      </div>
+
+      <!-- Stats Cards -->
+      <div v-else class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <!-- Active Vehicles -->
         <Card>
           <CardHeader
             class="flex flex-row items-center justify-between space-y-0 pb-2"
           >
-            <CardTitle class="text-sm font-medium">
-              Total Revenue (Today)</CardTitle
+            <CardTitle class="text-sm font-medium"
+              >My Active Vehicles</CardTitle
             >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              class="h-4 w-4 text-muted-foreground"
-            >
-              <path
-                d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"
-              />
-            </svg>
+            <CarTaxiFront class="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div class="text-2xl font-bold">₱80,000</div>
-            <p class="text-xs text-muted-foreground">+20.1% from yesterday</p>
+            <div class="text-2xl font-bold">{{ activeVehicles }}</div>
+            <p class="text-xs text-muted-foreground">
+              {{ pendingVehicles }} pending vehicles
+            </p>
           </CardContent>
         </Card>
+
+        <!-- Active Drivers -->
         <Card>
           <CardHeader
             class="flex flex-row items-center justify-between space-y-0 pb-2"
           >
-            <CardTitle class="text-sm font-medium"> Subscriptions </CardTitle>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              class="h-4 w-4 text-muted-foreground"
-            >
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-            </svg>
+            <CardTitle class="text-sm font-medium">My Active Drivers</CardTitle>
+            <User class="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div class="text-2xl font-bold">+2350</div>
-            <p class="text-xs text-muted-foreground">+180.1% from last month</p>
+            <div class="text-2xl font-bold">{{ activeDrivers }}</div>
+            <p class="text-xs text-muted-foreground">
+              {{ pendingDrivers }} unassigned drivers
+            </p>
           </CardContent>
         </Card>
+
+        <!-- Daily Earnings -->
         <Card>
           <CardHeader
             class="flex flex-row items-center justify-between space-y-0 pb-2"
           >
-            <CardTitle class="text-sm font-medium"> Sales </CardTitle>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              class="h-4 w-4 text-muted-foreground"
-            >
-              <rect width="20" height="14" x="2" y="5" rx="2" />
-              <path d="M2 10h20" />
-            </svg>
+            <CardTitle class="text-sm font-medium">Daily Earnings</CardTitle>
+            <DollarSign class="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div class="text-2xl font-bold">+12,234</div>
-            <p class="text-xs text-muted-foreground">+19% from last month</p>
+            <div class="text-2xl font-bold">
+              ₱{{ dailyEarnings.toLocaleString() }}
+            </div>
+            <p class="text-xs text-muted-foreground">
+              {{
+                (
+                  ((dailyEarnings - yesterdayEarnings) /
+                    (yesterdayEarnings || 1)) *
+                  100
+                ).toFixed(0)
+              }}% from yesterday
+            </p>
           </CardContent>
         </Card>
+
+        <!-- Pending Boundary Due -->
         <Card>
           <CardHeader
             class="flex flex-row items-center justify-between space-y-0 pb-2"
           >
-            <CardTitle class="text-sm font-medium"> Active Now </CardTitle>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              class="h-4 w-4 text-muted-foreground"
+            <CardTitle class="text-sm font-medium"
+              >Pending Boundary Due</CardTitle
             >
-              <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-            </svg>
+            <CreditCard class="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div class="text-2xl font-bold">+573</div>
-            <p class="text-xs text-muted-foreground">+201 since last hour</p>
+            <div class="text-2xl font-bold">
+              {{ pendingBoundaryDueCount }}
+            </div>
+            <p class="text-xs text-muted-foreground">
+              contracts pending as of {{ new Date().toLocaleDateString() }}
+            </p>
+          </CardContent>
+        </Card>
+
+        <!-- Vehicles Under Maintenance -->
+        <Card>
+          <CardHeader
+            class="flex flex-row items-center justify-between space-y-0 pb-2"
+          >
+            <CardTitle class="text-sm font-medium"
+              >Vehicles Under Maintenance</CardTitle
+            >
+            <Settings class="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div class="text-2xl font-bold">{{ vehiclesUnderMaintenance }}</div>
           </CardContent>
         </Card>
       </div>
 
+      <!-- Area Chart Overview -->
       <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card class="col-span-7">
           <CardHeader>
@@ -168,7 +196,7 @@ const netProfitData = [
           </CardHeader>
           <CardContent class="pl-2">
             <RevenueVsExpensesAreaChart
-              :data="data"
+              :data="mappedRevenueExpensesData"
               :categories="['Expenses', 'Revenue']"
               :colors="['#005dcf', '#33cc66']"
             />
@@ -178,17 +206,17 @@ const netProfitData = [
 
       <!-- Charts Section -->
       <div class="grid gap-6 md:grid-cols-2">
-        <!-- Revenue vs Expenses Chart -->
+        <!-- Revenue vs Expenses Bar Chart -->
         <Card>
           <CardHeader>
             <CardTitle>Revenue vs Expenses</CardTitle>
           </CardHeader>
           <CardContent>
             <RevenueVsExpensesBarChart
-              :data="revenueExpensesData"
-              :colors="['#ef4444', '#22c55e']"
+              :data="mappedRevenueExpensesData"
               :categories="['expenses', 'revenue']"
-              :y-formatter="(val) => `$ ${val.toLocaleString()}`"
+              :colors="['#ef4444', '#22c55e']"
+              :y-formatter="(val) => `₱${val.toLocaleString()}`"
             />
           </CardContent>
         </Card>
@@ -202,7 +230,7 @@ const netProfitData = [
             <NetProfitTrendSparkLine
               :data="netProfitData"
               :colors="['#3b82f6']"
-              :y-formatter="(val) => `$ ${val.toFixed(2)}`"
+              :y-formatter="(val) => `₱${val.toLocaleString()}`"
             />
           </CardContent>
         </Card>
