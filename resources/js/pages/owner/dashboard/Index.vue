@@ -25,6 +25,9 @@ interface Props {
   dailyEarnings: number;
   yesterdayEarnings: number;
 
+  dailyTrips: number;
+  yesterdayTrips: number;
+
   pendingBoundaryDueCount: number;
 
   vehiclesUnderMaintenance: number;
@@ -47,6 +50,9 @@ const {
   dailyEarnings,
   yesterdayEarnings,
 
+  dailyTrips,
+  yesterdayTrips,
+
   pendingBoundaryDueCount,
 
   vehiclesUnderMaintenance,
@@ -55,6 +61,8 @@ const {
   revenueExpensesData,
   netProfitData,
 } = defineProps<Props>();
+
+console.log(yesterdayTrips);
 
 // Breadcrumbs
 const breadcrumbs: BreadcrumbItem[] = [
@@ -147,6 +155,31 @@ const mappedRevenueExpensesData = revenueExpensesData.map((item) => ({
                     (yesterdayEarnings || 1)) *
                   100
                 ).toFixed(0)
+              }}% from yesterday
+            </p>
+          </CardContent>
+        </Card>
+
+        <!-- Daily Trips -->
+        <Card>
+          <CardHeader
+            class="flex flex-row items-center justify-between space-y-0 pb-2"
+          >
+            <CardTitle class="text-sm font-medium">Total Trips Today</CardTitle>
+            <CarTaxiFront class="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div class="text-2xl font-bold">
+              {{ new Intl.NumberFormat().format(dailyTrips) }}
+            </div>
+            <p class="text-xs text-muted-foreground">
+              {{
+                yesterdayTrips
+                  ? (
+                      ((dailyTrips - yesterdayTrips) / yesterdayTrips) *
+                      100
+                    ).toFixed(0)
+                  : 0
               }}% from yesterday
             </p>
           </CardContent>
