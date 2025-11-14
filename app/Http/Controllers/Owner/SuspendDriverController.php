@@ -21,8 +21,13 @@ class SuspendDriverController extends Controller
             abort(404, 'Franchise not found');
         }
 
+        $statusQuery = ['active', 'inactive', 'suspended', 'retired'];
+
         $drivers = $franchise->drivers()
             ->with(['user', 'status'])
+            ->whereHas('status', function ($query) use ($statusQuery) {
+                $query->whereIn('name', $statusQuery);
+            })
             ->paginate(10)
             ->through(fn($driver) => [
                 'id' => $driver->id,
