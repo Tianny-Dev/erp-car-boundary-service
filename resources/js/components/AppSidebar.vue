@@ -29,6 +29,7 @@ import {
   Octagon,
   Users,
   Wrench,
+  XSquare,
 } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import NavMain from './NavMain.vue';
@@ -114,11 +115,18 @@ const navConfig: Record<string, NavItem[]> = {
     },
 
     {
-      title: 'Driver Management',
+      title: 'Assign To Franchise',
       href: owner.drivers.index(),
       icon: Users,
-      group: 'Management',
+      group: 'Driver Management',
     },
+    {
+      title: 'Suspend Drivers',
+      href: owner.suspendDrivers.index(),
+      icon: XSquare,
+      group: 'Driver Management',
+    },
+
     {
       title: 'Vehicle Management',
       href: owner.vehicles.index(),
