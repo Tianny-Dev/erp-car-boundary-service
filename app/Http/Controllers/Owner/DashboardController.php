@@ -71,6 +71,9 @@ class DashboardController extends Controller
         if (!$franchiseId) return 0.0;
 
         return Revenue::where('franchise_id', $franchiseId)
+            ->whereHas('status', function ($query) {
+                $query->where('name', 'paid');
+            })
             ->whereDate('created_at', $date)
             ->sum('amount');
     }
