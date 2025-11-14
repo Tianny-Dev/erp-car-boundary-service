@@ -319,19 +319,30 @@ onBeforeUnmount(() => {
           </TableHeader>
 
           <TableBody>
-            <TableRow
-              v-for="(rev, index) in filteredRevenues"
-              :key="rev.date || rev.start_date || rev.month"
-            >
-              <TableCell>{{ index + 1 }}</TableCell>
-              <TableCell>{{ formatRevenueDate(rev) }}</TableCell>
-              <TableCell>
-                ₱{{
-                  Number(rev.total).toLocaleString('en-US', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })
-                }}
+            <!-- If there are filtered revenues -->
+            <template v-if="filteredRevenues.length > 0">
+              <TableRow
+                v-for="(rev, index) in filteredRevenues"
+                :key="rev.date || rev.start_date || rev.month"
+                class="transition hover:bg-gray-50"
+              >
+                <TableCell>{{ index + 1 }}</TableCell>
+                <TableCell>{{ formatRevenueDate(rev) }}</TableCell>
+                <TableCell>
+                  ₱{{
+                    Number(rev.total).toLocaleString('en-US', {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })
+                  }}
+                </TableCell>
+              </TableRow>
+            </template>
+
+            <!-- If no filtered revenues -->
+            <TableRow v-else>
+              <TableCell colspan="3" class="py-4 text-center text-gray-500">
+                No {{ period }} found for this franchise.
               </TableCell>
             </TableRow>
           </TableBody>
