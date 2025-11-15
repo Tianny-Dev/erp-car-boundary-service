@@ -125,6 +125,13 @@ const navConfig: Record<string, NavItem[]> = {
       group: 'Overview',
     },
 
+    // {
+    //   title: 'Payout',
+    //   href: owner.payout(),
+    //   icon: Banknote,
+    //   group: 'Payment',
+    // },
+
     {
       title: 'Driver Management',
       href: owner.drivers.index(),
