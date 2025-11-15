@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\SuperAdmin\DriverHistoryController;
 use App\Http\Controllers\SuperAdmin\RevenuesController;
 use App\Http\Controllers\SuperAdmin\TransactionController;
 use Illuminate\Support\Facades\Route;
@@ -25,6 +26,7 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
     Route::get('/transaction', [TransactionController::class, 'index'])->name('transaction');
     Route::get('/transaction/{id}', [TransactionController::class, 'show'])->name('transaction.show');
 
+    Route::get('/driverlist', [DriverHistoryController::class, 'index'])->name('driverlist');
 
     // Export All Route must be before the generic ID route
     Route::get('/revenues/all/export/{format}', [RevenuesController::class, 'exportAll'])->name('revenues.exportAll'); // ADDED & MOVED
