@@ -44,7 +44,7 @@ class VehicleFactory extends Factory
         }
 
         return [
-            'status_id'    => $this->faker->numberBetween(6, 9), // pending, overdue, cancelled, paid
+            'status_id'    => $this->faker->randomElement([1, 5]),
             'franchise_id' => $franchiseId,
             'branch_id'    => $branchId,
             'driver_id'    => $driverId,
