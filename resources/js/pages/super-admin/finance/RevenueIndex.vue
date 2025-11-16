@@ -27,15 +27,17 @@ const props = defineProps<{
     tab: 'franchise' | 'branch';
     franchise: string | null;
     branch: string | null;
+    service: 'Trips' | 'Boundary';
+    period: 'daily' | 'weekly' | 'monthly';
   };
 }>();
 
 // --- Define RevenueRow Interface ---
 interface RevenueRow {
-  id: number;
+  id: number | null;
   franchise_name?: string;
   branch_name?: string;
-  invoice_no: string;
+  invoice_no?: string;
   amount: number;
   payment_date: string;
   service_type: string;
@@ -50,9 +52,11 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 // --- 4. Setup Reactive State for Filters ---
-const activeTab = ref(props.filters.tab || 'franchise');
+const activeTab = ref(props.filters.tab);
 const selectedFranchise = ref(props.filters.franchise || 'all');
 const selectedBranch = ref(props.filters.branch || 'all');
+const selectedService = ref(props.filters.service);
+const selectedPeriod = ref(props.filters.period);
 
 // --- 5. Computed Properties for UI ---
 const title = computed(() => {
@@ -61,12 +65,10 @@ const title = computed(() => {
     : 'Branch Revenues';
 });
 
-// Computed list for the select dropdown based on the active tab
 const selectOptions = computed(() => {
   return activeTab.value === 'franchise' ? props.franchises : props.branches;
 });
 
-// A computed v-model for the *single* select component
 const selectedFilter = computed({
   get() {
     return activeTab.value === 'franchise'
@@ -92,18 +94,26 @@ const formatCurrency = (amount: number): string => {
 
 // Computed columns for the data table
 const revenueColumns = computed<ColumnDef<RevenueRow>[]>(() => {
-  const baseColumns: ColumnDef<RevenueRow>[] = [
+  const isDaily = selectedPeriod.value === 'daily';
+  const isFranchiseTab = activeTab.value === 'franchise';
+
+  const columns: ColumnDef<RevenueRow>[] = [
+    // Conditionally add 'Invoice #' only for daily
+    ...(isDaily
+      ? [
+          {
+            accessorKey: 'invoice_no',
+            header: 'Invoice #',
+          } as ColumnDef<RevenueRow>,
+        ]
+      : []),
     {
-      accessorKey: 'invoice_no',
-      header: 'Invoice #',
+      accessorKey: isFranchiseTab ? 'franchise_name' : 'branch_name',
+      header: isFranchiseTab ? 'Franchise' : 'Branch',
     },
-    // Conditionally add the correct column
-    activeTab.value === 'franchise'
-      ? { accessorKey: 'franchise_name', header: 'Franchise' }
-      : { accessorKey: 'branch_name', header: 'Branch' },
     {
       accessorKey: 'payment_date',
-      header: 'Date',
+      header: isDaily ? 'Date' : 'Period',
     },
     {
       accessorKey: 'service_type',
@@ -111,59 +121,56 @@ const revenueColumns = computed<ColumnDef<RevenueRow>[]>(() => {
     },
     {
       accessorKey: 'amount',
-      header: 'Amount',
-      cell: (info) => {
-        return formatCurrency(info.getValue() as number);
-      },
+      header: isDaily ? 'Amount' : 'Total Amount',
+      cell: (info) => formatCurrency(info.getValue() as number),
     },
   ];
-  return baseColumns;
+
+  return columns;
 });
 
 // --- Watchers to Update URL ---
 const updateFilters = () => {
-  const queryParams: {
-    tab: string;
-    franchise?: string;
-    branch?: string;
-  } = {
+  const queryParams: Record<string, string> = {
     tab: activeTab.value,
+    service: selectedService.value,
+    period: selectedPeriod.value,
   };
 
-  // **This is the crucial part for "no conflicts"**
-  // Only add the 'franchise' param if the tab is 'franchise'
   if (activeTab.value === 'franchise' && selectedFranchise.value !== 'all') {
     queryParams.franchise = selectedFranchise.value;
-  }
-  // Only add the 'branch' param if the tab is 'branch'
-  else if (activeTab.value === 'branch' && selectedBranch.value !== 'all') {
+  } else if (activeTab.value === 'branch' && selectedBranch.value !== 'all') {
     queryParams.branch = selectedBranch.value;
   }
 
   router.get(superAdmin.revenue.index().url, queryParams, {
     preserveScroll: true,
-    replace: true, // Doesn't pollute browser history
+    replace: true,
   });
 };
 
-// Watch for tab changes (instant update)
+// Watch for tab changes
 watch(activeTab, (newTab) => {
-  // When tab switches, reset the *other* filter to 'all'
-  // This helps keep the URL clean
   if (newTab === 'franchise') {
     selectedBranch.value = 'all';
   } else {
     selectedFranchise.value = 'all';
   }
-  updateFilters();
+  // The main watcher will handle the update
 });
 
-// Watch for select filter changes (debounced)
+// Watch all filters for changes (debounced)
 watch(
-  [selectedFranchise, selectedBranch],
+  [
+    selectedFranchise,
+    selectedBranch,
+    activeTab,
+    selectedService,
+    selectedPeriod,
+  ],
   debounce(() => {
     updateFilters();
-  }, 300), // Debounce to avoid firing on every keystroke/click
+  }, 300),
 );
 </script>
 
@@ -199,26 +206,58 @@ watch(
           <h2 class="font-mono text-xl font-semibold">
             {{ title }}
           </h2>
+          <div class="flex gap-4">
+            <Select v-model="selectedService">
+              <SelectTrigger class="w-[150px] cursor-pointer">
+                <SelectValue placeholder="Filter by..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Trips" class="cursor-pointer">
+                  Trips
+                </SelectItem>
+                <SelectItem value="Boundary" class="cursor-pointer">
+                  Boundary
+                </SelectItem>
+              </SelectContent>
+            </Select>
 
-          <Select v-model="selectedFilter">
-            <SelectTrigger class="w-[240px] cursor-pointer">
-              <SelectValue placeholder="Filter by..." />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all" class="cursor-pointer">
-                All
-                {{ activeTab === 'franchise' ? 'Franchises' : 'Branches' }}
-              </SelectItem>
-              <SelectItem
-                class="cursor-pointer"
-                v-for="option in selectOptions"
-                :key="option.id"
-                :value="String(option.id)"
-              >
-                {{ option.name }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
+            <Select v-model="selectedPeriod">
+              <SelectTrigger class="w-[150px] cursor-pointer">
+                <SelectValue placeholder="Filter by..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="daily" class="cursor-pointer">
+                  Daily
+                </SelectItem>
+                <SelectItem value="weekly" class="cursor-pointer">
+                  Weekly
+                </SelectItem>
+                <SelectItem value="monthly" class="cursor-pointer">
+                  Monthly
+                </SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select v-model="selectedFilter">
+              <SelectTrigger class="w-[240px] cursor-pointer">
+                <SelectValue placeholder="Filter by..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all" class="cursor-pointer">
+                  All
+                  {{ activeTab === 'franchise' ? 'Franchises' : 'Branches' }}
+                </SelectItem>
+                <SelectItem
+                  class="cursor-pointer"
+                  v-for="option in selectOptions"
+                  :key="option.id"
+                  :value="String(option.id)"
+                >
+                  {{ option.name }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <DataTable
