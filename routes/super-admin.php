@@ -27,6 +27,7 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
     Route::get('/transaction/{id}', [TransactionController::class, 'show'])->name('transaction.show');
 
     Route::get('/driverlist', [DriverHistoryController::class, 'index'])->name('driverlist');
+    Route::get('/driverlist/{id}', [DriverHistoryController::class, 'show'])->name('driverlist.show');
 
     // Export All Route must be before the generic ID route
     Route::get('/revenues/all/export/{format}', [RevenuesController::class, 'exportAll'])->name('revenues.exportAll'); // ADDED & MOVED
@@ -37,6 +38,8 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
 
     // Export routes
     Route::get('/revenues/{id}/export/{format}', [RevenuesController::class, 'export'])->name('revenues.export');
+
+
 
     Route::get('/driver', [DriverController::class, 'index'])->name('driver.index');
     Route::get('/driver/{driver}', [DriverController::class, 'show'])->name('driver.show');

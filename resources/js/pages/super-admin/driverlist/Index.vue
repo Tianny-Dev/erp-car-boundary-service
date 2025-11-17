@@ -76,8 +76,8 @@ defineProps<{
               </TableCell>
               <TableCell class="text-center">
                 <div class="flex justify-center gap-3">
-                  <a :href="`/super-admin/transaction/${franchise.id}`">
-                    <Button> View Drivers List </Button>
+                  <a :href="`/super-admin/driverlist/${franchise.id}`">
+                    <Button> View Driver List </Button>
                   </a>
                 </div>
               </TableCell>
