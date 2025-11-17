@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Revenue extends Model
 {
@@ -34,5 +35,23 @@ class Revenue extends Model
     public function paymentOption(): BelongsTo
     {
         return $this->belongsTo(PaymentOption::class);
+    }
+
+    // relationship to boundary contract, one to many
+    public function boundaryContract(): BelongsTo
+    {
+        return $this->belongsTo(BoundaryContract::class);
+    }
+
+    // relationship to revenue breakdowns, one to many
+    public function revenueBreakdowns(): HasMany
+    {
+        return $this->hasMany(RevenueBreakdown::class);
+    }
+
+    // relationship to routes, one to many
+    public function routes(): HasMany
+    {
+        return $this->hasMany(Route::class);
     }
 }

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class BoundaryContract extends Model
 {
@@ -40,5 +41,17 @@ class BoundaryContract extends Model
     public function branch(): BelongsTo
     {
         return $this->belongsTo(Branch::class);
+    }
+
+    // relationship to driver, one to many
+    public function driver(): BelongsTo
+    {
+        return $this->belongsTo(UserDriver::class);
+    }
+
+    // relationship to revenue, one to many
+    public function revenues(): HasMany
+    {
+        return $this->hasMany(Revenue::class);
     }
 }

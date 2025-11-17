@@ -12,6 +12,20 @@ class UserDriver extends Model
 {
     use HasFactory;
 
+    /**
+     * The primary key for the model.
+     *
+     * @var string
+     */
+    protected $primaryKey = 'id';
+
+    /**
+     * Indicates if the model's ID is auto-incrementing.
+     *
+     * @var bool
+     */
+    public $incrementing = false;
+
     protected $fillable = [
         'id',
         'status_id',
@@ -80,5 +94,11 @@ class UserDriver extends Model
     public function ratings(): HasMany
     {
         return $this->hasMany(Rating::class);
+    }
+
+    // relationship to boundary contracts, one to many
+    public function boundaryContracts(): HasMany
+    {
+        return $this->hasMany(BoundaryContract::class);
     }
 }

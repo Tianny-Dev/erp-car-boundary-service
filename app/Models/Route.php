@@ -37,6 +37,12 @@ class Route extends Model
         return $this->belongsTo(Vehicle::class);
     }
 
+    // relationship to revenue, one to many
+    public function revenue(): BelongsTo
+    {
+        return $this->belongsTo(Revenue::class);
+    }
+
     // relationship to ratings, one to many
     public function ratings(): HasMany
     {
