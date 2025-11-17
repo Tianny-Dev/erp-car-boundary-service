@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\SuperAdmin\DriverHistoryController;
 use App\Http\Controllers\SuperAdmin\RevenuesController;
+use App\Http\Controllers\SuperAdmin\RevenueController;
 use App\Http\Controllers\SuperAdmin\TransactionController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SuperAdmin\DashboardController;
@@ -22,6 +23,8 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
 
     // Revenues
     Route::get('/revenues', [RevenuesController::class, 'index'])->name('revenues');
+    Route::get('/revenue', [RevenueController::class, 'index'])->name('revenue.index');
+    Route::get('/revenue/export', [RevenueController::class, 'export'])->name('revenue.export');
 
     Route::get('/transaction', [TransactionController::class, 'index'])->name('transaction');
     Route::get('/transaction/{id}', [TransactionController::class, 'show'])->name('transaction.show');

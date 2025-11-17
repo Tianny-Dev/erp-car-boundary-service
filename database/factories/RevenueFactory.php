@@ -22,32 +22,48 @@ class RevenueFactory extends Factory
     public function definition(): array
     {
         $serviceTypes = ['Trips', 'Boundary'];
+        $serviceType = $this->faker->randomElement($serviceTypes);
 
         // Randomly decide whether to assign franchise or branch
         $assignFranchise = $this->faker->boolean;
 
+        $franchiseId = null;
+        $branchId = null;
+        $driverId = null;
+
         if ($assignFranchise) {
-            // Pick a random franchise
             $franchiseId = Franchise::inRandomOrder()->value('id');
-            // Pick a driver that belongs to this franchise
-            $driverId = DB::table('franchise_user_driver')
-                ->where('franchise_id', $franchiseId)
-                ->inRandomOrder()
-                ->value('user_driver_id');
-            $branchId = null;
+
+            // Only assign driver if service type is Trips
+            if ($serviceType === 'Trips') {
+                $driverId = DB::table('franchise_user_driver')
+                    ->where('franchise_id', $franchiseId)
+                    ->inRandomOrder()
+                    ->value('user_driver_id');
+            }
         } else {
-            // Pick a random branch
             $branchId = Branch::inRandomOrder()->value('id');
-            // Pick a driver that belongs to this branch
-            $driverId = DB::table('branch_user_driver')
-                ->where('branch_id', $branchId)
-                ->inRandomOrder()
-                ->value('user_driver_id');
-            $franchiseId = null;
+
+            // Only assign driver if service type is Trips
+            if ($serviceType === 'Trips') {
+                $driverId = DB::table('branch_user_driver')
+                    ->where('branch_id', $branchId)
+                    ->inRandomOrder()
+                    ->value('user_driver_id');
+            }
         }
 
+        // Decide status first
+        $statusId = $this->faker->numberBetween(6, 9); // pending, overdue, paid, cancelled
+        $paymentDate = $statusId === 8 // paid
+        ? $this->faker->dateTimeBetween(
+            now()->startOfWeek(),
+            now()->endOfWeek()
+        )
+        : null;
+
         return [
-            'status_id' => $this->faker->numberBetween(6, 9), // pending, overdue, cancelled, paid
+            'status_id' => $statusId,
             'franchise_id' => $franchiseId,
             'branch_id'    => $branchId,
             'driver_id'    => $driverId,
@@ -55,11 +71,8 @@ class RevenueFactory extends Factory
             'invoice_no' => 'INV-' . Str::upper(Str::random(6)),
             'amount' => $this->faker->randomFloat(2, 100, 5000),
             'currency' => 'PHP',
-            'service_type' => $this->faker->randomElement($serviceTypes),
-            'payment_date' => $this->faker->dateTimeBetween(
-                now()->startOfWeek(),
-                now()->endOfWeek()
-            ),
+            'service_type' => $serviceType,
+            'payment_date' => $paymentDate,
             'notes' => $this->faker->sentence(),
         ];
     }

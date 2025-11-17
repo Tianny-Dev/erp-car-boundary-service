@@ -30,18 +30,14 @@ class VehicleController extends Controller
 
         // 3. Apply conditional filtering based on tab
         if ($tab === 'franchise') {
-            $query->when($request->input('franchise'), function ($q) use ($request) {
-                $q->where('franchise_id', $request->input('franchise'));
-            });
-            // Eager load franchise relationship
-            $query->with('franchise:id,name');
+            $query->whereNotNull('franchise_id')
+                ->when($request->input('franchise'), fn($q) => $q->where('franchise_id', $request->input('franchise')))
+                ->with('franchise:id,name');
 
         } elseif ($tab === 'branch') {
-            $query->when($request->input('branch'), function ($q) use ($request) {
-                $q->where('branch_id', $request->input('branch'));
-            });
-            // Eager load branch relationship
-            $query->with('branch:id,name');
+            $query->whereNotNull('branch_id')
+                ->when($request->input('branch'), fn($q) => $q->where('branch_id', $request->input('branch')))
+                ->with('branch:id,name');
         }
 
         $drivers = $query->get();
