@@ -23,9 +23,7 @@ return new class extends Migration
             $table->string('front_valid_id_picture');
             $table->string('back_valid_id_picture');
             $table->string('cv_attachment');
-            $table->enum('gender', ['Male', 'Female', 'Other', 'Prefer not to say' ])->default('Prefer not to say');
             $table->date('birth_date');
-            $table->unsignedTinyInteger('age');
             $table->timestamps();
         });
     }

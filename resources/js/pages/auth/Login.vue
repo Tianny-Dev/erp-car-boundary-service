@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import AuthBase from '@/layouts/AuthLayout.vue';
-import { home, register } from '@/routes';
+import { home, selectUserType } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 import { Form, Head, Link } from '@inertiajs/vue3';
@@ -23,10 +23,11 @@ const showPassword = ref(false);
 </script>
 
 <template>
+  <!-- Log in to your account -->
   <AuthBase
     text-overlay="Welcome Back, User!"
-    title="Log in to your account"
-    description="Enter your email and password to log in"
+    title="ACCOUNT LOGIN"
+    description="Enter your email and password to log in "
   >
     <Head title="Log in" />
 
@@ -41,7 +42,7 @@ const showPassword = ref(false);
       v-bind="store.form()"
       :reset-on-success="['password']"
       v-slot="{ errors, processing }"
-      class="flex flex-col gap-6"
+      class="flex flex-col gap-2"
     >
       <div class="grid gap-2">
         <Label for="email" class="text-auth-blue">Email address</Label>
@@ -68,17 +69,7 @@ const showPassword = ref(false);
       </div>
 
       <div class="grid gap-2">
-        <div class="flex items-center justify-between">
-          <Label for="password" class="text-auth-blue">Password</Label>
-          <TextLink
-            v-if="canResetPassword"
-            :href="request()"
-            class="text-sm"
-            :tabindex="5"
-          >
-            Forgot password?
-          </TextLink>
-        </div>
+        <Label for="password" class="text-auth-blue">Password</Label>
         <div
           class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
         >
@@ -110,7 +101,17 @@ const showPassword = ref(false);
             </button>
           </div>
         </div>
-        <InputError :message="errors.password" />
+
+        <div class="text-end">
+          <TextLink
+            v-if="canResetPassword"
+            :href="request()"
+            class="text-end text-sm text-auth-blue"
+            :tabindex="5"
+          >
+            Forgot password?
+          </TextLink>
+        </div>
       </div>
 
       <!-- <div class="flex items-center justify-between">
@@ -123,28 +124,36 @@ const showPassword = ref(false);
       <div class="flex flex-col gap-2">
         <Button
           type="submit"
-          class="mt-2 w-full cursor-pointer bg-brand-green hover:bg-brand-green hover:opacity-80"
+          class="text-md mt-2 w-full cursor-pointer bg-brand-green font-bold hover:bg-brand-green hover:opacity-80"
           :tabindex="4"
           :disabled="processing"
           data-test="login-button"
         >
           <Spinner v-if="processing" />
-          Log in
+          LOG IN
         </Button>
 
         <Button
           asChild
-          class="w-full cursor-pointer bg-auth-blue text-white hover:bg-auth-blue hover:opacity-80"
+          class="text-mdw-full cursor-pointer bg-auth-blue font-bold text-white hover:bg-auth-blue hover:opacity-80"
           :tabindex="5"
           :disabled="processing"
         >
-          <Link :href="home()"> Return Home </Link>
+          <Link :href="home()"> RETURN HOME </Link>
         </Button>
       </div>
 
-      <div class="text-center text-sm text-muted-foreground" v-if="canRegister">
-        Don't have an account?
-        <TextLink :href="register()" :tabindex="6">Sign up</TextLink>
+      <div class="pt-3 text-center text-sm" v-if="canRegister">
+        If you don't have an account yet, click
+        <TextLink
+          :href="selectUserType()"
+          :tabindex="6"
+          class="font-bold text-auth-blue underline underline-offset-1"
+        >
+          Register
+        </TextLink>
+
+        to create one and get started.
       </div>
     </Form>
   </AuthBase>

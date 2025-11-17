@@ -28,7 +28,7 @@
           <div
             class="mt-4 bg-gradient-to-l from-transparent via-brand-green/50 to-brand-green p-2 text-2xl text-white"
           >
-            <p>Real-time tracking and afre estimate</p>
+            <p>Real-time tracking and fare estimate</p>
           </div>
 
           <div

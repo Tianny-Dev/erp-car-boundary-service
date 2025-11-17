@@ -1,0 +1,57 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class Revenue extends Model
+{
+    use HasFactory;
+
+    // protected $fillable = [];
+
+    // relationship to status, one to many
+    public function status(): BelongsTo
+    {
+        return $this->belongsTo(Status::class);
+    }
+
+    // relationship to franchise, one to many
+    public function franchise(): BelongsTo
+    {
+        return $this->belongsTo(Franchise::class);
+    }
+
+    // relationship to branch, one to many
+    public function branch(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class);
+    }
+
+    // relationship to payment option, one to many
+    public function paymentOption(): BelongsTo
+    {
+        return $this->belongsTo(PaymentOption::class);
+    }
+
+    // relationship to boundary contract, one to many
+    public function boundaryContract(): BelongsTo
+    {
+        return $this->belongsTo(BoundaryContract::class);
+    }
+
+    // relationship to revenue breakdowns, one to many
+    public function revenueBreakdowns(): HasMany
+    {
+        return $this->hasMany(RevenueBreakdown::class);
+    }
+
+    // relationship to routes, one to many
+    public function routes(): HasMany
+    {
+        return $this->hasMany(Route::class);
+    }
+}

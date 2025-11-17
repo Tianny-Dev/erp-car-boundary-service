@@ -6,7 +6,7 @@
   <div class="px-5 py-10">
     <div class="text-center">
       <p class="text-2xl/[28px] font-bold">
-        OUR MISSIONS TO
+        OUR MISSION TO
         <span class="text-brand-blue"
           >MODERNIZE THE BOUNDARY <br />SYSTEM - ONE RIDE AT A TIME</span
         >
@@ -67,12 +67,12 @@
 
         <div class="mt-4 flex items-center gap-3">
           <img src="@/assets/c2.png" class="h-8" alt="" />
-          <p class="text-xl font-semibold text-brand-blue">Innovation</p>
+          <p class="text-xl font-semibold text-brand-blue">Transparency</p>
         </div>
 
         <div class="mt-4 flex items-center gap-3">
           <img src="@/assets/c3.png" class="h-8" alt="" />
-          <p class="text-xl font-semibold text-brand-blue">Innovation</p>
+          <p class="text-xl font-semibold text-brand-blue">Empowerment</p>
         </div>
 
         <div class="mt-4 flex items-center gap-3">
