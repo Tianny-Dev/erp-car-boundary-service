@@ -14,12 +14,11 @@ class UserTechnicianFactory extends Factory
     {
         $expertises = ['Mechanical', 'Electrical', 'Battery'];
         $idTypes = ['National ID', 'Passport', 'Driver License', 'Voter ID', 'Unified Multi-Purpose ID', 'TIN ID'];
-        $genders = ['Male', 'Female', 'Other', 'Prefer not to say'];
 
         $birthDate = fake()->dateTimeBetween('-60 years', '-20 years');
 
         return [
-            'status_id' => random_int(1, 8),
+            'status_id' => 1,
             'expertise' => fake()->randomElement($expertises),
             'year_experience' => random_int(1, 30),
             'certificate_prc_no' => fake()->optional()->numerify('PRC-#######'),
@@ -30,7 +29,6 @@ class UserTechnicianFactory extends Factory
             'back_valid_id_picture' => fake()->imageUrl(640, 480, 'id', true),
             'cv_attachment' => fake()->imageUrl(640, 480, 'document', true),
             'birth_date' => $birthDate,
-            'age' => Carbon::parse($birthDate)->age,
         ];
     }
 }

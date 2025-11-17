@@ -12,12 +12,27 @@ class UserDriver extends Model
 {
     use HasFactory;
 
+    /**
+     * The primary key for the model.
+     *
+     * @var string
+     */
+    protected $primaryKey = 'id';
+
+    /**
+     * Indicates if the model's ID is auto-incrementing.
+     *
+     * @var bool
+     */
+    public $incrementing = false;
+
     protected $fillable = [
         'id',
         'status_id',
         'payment_option_id',
-        'license_number',
+        'shift',
         'is_verified',
+        'license_number',
         'license_expiry',
         'front_license_picture',
         'back_license_picture',
@@ -30,7 +45,7 @@ class UserDriver extends Model
     // relationship to user, one to one
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'id');
+        return $this->belongsTo(User::class, 'id', 'id');
     }
 
     // relationship to status, one to many
@@ -60,7 +75,7 @@ class UserDriver extends Model
     // relationship to vehicles, one to many
     public function vehicles(): HasMany
     {
-        return $this->hasMany(Vehicle::class);
+        return $this->hasMany(Vehicle::class, 'driver_id');
     }
 
     // relationship to routes, one to many
@@ -79,5 +94,11 @@ class UserDriver extends Model
     public function ratings(): HasMany
     {
         return $this->hasMany(Rating::class);
+    }
+
+    // relationship to boundary contracts, one to many
+    public function boundaryContracts(): HasMany
+    {
+        return $this->hasMany(BoundaryContract::class);
     }
 }

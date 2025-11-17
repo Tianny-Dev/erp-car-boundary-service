@@ -11,6 +11,20 @@ class UserPassenger extends Model
 {
     use HasFactory;
 
+    /**
+     * The primary key for the model.
+     *
+     * @var string
+     */
+    protected $primaryKey = 'id';
+
+    /**
+     * Indicates if the model's ID is auto-incrementing.
+     *
+     * @var bool
+     */
+    public $incrementing = false;
+
     protected $fillable = [
         'id',
         'status_id',
@@ -18,7 +32,6 @@ class UserPassenger extends Model
         'preferred_language',
         'accessibility_option',
         'birth_date',
-        'age',
     ];
 
     // relationship to user, one to one
@@ -37,6 +50,12 @@ class UserPassenger extends Model
     public function paymentOption(): BelongsTo
     {
         return $this->belongsTo(PaymentOption::class);
+    }
+
+    // relationship to routes, one to many
+    public function routes(): HasMany
+    {
+        return $this->hasMany(Route::class);
     }
 
     // relationship to ratings, one to many

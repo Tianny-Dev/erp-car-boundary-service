@@ -1,145 +1,49 @@
 <script setup lang="ts">
+import Footer from '@/components/landing/Footer.vue';
+import { useNavbar } from '@/composables/navbar';
 import { login, selectUserType } from '@/routes';
 import { Link } from '@inertiajs/vue3';
-import { onMounted, onUnmounted, ref } from 'vue';
 
-// -------------------- Reactive State --------------------
-const isScrolled = ref(false);
-const activeSection = ref<string>('home');
-const observers = ref<IntersectionObserver[]>([]);
-const isMenuOpen = ref(false);
-
-// -------------------- Section IDs --------------------
-const sectionIds = [
-  'about',
-  'works',
-  'franchise',
-  'driver',
-  'technician',
-  'passenger',
-  'testi',
-  'faq',
-  'Terms',
-  'contact',
-] as const;
-
-// -------------------- Helpers --------------------
-const getScrollMargin = (el: HTMLElement): number => {
-  const style = window.getComputedStyle(el);
-  const scrollMarginTop = parseInt(style.scrollMarginTop || '0', 10);
-  return isNaN(scrollMarginTop) ? 0 : scrollMarginTop;
-};
-
-let currentSection = '';
-
-// -------------------- Intersection Observer --------------------
-const handleIntersection: IntersectionObserverCallback = (entries) => {
-  entries.forEach((entry) => {
-    const target = entry.target as HTMLElement;
-    const id = target.id;
-
-    if (entry.isIntersecting && entry.intersectionRatio > 0) {
-      currentSection = id;
-      activeSection.value = id;
-    }
-
-    if (
-      !entry.isIntersecting &&
-      entry.boundingClientRect.top > 0 &&
-      currentSection === id
-    ) {
-      const currentIndex = sectionIds.indexOf(
-        id as (typeof sectionIds)[number],
-      );
-      if (currentIndex > 0) {
-        activeSection.value = sectionIds[currentIndex - 1];
-      } else {
-        activeSection.value = 'home';
-      }
-    }
-  });
-
-  const firstSection = document.getElementById(sectionIds[0]);
-  if (firstSection && window.scrollY < firstSection.offsetTop - 100) {
-    activeSection.value = 'home';
-  }
-};
-
-// -------------------- Lifecycle Hooks --------------------
-let handleHeaderScroll: () => void;
-
-onMounted(() => {
-  handleHeaderScroll = () => {
-    isScrolled.value = window.scrollY > 50;
-  };
-  window.addEventListener('scroll', handleHeaderScroll);
-
-  // Create observer for each section using its scroll margin
-  sectionIds.forEach((id) => {
-    const target = document.getElementById(id);
-    if (!target) return;
-
-    const marginTop = getScrollMargin(target);
-    const rootMargin = `-${marginTop}px 0px -${window.innerHeight - marginTop - 10}px 0px`;
-
-    const observer = new IntersectionObserver(handleIntersection, {
-      root: null,
-      rootMargin,
-      threshold: [0, 0.25, 0.5, 0.75, 1],
-    });
-
-    observer.observe(target);
-    observers.value.push(observer);
-  });
-});
-
-onUnmounted(() => {
-  window.removeEventListener('scroll', handleHeaderScroll);
-  observers.value.forEach((obs) => obs.disconnect());
-});
-
-// -------------------- Click Handler --------------------
-const handleClick = (id: string) => {
-  activeSection.value = id;
-  isMenuOpen.value = false;
-};
+const { isScrolled, activeSection, isMenuOpen, sectionIds, handleClick } =
+  useNavbar();
 </script>
 
 <template>
   <div>
-    <!-- Top Banner -->
+    <!-- Top Banner Start -->
     <div
-      class="mx-auto flex w-full max-w-[1320px] flex-wrap items-center justify-center gap-3 px-3 py-3 text-center md:px-5 lg:justify-between lg:gap-2 lg:px-4 xl:gap-3 xl:px-8"
+      class="mx-auto flex w-full max-w-[1320px] flex-wrap items-center justify-center gap-2 px-3 py-3 text-center md:px-5 lg:justify-between lg:gap-2 lg:px-4 xl:gap-3 xl:px-8"
     >
       <div class="hidden md:block">
-        <p class="text-md text-brand-blue md:text-lg">
+        <p class="text-md text-brand-blue xl:text-lg">
           The Future of Boundary Services Starts Here. Manage, Drive, and Ride.
           All in One System.
         </p>
       </div>
 
-      <div class="flex w-full gap-3 md:w-auto">
+      <div class="flex w-full gap-2 lg:w-auto xl:gap-3">
         <button
-          class="flex-1 rounded-md bg-brand-blue px-7 py-2 whitespace-nowrap text-white lg:px-5 xl:px-7"
+          class="flex-1 rounded-md bg-brand-blue px-2 py-2 whitespace-nowrap text-white lg:px-4 xl:px-7"
         >
           Download App
         </button>
         <Link
           :href="login()"
-          class="flex-1 rounded-md bg-brand-green px-7 py-2 whitespace-nowrap text-white lg:px-5 xl:px-7"
+          class="flex-1 rounded-md bg-brand-green py-2 whitespace-nowrap text-white lg:px-5 xl:px-7"
         >
           Login
         </Link>
         <Link
           :href="selectUserType()"
-          class="flex-1 rounded-md bg-brand-blue px-7 py-2 whitespace-nowrap text-white lg:px-5 xl:px-7"
+          class="flex-1 rounded-md bg-brand-blue py-2 whitespace-nowrap text-white lg:px-4 xl:px-7"
         >
           Register
         </Link>
       </div>
     </div>
+    <!-- Top Banner End -->
 
-    <!-- Header Navigation -->
+    <!-- Header Navigation Start -->
     <div>
       <header
         :class="[
@@ -149,7 +53,7 @@ const handleClick = (id: string) => {
       >
         <!-- Logo -->
         <div>
-          <button class="border-2 border-brand-blue px-4">Logo</button>
+          <img src="@/assets/navlogo.png" class="h-4 w-auto" alt="" />
         </div>
 
         <!-- Burger Button (Mobile Only) -->
@@ -253,168 +157,16 @@ const handleClick = (id: string) => {
         </nav>
       </header>
     </div>
+    <!-- Header Navigation End -->
 
+    <!-- Main Start -->
     <main>
       <slot />
     </main>
+    <!-- Main End -->
 
-    <!-- Start Footer -->
-    <div class="bg-brand-blue py-8">
-      <div class="mx-auto w-full max-w-[1320px] px-3 sm:px-5">
-        <div class="grid grid-cols-12 gap-7">
-          <div class="col-span-12 pe-8 sm:pe-0 lg:col-span-6">
-            <div class="grid items-center gap-5 sm:flex">
-              <div
-                class="grid h-[70px] w-[150px] place-items-center border-1 border-black bg-white text-2xl text-brand-blue"
-              >
-                LOGO
-              </div>
-              <div>
-                <h1 class="text-2xl font-bold text-white">
-                  ERP SYSTEM FOR CAR BOUNDARY SERVICE - PHILIPPINES
-                </h1>
-              </div>
-            </div>
-            <p class="pt-3 text-xl text-white">
-              Empowering Every Ride. Connecting Drivers, Franchisees, and
-              Passengers Through Smart Mobility.
-            </p>
-
-            <div class="pt-4">
-              <div class="dm:gap-4 flex gap-3">
-                <img
-                  src="@/assets/fb.png"
-                  class="h-[48px] rounded-full border-2 border-white"
-                  alt=""
-                />
-                <img
-                  src="@/assets/yt.png"
-                  class="h-[48px] rounded-full border-2 border-white"
-                  alt=""
-                />
-                <img
-                  src="@/assets/instagram.png"
-                  class="h-[48px] rounded-full border-2 border-white"
-                  alt=""
-                />
-                <img
-                  src="@/assets/x.png"
-                  class="h-[48px] rounded-full border-2 border-white"
-                  alt=""
-                />
-                <img
-                  src="@/assets/tiktok.png"
-                  class="h-[48px] rounded-full border-2 border-white"
-                  alt=""
-                />
-              </div>
-            </div>
-          </div>
-
-          <div class="col-span-12 lg:col-span-6 lg:px-10">
-            <h3 class="text-xl font-bold text-white">Quick Links</h3>
-            <div class="grid grid-cols-12 gap-4 pt-3">
-              <div class="col-span-6 sm:col-span-4">
-                <a
-                  href="#"
-                  class="hover:text-brand-yellow after:bg-brand-yellow relative text-lg text-white transition duration-300 ease-in-out after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:transition-all after:duration-300 after:content-[''] hover:after:w-full"
-                >
-                  Home
-                </a>
-
-                <br />
-                <a
-                  href="#about"
-                  class="hover:text-brand-yellow after:bg-brand-yellow relative text-lg text-white transition duration-300 ease-in-out after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:transition-all after:duration-300 after:content-[''] hover:after:w-full"
-                >
-                  About Us</a
-                >
-                <br />
-                <a
-                  href="#works"
-                  class="hover:text-brand-yellow after:bg-brand-yellow relative text-lg text-white transition duration-300 ease-in-out after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:transition-all after:duration-300 after:content-[''] hover:after:w-full"
-                >
-                  How It Works</a
-                >
-
-                <br />
-                <a
-                  href="#franchise"
-                  class="hover:text-brand-yellow after:bg-brand-yellow relative text-lg text-white transition duration-300 ease-in-out after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:transition-all after:duration-300 after:content-[''] hover:after:w-full"
-                >
-                  Franchise</a
-                >
-              </div>
-
-              <div class="col-span-6 sm:col-span-4">
-                <a
-                  href="#driver"
-                  class="hover:text-brand-yellow after:bg-brand-yellow relative text-lg text-white transition duration-300 ease-in-out after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:transition-all after:duration-300 after:content-[''] hover:after:w-full"
-                >
-                  Driver</a
-                >
-                <br />
-
-                <a
-                  href="#technician"
-                  class="hover:text-brand-yellow after:bg-brand-yellow relative text-lg text-white transition duration-300 ease-in-out after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:transition-all after:duration-300 after:content-[''] hover:after:w-full"
-                >
-                  Technician</a
-                >
-                <br />
-
-                <a
-                  href="#passenger"
-                  class="hover:text-brand-yellow after:bg-brand-yellow relative text-lg text-white transition duration-300 ease-in-out after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:transition-all after:duration-300 after:content-[''] hover:after:w-full"
-                >
-                  Passenger</a
-                >
-                <br />
-
-                <a
-                  href="#testi"
-                  class="hover:text-brand-yellow after:bg-brand-yellow relative text-lg text-white transition duration-300 ease-in-out after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:transition-all after:duration-300 after:content-[''] hover:after:w-full"
-                >
-                  Testimonials</a
-                >
-              </div>
-
-              <div class="col-span-12 sm:col-span-4">
-                <a
-                  href="#faq"
-                  class="hover:text-brand-yellow after:bg-brand-yellow relative text-lg text-white transition duration-300 ease-in-out after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:transition-all after:duration-300 after:content-[''] hover:after:w-full"
-                >
-                  FAQ's</a
-                >
-                <br />
-                <a
-                  href="#Terms"
-                  class="hover:text-brand-yellow after:bg-brand-yellow relative text-lg text-white transition duration-300 ease-in-out after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:transition-all after:duration-300 after:content-[''] hover:after:w-full"
-                >
-                  Terms & Privacy</a
-                >
-                <br />
-                <a
-                  href="#contact"
-                  class="hover:text-brand-yellow after:bg-brand-yellow relative text-lg text-white transition duration-300 ease-in-out after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:transition-all after:duration-300 after:content-[''] hover:after:w-full"
-                >
-                  Contact Us</a
-                >
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- Start Footer -->
-
-    <!-- Start All Rights Reserved -->
-    <div class="bg-white px-5 py-3 text-center text-lg/[25px] text-brand-blue">
-      <p>
-        © 2025 ERP System for Car Boundary Service - Philippines <br />
-        "Smart Mobility for Every Filipino."
-      </p>
-    </div>
-    <!-- End All Rights Reserved -->
+    <!-- Footer Start -->
+    <Footer />
+    <!-- Footer End -->
   </div>
 </template>

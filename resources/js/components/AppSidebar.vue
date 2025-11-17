@@ -11,18 +11,23 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import finance from '@/routes/finance';
+import owner from '@/routes/owner';
+import superAdmin from '@/routes/super-admin';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import {
   BarChart3,
   Bell,
+  CarTaxiFront,
   Clock,
   DollarSign,
   FileSpreadsheet,
   FileText,
   HelpCircle,
+  History,
   LayoutGrid,
-  Settings,
+  Octagon,
+  Users,
   Wrench,
 } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
@@ -49,15 +54,45 @@ const navConfig: Record<string, NavItem[]> = {
   super_admin: [
     {
       title: 'Dashboard',
-      href: finance.dashboard(),
+      href: superAdmin.dashboard(),
       icon: LayoutGrid,
       group: 'Overview',
     },
     {
-      title: 'Settings',
-      href: finance.dashboard?.() ?? '/settings',
-      icon: Settings,
-      group: 'Admin',
+      title: 'Driver Management',
+      href: superAdmin.driver.index(),
+      icon: Users,
+      group: 'Fleet',
+    },
+    {
+      title: 'Revenues Report History',
+      href: superAdmin.revenues(),
+      icon: History,
+      group: 'History',
+    },
+    {
+      title: 'Revenue Report',
+      href: superAdmin.revenue.index(),
+      icon: DollarSign,
+      group: 'Finance',
+    },
+    {
+      title: 'Driver History',
+      href: superAdmin.driverlist(),
+      icon: History,
+      group: 'History',
+    },
+    {
+      title: 'Transaction History',
+      href: superAdmin.transaction(),
+      icon: History,
+      group: 'History',
+    },
+    {
+      title: 'Vehicle Management',
+      href: superAdmin.vehicle.index(),
+      icon: CarTaxiFront,
+      group: 'Fleet',
     },
   ],
 
@@ -85,46 +120,72 @@ const navConfig: Record<string, NavItem[]> = {
   owner: [
     {
       title: 'Dashboard',
-      href: finance.dashboard(),
+      href: owner.dashboard(),
       icon: LayoutGrid,
       group: 'Overview',
     },
     {
       title: 'Notifications',
-      href: finance.notifications(),
+      href: owner.notifications(),
       icon: Bell,
       group: 'Overview',
     },
 
+    // {
+    //   title: 'Payout',
+    //   href: owner.payout(),
+    //   icon: Banknote,
+    //   group: 'Payment',
+    // },
+
+    {
+      title: 'Driver Management',
+      href: owner.drivers.index(),
+      icon: Users,
+      group: 'Management',
+    },
+    {
+      title: 'Vehicle Management',
+      href: owner.vehicles.index(),
+      icon: CarTaxiFront,
+      group: 'Management',
+    },
+    {
+      title: 'Assign Drivers',
+      href: owner.vehicleDrivers.index(),
+      icon: Octagon,
+      group: 'Management',
+    },
+
     {
       title: 'Boundary Contracts',
-      href: finance.boundaryContracts(),
+      href: owner.boundaryContracts(),
       icon: FileText,
       group: 'Operations',
     },
     {
       title: 'Reports & Analytics',
-      href: finance.reportsAndAnalytics(),
+      href: owner.reportsAndAnalytics(),
       icon: BarChart3,
       group: 'Operations',
     },
 
     {
       title: 'Revenue Management',
-      href: finance.revenueManagement(),
+      href: owner.revenueManagement(),
       icon: DollarSign,
       group: 'Finance',
     },
     {
       title: 'Expense Management',
-      href: finance.expenseManagement(),
+      href: owner.expenseManagement(),
       icon: FileSpreadsheet,
       group: 'Finance',
     },
 
     {
       title: 'Support Center',
-      href: finance.supportCenter(),
+      href: owner.supportCenter(),
       icon: HelpCircle,
       group: 'Support',
     },

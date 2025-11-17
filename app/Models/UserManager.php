@@ -11,6 +11,20 @@ class UserManager extends Model
 {
     use HasFactory;
 
+    /**
+     * The primary key for the model.
+     *
+     * @var string
+     */
+    protected $primaryKey = 'id';
+
+    /**
+     * Indicates if the model's ID is auto-incrementing.
+     *
+     * @var bool
+     */
+    public $incrementing = false;
+
     // protected $fillable = [];
 
     // relationship to user, one to one

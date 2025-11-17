@@ -12,7 +12,7 @@ Route::get('/', function () {
 
 Route::get('/inactive', function () {
     return Inertia::render('InactiveAccount');
-})->name('inactive');
+})->name('inactive')->middleware('check.inactive');
 
 Route::get('dashboard', function (Request $request) {
     $user = $request->user();

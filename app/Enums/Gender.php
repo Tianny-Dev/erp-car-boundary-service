@@ -7,6 +7,7 @@ enum Gender: string
     case MALE = 'Male';
     case FEMALE = 'Female';
     case OTHER = 'Other';
+    case PREFER_NOT_TO_SAY = 'Prefer not to say';
 
     public function label(): string
     {
@@ -14,6 +15,7 @@ enum Gender: string
             self::MALE => 'Male',
             self::FEMALE => 'Female',
             self::OTHER => 'Other',
+            self::PREFER_NOT_TO_SAY => 'Prefer not to say',
         };
     }
 

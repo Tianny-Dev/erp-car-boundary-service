@@ -11,6 +11,20 @@ class UserTechnician extends Model
 {
     use HasFactory;
 
+    /**
+     * The primary key for the model.
+     *
+     * @var string
+     */
+    protected $primaryKey = 'id';
+
+    /**
+     * Indicates if the model's ID is auto-incrementing.
+     *
+     * @var bool
+     */
+    public $incrementing = false;
+
     protected $fillable = [
         'id',
         'status_id',
@@ -24,7 +38,6 @@ class UserTechnician extends Model
         'back_valid_id_picture',
         'cv_attachment',
         'birth_date',
-        'age',
     ];
 
     // relationship to user, one to one

@@ -16,11 +16,13 @@ return new class extends Migration
             $table->foreignId('status_id')->constrained('statuses')->onDelete('restrict');
             $table->foreignId('franchise_id')->nullable()->constrained('franchises')->onDelete('restrict');
             $table->foreignId('branch_id')->nullable()->constrained('branches')->onDelete('restrict');
-            $table->foreignId('payment_option_id')->constrained('payment_options')->onDelete('restrict');
+            $table->foreignId('driver_id')->nullable()->constrained('user_drivers')->onDelete('restrict');
+            $table->foreignId('boundary_contract_id')->nullable()->constrained('boundary_contracts')->onDelete('restrict');
+            $table->foreignId('payment_option_id')->nullable()->constrained('payment_options')->onDelete('restrict');
             $table->string('invoice_no', 100)->unique();
             $table->decimal('amount', 10, 2);
             $table->string('currency', 10)->default('PHP');
-            $table->enum('service_type', ['Trips', 'Ads', 'Logistics', 'Boundary', 'Other'])->default('Other');
+            $table->enum('service_type', ['Trips','Boundary'])->default('Trips');
             $table->date('payment_date')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();

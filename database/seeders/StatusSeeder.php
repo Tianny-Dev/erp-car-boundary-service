@@ -22,6 +22,7 @@ class StatusSeeder extends Seeder
             ['id' => 6, 'name' => 'pending'],
             ['id' => 7, 'name' => 'overdue'], 
             ['id' => 8, 'name' => 'paid'],
+            ['id' => 9, 'name' => 'cancelled'],
         ]);
     }
 }

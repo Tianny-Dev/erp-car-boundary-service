@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import RevenueVsExpensesAreaChart from '@/components/finance/charts/dashboard/RevenueVsExpensesAreaChart.vue';
-import FranchiseMapCard from '@/components/finance/FranchiseMapCard.vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/AppLayout.vue';
 import finance from '@/routes/finance';
@@ -140,7 +139,7 @@ const data = [
       </div>
 
       <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card class="col-span-4">
+        <Card class="col-span-7">
           <CardHeader>
             <CardTitle>Overview</CardTitle>
           </CardHeader>
@@ -150,14 +149,6 @@ const data = [
               :categories="['Expenses', 'Revenue']"
               :colors="['#005dcf', '#33cc66']"
             />
-          </CardContent>
-        </Card>
-        <Card class="col-span-3">
-          <CardHeader>
-            <CardTitle>Top 5 Franchise Contributors</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <FranchiseMapCard />
           </CardContent>
         </Card>
       </div>

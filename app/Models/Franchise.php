@@ -23,6 +23,7 @@ class Franchise extends Model
         'status_id',
         'payment_option_id',
         'email',
+        'name',
         'phone',
         'address',
         'region',

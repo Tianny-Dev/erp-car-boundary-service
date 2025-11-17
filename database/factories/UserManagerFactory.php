@@ -12,7 +12,7 @@ class UserManagerFactory extends Factory
     public function definition(): array
     {
         return [
-            'status_id' => random_int(1, 8), // From StatusSeeder
+            'status_id' => 1,
         ];
     }
 }

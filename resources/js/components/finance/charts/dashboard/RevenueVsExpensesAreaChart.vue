@@ -29,7 +29,7 @@ ChartJS.register(
 
 // Props
 interface DataItem {
-  name: string;
+  date: string; // Use 'date' instead of 'name'
   Revenue: number;
   Expenses: number;
 }
@@ -37,15 +37,15 @@ interface DataItem {
 const props = defineProps<{
   data: DataItem[];
   categories?: string[]; // ['Expenses', 'Revenue']
-  colors?: string[]; // ['blue', 'green']
+  colors?: string[]; // ['#33cc66', '#005dcf']
 }>();
 
-const colors = props.colors ?? ['#3b82f6', '#22c55e']; // Tailwind blue, green
+const colors = props.colors ?? ['#3b82f6', '#22c55e']; // default colors
 const categories = props.categories ?? ['Revenue', 'Expenses'];
 
 // Chart Data
 const chartData = computed<ChartData<'line'>>(() => ({
-  labels: props.data.map((d) => d.name),
+  labels: props.data.map((d) => d.date), // Use 'date' for X-axis
   datasets: categories.map((cat, i) => ({
     label: cat,
     data: props.data.map((d) => d[cat as keyof DataItem] as number),
@@ -88,7 +88,7 @@ const chartOptions = ref<ChartOptions<'line'>>({
           const label = context.dataset.label || '';
           const value = context.parsed.y;
           if (value === null) return `${label}: N/A`;
-          return `${label}: $${value.toLocaleString()}`;
+          return `${label}: ₱${value.toLocaleString()}`;
         },
       },
     },
@@ -102,7 +102,7 @@ const chartOptions = ref<ChartOptions<'line'>>({
       beginAtZero: true,
       ticks: {
         color: '#6b7280',
-        callback: (val) => `$${Number(val).toLocaleString()}`,
+        callback: (val) => `₱${Number(val).toLocaleString()}`,
       },
       grid: { color: '#e5e7eb' },
     },
