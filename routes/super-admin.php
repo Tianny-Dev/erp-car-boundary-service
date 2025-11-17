@@ -12,6 +12,7 @@ use App\Http\Controllers\SuperAdmin\BranchController;
 use App\Http\Controllers\SuperAdmin\DriverController;
 use App\Http\Controllers\SuperAdmin\ManagerController;
 use App\Http\Controllers\SuperAdmin\VehicleController;
+use App\Http\Controllers\SuperAdmin\TripController;
 
 Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-admin')->name('super-admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -46,6 +47,9 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
 
     Route::get('/driver', [DriverController::class, 'index'])->name('driver.index');
     Route::get('/driver/{driver}', [DriverController::class, 'show'])->name('driver.show');
+
     Route::get('/vehicle', [VehicleController::class, 'index'])->name('vehicle.index');
     Route::get('/vehicle/{vehicle}', [VehicleController::class, 'show'])->name('vehicle.show');
+
+    Route::get('/trip', [TripController::class, 'index'])->name('trip.index');
 });
