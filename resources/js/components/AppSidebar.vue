@@ -84,9 +84,9 @@ const navConfig: Record<string, NavItem[]> = {
     },
     {
       title: 'Transaction History',
-      href: superAdmin.transaction(),
+      href: superAdmin.transaction.index(),
       icon: History,
-      group: 'History',
+      group: 'Finance',
     },
     {
       title: 'Vehicle Management',

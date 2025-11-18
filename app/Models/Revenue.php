@@ -43,6 +43,12 @@ class Revenue extends Model
         return $this->belongsTo(BoundaryContract::class);
     }
 
+    // relationship to user driver, one to many
+    public function driver(): BelongsTo
+    {
+        return $this->belongsTo(UserDriver::class);
+    }
+
     // relationship to revenue breakdowns, one to many
     public function revenueBreakdowns(): HasMany
     {
