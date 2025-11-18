@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Footer from '@/components/landing/Footer.vue';
 import { useNavbar } from '@/composables/navbar';
-import { login, selectUserType } from '@/routes';
+import { dashboard, login, selectUserType } from '@/routes';
 import { Link } from '@inertiajs/vue3';
 
 const { isScrolled, activeSection, isMenuOpen, sectionIds, handleClick } =
@@ -28,17 +28,26 @@ const { isScrolled, activeSection, isMenuOpen, sectionIds, handleClick } =
           Download App
         </button>
         <Link
-          :href="login()"
-          class="flex-1 rounded-md bg-brand-green py-2 whitespace-nowrap text-white lg:px-5 xl:px-7"
+          v-if="$page.props.auth.user"
+          :href="dashboard()"
+          class="flex-1 rounded-md bg-brand-green py-2 whitespace-nowrap text-white transition-all hover:opacity-85 lg:px-5 xl:px-7"
         >
-          Login
+          Dashboard
         </Link>
-        <Link
-          :href="selectUserType()"
-          class="flex-1 rounded-md bg-brand-blue py-2 whitespace-nowrap text-white lg:px-4 xl:px-7"
-        >
-          Register
-        </Link>
+        <template v-else>
+          <Link
+            :href="login()"
+            class="flex-1 rounded-md bg-brand-green py-2 whitespace-nowrap text-white transition-all hover:opacity-85 lg:px-5 xl:px-7"
+          >
+            Login
+          </Link>
+          <Link
+            :href="selectUserType()"
+            class="flex-1 rounded-md bg-brand-blue py-2 whitespace-nowrap text-white transition-all hover:opacity-85 lg:px-4 xl:px-7"
+          >
+            Register
+          </Link>
+        </template>
       </div>
     </div>
     <!-- Top Banner End -->
