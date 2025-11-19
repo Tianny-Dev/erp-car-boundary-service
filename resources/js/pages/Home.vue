@@ -15,6 +15,12 @@ import Technician from '@/components/landing/Technician.vue';
 import Terms from '@/components/landing/Terms.vue';
 import Testimonials from '@/components/landing/Testimonials.vue';
 import Works from '@/components/landing/Works.vue';
+
+interface Props {
+  userTypes: { name: string; encrypted_id: string }[];
+}
+
+const { userTypes } = defineProps<Props>();
 </script>
 
 <template>
@@ -22,7 +28,7 @@ import Works from '@/components/landing/Works.vue';
 
   <HomeLayout>
     <!-- Banner Start -->
-    <Banner />
+    <Banner :userTypes="userTypes" />
     <!-- Banner End -->
 
     <!-- About Us Start -->
@@ -34,7 +40,7 @@ import Works from '@/components/landing/Works.vue';
     <!-- How It Works End -->
 
     <!-- Franchise Start -->
-    <Franchise />
+    <Franchise :userTypes="userTypes" />
     <!-- Franchise End -->
 
     <!-- Driver Start -->

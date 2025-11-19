@@ -45,7 +45,7 @@ class UserDriver extends Model
     // relationship to user, one to one
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'id', 'id');
+        return $this->belongsTo(User::class, 'id');
     }
 
     // relationship to status, one to many
@@ -75,7 +75,7 @@ class UserDriver extends Model
     // relationship to vehicles, one to many
     public function vehicles(): HasMany
     {
-        return $this->hasMany(Vehicle::class, 'driver_id');
+        return $this->hasMany(Vehicle::class);
     }
 
     // relationship to routes, one to many
@@ -100,5 +100,11 @@ class UserDriver extends Model
     public function boundaryContracts(): HasMany
     {
         return $this->hasMany(BoundaryContract::class);
+    }
+
+    // relationship to revenues, one to many
+    public function revenues(): HasMany
+    {
+        return $this->hasMany(Revenue::class);
     }
 }

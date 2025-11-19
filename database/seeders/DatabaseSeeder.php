@@ -41,6 +41,7 @@ class DatabaseSeeder extends Seeder
 
         // $this->call(BoundaryContractSeeder::class);
 
-
+        $this->call(PercentageTypeSeeder::class);
+        $this->call(RevenueBreakdownSeeder::class);
     }
 }
