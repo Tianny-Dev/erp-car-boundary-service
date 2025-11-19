@@ -14,7 +14,14 @@ class VehicleController extends Controller
      */
     public function index()
     {
-        $vehicles = Vehicle::with('status')
+        $franchise = auth()->user()->ownerDetails?->franchises()->first();
+
+        if (!$franchise) {
+            abort(404, 'Franchise not found');
+        }
+
+        $vehicles = $franchise->vehicles()
+            ->with('status')
             ->orderByDesc('created_at')
             ->paginate(10)
             ->through(function ($vehicle) {
