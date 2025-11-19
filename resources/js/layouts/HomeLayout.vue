@@ -1,8 +1,15 @@
 <script setup lang="ts">
 import Footer from '@/components/landing/Footer.vue';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useNavbar } from '@/composables/navbar';
-import { login, selectUserType } from '@/routes';
+import { dashboard, login, logout, selectUserType } from '@/routes';
 import { Link } from '@inertiajs/vue3';
+import { Menu } from 'lucide-vue-next';
 
 const { isScrolled, activeSection, isMenuOpen, sectionIds, handleClick } =
   useNavbar();
@@ -27,18 +34,47 @@ const { isScrolled, activeSection, isMenuOpen, sectionIds, handleClick } =
         >
           Download App
         </button>
-        <Link
-          :href="login()"
-          class="flex-1 rounded-md bg-brand-green py-2 whitespace-nowrap text-white lg:px-5 xl:px-7"
-        >
-          Login
-        </Link>
-        <Link
-          :href="selectUserType()"
-          class="flex-1 rounded-md bg-brand-blue py-2 whitespace-nowrap text-white lg:px-4 xl:px-7"
-        >
-          Register
-        </Link>
+        <DropdownMenu v-if="$page.props.auth.user">
+          <DropdownMenuTrigger as-child>
+            <button
+              class="cursor-pointer rounded-md bg-brand-green p-2 text-white transition-all hover:opacity-85"
+            >
+              <Menu class="h-5 w-7" />
+            </button>
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent class="w-40">
+            <DropdownMenuItem>
+              <Link :href="dashboard()" class="block w-full">Dashboard</Link>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem>
+              <Link
+                :href="logout()"
+                method="post"
+                as="button"
+                class="w-full text-left"
+              >
+                Logout
+              </Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <template v-else>
+          <Link
+            :href="login()"
+            class="flex-1 rounded-md bg-brand-green py-2 whitespace-nowrap text-white transition-all hover:opacity-85 lg:px-5 xl:px-7"
+          >
+            Login
+          </Link>
+          <Link
+            :href="selectUserType()"
+            class="flex-1 rounded-md bg-brand-blue py-2 whitespace-nowrap text-white transition-all hover:opacity-85 lg:px-4 xl:px-7"
+          >
+            Register
+          </Link>
+        </template>
       </div>
     </div>
     <!-- Top Banner End -->

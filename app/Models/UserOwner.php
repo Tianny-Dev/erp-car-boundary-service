@@ -54,6 +54,6 @@ class UserOwner extends Model
     // relationship to franchises, one to many
     public function franchises(): HasMany
     {
-        return $this->hasMany(Franchise::class, 'owner_id', 'id');
+        return $this->hasMany(Franchise::class);
     }
 }

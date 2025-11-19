@@ -17,8 +17,14 @@ class FranchiseDriverController extends Controller
     {
         $driversQuery = User::with('driverDetails.status')
             ->whereHas('userType', fn($q) => $q->where('name', 'driver'))
-            ->whereHas('driverDetails.status', fn($q) =>
-                $q->whereIn('name', ['pending', 'inactive'])
+            // ->whereHas('driverDetails.status', fn($q) =>
+            //     $q->whereIn('name', ['pending', 'inactive'])
+            // );
+            ->whereHas('driverDetails', fn ($q) =>
+                $q->where('is_verified', 1)
+                ->whereHas('status', fn ($s) =>
+                    $s->whereIn('name', ['pending', 'inactive'])
+                )
             );
 
         // Global search

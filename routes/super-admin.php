@@ -26,7 +26,7 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
     Route::get('/revenue', [RevenueController::class, 'index'])->name('revenue.index');
     Route::get('/revenue/export', [RevenueController::class, 'export'])->name('revenue.export');
 
-    Route::get('/transaction', [TransactionController::class, 'index'])->name('transaction');
+    Route::get('/transaction', [TransactionController::class, 'index'])->name('transaction.index');
     Route::get('/transaction/{id}', [TransactionController::class, 'show'])->name('transaction.show');
 
     Route::get('/driverlist', [DriverHistoryController::class, 'index'])->name('driverlist');
@@ -46,6 +46,7 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
 
     Route::get('/driver', [DriverController::class, 'index'])->name('driver.index');
     Route::get('/driver/{driver}', [DriverController::class, 'show'])->name('driver.show');
+
     Route::get('/vehicle', [VehicleController::class, 'index'])->name('vehicle.index');
     Route::get('/vehicle/{vehicle}', [VehicleController::class, 'show'])->name('vehicle.show');
 });

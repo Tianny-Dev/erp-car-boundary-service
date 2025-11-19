@@ -1,12 +1,21 @@
 <?php
+use App\Models\UserType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
 Route::get('/', function () {
+    $userTypes = UserType::whereNotIn('name', ['super_admin', 'manager'])
+        ->get()
+        ->map(fn($type) => [
+            'name' => $type->name,
+            'encrypted_id' => Crypt::encryptString($type->id),
+        ]);
+
     return Inertia::render('Home', [
         'canRegister' => Features::enabled(Features::registration()),
+        'userTypes' => $userTypes,
     ]);
 })->name('home');
 

@@ -33,7 +33,7 @@ class Vehicle extends Model
     // relationship to driver, one to many
     public function driver(): BelongsTo
     {
-        return $this->belongsTo(UserDriver::class, 'driver_id');
+        return $this->belongsTo(UserDriver::class);
     }
 
     // relationship to franchise, one to many

@@ -1,3 +1,16 @@
+<script setup lang="ts">
+import { Link } from '@inertiajs/vue3';
+
+interface Props {
+  userTypes: { name: string; encrypted_id: string }[];
+}
+
+const { userTypes } = defineProps<Props>();
+
+const franchisee = userTypes.find((t) => t.name === 'owner');
+const driver = userTypes.find((t) => t.name === 'driver');
+</script>
+
 <template>
   <div
     class="bg-[url('@/assets/bg1.jpg')] bg-cover bg-center bg-no-repeat px-5"
@@ -38,19 +51,23 @@
           Book a Ride
         </button>
 
-        <button
-          class="flex items-center gap-4 rounded-md bg-white px-7 py-2 text-xl text-brand-blue sm:text-2xl xl:px-12"
+        <Link
+          v-if="franchisee"
+          :href="`/register/${franchisee.encrypted_id}`"
+          class="flex items-center gap-4 rounded-md bg-white px-7 py-2 text-xl text-brand-blue transition-colors hover:bg-auth-blue hover:text-white sm:text-2xl xl:px-12"
         >
           <img src="@/assets/join.png" class="h-8" alt="" />
           Join as a Franchised
-        </button>
+        </Link>
 
-        <button
-          class="flex items-center gap-4 rounded-md bg-white px-7 py-2 text-xl text-brand-blue sm:text-2xl xl:px-12"
+        <Link
+          v-if="driver"
+          :href="`/register/${driver.encrypted_id}`"
+          class="flex items-center gap-4 rounded-md bg-white px-7 py-2 text-xl text-brand-blue transition-colors hover:bg-auth-blue hover:text-white sm:text-2xl xl:px-12"
         >
           <img src="@/assets/become.png" class="h-8" alt="" />
           Become a Driver
-        </button>
+        </Link>
       </div>
     </div>
   </div>
