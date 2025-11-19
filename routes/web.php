@@ -31,6 +31,7 @@ Route::get('dashboard', function (Request $request) {
         'passenger' => route('passenger.dashboard'),
         'technician' => route('technician.dashboard'),
         'owner' => route('owner.dashboard'),
+        'manager' => route('manager.dashboard'),
         'super_admin' => route('super-admin.dashboard'),
         default => route('home'),
     };
@@ -44,6 +45,7 @@ require __DIR__ . '/driver.php';
 require __DIR__ . '/passenger.php';
 require __DIR__ . '/technician.php';
 require __DIR__ . '/owner.php';
+require __DIR__ . '/manager.php';
 require __DIR__ . '/finance.php';
 require __DIR__ .'/auth.php';
 require __DIR__ .'/super-admin.php';

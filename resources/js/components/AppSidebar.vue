@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import finance from '@/routes/finance';
+import manager from '@/routes/manager';
 import owner from '@/routes/owner';
 import superAdmin from '@/routes/super-admin';
 import { type NavItem } from '@/types';
@@ -99,22 +100,16 @@ const navConfig: Record<string, NavItem[]> = {
   manager: [
     {
       title: 'Dashboard',
-      href: finance.dashboard(),
+      href: manager.dashboard(),
       icon: LayoutGrid,
       group: 'Overview',
     },
-    {
-      title: 'Reports & Analytics',
-      href: finance.reportsAndAnalytics(),
-      icon: BarChart3,
-      group: 'Operations',
-    },
-    {
-      title: 'Revenue Management',
-      href: finance.revenueManagement(),
-      icon: DollarSign,
-      group: 'Finance',
-    },
+    // {
+    //   title: 'Notifications',
+    //   href: owner.notifications(),
+    //   icon: Bell,
+    //   group: 'Overview',
+    // },
   ],
 
   owner: [
