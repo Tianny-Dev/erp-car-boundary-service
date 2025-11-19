@@ -66,10 +66,10 @@ const navConfig: Record<string, NavItem[]> = {
       group: 'Fleet',
     },
     {
-      title: 'Revenues Report History',
-      href: superAdmin.revenues(),
-      icon: History,
-      group: 'History',
+      title: 'Vehicle Management',
+      href: superAdmin.vehicle.index(),
+      icon: CarTaxiFront,
+      group: 'Fleet',
     },
     {
       title: 'Revenue Report',
@@ -78,22 +78,10 @@ const navConfig: Record<string, NavItem[]> = {
       group: 'Finance',
     },
     {
-      title: 'Driver History',
-      href: superAdmin.driverlist(),
-      icon: History,
-      group: 'History',
-    },
-    {
       title: 'Transaction History',
       href: superAdmin.transaction.index(),
       icon: History,
       group: 'Finance',
-    },
-    {
-      title: 'Vehicle Management',
-      href: superAdmin.vehicle.index(),
-      icon: CarTaxiFront,
-      group: 'Fleet',
     },
   ],
 
