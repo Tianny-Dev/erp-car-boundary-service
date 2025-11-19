@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import RevenueVsExpensesAreaChart from '@/components/finance/charts/dashboard/RevenueVsExpensesAreaChart.vue';
-import NetProfitTrendSparkLine from '@/components/finance/charts/reports-and-analytics/NetProfitTrendSparkLine.vue';
-import RevenueVsExpensesBarChart from '@/components/finance/charts/reports-and-analytics/RevenueVsExpensesBarChart.vue';
+import RevenueVsExpensesAreaChart from '@/components/owner/charts/dashboard/RevenueVsExpensesAreaChart.vue';
+import NetProfitTrendSparkLine from '@/components/owner/charts/reports-and-analytics/NetProfitTrendSparkLine.vue';
+import RevenueVsExpensesBarChart from '@/components/owner/charts/reports-and-analytics/RevenueVsExpensesBarChart.vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/AppLayout.vue';
 import finance from '@/routes/finance';
