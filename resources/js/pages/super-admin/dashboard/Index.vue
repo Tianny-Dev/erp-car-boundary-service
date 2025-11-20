@@ -33,6 +33,7 @@ import {
   BanknoteArrowUpIcon,
   LandmarkIcon,
   MoreHorizontal,
+  PlusIcon,
   WarehouseIcon,
 } from 'lucide-vue-next';
 import { computed, h, ref } from 'vue';
@@ -89,6 +90,10 @@ const breadcrumbs: BreadcrumbItem[] = [
     href: superAdmin.dashboard().url,
   },
 ];
+
+const createBranch = () => {
+  router.get(superAdmin.branch.create().url);
+};
 
 interface FranchiseModal {
   id: number;
@@ -587,7 +592,13 @@ const branchColumns: ColumnDef<BranchRow>[] = [
           :columns="branchColumns"
           :data="branches.data"
           search-placeholder="Search branches..."
-        />
+        >
+          <template #custom-actions>
+            <Button class="me-5" @click="createBranch"
+              ><PlusIcon />Add Branch</Button
+            >
+          </template>
+        </DataTable>
       </div>
     </div>
   </AppLayout>
