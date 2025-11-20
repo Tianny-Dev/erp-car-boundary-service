@@ -4,7 +4,7 @@ import NetProfitTrendSparkLine from '@/components/owner/charts/reports-and-analy
 import RevenueVsExpensesBarChart from '@/components/owner/charts/reports-and-analytics/RevenueVsExpensesBarChart.vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/AppLayout.vue';
-import finance from '@/routes/finance';
+import owner from '@/routes/owner';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
 import {
@@ -73,7 +73,7 @@ console.log(yesterdayTrips);
 
 // Breadcrumbs
 const breadcrumbs: BreadcrumbItem[] = [
-  { title: 'Dashboard', href: finance.dashboard().url },
+  { title: 'Dashboard', href: owner.dashboard().url },
 ];
 
 // Map backend data for chart components
@@ -90,7 +90,7 @@ const mappedRevenueExpensesData = revenueExpensesData.map((item) => ({
 </script>
 
 <template>
-  <Head title="Finance Dashboard" />
+  <Head title="Owner Dashboard" />
 
   <AppLayout :breadcrumbs="breadcrumbs">
     <div
