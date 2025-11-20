@@ -77,6 +77,12 @@ const navConfig: Record<string, NavItem[]> = {
       group: 'Finance',
     },
     {
+      title: 'Driver Report',
+      href: superAdmin.driverreport(),
+      icon: DollarSign,
+      group: 'Finance',
+    },
+    {
       title: 'Driver History',
       href: superAdmin.driverlist(),
       icon: History,

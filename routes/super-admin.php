@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\SuperAdmin\DriverHistoryController;
+use App\Http\Controllers\SuperAdmin\DriverReportController;
 use App\Http\Controllers\SuperAdmin\RevenuesController;
 use App\Http\Controllers\SuperAdmin\RevenueController;
 use App\Http\Controllers\SuperAdmin\TransactionController;
@@ -24,7 +25,9 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
 
     // Revenues
     Route::get('/revenues', [RevenuesController::class, 'index'])->name('revenues');
+
     Route::get('/revenue', [RevenueController::class, 'index'])->name('revenue.index');
+
     Route::get('/revenue/export', [RevenueController::class, 'export'])->name('revenue.export');
 
     Route::get('/transaction', [TransactionController::class, 'index'])->name('transaction');
@@ -32,6 +35,10 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
 
     Route::get('/driverlist', [DriverHistoryController::class, 'index'])->name('driverlist');
     Route::get('/driverlist/{id}', [DriverHistoryController::class, 'show'])->name('driverlist.show');
+
+    Route::get('/driverreport', [DriverReportController::class, 'index'])->name('driverreport');
+    Route::get('/driverreport/export', [DriverReportController::class, 'export'])->name('driver.export');
+
 
     // Export All Route must be before the generic ID route
     Route::get('/revenues/all/export/{format}', [RevenuesController::class, 'exportAll'])->name('revenues.exportAll'); // ADDED & MOVED
