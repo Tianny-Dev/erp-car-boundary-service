@@ -12,7 +12,7 @@ const props = defineProps<{
   canSubmit?: boolean;
 }>();
 
-const emit = defineEmits(['next', 'prev', 'goToStep', 'submit']);
+// const emit = defineEmits(['next', 'prev', 'goToStep', 'submit']);
 
 const canProceed = ref(false);
 
@@ -59,7 +59,7 @@ function validateRequiredInputs() {
       // Check min and max date
       const minDate = new Date(1900, 0, 1);
       const maxDate = new Date();
-      let age = maxDate.getFullYear() - birthDate.getFullYear();
+      const age = maxDate.getFullYear() - birthDate.getFullYear();
       if (
         birthDate < minDate ||
         birthDate > maxDate ||

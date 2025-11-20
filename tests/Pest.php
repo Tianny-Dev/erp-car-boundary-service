@@ -1,5 +1,8 @@
 <?php
 
+use App\Models\User;
+use App\Models\UserType;
+
 /*
 |--------------------------------------------------------------------------
 | Test Case
@@ -41,7 +44,46 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+/**
+ * Shared helper: Create user with a given type
+ */
+function createUserWithType(string $type): User
 {
-    // ..
+    return User::factory()->create([
+        'user_type_id' => UserType::factory()
+            ->state(['name' => $type])
+            ->create()
+            ->id,
+    ]);
 }
+
+/**
+ * Dataset used for authentication redirect tests
+ */
+function userTypeRedirects(): array
+{
+    return [
+        'driver' => 'driver.dashboard',
+        'passenger' => 'passenger.dashboard',
+        'technician' => 'technician.dashboard',
+        'owner' => 'owner.dashboard',
+        'manager' => 'manager.dashboard',
+        'super_admin' => 'super-admin.dashboard',
+    ];
+}
+
+/**
+ * Dataset used for dashboard-access tests
+ */
+function dashboards(): array
+{
+    return [
+        'driver' => 'driver.dashboard',
+        'passenger' => 'passenger.dashboard',
+        'technician' => 'technician.dashboard',
+        'owner' => 'owner.dashboard',
+        'manager' => 'manager.dashboard',
+        'super_admin' => 'super-admin.dashboard',
+    ];
+}
+

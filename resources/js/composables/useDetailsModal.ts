@@ -36,9 +36,9 @@ export function useDetailsModal<TData = unknown>({
   };
 
   const open = async (...args: any[]) => {
-    let onOpenCallback: Function | null = null;
+    let onOpenCallback: (() => void) | null = null;
     if (typeof args[args.length - 1] === 'function') {
-      onOpenCallback = args.pop();
+      onOpenCallback = args.pop() as () => void;
     }
 
     isLoading.value = true;
