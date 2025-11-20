@@ -1,12 +1,21 @@
 <?php
+use App\Models\UserType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
 Route::get('/', function () {
+    $userTypes = UserType::whereNotIn('name', ['super_admin', 'manager'])
+        ->get()
+        ->map(fn($type) => [
+            'name' => $type->name,
+            'encrypted_id' => Crypt::encryptString($type->id),
+        ]);
+
     return Inertia::render('Home', [
         'canRegister' => Features::enabled(Features::registration()),
+        'userTypes' => $userTypes,
     ]);
 })->name('home');
 
@@ -22,6 +31,7 @@ Route::get('dashboard', function (Request $request) {
         'passenger' => route('passenger.dashboard'),
         'technician' => route('technician.dashboard'),
         'owner' => route('owner.dashboard'),
+        'manager' => route('manager.dashboard'),
         'super_admin' => route('super-admin.dashboard'),
         default => route('home'),
     };
@@ -35,6 +45,7 @@ require __DIR__ . '/driver.php';
 require __DIR__ . '/passenger.php';
 require __DIR__ . '/technician.php';
 require __DIR__ . '/owner.php';
+require __DIR__ . '/manager.php';
 require __DIR__ . '/finance.php';
 require __DIR__ .'/auth.php';
 require __DIR__ .'/super-admin.php';

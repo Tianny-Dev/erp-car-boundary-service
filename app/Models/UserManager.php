@@ -48,6 +48,6 @@ class UserManager extends Model
     // relationship to branches, one to many
     public function branches(): HasMany
     {
-        return $this->hasMany(Branch::class);
+        return $this->hasMany(Branch::class, 'manager_id', 'id');
     }
 }
