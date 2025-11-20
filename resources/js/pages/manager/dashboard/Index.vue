@@ -58,7 +58,7 @@ const {
   yesterdayEarnings,
 
   dailyTrips,
-  yesterdayTrips,
+  // yesterdayTrips,
 
   pendingBoundaryDueCount,
 
@@ -68,8 +68,6 @@ const {
   revenueExpensesData,
   netProfitData,
 } = defineProps<Props>();
-
-console.log(yesterdayTrips);
 
 // Breadcrumbs
 const breadcrumbs: BreadcrumbItem[] = [
