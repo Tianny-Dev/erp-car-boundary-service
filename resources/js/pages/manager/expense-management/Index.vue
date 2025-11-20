@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import RevenueBreakDownPieChart from '@/components/owner/charts/revenue-management/RevenueBreakDownPieChart.vue';
-import RevenuePaymentOptionsBreakDownPieChart from '@/components/owner/charts/revenue-management/RevenuePaymentOptionsBreakDownPieChart.vue';
-import RevenueTrendSparkLine from '@/components/owner/charts/revenue-management/RevenueTrendSparkLine.vue';
-
+import ExpenseBreakDownDonutChart from '@/components/manager/charts/expense-management/ExpenseBreakDownDonutChart.vue';
+import ExpensePaymentOptionsBreakDownPieChart from '@/components/manager/charts/expense-management/ExpensePaymentOptionsBreakDownPieChart.vue';
+import ExpenseTrendSparkLine from '@/components/manager/charts/expense-management/ExpenseTrendSparkLine.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,8 +31,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
-import finance from '@/routes/finance';
-import type { BreadcrumbItem } from '@/types';
+import manager from '@/routes/manager';
+import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import { FileDown } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
@@ -41,12 +40,12 @@ import { computed, ref, watch } from 'vue';
 // -------------------------
 // Interfaces
 // -------------------------
-interface Revenue {
+interface Expense {
   id: number;
   invoice_no: string;
   amount: number;
   currency: string;
-  service_type: string;
+  expense_type: string;
   payment_date: string | null;
   notes: string | null;
   status: string | null;
@@ -55,9 +54,9 @@ interface Revenue {
   payment_option: string | null;
 }
 
-interface RevenuesPaginator {
+interface ExpensesPaginator {
   current_page: number;
-  data: Revenue[];
+  data: Expense[];
   first_page_url: string | null;
   from: number | null;
   last_page: number;
@@ -76,38 +75,41 @@ interface RevenuesPaginator {
 }
 
 interface Props {
-  revenues: RevenuesPaginator;
+  expenses: ExpensesPaginator;
 
-  revenueServiceTypeBreakdownData: { name: string; total: number }[];
-  revenueByPaymentOption: { name: string; total: number }[];
+  expenseTypeBreakdownData: { name: string; total: number }[];
+  expenseByPaymentOption: { name: string; total: number }[];
 
-  revenueTrendData: { year: number; revenue: number }[];
+  expenseTrendData: { year: number; expense: number }[];
 }
 
 // -------------------------
 // Props and State
 // -------------------------
 const {
-  revenueServiceTypeBreakdownData,
-  revenueByPaymentOption,
-  revenues,
-  revenueTrendData,
+  expenseTypeBreakdownData,
+  expenseByPaymentOption,
+  expenses,
+  expenseTrendData,
 } = defineProps<Props>();
-const paginator = ref(revenues);
+const paginator = ref(expenses);
 
+// ─────────────────────────────
+// Breadcrumbs
+// ─────────────────────────────
 const breadcrumbs: BreadcrumbItem[] = [
-  { title: 'Revenue Management', href: finance.revenueManagement().url },
+  { title: 'Expense Management', href: manager.expenseManagement().url },
 ];
 
 const globalFilter = ref('');
 const pageSize = ref('10');
 
 // Dialog
-const selectedRevenue = ref<Revenue | null>(null);
+const selectedExpense = ref<Expense | null>(null);
 const dialogOpen = ref(false);
 
-const viewRevenue = (revenue: Revenue) => {
-  selectedRevenue.value = revenue;
+const viewExpense = (expense: Expense) => {
+  selectedExpense.value = expense;
   dialogOpen.value = true;
 };
 
@@ -136,9 +138,9 @@ const paginationLinks = computed(() => {
 // Watchers
 // -------------------------
 watch(
-  () => revenues,
-  (newRevenues) => {
-    paginator.value = newRevenues;
+  () => expenses,
+  (newExpenses) => {
+    paginator.value = newExpenses;
   },
   { deep: true },
 );
@@ -170,9 +172,7 @@ const getStatusVariant = (status: string | null) => {
   }
 };
 
-const exportPDF = () => {
-  console.log('Exporting PDF...');
-};
+const exportPDF = () => console.log('Exporting PDF...');
 
 const goToPage = (pageUrl: string | null) => {
   if (pageUrl) {
@@ -186,10 +186,20 @@ const goToPage = (pageUrl: string | null) => {
     );
   }
 };
+
+// const handleApprove = (record: ExpenseRecord) => {
+//   const i = data.value.findIndex((e) => e.id === record.id);
+//   if (i !== -1) data.value[i].status = 'Approved';
+// };
+
+// const handleReject = (record: ExpenseRecord) => {
+//   const i = data.value.findIndex((e) => e.id === record.id);
+//   if (i !== -1) data.value[i].status = 'Rejected';
+// };
 </script>
 
 <template>
-  <Head title="Revenue Management" />
+  <Head title="Expense Management" />
 
   <AppLayout :breadcrumbs="breadcrumbs">
     <div
@@ -197,9 +207,10 @@ const goToPage = (pageUrl: string | null) => {
     >
       <!-- Header -->
       <div class="flex items-center justify-between border-b pb-4">
-        <h1 class="text-xl font-semibold">Revenue Records</h1>
+        <h1 class="text-xl font-semibold">Expense Records</h1>
         <Button @click="exportPDF" class="bg-red-600 hover:bg-red-700">
-          <FileDown class="mr-2 h-4 w-4" /> Export PDF
+          <FileDown class="mr-2 h-4 w-4" />
+          Export PDF
         </Button>
       </div>
 
@@ -209,19 +220,19 @@ const goToPage = (pageUrl: string | null) => {
           <span class="text-sm text-gray-600">Search:</span>
           <Input
             v-model="globalFilter"
-            placeholder="Search revenues..."
+            placeholder="Search expenses..."
             class="w-48"
           />
         </div>
       </div>
 
-      <!-- ShadCN Table -->
+      <!-- Table -->
       <div class="rounded-lg border">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Invoice No</TableHead>
-              <TableHead>Service Type</TableHead>
+              <TableHead>Expense Type</TableHead>
               <TableHead>Amount</TableHead>
               <TableHead>Payment Date</TableHead>
               <TableHead>Status</TableHead>
@@ -245,7 +256,7 @@ const goToPage = (pageUrl: string | null) => {
               class="hover:bg-gray-50"
             >
               <TableCell class="font-medium">{{ record.invoice_no }}</TableCell>
-              <TableCell>{{ record.service_type }}</TableCell>
+              <TableCell>{{ record.expense_type }}</TableCell>
               <TableCell class="font-medium">
                 {{ record.currency }} {{ record.amount.toLocaleString() }}
               </TableCell>
@@ -265,11 +276,46 @@ const goToPage = (pageUrl: string | null) => {
                 <Button
                   size="sm"
                   variant="default"
-                  @click="viewRevenue(record)"
+                  @click="viewExpense(record)"
                 >
                   View
                 </Button>
               </TableCell>
+              <!-- <TableCell class="flex gap-2">
+                <template v-if="record.status === 'Pending'">
+                  <Button
+                    size="sm"
+                    class="bg-green-600 text-white hover:bg-green-700"
+                    @click="handleApprove(record)"
+                  >
+                    Approve
+                  </Button>
+                  <Button
+                    size="sm"
+                    class="bg-red-600 text-white hover:bg-red-700"
+                    @click="handleReject(record)"
+                  >
+                    Reject
+                  </Button>
+                  <Button
+                    size="sm"
+                    class="bg-cyan-500 text-white hover:bg-cyan-600"
+                  >
+                    Upload Receipt
+                  </Button>
+                </template>
+                <template v-else-if="record.status === 'Rejected'">
+                  <Button
+                    size="sm"
+                    class="bg-cyan-500 text-white hover:bg-cyan-600"
+                  >
+                    Upload Receipt
+                  </Button>
+                </template>
+                <template v-else>
+                  <Button size="sm" variant="secondary" disabled> View </Button>
+                </template>
+              </TableCell> -->
             </TableRow>
           </TableBody>
         </Table>
@@ -323,14 +369,14 @@ const goToPage = (pageUrl: string | null) => {
       <!-- Charts Section -->
       <div class="grid gap-6 md:grid-cols-2">
         <Card>
-          <CardHeader
-            ><CardTitle>Revenue Breakdown by Type</CardTitle></CardHeader
-          >
+          <CardHeader>
+            <CardTitle>Expense Breakdown by Type</CardTitle>
+          </CardHeader>
           <CardContent>
-            <RevenueBreakDownPieChart
-              :data="revenueServiceTypeBreakdownData"
+            <ExpenseBreakDownDonutChart
+              :data="expenseTypeBreakdownData"
               category="total"
-              title="Revenue"
+              title="Expenses"
             />
           </CardContent>
         </Card>
@@ -342,25 +388,27 @@ const goToPage = (pageUrl: string | null) => {
             ></CardHeader
           >
           <CardContent>
-            <RevenuePaymentOptionsBreakDownPieChart
-              :data="revenueByPaymentOption"
+            <ExpensePaymentOptionsBreakDownPieChart
+              :data="expenseByPaymentOption"
               category="total"
-              title="Revenue"
+              title="Expenses"
             />
           </CardContent>
         </Card>
       </div>
       <Card>
-        <CardHeader><CardTitle>Net Profit Trend</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>Expense Trend</CardTitle>
+        </CardHeader>
         <CardContent>
-          <RevenueTrendSparkLine
+          <ExpenseTrendSparkLine
             :data="
-              revenueTrendData.map((item) => ({
+              expenseTrendData.map((item) => ({
                 year: item.year,
-                value: item.revenue,
+                value: item.expense,
               }))
             "
-            label="Revenue"
+            label="Expenses"
             :colors="['#3b82f6']"
             :y-formatter="
               (val) =>
@@ -374,37 +422,37 @@ const goToPage = (pageUrl: string | null) => {
     <Dialog v-model:open="dialogOpen">
       <DialogContent class="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Revenue Details</DialogTitle>
+          <DialogTitle>Expense Details</DialogTitle>
           <DialogDescription>
             Detailed information for invoice
-            <strong>{{ selectedRevenue?.invoice_no }}</strong
+            <strong>{{ selectedExpense?.invoice_no }}</strong
             >.
           </DialogDescription>
         </DialogHeader>
 
         <div class="mt-2 space-y-2">
-          <p><strong>Invoice No:</strong> {{ selectedRevenue?.invoice_no }}</p>
+          <p><strong>Invoice No:</strong> {{ selectedExpense?.invoice_no }}</p>
           <p>
-            <strong>Service Type:</strong> {{ selectedRevenue?.service_type }}
+            <strong>Service Type:</strong> {{ selectedExpense?.expense_type }}
           </p>
           <p>
-            <strong>Amount:</strong> {{ selectedRevenue?.currency }}
-            {{ selectedRevenue?.amount.toLocaleString() }}
+            <strong>Amount:</strong> {{ selectedExpense?.currency }}
+            {{ selectedExpense?.amount.toLocaleString() }}
           </p>
           <p>
             <strong>Payment Date:</strong>
-            {{ selectedRevenue?.payment_date || '—' }}
+            {{ selectedExpense?.payment_date || '—' }}
           </p>
-          <p><strong>Status:</strong> {{ selectedRevenue?.status || '—' }}</p>
+          <p><strong>Status:</strong> {{ selectedExpense?.status || '—' }}</p>
           <p>
-            <strong>Franchise:</strong> {{ selectedRevenue?.franchise || '—' }}
+            <strong>Franchise:</strong> {{ selectedExpense?.franchise || '—' }}
           </p>
-          <p><strong>Branch:</strong> {{ selectedRevenue?.branch || '—' }}</p>
+          <p><strong>Branch:</strong> {{ selectedExpense?.branch || '—' }}</p>
           <p>
             <strong>Payment Option:</strong>
-            {{ selectedRevenue?.payment_option || '—' }}
+            {{ selectedExpense?.payment_option || '—' }}
           </p>
-          <p><strong>Notes:</strong> {{ selectedRevenue?.notes || '—' }}</p>
+          <p><strong>Notes:</strong> {{ selectedExpense?.notes || '—' }}</p>
         </div>
 
         <DialogFooter>

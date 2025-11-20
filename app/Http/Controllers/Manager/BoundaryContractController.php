@@ -1,20 +1,21 @@
 <?php
 
-namespace App\Http\Controllers\Owner;
+namespace App\Http\Controllers\Manager;
 
 use App\Http\Controllers\Controller;
 use App\Models\BoundaryContract;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class BoundaryContractController extends Controller
 {
     public function index()
     {
-        $franchise = auth()->user()->ownerDetails?->franchises()->first();
-        $franchiseId = $franchise?->id;
+        $branch = auth()->user()->managerDetails?->branches()->first();
+        $branchId = $branch?->id;
 
-        $query = BoundaryContract::with(['status', 'franchise'])
-            ->when($franchiseId, fn ($q) => $q->where('franchise_id', $franchiseId))
+        $query = BoundaryContract::with(['status', 'branch'])
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->orderByDesc('created_at');
 
         // Filter by status
@@ -24,20 +25,12 @@ class BoundaryContractController extends Controller
             }
         }
 
-        // Filter by deposit status
-        // if ($depositStatus = request('depositStatus')) {
-        //     if ($depositStatus !== 'all') {
-        //         $query->where('deposit_status', $depositStatus);
-        //     }
-        // }
-
         // Global search
         if ($search = request('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                 ->orWhere('coverage_area', 'like', "%{$search}%")
-                ->orWhereHas('franchise', fn($q2) => $q2->where('name', 'like', "%{$search}%"));
-                // ->orWhereHas('branch', fn($q2) => $q2->where('name', 'like', "%{$search}%"));
+                ->orWhereHas('branch', fn($q2) => $q2->where('name', 'like', "%{$search}%"));
             });
         }
 
@@ -50,12 +43,11 @@ class BoundaryContractController extends Controller
                 'start_date' => $contract->start_date,
                 'end_date' => $contract->end_date,
                 'status' => $contract->status?->name,
-                'franchise' => $contract->franchise?->name,
-                // 'branch' => $contract->branch?->name,
+                'branch' => $contract->branch?->name,
                 'depositStatus' => $contract->deposit_status ?? 'pending',
             ]);
 
-        return Inertia::render('owner/boundary-contracts/Index', [
+        return Inertia::render('manager/boundary-contracts/Index', [
             'contracts' => $contracts,
         ]);
     }

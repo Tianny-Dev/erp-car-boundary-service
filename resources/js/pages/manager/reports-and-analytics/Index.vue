@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import NetProfitTrendSparkLine from '@/components/owner/charts/reports-and-analytics/NetProfitTrendSparkLine.vue';
-import RevenueVsExpensesBarChart from '@/components/owner/charts/reports-and-analytics/RevenueVsExpensesBarChart.vue';
+import NetProfitTrendSparkLine from '@/components/manager/charts/reports-and-analytics/NetProfitTrendSparkLine.vue';
+import RevenueVsExpensesBarChart from '@/components/manager/charts/reports-and-analytics/RevenueVsExpensesBarChart.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,7 +21,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
-import finance from '@/routes/finance';
+import manager from '@/routes/manager';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
 import {
@@ -49,7 +49,7 @@ interface FinancialReport {
 const breadcrumbs: BreadcrumbItem[] = [
   {
     title: 'Reports & Anaylytics',
-    href: finance.reportsAndAnalytics().url,
+    href: manager.reportsAndAnalytics().url,
   },
 ];
 

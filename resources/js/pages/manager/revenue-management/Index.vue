@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import RevenueBreakDownPieChart from '@/components/owner/charts/revenue-management/RevenueBreakDownPieChart.vue';
-import RevenuePaymentOptionsBreakDownPieChart from '@/components/owner/charts/revenue-management/RevenuePaymentOptionsBreakDownPieChart.vue';
-import RevenueTrendSparkLine from '@/components/owner/charts/revenue-management/RevenueTrendSparkLine.vue';
+import RevenueBreakDownPieChart from '@/components/manager/charts/revenue-management/RevenueBreakDownPieChart.vue';
+import RevenuePaymentOptionsBreakDownPieChart from '@/components/manager/charts/revenue-management/RevenuePaymentOptionsBreakDownPieChart.vue';
+import RevenueTrendSparkLine from '@/components/manager/charts/revenue-management/RevenueTrendSparkLine.vue';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -32,7 +32,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
-import finance from '@/routes/finance';
+import manager from '@/routes/manager';
 import type { BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import { FileDown } from 'lucide-vue-next';
@@ -96,7 +96,7 @@ const {
 const paginator = ref(revenues);
 
 const breadcrumbs: BreadcrumbItem[] = [
-  { title: 'Revenue Management', href: finance.revenueManagement().url },
+  { title: 'Revenue Management', href: manager.revenueManagement().url },
 ];
 
 const globalFilter = ref('');

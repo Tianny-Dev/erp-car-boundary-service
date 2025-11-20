@@ -99,12 +99,64 @@ const navConfig: Record<string, NavItem[]> = {
       icon: LayoutGrid,
       group: 'Overview',
     },
-    // {
-    //   title: 'Notifications',
-    //   href: owner.notifications(),
-    //   icon: Bell,
-    //   group: 'Overview',
-    // },
+    {
+      title: 'Notifications',
+      href: manager.notifications(),
+      icon: Bell,
+      group: 'Overview',
+    },
+
+    {
+      title: 'Driver Management',
+      href: manager.drivers.index(),
+      icon: Users,
+      group: 'Management',
+    },
+    {
+      title: 'Vehicle Management',
+      href: manager.vehicles.index(),
+      icon: CarTaxiFront,
+      group: 'Management',
+    },
+    {
+      title: 'Assign Drivers',
+      href: manager.vehicleDrivers.index(),
+      icon: Octagon,
+      group: 'Management',
+    },
+
+    {
+      title: 'Boundary Contracts',
+      href: manager.boundaryContracts(),
+      icon: FileText,
+      group: 'Operations',
+    },
+    {
+      title: 'Reports & Analytics',
+      href: manager.reportsAndAnalytics(),
+      icon: BarChart3,
+      group: 'Operations',
+    },
+
+    {
+      title: 'Revenue Management',
+      href: manager.revenueManagement(),
+      icon: DollarSign,
+      group: 'Finance',
+    },
+    {
+      title: 'Expense Management',
+      href: manager.expenseManagement(),
+      icon: FileSpreadsheet,
+      group: 'Finance',
+    },
+
+    {
+      title: 'Support Center',
+      href: manager.supportCenter(),
+      icon: HelpCircle,
+      group: 'Support',
+    },
   ],
 
   owner: [

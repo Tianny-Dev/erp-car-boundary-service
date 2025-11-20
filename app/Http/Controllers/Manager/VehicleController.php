@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Owner;
+namespace App\Http\Controllers\Manager;
 
 use App\Http\Controllers\Controller;
 use App\Models\Vehicle;
@@ -14,13 +14,13 @@ class VehicleController extends Controller
      */
     public function index()
     {
-        $franchise = auth()->user()->ownerDetails?->franchises()->first();
+        $branch = auth()->user()->managerDetails?->branches()->first();
 
-        if (!$franchise) {
-            abort(404, 'Franchise not found');
+        if (!$branch) {
+            abort(404, 'Branch not found');
         }
 
-        $vehicles = $franchise->vehicles()
+        $vehicles = $branch->vehicles()
             ->with('status')
             ->orderByDesc('created_at')
             ->paginate(10)
@@ -38,7 +38,7 @@ class VehicleController extends Controller
                 ];
             });
 
-        return Inertia::render('owner/vehicles/Index', [
+        return Inertia::render('manager/vehicles/Index', [
             'vehicles' => $vehicles,
         ]);
     }
@@ -66,13 +66,13 @@ class VehicleController extends Controller
             'status_id' => 'required|exists:statuses,id',
         ]);
 
-        $franchise = auth()->user()->ownerDetails?->franchises()->first();
+        $branch = auth()->user()->managerDetails?->branches()->first();
 
-        if (!$franchise) {
-            return redirect()->back()->with('error', 'You do not have an assigned franchise.');
+        if (!$branch) {
+            return redirect()->back()->with('error', 'You do not have an assigned branch.');
         }
 
-        $data['franchise_id'] = $franchise->id;
+        $data['branch_id'] = $branch->id;
 
         Vehicle::create($data);
 
@@ -90,7 +90,7 @@ class VehicleController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Request $request, Vehicle $vehicle)
+    public function edit(string $id)
     {
         //
     }
