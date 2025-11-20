@@ -10,7 +10,11 @@ class PercentageType extends Model
 {
     use HasFactory;
 
-    // protected $fillable = [];
+    protected $fillable = [
+        'name',
+        'type',
+        'value',
+    ];
 
     // relationship to revenue breakdowns, one to many
     public function revenueBreakdowns(): HasMany

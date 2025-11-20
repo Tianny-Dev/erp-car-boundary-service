@@ -202,7 +202,7 @@ watch(
 </script>
 
 <template>
-  <Head title="Super Admin Dashboard" />
+  <Head title=" Transaction History" />
 
   <AppLayout :breadcrumbs="breadcrumbs">
     <div
