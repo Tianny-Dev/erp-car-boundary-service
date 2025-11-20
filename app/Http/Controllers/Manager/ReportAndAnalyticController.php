@@ -10,6 +10,6 @@ class ReportAndAnalyticController extends Controller
 {
      public function index()
     {
-        return Inertia::render('owner/reports-and-analytics/Index');
+        return Inertia::render('manager/reports-and-analytics/Index');
     }
 }

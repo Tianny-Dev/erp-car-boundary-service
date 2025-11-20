@@ -85,6 +85,12 @@ const navConfig: Record<string, NavItem[]> = {
       group: 'Finance',
     },
     {
+      title: 'Driver Report',
+      href: superAdmin.driverreport(),
+      icon: DollarSign,
+      group: 'Finance',
+    },
+    {
       title: 'Allocation Management',
       href: superAdmin.allocation.index(),
       icon: HandCoins,
