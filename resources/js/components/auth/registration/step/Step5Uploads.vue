@@ -41,6 +41,10 @@ const props = defineProps<{
   fieldNames?: Partial<FieldNames>;
   labels?: Partial<Labels>;
   showFields?: Partial<ShowFields>;
+  // v-model props
+  dtiCertificate?: File | null;
+  mayorPermit?: File | null;
+  proofOfCapital?: File | null;
 }>();
 
 // --- DEFAULTS ---
@@ -74,6 +78,13 @@ const defaultShowFields: ShowFields = {
   mayorPermit: true,
   proofOfCapital: true,
 };
+
+// define emits
+const emit = defineEmits([
+  'update:dtiCertificate',
+  'update:mayorPermit',
+  'update:proofOfCapital',
+]);
 
 // --- MERGED COMPUTEDS ---
 const fields = computed(() => ({ ...defaultFieldNames, ...props.fieldNames }));
@@ -136,6 +147,8 @@ const show = computed(() => ({ ...defaultShowFields, ...props.showFields }));
     v-if="show.dtiCertificate"
     :id="fields.dtiCertificate"
     :name="fields.dtiCertificate"
+    :model-value="dtiCertificate"
+    @update:model-value="emit('update:dtiCertificate', $event)"
     :label="labels.dtiCertificate"
     :required="true"
     :errorMsg="errors?.[fields.dtiCertificate]"
@@ -146,6 +159,8 @@ const show = computed(() => ({ ...defaultShowFields, ...props.showFields }));
     v-if="show.mayorPermit"
     :id="fields.mayorPermit"
     :name="fields.mayorPermit"
+    :model-value="mayorPermit"
+    @update:model-value="emit('update:mayorPermit', $event)"
     :label="labels.mayorPermit"
     :required="true"
     :errorMsg="errors?.[fields.mayorPermit]"
@@ -156,6 +171,8 @@ const show = computed(() => ({ ...defaultShowFields, ...props.showFields }));
     v-if="show.proofOfCapital"
     :id="fields.proofOfCapital"
     :name="fields.proofOfCapital"
+    :model-value="proofOfCapital"
+    @update:model-value="emit('update:proofOfCapital', $event)"
     :label="labels.proofOfCapital"
     :required="true"
     :errorMsg="errors?.[fields.proofOfCapital]"

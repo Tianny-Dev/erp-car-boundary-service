@@ -39,6 +39,7 @@ class BranchController extends Controller
 
     public function store(StoreBranchRequest $request)
     {
+        dd($request->all());
         DB::transaction(function () use ($request) {
             // 1. Get IDs for Status and UserType
             $activeStatusId = Status::where('name', 'active')->firstOrFail()->id;

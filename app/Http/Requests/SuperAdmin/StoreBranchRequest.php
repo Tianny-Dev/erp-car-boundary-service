@@ -33,9 +33,9 @@ class StoreBranchRequest extends FormRequest
             'postal_code' => ['required', 'string', 'max:20'],
 
             // Branch Files
-            'dti_registration_attachment' => ['required', 'file', 'mimes:jpg,png,pdf', 'max:5120'],
-            'mayor_permit_attachment' => ['required', 'file', 'mimes:jpg,png,pdf', 'max:5120'],
-            'proof_agreement_attachment' => ['required', 'file', 'mimes:jpg,png,pdf', 'max:5120'],
+            'dti_certificate' => ['required', 'file', 'mimes:jpg,png,pdf', 'max:5120'],
+            'mayor_permit' => ['required', 'file', 'mimes:jpg,png,pdf', 'max:5120'],
+            'proof_capital' => ['required', 'file', 'mimes:jpg,png,pdf', 'max:5120'],
 
             // --- Manager Toggle ---
             'has_manager' => ['required', 'boolean'],
