@@ -12,6 +12,7 @@ use App\Http\Controllers\SuperAdmin\AllocationController;
 use App\Http\Controllers\SuperAdmin\VehicleController;
 use App\Http\Controllers\SuperAdmin\RevenueController;
 use App\Http\Controllers\SuperAdmin\TransactionController;
+use App\Http\Controllers\SuperAdmin\DriverDetailsController;
 
 Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-admin')->name('super-admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -43,6 +44,7 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
 
     Route::get('/driverreport', [DriverReportController::class, 'index'])->name('driverreport');
     Route::get('/driverreport/export', [DriverReportController::class, 'export'])->name('driver.export');
+    Route::get('driverreport/details', [DriverDetailsController::class, 'show'])->name('driverreport.details');
 
     Route::get('/vehicle', [VehicleController::class, 'index'])->name('vehicle.index');
     Route::get('/vehicle/{vehicle}', [VehicleController::class, 'show'])->name('vehicle.show');

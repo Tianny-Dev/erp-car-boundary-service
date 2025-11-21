@@ -25,7 +25,7 @@ import {
   IdCardIcon,
   VenusAndMarsIcon,
 } from 'lucide-vue-next';
-import { reactive, ref } from 'vue';
+import { reactive, ref, watchEffect } from 'vue';
 
 // Props passed from Controller
 defineProps<{
@@ -92,6 +92,8 @@ const branchDetailFields = {
 };
 const branchDetailLabels = {
   franchiseName: 'Business / Branch Name',
+  email: 'Email Address (Branch)',
+  phone: 'Phone Number (Branch)',
 };
 const branchDetailShow = {
   name: false,
@@ -130,6 +132,16 @@ const branchAddressLabels = {
 };
 
 // Configuration for Manager Details Component
+const managerDetailFields = {
+  name: 'manager.name',
+  email: 'manager.email',
+  phone: 'manager.phone',
+};
+const managerDetailLabels = {
+  name: 'Full Name (Manager)',
+  email: 'Email Address (Manager)',
+  phone: 'Phone Number (Manager)',
+};
 const managerDetailShow = {
   gender: false,
   birthday: false,
@@ -137,6 +149,10 @@ const managerDetailShow = {
 };
 
 // Configuration for Manager Security Component
+const managerSecurityFields = {
+  password: 'manager.password',
+  passwordConfirmation: 'manager.password_confirmation',
+};
 const managerSecurityShow = {
   terms1: false,
   terms2: false,
@@ -191,6 +207,20 @@ const breadcrumbs = [
   { title: 'Dashboard', href: superAdmin.dashboard().url },
   { title: 'Create Branch', href: superAdmin.branch.create().url },
 ];
+
+watchEffect(() => {
+  // Sync Branch Address
+  form.region = branchAddress.selectedRegion;
+  form.province = branchAddress.selectedProvince;
+  form.city = branchAddress.selectedCity;
+  form.barangay = branchAddress.selectedBarangay;
+
+  // Sync Manager Address
+  form.manager.region = managerAddress.selectedRegion;
+  form.manager.province = managerAddress.selectedProvince;
+  form.manager.city = managerAddress.selectedCity;
+  form.manager.barangay = managerAddress.selectedBarangay;
+});
 </script>
 
 <template>
@@ -210,6 +240,9 @@ const breadcrumbs = [
               :field-names="branchDetailFields"
               :labels="branchDetailLabels"
               :show-fields="branchDetailShow"
+              v-model:franchiseName="form.name"
+              v-model:email="form.email"
+              v-model:phone="form.phone"
             />
             <div class="grid gap-2">
               <Label class="font-semibold text-auth-blue">Payment Option</Label>
@@ -246,6 +279,8 @@ const breadcrumbs = [
               :field-names="branchAddressFields"
               :labels="branchAddressLabels"
               :errors="form.errors"
+              v-model:postal-code="form.postal_code"
+              v-model:street-address="form.address"
             />
           </div>
 
@@ -254,6 +289,9 @@ const breadcrumbs = [
               :errors="form.errors"
               :labels="branchUploadLabels"
               :show-fields="branchUploadShow"
+              v-model:dti-certificate="form.dti_certificate"
+              v-model:mayor-permit="form.mayor_permit"
+              v-model:proof-of-capital="form.proof_capital"
             />
           </div>
         </div>
@@ -279,6 +317,11 @@ const breadcrumbs = [
               <StepPersonal
                 :errors="form.errors"
                 :show-fields="managerDetailShow"
+                :field-names="managerDetailFields"
+                :labels="managerDetailLabels"
+                v-model:name="form.manager.name"
+                v-model:email="form.manager.email"
+                v-model:phone="form.manager.phone"
               />
 
               <div class="grid gap-2">
@@ -313,6 +356,9 @@ const breadcrumbs = [
               <StepSecurity
                 :errors="form.errors"
                 :show-fields="managerSecurityShow"
+                :field-names="managerSecurityFields"
+                v-model:password="form.manager.password"
+                v-model:confirm-password="form.manager.password_confirmation"
               />
             </div>
 

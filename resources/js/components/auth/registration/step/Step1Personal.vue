@@ -44,6 +44,10 @@ const props = defineProps<{
   errors?: Record<string, string>;
   genderOptions?: { value: string; label: string }[];
   // v-model props
+  name?: string;
+  phone?: string;
+  email?: string;
+  franchiseName?: string;
   birthday?: string;
   selectedGender?: string;
   // Customization props (all optional)
@@ -52,7 +56,15 @@ const props = defineProps<{
   showFields?: Partial<ShowFields>;
 }>();
 
-const emit = defineEmits(['update:birthday', 'update:selectedGender']);
+// DEFINE EMITS
+const emit = defineEmits([
+  'update:birthday',
+  'update:selectedGender',
+  'update:name',
+  'update:phone',
+  'update:email',
+  'update:franchiseName',
+]);
 
 // --- DEFAULTS ---
 const defaultFieldNames: FieldNames = {
@@ -130,6 +142,8 @@ const calculatedAge = computed(() => {
         :id="fields.name"
         type="text"
         :name="fields.name"
+        :model-value="name"
+        @update:model-value="emit('update:name', $event)"
         required
         autofocus
         :autocomplete="fields.name"
@@ -155,6 +169,8 @@ const calculatedAge = computed(() => {
         :id="fields.franchiseName"
         type="text"
         :name="fields.franchiseName"
+        :model-value="franchiseName"
+        @update:model-value="emit('update:franchiseName', $event)"
         required
         autofocus
         :autocomplete="fields.franchiseName"
@@ -180,6 +196,8 @@ const calculatedAge = computed(() => {
         :id="fields.phone"
         type="tel"
         :name="fields.phone"
+        :model-value="phone"
+        @update:model-value="emit('update:phone', $event)"
         required
         :autocomplete="fields.phone"
         placeholder="639123456789"
@@ -204,6 +222,8 @@ const calculatedAge = computed(() => {
         :id="fields.email"
         type="text"
         :name="fields.email"
+        :model-value="email"
+        @update:model-value="emit('update:email', $event)"
         required
         :autocomplete="fields.email"
         placeholder="email@example.com"

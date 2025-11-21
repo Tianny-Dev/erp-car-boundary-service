@@ -8,6 +8,8 @@ import { computed, ref } from 'vue';
 
 // --- TYPES ---
 interface FieldNames {
+  password: string;
+  confirmPassword: string;
   terms1: string;
   terms2: string;
 }
@@ -25,6 +27,8 @@ interface ShowFields {
 const props = defineProps<{
   errors?: Record<string, string>;
   // v-model props
+  password?: string;
+  confirmPassword?: string;
   terms1?: boolean;
   terms2?: boolean;
   // Customization props (all optional)
@@ -34,7 +38,12 @@ const props = defineProps<{
 }>();
 
 // --- EMITS ---
-const emit = defineEmits(['update:terms1', 'update:terms2']);
+const emit = defineEmits([
+  'update:terms1',
+  'update:terms2',
+  'update:password',
+  'update:confirmPassword',
+]);
 
 // --- V-MODEL COMPUTEDS ---
 const computedTerms1 = computed<boolean>({
@@ -48,6 +57,8 @@ const computedTerms2 = computed<boolean>({
 
 // --- DEFAULTS ---
 const defaultFieldNames: FieldNames = {
+  password: 'password',
+  confirmPassword: 'confirm_password',
   terms1: 'terms1',
   terms2: 'terms2',
 };
@@ -88,7 +99,9 @@ const showConfirmPassword = ref(false);
           <Input
             id="password"
             :type="showPassword ? 'text' : 'password'"
-            name="password"
+            :name="fields.password"
+            :model-value="password"
+            @update:model-value="emit('update:password', $event)"
             required
             placeholder="Password"
             class="flex-1 border-0 font-mono font-semibold focus-visible:ring-0"
@@ -121,7 +134,9 @@ const showConfirmPassword = ref(false);
           <Input
             id="password_confirmation"
             :type="showConfirmPassword ? 'text' : 'password'"
-            name="password_confirmation"
+            :name="fields.confirmPassword"
+            :model-value="confirmPassword"
+            @update:model-value="emit('update:confirmPassword', $event)"
             required
             placeholder="Confirm Password"
             class="flex-1 border-0 font-mono font-semibold focus-visible:ring-0"
