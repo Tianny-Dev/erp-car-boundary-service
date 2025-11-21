@@ -97,6 +97,7 @@ const submitForm = () => {
     form.put(superAdmin.allocation.update(editingItem.value.id).url, {
       onSuccess: () => {
         isDialogOpen.value = false;
+        form.reset();
         toast.success('Allocation updated successfully!');
       },
     });

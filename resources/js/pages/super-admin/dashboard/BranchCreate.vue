@@ -1,8 +1,12 @@
 <script setup lang="ts">
+import StepPersonal from '@/components/auth/registration/step/Step1Personal.vue';
 import StepAddress from '@/components/auth/registration/step/Step2Address.vue';
+import StepAccount from '@/components/auth/registration/step/Step4Account.vue';
+import StepUpload from '@/components/auth/registration/step/Step5Uploads.vue';
+import StepSecurity from '@/components/auth/registration/step/Step6Security.vue';
+import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -16,7 +20,12 @@ import { useAddress } from '@/composables/useAddress';
 import AppLayout from '@/layouts/AppLayout.vue';
 import superAdmin from '@/routes/super-admin';
 import { useForm } from '@inertiajs/vue3';
-import { reactive } from 'vue';
+import {
+  CircleDollarSignIcon,
+  IdCardIcon,
+  VenusAndMarsIcon,
+} from 'lucide-vue-next';
+import { reactive, ref } from 'vue';
 
 // Props passed from Controller
 defineProps<{
@@ -45,9 +54,9 @@ const form = useForm({
   postal_code: '',
 
   // Files
-  dti_registration_attachment: null as File | null,
-  mayor_permit_attachment: null as File | null,
-  proof_agreement_attachment: null as File | null,
+  dti_certificate: null as File | null,
+  mayor_permit: null as File | null,
+  proof_capital: null as File | null,
 
   // Manager Toggle
   has_manager: false,
@@ -73,8 +82,37 @@ const form = useForm({
   },
 });
 
+const consoleSubmit = () => {
+  console.log(form);
+};
+
+// Configuration for Branch Details Component
+const branchDetailFields = {
+  franchiseName: 'name',
+};
+const branchDetailLabels = {
+  franchiseName: 'Business / Branch Name',
+};
+const branchDetailShow = {
+  name: false,
+  gender: false,
+  birthday: false,
+};
+
+// Configuration for Branch Uploads Component
+const branchUploadLabels = {
+  proofOfCapital: 'Proof of Capital or Branch Agreement',
+};
+const branchUploadShow = {
+  nbiClearance: false,
+  selfiePicture: false,
+  prcCertificate: false,
+  professionalLicense: false,
+  cvAttachment: false,
+};
+
 // Configuration for Branch Address Component
-const branchFieldNames = {
+const branchAddressFields = {
   region: 'region',
   province: 'province',
   city: 'city',
@@ -82,13 +120,46 @@ const branchFieldNames = {
   postalCode: 'postal_code',
   address: 'address',
 };
-const branchLabels = {
+const branchAddressLabels = {
   region: 'Region',
   province: 'Province',
   city: 'City',
   barangay: 'Barangay',
   postalCode: 'Postal Code',
   address: 'Street Address',
+};
+
+// Configuration for Manager Details Component
+const managerDetailShow = {
+  gender: false,
+  birthday: false,
+  franchiseName: false,
+};
+
+// Configuration for Manager Security Component
+const managerSecurityShow = {
+  terms1: false,
+  terms2: false,
+};
+
+// Configuration for Manager Identity Component
+const validIdFront = ref<File | null>(null);
+const validIdBack = ref<File | null>(null);
+const managerIdentityShow = {
+  licenseNumber: false,
+  licenseExpiry: false,
+  validIdType: false,
+  validIdUpload: false,
+  expertise: false,
+  yearExperience: false,
+};
+const managerIdShow = {
+  licenseNumber: false,
+  licenseExpiry: false,
+  validIdType: false,
+  expertise: false,
+  yearExperience: false,
+  validIdNumber: false,
 };
 
 // Configuration for Manager Address Component
@@ -116,10 +187,6 @@ const submit = () => {
   });
 };
 
-const handleManagerToggle = (value: boolean) => {
-  form.has_manager = value;
-};
-
 const breadcrumbs = [
   { title: 'Dashboard', href: superAdmin.dashboard().url },
   { title: 'Create Branch', href: superAdmin.branch.create().url },
@@ -138,78 +205,56 @@ const breadcrumbs = [
           </h3>
 
           <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div class="space-y-2">
-              <Label>Branch Name</Label>
-              <Input v-model="form.name" placeholder="Branch Name" />
-              <span v-if="form.errors.name" class="text-sm text-red-500">{{
-                form.errors.name
-              }}</span>
-            </div>
-            <div class="space-y-2">
-              <Label>Payment Option</Label>
-              <Select v-model="form.payment_option_id">
-                <SelectTrigger
-                  ><SelectValue placeholder="Select Option"
-                /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem
-                    v-for="opt in paymentOptions"
-                    :key="opt.id"
-                    :value="String(opt.id)"
-                  >
-                    {{ opt.name }}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div class="space-y-2">
-              <Label>Email</Label>
-              <Input v-model="form.email" type="email" />
-              <span v-if="form.errors.email" class="text-sm text-red-500">{{
-                form.errors.email
-              }}</span>
-            </div>
-            <div class="space-y-2">
-              <Label>Phone</Label>
-              <Input v-model="form.phone" />
+            <StepPersonal
+              :errors="form.errors"
+              :field-names="branchDetailFields"
+              :labels="branchDetailLabels"
+              :show-fields="branchDetailShow"
+            />
+            <div class="grid gap-2">
+              <Label class="font-semibold text-auth-blue">Payment Option</Label>
+              <div
+                class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
+              >
+                <div class="flex items-center justify-center bg-auth-blue px-3">
+                  <CircleDollarSignIcon class="h-5 w-5 text-white" />
+                </div>
+                <Select v-model="form.payment_option_id">
+                  <SelectTrigger
+                    class="flex-1 cursor-pointer border-0 font-mono font-semibold focus-visible:ring-0"
+                    ><SelectValue placeholder="Select Option"
+                  /></SelectTrigger>
+                  <SelectContent class="font-mono font-semibold">
+                    <SelectItem
+                      v-for="opt in paymentOptions"
+                      :key="opt.id"
+                      :value="String(opt.id)"
+                      class="cursor-pointer"
+                    >
+                      {{ opt.name }}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <InputError :message="form.errors['payment_option_id']" />
             </div>
           </div>
 
           <div class="grid grid-cols-1 gap-4 pt-4 md:grid-cols-2">
             <StepAddress
               :address-data="branchAddress"
-              :field-names="branchFieldNames"
-              :labels="branchLabels"
+              :field-names="branchAddressFields"
+              :labels="branchAddressLabels"
               :errors="form.errors"
             />
           </div>
 
           <div class="grid grid-cols-1 gap-4 pt-4 md:grid-cols-3">
-            <div class="space-y-2">
-              <Label>DTI Registration</Label>
-              <Input
-                type="file"
-                @input="
-                  form.dti_registration_attachment = $event.target.files[0]
-                "
-              />
-            </div>
-            <div class="space-y-2">
-              <Label>Mayor's Permit</Label>
-              <Input
-                type="file"
-                @input="form.mayor_permit_attachment = $event.target.files[0]"
-              />
-            </div>
-            <div class="space-y-2">
-              <Label>Proof of Agreement</Label>
-              <Input
-                type="file"
-                @input="
-                  form.proof_agreement_attachment = $event.target.files[0]
-                "
-              />
-            </div>
+            <StepUpload
+              :errors="form.errors"
+              :labels="branchUploadLabels"
+              :show-fields="branchUploadShow"
+            />
           </div>
         </div>
 
@@ -217,11 +262,7 @@ const breadcrumbs = [
 
         <div class="space-y-4">
           <div class="flex items-center space-x-2">
-            <Checkbox
-              id="hasManager"
-              :checked="form.has_manager"
-              @update:checked="handleManagerToggle"
-            />
+            <Checkbox id="hasManager" v-model="form.has_manager" />
             <Label
               for="hasManager"
               class="cursor-pointer text-lg font-semibold"
@@ -235,55 +276,44 @@ const breadcrumbs = [
             class="space-y-4 rounded-lg border bg-gray-50 p-4"
           >
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div class="space-y-2">
-                <Label>Full Name</Label>
-                <Input v-model="form.manager.name" />
-                <span
-                  v-if="form.errors['manager.name']"
-                  class="text-sm text-red-500"
-                  >{{ form.errors['manager.name'] }}</span
+              <StepPersonal
+                :errors="form.errors"
+                :show-fields="managerDetailShow"
+              />
+
+              <div class="grid gap-2">
+                <Label class="font-semibold text-auth-blue">Gender</Label>
+                <div
+                  class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
                 >
+                  <div
+                    class="flex items-center justify-center bg-auth-blue px-3"
+                  >
+                    <VenusAndMarsIcon class="h-5 w-5 text-white" />
+                  </div>
+                  <Select v-model="form.manager.gender">
+                    <SelectTrigger
+                      class="flex-1 cursor-pointer border-0 font-mono font-semibold focus-visible:ring-0"
+                      ><SelectValue placeholder="Select Gender"
+                    /></SelectTrigger>
+                    <SelectContent class="font-mono font-semibold">
+                      <SelectItem
+                        v-for="g in genderOptions"
+                        :key="g.value"
+                        :value="g.value"
+                        class="cursor-pointer"
+                        >{{ g.label }}</SelectItem
+                      >
+                    </SelectContent>
+                  </Select>
+                </div>
+                <InputError :message="form.errors['manager.gender']" />
               </div>
-              <div class="space-y-2">
-                <Label>Email</Label>
-                <Input v-model="form.manager.email" type="email" />
-                <span
-                  v-if="form.errors['manager.email']"
-                  class="text-sm text-red-500"
-                  >{{ form.errors['manager.email'] }}</span
-                >
-              </div>
-              <div class="space-y-2">
-                <Label>Phone</Label>
-                <Input v-model="form.manager.phone" />
-              </div>
-              <div class="space-y-2">
-                <Label>Password</Label>
-                <Input v-model="form.manager.password" type="password" />
-              </div>
-              <div class="space-y-2">
-                <Label>Confirm Password</Label>
-                <Input
-                  v-model="form.manager.password_confirmation"
-                  type="password"
-                />
-              </div>
-              <div class="space-y-2">
-                <Label>Gender</Label>
-                <Select v-model="form.manager.gender">
-                  <SelectTrigger
-                    ><SelectValue placeholder="Select Gender"
-                  /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem
-                      v-for="g in genderOptions"
-                      :key="g.value"
-                      :value="g.value"
-                      >{{ g.label }}</SelectItem
-                    >
-                  </SelectContent>
-                </Select>
-              </div>
+
+              <StepSecurity
+                :errors="form.errors"
+                :show-fields="managerSecurityShow"
+              />
             </div>
 
             <div class="grid grid-cols-1 gap-4 pt-4 md:grid-cols-2">
@@ -298,57 +328,61 @@ const breadcrumbs = [
             </div>
 
             <div class="grid grid-cols-1 gap-4 border-t pt-4 md:grid-cols-3">
-              <div class="space-y-2">
-                <Label>ID Type</Label>
-                <Select v-model="form.manager.valid_id_type">
-                  <SelectTrigger
-                    ><SelectValue placeholder="Select ID Type"
-                  /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem
-                      v-for="id in idTypeOptions"
-                      :key="id.value"
-                      :value="id.value"
-                      >{{ id.label }}</SelectItem
-                    >
-                  </SelectContent>
-                </Select>
+              <div class="grid gap-2">
+                <Label class="font-semibold text-auth-blue"
+                  >Valid ID Type</Label
+                >
+                <div
+                  class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
+                >
+                  <div
+                    class="flex items-center justify-center bg-auth-blue px-3"
+                  >
+                    <IdCardIcon class="h-5 w-5 text-white" />
+                  </div>
+                  <Select v-model="form.manager.valid_id_type">
+                    <SelectTrigger
+                      class="flex-1 cursor-pointer border-0 font-mono font-semibold focus-visible:ring-0"
+                      ><SelectValue placeholder="Select Option"
+                    /></SelectTrigger>
+                    <SelectContent class="font-mono font-semibold">
+                      <SelectItem
+                        v-for="id in idTypeOptions"
+                        :key="id.value"
+                        :value="id.value"
+                        class="cursor-pointer"
+                        >{{ id.label }}</SelectItem
+                      >
+                    </SelectContent>
+                  </Select>
+                </div>
+                <InputError :message="form.errors['manager.valid_id_type']" />
               </div>
-              <div class="space-y-2">
-                <Label>ID Number</Label>
-                <Input v-model="form.manager.valid_id_number" />
-              </div>
+              <StepAccount
+                :errors="form.errors"
+                :show-fields="managerIdentityShow"
+              />
               <div class="col-span-1 grid grid-cols-2 gap-4 md:col-span-3">
-                <div class="space-y-2">
-                  <Label>Front ID Pic</Label>
-                  <Input
-                    type="file"
-                    @input="
-                      form.manager.front_valid_id_picture =
-                        $event.target.files[0]
-                    "
-                  />
-                </div>
-                <div class="space-y-2">
-                  <Label>Back ID Pic</Label>
-                  <Input
-                    type="file"
-                    @input="
-                      form.manager.back_valid_id_picture =
-                        $event.target.files[0]
-                    "
-                  />
-                </div>
+                <StepAccount
+                  :errors="form.errors"
+                  :show-fields="managerIdShow"
+                  v-model:validIdFront="validIdFront"
+                  v-model:validIdBack="validIdBack"
+                />
               </div>
             </div>
           </div>
         </div>
 
         <div class="flex justify-end gap-4">
-          <Button type="button" variant="secondary" @click="form.reset()"
+          <Button type="button" variant="outline" @click="form.reset()"
             >Reset</Button
           >
-          <Button type="submit" :disabled="form.processing">
+          <Button
+            type="submit"
+            :disabled="form.processing"
+            @click="consoleSubmit"
+          >
             {{ form.processing ? 'Saving...' : 'Create Branch' }}
           </Button>
         </div>
