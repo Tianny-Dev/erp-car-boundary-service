@@ -33,10 +33,12 @@ const props = defineProps<{
     };
     franchises: { id: number; name: string }[];
     branches: { id: number; name: string }[];
+    drivers: { id: number; name: string }[];
     filters: {
         tab: 'franchise' | 'branch';
         franchise: string | null;
         branch: string | null;
+        driver: string | null;
         service: 'Trips';
         period: 'daily' | 'weekly' | 'monthly';
     };
@@ -52,6 +54,7 @@ interface RevenueRow {
     amount: number;
     payment_date: string; // This now holds the formatted period (e.g., "YYYY-MM-DD" or "Nov 19 - 25, 2025")
     service_type: string;
+    driver_name: string;
     driver?: {
         id: number;
         username: string;
@@ -73,6 +76,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 const activeTab = ref(props.filters.tab);
 const selectedFranchise = ref(props.filters.franchise || 'all');
 const selectedBranch = ref(props.filters.branch || 'all');
+const selectedDriver = ref(props.filters.driver || 'all');
 const selectedService = ref(props.filters.service);
 const selectedPeriod = ref(props.filters.period);
 
@@ -97,6 +101,7 @@ const selectedFilter = computed({
         } else {
             selectedBranch.value = value;
         }
+        selectedDriver.value = 'all';
     },
 });
 
@@ -161,6 +166,10 @@ function handleExport() {
         export_type: exportType.value,
         year: exportYear.value,
     });
+
+    if (selectedDriver.value && selectedDriver.value !== 'all') {
+         params.append('driver', selectedDriver.value);
+     }
 
     // 2. Add branch/franchise filter if not 'all'
     if (activeTab.value === 'franchise' && selectedFranchise.value !== 'all') {
@@ -287,6 +296,45 @@ const revenueColumns = computed<ColumnDef<RevenueRow>[]>(() => {
     });
     // --- END: NEW LOGIC ---
 
+    // 3. Add the button column, See All the tansaction this day
+    // --- 3. Add the button column, See All the tansaction this day
+// columns.push({
+//     accessorKey: 'action',
+//     header: 'Action',
+//     cell: (info) => {
+//         const rowData = info.row.original as RevenueRow;
+
+//         return h(
+//             Button,
+//             {
+//                 class: "py-1 px-2 text-xs",
+//                 onClick: () => {
+//                     const queryParams: Record<string, string> = {
+//                         driver_id: String(rowData.driver_id),
+//                         payment_date: rowData.payment_date,
+//                         period: selectedPeriod.value,
+
+//                         tab: activeTab.value,
+//                     };
+
+//                     if (activeTab.value === 'franchise' && selectedFranchise.value !== 'all') {
+//                         queryParams.franchise = selectedFranchise.value;
+//                     } else if (activeTab.value === 'branch' && selectedBranch.value !== 'all') {
+//                         queryParams.branch = selectedBranch.value;
+//                     }
+
+//                     router.get(superAdmin.driverreport.details().url, queryParams, {
+//                         preserveScroll: true,
+//                         replace: false,
+//                     });
+//                 }
+//             },
+//             () => 'View Details'
+//         );
+//     },
+// });
+    // --- END: NEW LOGIC ---
+
     return columns;
 });
 
@@ -297,6 +345,10 @@ const updateFilters = () => {
         service: selectedService.value,
         period: selectedPeriod.value,
     };
+
+    if (selectedDriver.value && selectedDriver.value !== 'all') {
+      queryParams.driver = selectedDriver.value;
+    }
 
     if (activeTab.value === 'franchise' && selectedFranchise.value !== 'all') {
         queryParams.franchise = selectedFranchise.value;
@@ -318,6 +370,7 @@ watch(activeTab, (newTab) => {
         selectedFranchise.value = 'all';
     }
     // The main watcher will handle the update
+    selectedDriver.value = 'all';
 });
 
 // Watch all filters for changes (debounced)
@@ -328,6 +381,7 @@ watch(
         activeTab,
         selectedService,
         selectedPeriod,
+        selectedDriver,
     ],
     debounce(() => {
         updateFilters();
@@ -404,6 +458,23 @@ watch(
                                 </SelectItem>
                             </SelectContent>
                         </Select>
+
+                        <Select v-model="selectedDriver">
+              <SelectTrigger class="w-[200px] cursor-pointer">
+                <SelectValue placeholder="Select Driver" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Drivers</SelectItem>
+                <SelectItem
+                  v-for="driver in drivers"
+                  :key="driver.id"
+                  :value="String(driver.id)"
+                >
+                  {{ driver.name }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+
                     </div>
                 </div>
 
