@@ -131,6 +131,12 @@ const navConfig: Record<string, NavItem[]> = {
       icon: Octagon,
       group: 'Management',
     },
+    {
+      title: 'Suspend Drivers',
+      href: manager.suspendDrivers.index(),
+      icon: UserX,
+      group: 'Management',
+    },
 
     {
       title: 'Boundary Contracts',
