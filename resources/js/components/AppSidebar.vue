@@ -30,6 +30,7 @@ import {
   LayoutGrid,
   Octagon,
   Users,
+  UserX,
   Wrench,
 } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
@@ -202,6 +203,12 @@ const navConfig: Record<string, NavItem[]> = {
       title: 'Assign Drivers',
       href: owner.vehicleDrivers.index(),
       icon: Octagon,
+      group: 'Management',
+    },
+    {
+      title: 'Suspend Drivers',
+      href: owner.suspendDrivers.index(),
+      icon: UserX,
       group: 'Management',
     },
 
