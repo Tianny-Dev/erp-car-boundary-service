@@ -116,7 +116,7 @@ const showConfirmPassword = ref(false);
           </button>
         </div>
       </div>
-      <InputError :message="errors?.password" />
+      <InputError :message="errors?.[fields.password]" />
     </div>
 
     <!-- Confirm Password -->
@@ -151,7 +151,7 @@ const showConfirmPassword = ref(false);
           </button>
         </div>
       </div>
-      <InputError :message="errors?.password_confirmation" />
+      <InputError :message="errors?.[fields.confirmPassword]" />
     </div>
   </template>
 

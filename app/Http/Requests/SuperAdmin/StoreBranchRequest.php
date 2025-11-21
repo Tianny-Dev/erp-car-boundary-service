@@ -41,8 +41,7 @@ class StoreBranchRequest extends FormRequest
             'has_manager' => ['required', 'boolean'],
 
             // --- Manager Details (Required if has_manager is true) ---
-            'manager.first_name' => ['exclude_unless:has_manager,true', 'required', 'string', 'max:255'],
-            'manager.last_name' => ['exclude_unless:has_manager,true', 'required', 'string', 'max:255'],
+            'manager.name' => ['exclude_unless:has_manager,true', 'required', 'string', 'max:255'],
             'manager.email' => ['exclude_unless:has_manager,true', 'required', 'email', 'unique:users,email'],
             'manager.password' => ['exclude_unless:has_manager,true', 'required', 'min:8', 'confirmed'],
             'manager.phone' => ['exclude_unless:has_manager,true', 'required', 'string', 'unique:users,phone'],

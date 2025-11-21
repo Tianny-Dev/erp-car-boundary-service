@@ -50,6 +50,7 @@ const props = defineProps<{
   selectedExpertise?: string;
   validIdFront?: File | null;
   validIdBack?: File | null;
+  validIdNumber?: string;
   // Customization props (all optional)
   fieldNames?: Partial<FieldNames>;
   labels?: Partial<Labels>;
@@ -62,6 +63,7 @@ const emit = defineEmits([
   'update:selectedExpertise',
   'update:validIdFront',
   'update:validIdBack',
+  'update:validIdNumber',
 ]);
 
 // --- DEFAULTS ---
@@ -121,6 +123,10 @@ const computedValidIdFront = computed({
 const computedValidIdBack = computed({
   get: () => props.validIdBack,
   set: (value) => emit('update:validIdBack', value),
+});
+const computedValidIdNumber = computed<string | undefined>({
+  get: () => props.validIdNumber,
+  set: (value) => emit('update:validIdNumber', value),
 });
 
 // --- REFS FOR FILE INPUTS ---
@@ -325,6 +331,7 @@ function removeFile(side: 'front' | 'back') {
         :id="fields.validIdNumber"
         type="text"
         :name="fields.validIdNumber"
+        v-model="computedValidIdNumber"
         required
         :autocomplete="fields.validIdNumber"
         placeholder="123456789"

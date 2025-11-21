@@ -25,7 +25,7 @@ import {
   IdCardIcon,
   VenusAndMarsIcon,
 } from 'lucide-vue-next';
-import { reactive, ref, watchEffect } from 'vue';
+import { reactive, watchEffect } from 'vue';
 
 // Props passed from Controller
 defineProps<{
@@ -159,8 +159,6 @@ const managerSecurityShow = {
 };
 
 // Configuration for Manager Identity Component
-const validIdFront = ref<File | null>(null);
-const validIdBack = ref<File | null>(null);
 const managerIdentityShow = {
   licenseNumber: false,
   licenseExpiry: false,
@@ -169,6 +167,9 @@ const managerIdentityShow = {
   expertise: false,
   yearExperience: false,
 };
+const managerIdentityField = {
+  validIdNumber: 'manager.valid_id_number',
+};
 const managerIdShow = {
   licenseNumber: false,
   licenseExpiry: false,
@@ -176,6 +177,11 @@ const managerIdShow = {
   expertise: false,
   yearExperience: false,
   validIdNumber: false,
+};
+const managerIdField = {
+  frontValidIdPicture: 'manager.front_valid_id_picture',
+  backValidIdPicture: 'manager.back_valid_id_picture',
+  validIdNumber: 'manager.valid_id_number',
 };
 
 // Configuration for Manager Address Component
@@ -234,7 +240,7 @@ watchEffect(() => {
             Branch Information
           </h3>
 
-          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div class="grid grid-cols-1 items-start gap-4 md:grid-cols-2">
             <StepPersonal
               :errors="form.errors"
               :field-names="branchDetailFields"
@@ -273,7 +279,7 @@ watchEffect(() => {
             </div>
           </div>
 
-          <div class="grid grid-cols-1 gap-4 pt-4 md:grid-cols-2">
+          <div class="grid grid-cols-1 items-start gap-4 pt-4 md:grid-cols-2">
             <StepAddress
               :address-data="branchAddress"
               :field-names="branchAddressFields"
@@ -284,7 +290,7 @@ watchEffect(() => {
             />
           </div>
 
-          <div class="grid grid-cols-1 gap-4 pt-4 md:grid-cols-3">
+          <div class="grid grid-cols-1 items-start gap-4 pt-4 md:grid-cols-3">
             <StepUpload
               :errors="form.errors"
               :labels="branchUploadLabels"
@@ -313,7 +319,7 @@ watchEffect(() => {
             v-if="form.has_manager"
             class="space-y-4 rounded-lg border bg-gray-50 p-4"
           >
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div class="grid grid-cols-1 items-start gap-4 md:grid-cols-2">
               <StepPersonal
                 :errors="form.errors"
                 :show-fields="managerDetailShow"
@@ -362,7 +368,7 @@ watchEffect(() => {
               />
             </div>
 
-            <div class="grid grid-cols-1 gap-4 pt-4 md:grid-cols-2">
+            <div class="grid grid-cols-1 items-start gap-4 pt-4 md:grid-cols-2">
               <StepAddress
                 :address-data="managerAddress"
                 :field-names="managerFieldNames"
@@ -373,7 +379,9 @@ watchEffect(() => {
               />
             </div>
 
-            <div class="grid grid-cols-1 gap-4 border-t pt-4 md:grid-cols-3">
+            <div
+              class="grid grid-cols-1 items-start gap-4 border-t pt-4 md:grid-cols-3"
+            >
               <div class="grid gap-2">
                 <Label class="font-semibold text-auth-blue"
                   >Valid ID Type</Label
@@ -407,13 +415,18 @@ watchEffect(() => {
               <StepAccount
                 :errors="form.errors"
                 :show-fields="managerIdentityShow"
+                :field-names="managerIdentityField"
+                v-model:valid-id-number="form.manager.valid_id_number"
               />
-              <div class="col-span-1 grid grid-cols-2 gap-4 md:col-span-3">
+              <div
+                class="col-span-1 grid grid-cols-2 items-start gap-4 md:col-span-3"
+              >
                 <StepAccount
                   :errors="form.errors"
                   :show-fields="managerIdShow"
-                  v-model:validIdFront="validIdFront"
-                  v-model:validIdBack="validIdBack"
+                  :field-names="managerIdField"
+                  v-model:valid-id-front="form.manager.front_valid_id_picture"
+                  v-model:valid-id-back="form.manager.back_valid_id_picture"
                 />
               </div>
             </div>

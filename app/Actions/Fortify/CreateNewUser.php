@@ -11,13 +11,10 @@ use App\Models\UserTechnician;
 use App\Models\Franchise;
 use App\Models\UserOwner;
 use App\Models\UserType;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
 use App\Enums\Shifts;
@@ -86,7 +83,6 @@ class CreateNewUser implements CreatesNewUsers
             'city' => ['required', 'string', 'max:255'],
             'barangay' => ['required', 'string', 'max:255'],
             'postal_code' => ['required', 'string', 'max:20'],
-            'password' => $this->passwordRules(),
             'license_number' => ['required', 'string', 'max:20'],
             'license_expiry' => ['required', 'date','after_or_equal:' . now()->toDateString()],
             'shift' => ['required', new Enum(Shifts::class)],
@@ -179,7 +175,6 @@ class CreateNewUser implements CreatesNewUsers
             'city' => ['required', 'string', 'max:255'],
             'barangay' => ['required', 'string', 'max:255'],
             'postal_code' => ['required', 'string', 'max:20'],
-            'password' => $this->passwordRules(),
             'payment_option_id' => ['required', 'exists:payment_options,id'],
             'preferred_language' => ['required', new Enum(Language::class)],
             'accessibility_option'=> ['required', new Enum(AccesibilityOption::class)],
@@ -255,7 +250,6 @@ class CreateNewUser implements CreatesNewUsers
             'city' => ['required', 'string', 'max:255'],
             'barangay' => ['required', 'string', 'max:255'],
             'postal_code' => ['required', 'string', 'max:20'],
-            'password' => $this->passwordRules(),
             'expertise'=> ['required', new Enum(Expertise::class)],
             'year_experience'=> ['required','integer', 'between:0,100'],
             'valid_id_type'=> ['required', new Enum(IdType::class)],
