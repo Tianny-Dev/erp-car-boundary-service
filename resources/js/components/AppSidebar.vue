@@ -17,6 +17,7 @@ import superAdmin from '@/routes/super-admin';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import {
+  Banknote,
   BarChart3,
   Bell,
   CarTaxiFront,
@@ -114,6 +115,13 @@ const navConfig: Record<string, NavItem[]> = {
     },
 
     {
+      title: 'Payout',
+      href: manager.payout(),
+      icon: Banknote,
+      group: 'Payment',
+    },
+
+    {
       title: 'Driver Management',
       href: manager.drivers.index(),
       icon: Users,
@@ -186,12 +194,12 @@ const navConfig: Record<string, NavItem[]> = {
       group: 'Overview',
     },
 
-    // {
-    //   title: 'Payout',
-    //   href: owner.payout(),
-    //   icon: Banknote,
-    //   group: 'Payment',
-    // },
+    {
+      title: 'Payout',
+      href: owner.payout(),
+      icon: Banknote,
+      group: 'Payment',
+    },
 
     {
       title: 'Driver Management',
