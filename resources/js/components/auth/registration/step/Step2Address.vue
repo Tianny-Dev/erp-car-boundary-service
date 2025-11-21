@@ -54,10 +54,17 @@ const props = defineProps<{
   errors?: Record<string, string>;
   fieldNames: FieldNames;
   labels: Labels;
+  // v-model props
+  postalCode?: string | number;
+  streetAddress?: string;
 }>();
 
 // Emit events when address data changes
-const emit = defineEmits(['change']);
+const emit = defineEmits([
+  'change',
+  'update:postalCode',
+  'update:streetAddress',
+]);
 
 // Watch for changes in address data and emit change events
 watch(
@@ -294,6 +301,8 @@ watch(
         type="number"
         :name="fieldNames.postalCode"
         required
+        :model-value="postalCode"
+        @update:model-value="emit('update:postalCode', $event)"
         :autocomplete="fieldNames.postalCode"
         placeholder="2009"
         class="flex-1 border-0 font-mono font-semibold focus-visible:ring-0"
@@ -318,6 +327,8 @@ watch(
         type="text"
         :name="fieldNames.address"
         required
+        :model-value="streetAddress"
+        @update:model-value="emit('update:streetAddress', $event)"
         autocomplete="address"
         placeholder="123 St. / Building Name"
         class="flex-1 border-0 font-mono font-semibold focus-visible:ring-0"
