@@ -41,7 +41,7 @@ class SuspendDriverController extends Controller
                 'status' => $driver->status?->name,
             ]);
 
-        $statuses = Status::whereIn('name', ['pending', 'inactive', 'active', 'suspended', 'retired'])
+        $statuses = Status::whereIn('name', ['active', 'suspended'])
             ->get(['id', 'name']);
 
         return Inertia::render('manager/suspend-driver/Index', [
