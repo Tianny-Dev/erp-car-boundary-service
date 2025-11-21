@@ -7,12 +7,13 @@ use App\Http\Resources\SuperAdmin\DriverReportDatatableResource;
 use App\Models\Branch;
 use App\Models\Franchise;
 use App\Models\Revenue;
+use App\Models\UserDriver;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Database\Eloquent\Builder;
-use App\Exports\DriverExport;
+use App\Exports\RevenueExport;
 use Maatwebsite\Excel\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Inertia\Inertia;
@@ -27,6 +28,7 @@ class DriverReportController extends Controller
             'tab' => ['sometimes', 'string', Rule::in(['franchise', 'branch'])],
             'franchise' => ['sometimes', 'nullable', 'string'],
             'branch' => ['sometimes', 'nullable', 'string'],
+            'driver' => ['sometimes', 'nullable', 'string'],
             'service' => ['sometimes', 'string', Rule::in(['Trips'])],
             'period' => ['sometimes', 'string', Rule::in(['daily', 'weekly', 'monthly'])],
         ]);
@@ -36,6 +38,7 @@ class DriverReportController extends Controller
             'tab' => $validated['tab'] ?? 'franchise',
             'franchise' => $validated['franchise'] ?? null,
             'branch' => $validated['branch'] ?? null,
+            'driver' => $validated['driver'] ?? null,
             'service' => $validated['service'] ?? 'Trips',
             'period' => $validated['period'] ?? 'daily',
         ];
@@ -43,15 +46,49 @@ class DriverReportController extends Controller
         // 3. Build and execute query
         $query = $this->buildBaseQuery($filters);
         $revenues = $this->applyPeriodGrouping($query, $filters['period'], $filters['tab']);
+        $driversList = $this->getContextualDrivers($filters);
 
         // 4. Return all data to Inertia
         return Inertia::render('super-admin/driver-report/Index', [
             'revenues' => DriverReportDatatableResource::collection($revenues),
             'franchises' => fn () => Franchise::select('id', 'name')->get(),
             'branches' => fn () => Branch::select('id', 'name')->get(),
+            'drivers' => fn () => $driversList,
             'filters' => $filters,
         ]);
 
+    }
+
+    private function getContextualDrivers(array $filters)
+    {
+        // Start with UserDriver and join the base User table to get names
+        $query = UserDriver::query()
+            ->join('users', 'user_drivers.id', '=', 'users.id')
+            ->select('user_drivers.id', 'users.name');
+
+        if ($filters['tab'] === 'franchise') {
+            if (!empty($filters['franchise']) && $filters['franchise'] !== 'all') {
+                // Get drivers strictly belonging to this franchise
+                $query->whereHas('franchises', function ($q) use ($filters) {
+                    $q->where('franchises.id', $filters['franchise']);
+                });
+            } else {
+                // Get ALL drivers that belong to ANY franchise
+                $query->has('franchises');
+            }
+        } elseif ($filters['tab'] === 'branch') {
+            if (!empty($filters['branch']) && $filters['branch'] !== 'all') {
+                // Get drivers strictly belonging to this branch
+                $query->whereHas('branches', function ($q) use ($filters) {
+                    $q->where('branches.id', $filters['branch']);
+                });
+            } else {
+                // Get ALL drivers that belong to ANY branch
+                $query->has('branches');
+            }
+        }
+
+        return $query->orderBy('users.name')->get();
     }
 
     /**
@@ -72,6 +109,12 @@ class DriverReportController extends Controller
             if (! empty($months)) {
                 $query->whereIn(DB::raw('MONTH(payment_date)'), $months);
             }
+
+        // --- NEW: Apply Driver Filter ---
+        // The driver ID is on the 'revenues' table itself.
+        if (!empty($filters['driver']) && $filters['driver'] !== 'all') {
+            $query->where('driver_id', $filters['driver']);
+        }
 
         // Apply tab-specific filtering
         if ($filters['tab'] === 'franchise') {
@@ -134,46 +177,27 @@ class DriverReportController extends Controller
 
         // --- Handle Daily Period (GROUPED QUERY) ---
         if ($period === 'daily') {
-            $query->selectRaw($groupingSelects . ", DATE(revenues.payment_date) as payment_date, " . $breakdownSelects); // Renamed daily_date_sort to payment_date
+            $query->selectRaw($groupingSelects . ", DATE(revenues.payment_date) as daily_date_sort, " . $breakdownSelects);
 
             $query->groupBy(array_merge($groupingFields, [DB::raw('DATE(revenues.payment_date)'), 'revenues.service_type']))
-                ->orderBy('payment_date', 'desc'); // Ordered by payment_date (daily_date_sort)
+                ->orderBy('daily_date_sort', 'desc');
 
             return $query->get();
         }
 
-        // --- Handle Weekly Period (Grouped Query) ---
+        // --- Handle Weekly/Monthly (Grouped Query with JOINs) ---
+
+        // Apply period-specific grouping
         if ($period === 'weekly') {
-            // Calculate the actual start (Monday) and end (Sunday) of the ISO week (week starts on Monday=1)
-            $weekStartCalc = "STR_TO_DATE(CONCAT(YEARWEEK(revenues.payment_date, 1),'1'), '%X%V%w')";
-            $weekEndCalc = "DATE_ADD({$weekStartCalc}, INTERVAL 6 DAY)";
+            $query->selectRaw($groupingSelects . ", MIN(revenues.payment_date) as week_start, MAX(revenues.payment_date) as week_end, " . $breakdownSelects);
 
-            // Concatenate and format the dates to produce the final 'payment_date' string
-            // Format: "Month Day - Day, Year" (e.g., "November 19 - 25, 2025")
-            $formattedWeek = "CONCAT(
-                DATE_FORMAT({$weekStartCalc}, '%M %d'),
-                ' - ',
-                DATE_FORMAT({$weekEndCalc}, '%d, %Y')
-            )";
-
-            // Select the formatted week string as 'payment_date' and also the sortable start date
-            $query->selectRaw($groupingSelects . ",
-                {$formattedWeek} as payment_date,
-                {$weekStartCalc} as week_sort,
-                " . $breakdownSelects);
-
-            // Group by YEARWEEK to ensure all days in the same week are grouped together
-            $query->groupBy(array_merge($groupingFields, [
-                DB::raw('YEARWEEK(revenues.payment_date, 1)'), // Group by YEARWEEK (mode 1: Mon start)
-                'revenues.service_type'
-            ]))
-            // Order by the sortable start date
-            ->orderBy('week_sort', 'desc');
+            $query->groupBy(array_merge($groupingFields, [DB::raw('YEAR(revenues.payment_date)'), DB::raw('WEEK(revenues.payment_date, 1)'), 'revenues.service_type']))
+                ->orderBy('week_start', 'desc');
         }
 
         if ($period === 'monthly') {
             $query->selectRaw($groupingSelects . ",
-                DATE_FORMAT(revenues.payment_date, '%M %Y') as payment_date,
+                DATE_FORMAT(revenues.payment_date, '%M %Y') as month_name,
                 YEAR(revenues.payment_date) as year_sort,
                 MONTH(revenues.payment_date) as month_sort,
                 " . $breakdownSelects);
@@ -182,7 +206,7 @@ class DriverReportController extends Controller
             $query->groupBy(array_merge($groupingFields, [
                 DB::raw('YEAR(revenues.payment_date)'),
                 DB::raw('MONTH(revenues.payment_date)'),
-                // Use the formatted date column in the group by clause
+                // Add the formatted date column reference here:
                 DB::raw("DATE_FORMAT(revenues.payment_date, '%M %Y')"),
                 'revenues.service_type'
             ]))
@@ -203,6 +227,7 @@ class DriverReportController extends Controller
             'tab' => ['required', 'string', Rule::in(['franchise', 'branch'])],
             'franchise' => ['nullable', 'string'],
             'branch' => ['nullable', 'string'],
+            'driver' => ['nullable', 'string'],
             'service' => ['required', 'string', Rule::in(['Trips'])],
             'period' => ['required', 'string',Rule::in(['daily', 'weekly', 'monthly'])],
             'export_type' => ['required', 'string', Rule::in(['pdf', 'excel', 'csv'])],
@@ -215,6 +240,7 @@ class DriverReportController extends Controller
             'tab' => $validated['tab'] ?? 'franchise',
             'franchise' => $validated['franchise'] ?? null,
             'branch' => $validated['branch'] ?? null,
+            'driver' => $validated['driver'] ?? null,
             'service' => $validated['service'] ?? 'Trips',
             'period' => $validated['period'] ?? 'daily',
             'export_type' => $validated['export_type'] ?? 'pdf',
@@ -228,7 +254,6 @@ class DriverReportController extends Controller
         );
 
         // 3. Get and group data (Main driver report data, including per-row breakdown sums)
-        // applyPeriodGrouping now contains the fix for 'weekly' period
         $revenues = $this->applyPeriodGrouping(
             $query,
             $filters['period'],
@@ -331,7 +356,7 @@ class DriverReportController extends Controller
         $fileName = 'revenues_'.date('Y-m-d');
 
         // 7. Dispatch Download
-        $export = new DriverExport($exportRows, $headings, $title);
+        $export = new RevenueExport($exportRows, $headings, $title);
         $exportType = $filters['export_type'];
 
         // Define the list of keys to ensure the Blade loop iterates over all columns correctly
