@@ -25,7 +25,7 @@ const breadcrumbs: BreadcrumbItem[] = [
   },
 ];
 
-// Optional: dynamic label & description mapping
+// dynamic label & description mapping
 const labels: Record<string, string> = {
   driverAmount: 'Driver Share',
   ownerAmount: 'Franchise Owner Share',
@@ -56,6 +56,10 @@ const distributionArray = computed(() => {
     }),
   );
 });
+
+const cleanLabel = (str: string) => {
+  return str.replace(/_/g, ' ');
+};
 </script>
 
 <template>
@@ -79,7 +83,12 @@ const distributionArray = computed(() => {
         <div class="rounded-xl border p-4 dark:border-sidebar-border">
           <p class="text-sm text-gray-500">Total Gross Fare</p>
           <h2 class="mt-2 text-3xl font-bold">
-            ₱{{ dailyEarnings.toLocaleString() }}
+            ₱{{
+              dailyEarnings.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })
+            }}
           </h2>
           <p class="mt-1 text-xs text-gray-400">
             Cutoff: {{ dailyPayout.date }} • {{ dailyPayout.cutoffTime }}
@@ -92,11 +101,16 @@ const distributionArray = computed(() => {
           :key="item.key"
           class="rounded-xl border p-4 dark:border-sidebar-border"
         >
-          <p class="text-sm text-gray-500">
-            {{ labels[item.key] || item.key }}
+          <p class="text-sm text-gray-500 capitalize">
+            {{ cleanLabel(labels[item.key] || item.key) }}
           </p>
           <h2 class="mt-2 text-3xl font-bold">
-            ₱{{ item.amount.toLocaleString() }}
+            ₱{{
+              item.amount.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })
+            }}
           </h2>
           <p class="mt-1 text-xs text-gray-400">
             {{ descriptions[item.key] || '' }}
@@ -117,12 +131,21 @@ const distributionArray = computed(() => {
             class="flex items-center justify-between"
           >
             <div>
-              <p class="font-medium">{{ labels[item.key] || item.key }}</p>
+              <p class="font-medium capitalize">
+                {{ cleanLabel(labels[item.key] || item.key) }}
+              </p>
               <p class="text-sm text-gray-500">
                 {{ descriptions[item.key] || '' }}
               </p>
             </div>
-            <p class="font-semibold">₱{{ item.amount.toLocaleString() }}</p>
+            <p class="font-semibold">
+              ₱{{
+                item.amount.toLocaleString('en-US', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })
+              }}
+            </p>
           </div>
         </div>
 
@@ -131,7 +154,12 @@ const distributionArray = computed(() => {
         <div class="flex items-center justify-between">
           <p class="text-lg font-semibold">Total Net Distribution</p>
           <p class="text-lg font-bold">
-            ₱{{ dailyPayout.totalNetPayout.toLocaleString() }}
+            ₱{{
+              dailyPayout.totalNetPayout.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })
+            }}
           </p>
         </div>
       </div>

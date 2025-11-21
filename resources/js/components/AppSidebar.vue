@@ -30,6 +30,7 @@ import {
   LayoutGrid,
   Octagon,
   Users,
+  UserX,
   Wrench,
 } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
@@ -112,6 +113,13 @@ const navConfig: Record<string, NavItem[]> = {
       group: 'Overview',
     },
 
+    // {
+    //   title: 'Payout',
+    //   href: manager.payout(),
+    //   icon: Banknote,
+    //   group: 'Payment',
+    // },
+
     {
       title: 'Driver Management',
       href: manager.drivers.index(),
@@ -128,6 +136,12 @@ const navConfig: Record<string, NavItem[]> = {
       title: 'Assign Drivers',
       href: manager.vehicleDrivers.index(),
       icon: Octagon,
+      group: 'Management',
+    },
+    {
+      title: 'Suspend Drivers',
+      href: manager.suspendDrivers.index(),
+      icon: UserX,
       group: 'Management',
     },
 
@@ -202,6 +216,12 @@ const navConfig: Record<string, NavItem[]> = {
       title: 'Assign Drivers',
       href: owner.vehicleDrivers.index(),
       icon: Octagon,
+      group: 'Management',
+    },
+    {
+      title: 'Suspend Drivers',
+      href: owner.suspendDrivers.index(),
+      icon: UserX,
       group: 'Management',
     },
 

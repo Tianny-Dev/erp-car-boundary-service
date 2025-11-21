@@ -25,8 +25,8 @@ interface ShowFields {
 const props = defineProps<{
   errors?: Record<string, string>;
   // v-model props
-  terms1: boolean;
-  terms2: boolean;
+  terms1?: boolean;
+  terms2?: boolean;
   // Customization props (all optional)
   fieldNames?: Partial<FieldNames>;
   labels?: Partial<Labels>;

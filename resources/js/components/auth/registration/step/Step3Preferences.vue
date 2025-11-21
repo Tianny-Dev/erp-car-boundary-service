@@ -28,7 +28,7 @@ interface ShowFields {
 const props = defineProps<{
   errors?: Record<string, string>;
   // Data props
-  paymentOptions?: { id: string; label: string; color: string }[];
+  paymentOptions?: { id: string; label: string }[];
   shifts?: { value: string; label: string }[];
   preferredLanguages?: { value: string; label: string }[];
   accessibilityOptions?: { value: string; label: string }[];
@@ -108,7 +108,6 @@ const computedAccessibility = computed<string | undefined>({
         variant="default"
         @click="computedPayout = payout.id"
         :class="[
-          payout.color,
           'relative h-12 cursor-pointer bg-blue-500 text-base font-semibold text-white hover:bg-gray-700',
           computedPayout === payout.id
             ? 'bg-gray-700 ring-2 ring-auth-blue ring-offset-2'
