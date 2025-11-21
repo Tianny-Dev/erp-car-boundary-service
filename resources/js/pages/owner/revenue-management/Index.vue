@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import RevenueBreakDownPieChart from '@/components/finance/charts/revenue-management/RevenueBreakDownPieChart.vue';
-import RevenuePaymentOptionsBreakDownPieChart from '@/components/finance/charts/revenue-management/RevenuePaymentOptionsBreakDownPieChart.vue';
-import RevenueTrendSparkLine from '@/components/finance/charts/revenue-management/RevenueTrendSparkLine.vue';
+import RevenueBreakDownPieChart from '@/components/owner/charts/revenue-management/RevenueBreakDownPieChart.vue';
+import RevenuePaymentOptionsBreakDownPieChart from '@/components/owner/charts/revenue-management/RevenuePaymentOptionsBreakDownPieChart.vue';
+import RevenueTrendSparkLine from '@/components/owner/charts/revenue-management/RevenueTrendSparkLine.vue';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';

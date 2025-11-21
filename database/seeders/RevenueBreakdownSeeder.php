@@ -40,7 +40,7 @@ class RevenueBreakdownSeeder extends Seeder
                     'revenue_id'        => $revenue->id,
                     'percentage_type_id'=> $type->id,
                     'total_earning'     => $amount,
-                    'created_at'        => now(),
+                    'created_at'        => $revenue->payment_date,
                     'updated_at'        => now(),
                 ]);
             }

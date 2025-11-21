@@ -24,10 +24,12 @@ const props = defineProps<{
   };
   franchises: { id: number; name: string }[];
   branches: { id: number; name: string }[];
+  drivers: { id: number; name: string }[];
   filters: {
     tab: 'franchise' | 'branch';
     franchise: string | null;
     branch: string | null;
+    driver: string | null;
     service: 'Trips' | 'Boundary';
   };
 }>();
@@ -42,6 +44,7 @@ interface TransactionRow {
   date: string;
   service_type: string;
   driver_name: string;
+  status_name: string;
 }
 
 // --- 3. Setup Breadcrumbs ---
@@ -56,6 +59,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 const activeTab = ref(props.filters.tab);
 const selectedFranchise = ref(props.filters.franchise || 'all');
 const selectedBranch = ref(props.filters.branch || 'all');
+const selectedDriver = ref(props.filters.driver || 'all');
 const selectedService = ref(props.filters.service);
 
 // --- 5. Computed Properties for UI ---
@@ -81,6 +85,7 @@ const selectedFilter = computed({
     } else {
       selectedBranch.value = value;
     }
+    selectedDriver.value = 'all';
   },
 });
 
@@ -128,7 +133,7 @@ const transactionColumns = computed<ColumnDef<TransactionRow>[]>(() => {
       cell: ({ row }) => {
         const status = row.getValue('status_name') as string;
         const badgeClass = {
-          'bg-blue-500 hover:bg-green-600': status === 'paid',
+          'bg-green-500 hover:bg-green-600': status === 'paid',
           'bg-amber-500 hover:bg-amber-600': status === 'pending',
           'bg-rose-500 hover:bg-rose-600':
             status === 'cancelled' || status === 'overdue',
@@ -154,6 +159,10 @@ const updateFilters = () => {
     service: selectedService.value,
   };
 
+  if (selectedDriver.value && selectedDriver.value !== 'all') {
+    queryParams.driver = selectedDriver.value;
+  }
+
   if (activeTab.value === 'franchise' && selectedFranchise.value !== 'all') {
     queryParams.franchise = selectedFranchise.value;
   } else if (activeTab.value === 'branch' && selectedBranch.value !== 'all') {
@@ -174,11 +183,18 @@ watch(activeTab, (newTab) => {
     selectedFranchise.value = 'all';
   }
   // The main watcher will handle the update
+  selectedDriver.value = 'all';
 });
 
 // Watch all filters for changes (debounced)
 watch(
-  [selectedFranchise, selectedBranch, activeTab, selectedService],
+  [
+    selectedFranchise,
+    selectedBranch,
+    activeTab,
+    selectedService,
+    selectedDriver,
+  ],
   debounce(() => {
     updateFilters();
   }, 300),
@@ -186,7 +202,7 @@ watch(
 </script>
 
 <template>
-  <Head title="Super Admin Dashboard" />
+  <Head title=" Transaction History" />
 
   <AppLayout :breadcrumbs="breadcrumbs">
     <div
@@ -228,6 +244,22 @@ watch(
                 </SelectItem>
                 <SelectItem value="Boundary" class="cursor-pointer">
                   Boundary
+                </SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select v-model="selectedDriver">
+              <SelectTrigger class="w-[200px] cursor-pointer">
+                <SelectValue placeholder="Select Driver" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Drivers</SelectItem>
+                <SelectItem
+                  v-for="driver in drivers"
+                  :key="driver.id"
+                  :value="String(driver.id)"
+                >
+                  {{ driver.name }}
                 </SelectItem>
               </SelectContent>
             </Select>

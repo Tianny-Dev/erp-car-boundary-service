@@ -267,7 +267,7 @@ watch(
 </script>
 
 <template>
-  <Head title="Super Admin Dashboard" />
+  <Head title="Revenue Report" />
 
   <AppLayout :breadcrumbs="breadcrumbs">
     <div

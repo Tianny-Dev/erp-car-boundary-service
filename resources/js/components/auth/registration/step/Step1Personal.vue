@@ -140,6 +140,31 @@ const calculatedAge = computed(() => {
     <InputError :message="errors?.[fields.name]" />
   </div>
 
+  <!-- Franchise Name -->
+  <div v-if="show.franchiseName" class="grid gap-2">
+    <Label :for="fields.franchiseName" class="font-semibold text-auth-blue">{{
+      labels.franchiseName
+    }}</Label>
+    <div
+      class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
+    >
+      <div class="flex items-center justify-center bg-auth-blue px-3">
+        <Building2Icon class="h-5 w-5 text-white" />
+      </div>
+      <Input
+        :id="fields.franchiseName"
+        type="text"
+        :name="fields.franchiseName"
+        required
+        autofocus
+        :autocomplete="fields.franchiseName"
+        placeholder="Business Name"
+        class="flex-1 border-0 font-mono font-semibold focus-visible:ring-0"
+      />
+    </div>
+    <InputError :message="errors?.[fields.franchiseName]" />
+  </div>
+
   <!-- Phone -->
   <div v-if="show.phone" class="grid gap-2">
     <Label :for="fields.phone" class="font-semibold text-auth-blue">{{
@@ -248,30 +273,5 @@ const calculatedAge = computed(() => {
       <input type="hidden" :name="fields.age" :value="calculatedAge" />
     </div>
     <InputError :message="errors?.[fields.birthDate]" />
-  </div>
-
-  <!-- Franchise Name -->
-  <div v-if="show.franchiseName" class="grid gap-2">
-    <Label :for="fields.franchiseName" class="font-semibold text-auth-blue">{{
-      labels.franchiseName
-    }}</Label>
-    <div
-      class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
-    >
-      <div class="flex items-center justify-center bg-auth-blue px-3">
-        <Building2Icon class="h-5 w-5 text-white" />
-      </div>
-      <Input
-        :id="fields.franchiseName"
-        type="text"
-        :name="fields.franchiseName"
-        required
-        autofocus
-        :autocomplete="fields.franchiseName"
-        placeholder="Business / Franchise Name"
-        class="flex-1 border-0 font-mono font-semibold focus-visible:ring-0"
-      />
-    </div>
-    <InputError :message="errors?.[fields.franchiseName]" />
   </div>
 </template>

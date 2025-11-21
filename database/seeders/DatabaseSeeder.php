@@ -32,14 +32,14 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call(DriverAssignmentSeeder::class);
-        $this->call(RevenueSeeder::class);
         $this->call(ExpenseSeeder::class);
         $this->call(VehicleSeeder::class);
         Vehicle::factory(10)->create([
             'driver_id' => null
         ]);
 
-        // $this->call(BoundaryContractSeeder::class);
+        $this->call(BoundaryContractSeeder::class);
+        $this->call(RevenueSeeder::class);
 
         $this->call(PercentageTypeSeeder::class);
         $this->call(RevenueBreakdownSeeder::class);

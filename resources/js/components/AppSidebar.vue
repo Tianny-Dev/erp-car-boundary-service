@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import finance from '@/routes/finance';
+import manager from '@/routes/manager';
 import owner from '@/routes/owner';
 import superAdmin from '@/routes/super-admin';
 import { type NavItem } from '@/types';
@@ -23,11 +24,13 @@ import {
   DollarSign,
   FileSpreadsheet,
   FileText,
+  HandCoins,
   HelpCircle,
   History,
   LayoutGrid,
   Octagon,
   Users,
+  UserX,
   Wrench,
 } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
@@ -65,10 +68,10 @@ const navConfig: Record<string, NavItem[]> = {
       group: 'Fleet',
     },
     {
-      title: 'Revenues Report History',
-      href: superAdmin.revenues(),
-      icon: History,
-      group: 'History',
+      title: 'Vehicle Management',
+      href: superAdmin.vehicle.index(),
+      icon: CarTaxiFront,
+      group: 'Fleet',
     },
     {
       title: 'Revenue Report',
@@ -77,43 +80,102 @@ const navConfig: Record<string, NavItem[]> = {
       group: 'Finance',
     },
     {
-      title: 'Driver History',
-      href: superAdmin.driverlist(),
-      icon: History,
-      group: 'History',
-    },
-    {
       title: 'Transaction History',
       href: superAdmin.transaction.index(),
       icon: History,
       group: 'Finance',
     },
     {
-      title: 'Vehicle Management',
-      href: superAdmin.vehicle.index(),
-      icon: CarTaxiFront,
-      group: 'Fleet',
+      title: 'Driver Report',
+      href: superAdmin.driverreport(),
+      icon: DollarSign,
+      group: 'Finance',
+    },
+    {
+      title: 'Allocation Management',
+      href: superAdmin.allocation.index(),
+      icon: HandCoins,
+      group: 'Finance',
     },
   ],
 
   manager: [
     {
       title: 'Dashboard',
-      href: finance.dashboard(),
+      href: manager.dashboard(),
       icon: LayoutGrid,
       group: 'Overview',
     },
     {
-      title: 'Reports & Analytics',
-      href: finance.reportsAndAnalytics(),
-      icon: BarChart3,
+      title: 'Notifications',
+      href: manager.notifications(),
+      icon: Bell,
+      group: 'Overview',
+    },
+
+    // {
+    //   title: 'Payout',
+    //   href: manager.payout(),
+    //   icon: Banknote,
+    //   group: 'Payment',
+    // },
+
+    {
+      title: 'Driver Management',
+      href: manager.drivers.index(),
+      icon: Users,
+      group: 'Management',
+    },
+    {
+      title: 'Vehicle Management',
+      href: manager.vehicles.index(),
+      icon: CarTaxiFront,
+      group: 'Management',
+    },
+    {
+      title: 'Assign Drivers',
+      href: manager.vehicleDrivers.index(),
+      icon: Octagon,
+      group: 'Management',
+    },
+    {
+      title: 'Suspend Drivers',
+      href: manager.suspendDrivers.index(),
+      icon: UserX,
+      group: 'Management',
+    },
+
+    {
+      title: 'Boundary Contracts',
+      href: manager.boundaryContracts(),
+      icon: FileText,
       group: 'Operations',
     },
     {
+      title: 'Reports & Analytics',
+      href: manager.reportsAndAnalytics(),
+      icon: BarChart3,
+      group: 'Operations',
+    },
+
+    {
       title: 'Revenue Management',
-      href: finance.revenueManagement(),
+      href: manager.revenueManagement(),
       icon: DollarSign,
       group: 'Finance',
+    },
+    {
+      title: 'Expense Management',
+      href: manager.expenseManagement(),
+      icon: FileSpreadsheet,
+      group: 'Finance',
+    },
+
+    {
+      title: 'Support Center',
+      href: manager.supportCenter(),
+      icon: HelpCircle,
+      group: 'Support',
     },
   ],
 
@@ -154,6 +216,12 @@ const navConfig: Record<string, NavItem[]> = {
       title: 'Assign Drivers',
       href: owner.vehicleDrivers.index(),
       icon: Octagon,
+      group: 'Management',
+    },
+    {
+      title: 'Suspend Drivers',
+      href: owner.suspendDrivers.index(),
+      icon: UserX,
       group: 'Management',
     },
 

@@ -13,7 +13,7 @@ class BoundaryContractController extends Controller
         $franchise = auth()->user()->ownerDetails?->franchises()->first();
         $franchiseId = $franchise?->id;
 
-        $query = BoundaryContract::with(['status', 'franchise', 'branch'])
+        $query = BoundaryContract::with(['status', 'franchise'])
             ->when($franchiseId, fn ($q) => $q->where('franchise_id', $franchiseId))
             ->orderByDesc('created_at');
 
@@ -36,8 +36,8 @@ class BoundaryContractController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                 ->orWhere('coverage_area', 'like', "%{$search}%")
-                ->orWhereHas('franchise', fn($q2) => $q2->where('name', 'like', "%{$search}%"))
-                ->orWhereHas('branch', fn($q2) => $q2->where('name', 'like', "%{$search}%"));
+                ->orWhereHas('franchise', fn($q2) => $q2->where('name', 'like', "%{$search}%"));
+                // ->orWhereHas('branch', fn($q2) => $q2->where('name', 'like', "%{$search}%"));
             });
         }
 
@@ -51,7 +51,7 @@ class BoundaryContractController extends Controller
                 'end_date' => $contract->end_date,
                 'status' => $contract->status?->name,
                 'franchise' => $contract->franchise?->name,
-                'branch' => $contract->branch?->name,
+                // 'branch' => $contract->branch?->name,
                 'depositStatus' => $contract->deposit_status ?? 'pending',
             ]);
 
