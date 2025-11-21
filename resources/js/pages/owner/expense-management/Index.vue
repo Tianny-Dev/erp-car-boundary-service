@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import ExpenseBreakDownDonutChart from '@/components/finance/charts/expense-management/ExpenseBreakDownDonutChart.vue';
-import ExpensePaymentOptionsBreakDownPieChart from '@/components/finance/charts/expense-management/ExpensePaymentOptionsBreakDownPieChart.vue';
-import ExpenseTrendSparkLine from '@/components/finance/charts/expense-management/ExpenseTrendSparkLine.vue';
+import ExpenseBreakDownDonutChart from '@/components/owner/charts/expense-management/ExpenseBreakDownDonutChart.vue';
+import ExpensePaymentOptionsBreakDownPieChart from '@/components/owner/charts/expense-management/ExpensePaymentOptionsBreakDownPieChart.vue';
+import ExpenseTrendSparkLine from '@/components/owner/charts/expense-management/ExpenseTrendSparkLine.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

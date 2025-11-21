@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Models\UserType;
 use Database\Seeders\UserTypeSeeder;
 use Database\Seeders\StatusSeeder;
 use Database\Seeders\PaymentOptionSeeder;
@@ -19,17 +20,20 @@ test('login screen can be rendered', function () {
     $response->assertStatus(200);
 });
 
-test('users can authenticate using the login screen', function () {
-    $user = User::factory()->withoutTwoFactor()->create();
+test('each user type authenticates and is redirected correctly')
+    ->with(userTypeRedirects())
+    ->tap(function ($type, $dashboardRoute) {
+        $user = createUserWithType($type);
 
-    $response = $this->post(route('login.store'), [
-        'email' => $user->email,
-        'password' => 'password',
-    ]);
+        $response = $this->post(route('login.store'), [
+            'email' => $user->email,
+            'password' => 'password',
+        ]);
 
-    $this->assertAuthenticated();
-    $response->assertRedirect(route('dashboard', absolute: false));
-});
+        $this->assertAuthenticated();
+
+        $response->assertRedirect(route($dashboardRoute));
+    });
 
 test('users with two factor enabled are redirected to two factor challenge', function () {
     if (! Features::canManageTwoFactorAuthentication()) {

@@ -17,28 +17,27 @@ class DriverAssignmentSeeder extends Seeder
     public function run(): void
     {
         $franchiseIds = Franchise::pluck('id')->toArray();
-        $branchIds    = Branch::pluck('id')->toArray();
+        $branchIds = Branch::pluck('id')->toArray();
 
-        // Loop through all drivers
-        UserDriver::all()->each(function ($driver) use ($franchiseIds, $branchIds) {
-            // Randomly decide whether this driver goes to a franchise or a branch
-            if (fake()->boolean) {
-                // Assign to a random franchise
-                $franchiseId = fake()->randomElement($franchiseIds);
+        // Get only 'active' drivers who are not yet assigned
+        $drivers = UserDriver::where('status_id', 1) 
+            ->get();
 
+        foreach ($drivers as $driver) {
+            // 50/50 chance for Franchise or Branch
+            $isFranchise = fake()->boolean;
+
+            if ($isFranchise && !empty($franchiseIds)) {
                 DB::table('franchise_user_driver')->insert([
-                    'franchise_id'   => $franchiseId,
+                    'franchise_id' => fake()->randomElement($franchiseIds),
                     'user_driver_id' => $driver->id,
                 ]);
-            } else {
-                // Assign to a random branch
-                $branchId = fake()->randomElement($branchIds);
-
+            } elseif (!empty($branchIds)) {
                 DB::table('branch_user_driver')->insert([
-                    'branch_id'      => $branchId,
+                    'branch_id' => fake()->randomElement($branchIds),
                     'user_driver_id' => $driver->id,
                 ]);
             }
-        });
+        }
     }
 }

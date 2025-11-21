@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import NetProfitTrendSparkLine from '@/components/finance/charts/reports-and-analytics/NetProfitTrendSparkLine.vue';
-import RevenueVsExpensesBarChart from '@/components/finance/charts/reports-and-analytics/RevenueVsExpensesBarChart.vue';
+import NetProfitTrendSparkLine from '@/components/owner/charts/reports-and-analytics/NetProfitTrendSparkLine.vue';
+import RevenueVsExpensesBarChart from '@/components/owner/charts/reports-and-analytics/RevenueVsExpensesBarChart.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
