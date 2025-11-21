@@ -17,6 +17,7 @@ import superAdmin from '@/routes/super-admin';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import {
+  Banknote,
   BarChart3,
   Bell,
   CarTaxiFront,
@@ -30,6 +31,7 @@ import {
   LayoutGrid,
   Octagon,
   Users,
+  UserX,
   Wrench,
 } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
@@ -113,6 +115,13 @@ const navConfig: Record<string, NavItem[]> = {
     },
 
     {
+      title: 'Payout',
+      href: manager.payout(),
+      icon: Banknote,
+      group: 'Payment',
+    },
+
+    {
       title: 'Driver Management',
       href: manager.drivers.index(),
       icon: Users,
@@ -128,6 +137,12 @@ const navConfig: Record<string, NavItem[]> = {
       title: 'Assign Drivers',
       href: manager.vehicleDrivers.index(),
       icon: Octagon,
+      group: 'Management',
+    },
+    {
+      title: 'Suspend Drivers',
+      href: manager.suspendDrivers.index(),
+      icon: UserX,
       group: 'Management',
     },
 
@@ -179,12 +194,12 @@ const navConfig: Record<string, NavItem[]> = {
       group: 'Overview',
     },
 
-    // {
-    //   title: 'Payout',
-    //   href: owner.payout(),
-    //   icon: Banknote,
-    //   group: 'Payment',
-    // },
+    {
+      title: 'Payout',
+      href: owner.payout(),
+      icon: Banknote,
+      group: 'Payment',
+    },
 
     {
       title: 'Driver Management',
@@ -202,6 +217,12 @@ const navConfig: Record<string, NavItem[]> = {
       title: 'Assign Drivers',
       href: owner.vehicleDrivers.index(),
       icon: Octagon,
+      group: 'Management',
+    },
+    {
+      title: 'Suspend Drivers',
+      href: owner.suspendDrivers.index(),
+      icon: UserX,
       group: 'Management',
     },
 
