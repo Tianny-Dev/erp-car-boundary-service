@@ -14,7 +14,7 @@ const props = defineProps<{
     // Driver Details (for header context)
     driver: { id: number; name: string };
     periodLabel: string; // The formatted date string (e.g., "November 20, 2025")
-    breakdownTypes: string[]; // e.g., ['Tax', 'Bank Fee', 'Markup Fee']
+    breakdownTypes: string[]; // e.g., ['Tax', 'Bank Fee', 'Markup Fee'] (clean, capitalized names)
 
     // Individual Revenue Records (The detailed data)
     details: DetailedRevenueRow[];
@@ -24,8 +24,7 @@ const props = defineProps<{
         tab: 'franchise' | 'branch';
         franchise: string | null;
         branch: string | null;
-        driver_id: string; // Updated key to match incoming URL
-        payment_date: string; // Added for completeness in filters prop
+        driver_id: string;
         period: 'daily' | 'weekly' | 'monthly';
     };
 }>();
@@ -34,21 +33,21 @@ const props = defineProps<{
 interface DetailedRevenueRow {
     id: number;
     invoice_no: string;
-    amount: number; // Total trip amount
+    // NOTE: amount should be treated as a number in JS after parsing.
+    amount: number | string; // Total trip amount
     payment_date: string;
     franchise?: { name: string } | null;
     branch?: { name: string } | null;
     driver?: { name: string } | null;
-    // The breakdowns are complex objects, not simple values like in the index report
-    breakdowns: Array<{
-        total_earning: number;
+    revenue_breakdowns: Array<{
+        total_earning: number | string;
         percentage_type: {
-            name: string; // e.g., 'tax', 'bank_fee'
+            name: string; // e.g., 'tax', 'bank_fee' (lowercase_snake_case)
         };
     }>;
 }
 
-// --- 3. Setup Breadcrumbs (omitted for brevity) ---
+// --- 3. Setup Breadcrumbs ---
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Driver Report',
@@ -60,9 +59,52 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
+// --- Export Logic: FIX - Use window.location.href for reliable download ---
+function handleExport(type: 'pdf' | 'excel' | 'csv') {
+    // 1. Prepare base filters, ensuring no nulls are spread directly
+    const baseFilters: Record<string, string> = {};
+    for (const key in props.filters) {
+        const value = props.filters[key as keyof typeof props.filters];
+        // Ensure values are non-null/undefined and convert to string
+        if (value !== null && value !== undefined) {
+            baseFilters[key] = String(value);
+        }
+    }
+
+    // 2. Construct final query parameters
+    const queryParams: Record<string, string> = {
+        ...baseFilters,
+        // The driver_id from the report URL/Context
+        driver_id: props.driver.id.toString(),
+        // The time period/date label
+        payment_date: props.periodLabel,
+        // The desired export format
+        export_type: type,
+    };
+
+    // 3. Construct the full URL for a direct browser download
+    // FIX: Use the `.url` property of the route helper directly,
+    // as 'driver_details.export' is the name of the route.
+    const baseUrl = superAdmin.driver_details.export().url;
+    const url = new URL(baseUrl, window.location.origin);
+
+    Object.keys(queryParams).forEach(key => {
+        // Use encodeURIComponent to safely handle special characters like spaces/commas in payment_date
+        url.searchParams.append(key, encodeURIComponent(queryParams[key]));
+    });
+
+    // 4. Force a direct browser download (safest way to avoid Inertia/Vue error)
+    window.location.href = url.toString();
+}
+// --- End Export Logic ---
+
 
 // --- 4. Helper Functions ---
 const formatCurrency = (amount: number): string => {
+    // Ensure that NaN results in a default string, not the error symbol
+    if (isNaN(amount) || amount === null) {
+        return '₱0.00';
+    }
     return new Intl.NumberFormat('en-PH', {
         style: 'currency',
         currency: 'PHP',
@@ -70,45 +112,56 @@ const formatCurrency = (amount: number): string => {
     }).format(amount);
 };
 
-// Function to calculate the breakdown amount for a given revenue row and type
+// Function to calculate the breakdown amount for a given revenue row and clean type name
 const getBreakdownAmount = (row: DetailedRevenueRow, typeName: string): number => {
-    // Convert the clean display name (e.g., "Bank Fee") back to the DB key (e.g., "bank_fee")
+    if (!row.revenue_breakdowns || row.revenue_breakdowns.length === 0) {
+        return 0;
+    }
+
+    // Convert clean display name (e.g., 'Bank Fee') back to DB key (e.g., 'bank_fee')
     const dbKey = typeName.toLowerCase().replace(/\s/g, '_');
 
-    const breakdown = row.breakdowns.find(
+    const breakdown = row.revenue_breakdowns.find(
+        // Use toLowerCase() for robust comparison against DB value
         (b) => b.percentage_type.name.toLowerCase() === dbKey,
     );
-    return breakdown ? breakdown.total_earning : 0;
+
+    // Use parseFloat() to ensure the value is treated as a number
+    return breakdown ? parseFloat(String(breakdown.total_earning)) : 0;
 };
 
 // Function to calculate Driver Earning for a single row
 const calculateDriverEarning = (row: DetailedRevenueRow): number => {
-    const totalBreakdowns = row.breakdowns.reduce((sum, b) => sum + b.total_earning, 0);
-    return Math.max(0, row.amount - totalBreakdowns);
+    // Ensure total_earning is parsed as a float during summation
+    const totalBreakdowns = (row.revenue_breakdowns || []).reduce(
+        (sum, b) => sum + parseFloat(String(b.total_earning)),
+        0
+    );
+
+    // Ensure row.amount is parsed as a float
+    const rowAmount = parseFloat(String(row.amount));
+
+    return Math.max(0, rowAmount - totalBreakdowns);
 };
 
 // --- 5. Computed Properties for Grand Totals ---
 const grandTotals = computed(() => {
     let totalAmount = 0;
-
-    // FIX 1: Use type assertion to resolve TypeScript compilation error
     let totalBreakdowns = {} as Record<string, number>;
-
     let totalDriverEarning = 0;
 
     // Initialize breakdown totals using the CLEAN display names
     props.breakdownTypes.forEach(type => {
-        // The key is the clean type name (e.g., 'Tax')
         totalBreakdowns[type] = 0;
     });
 
     props.details.forEach(row => {
-        totalAmount += row.amount;
+        // Ensure row.amount is parsed as a float for summation
+        totalAmount += parseFloat(String(row.amount));
 
         props.breakdownTypes.forEach(type => {
-            // FIX 2: Call helper function with the CLEAN display name (e.g., 'Tax')
             const breakdownValue = getBreakdownAmount(row, type);
-            // Sum to the corresponding clean type name key
+            // Since getBreakdownAmount returns a number, this sum is safe
             totalBreakdowns[type] += breakdownValue;
         });
 
@@ -141,7 +194,6 @@ const detailColumns = computed<ColumnDef<DetailedRevenueRow>[]>(() => {
             minSize: 150,
             cell: (info) => {
                 const date = info.getValue() as string;
-                // Assuming payment_date is a valid timestamp
                 return new Date(date).toLocaleString('en-US', {
                     month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true
                 });
@@ -151,22 +203,19 @@ const detailColumns = computed<ColumnDef<DetailedRevenueRow>[]>(() => {
             accessorKey: 'amount',
             header: 'Total Trip Amount',
             minSize: 150,
-            cell: (info) => formatCurrency(info.getValue() as number),
+            // Ensure value is parsed before formatting
+            cell: (info) => formatCurrency(parseFloat(String(info.getValue()))),
         },
     ];
 
     // Dynamically add breakdown columns
     props.breakdownTypes.forEach(type => {
-        // The accessorKey is just a unique column identifier; it doesn't map directly to a simple object key here.
-        const internalKey = type.toLowerCase().replace(/\s/g, '_');
-
+        // We use the clean, capitalized 'type' (e.g., 'Tax') for the header
         columns.push({
-            // Use the internal key for the accessor
-            accessorKey: internalKey,
-            header: type, // Use the clean title (e.g., 'Tax', 'Bank Fee')
+            accessorKey: type, // This key is virtual, we use cell render to find the value
+            header: type,
             minSize: 100,
             cell: ({ row }) => {
-                // FIX 3: Call helper function with the CLEAN display name (type) for the lookup
                 const amount = getBreakdownAmount(row.original, type);
                 return formatCurrency(amount);
             },
@@ -187,14 +236,13 @@ const detailColumns = computed<ColumnDef<DetailedRevenueRow>[]>(() => {
     return columns;
 });
 
-// --- 7. Go Back Function ---
+// --- 7. Go Back Function (unchanged) ---
 const goBack = () => {
-    // Navigate back to the index page using the preserved filters
     const queryParams: Record<string, string> = {
         tab: props.filters.tab,
         period: props.filters.period,
-        driver: props.filters.driver_id || 'all', // Use driver_id from the details filters
-        service: 'Trips',
+        driver: props.filters.driver_id || 'all',
+        service: 'Trips', // Assuming service is always 'Trips' for this report
     };
 
     if (props.filters.franchise) {
@@ -203,13 +251,13 @@ const goBack = () => {
         queryParams.branch = props.filters.branch;
     }
 
+    // Navigates back to the aggregated report index
     router.get(superAdmin.driverreport().url, queryParams);
 };
 </script>
 
 <template>
     <Head title="Driver Transaction Details" />
-
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
             <div
@@ -267,8 +315,14 @@ const goBack = () => {
                 <DataTable
                     :columns="detailColumns"
                     :data="props.details"
-                    search-placeholder="Search by Invoice No."
-                />
+                    search-placeholder="Search by Invoice No.">
+
+                <template #custom-actions>
+                    <Button @click="handleExport('pdf')"> Export PDF </Button>
+                    <Button @click="handleExport('excel')"> Export Excel </Button>
+                    <Button @click="handleExport('csv')"> Export CSV </Button>
+                </template>
+                </DataTable>
             </div>
         </div>
     </AppLayout>

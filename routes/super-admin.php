@@ -16,7 +16,7 @@ use App\Http\Controllers\SuperAdmin\DriverDetailsController;
 
 Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-admin')->name('super-admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    
+
     Route::patch('/franchise/{franchise}', [FranchiseController::class, 'accept'])->name('franchise.accept');
     Route::get('/franchise/{franchise}', [FranchiseController::class, 'show'])->name('franchise.show');
     Route::get('/owner/{owner}', [OwnerController::class, 'show'])->name('owner.show');
@@ -24,7 +24,7 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
     Route::get('/branch/create', [BranchController::class, 'create'])->name('branch.create');
     Route::post('/branch', [BranchController::class, 'store'])->name('branch.store');
     Route::get('/branch/{branch}', [BranchController::class, 'show'])->name('branch.show');
-   
+
     Route::get('/manager/{manager}', [ManagerController::class, 'show'])->name('manager.show');
 
     Route::get('/revenue', [RevenueController::class, 'index'])->name('revenue.index');
@@ -45,6 +45,8 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
     Route::get('/driverreport', [DriverReportController::class, 'index'])->name('driverreport');
     Route::get('/driverreport/export', [DriverReportController::class, 'export'])->name('driver.export');
     Route::get('driverreport/details', [DriverDetailsController::class, 'show'])->name('driverreport.details');
+    Route::get('/driverreport/details/export', [DriverDetailsController::class, 'exportDetails'])->name('driver_details.export');
+
 
     Route::get('/vehicle', [VehicleController::class, 'index'])->name('vehicle.index');
     Route::get('/vehicle/{vehicle}', [VehicleController::class, 'show'])->name('vehicle.show');
