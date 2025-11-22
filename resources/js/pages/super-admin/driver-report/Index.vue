@@ -24,7 +24,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import { type ColumnDef } from '@tanstack/vue-table';
 import { debounce } from 'lodash-es';
-import { computed, ref, watch } from 'vue';
+import { computed, h, ref, watch } from 'vue';
 
 // --- Define Props ---
 const props = defineProps<{
@@ -298,41 +298,41 @@ const revenueColumns = computed<ColumnDef<RevenueRow>[]>(() => {
 
     // 3. Add the button column, See All the tansaction this day
     // --- 3. Add the button column, See All the tansaction this day
-// columns.push({
-//     accessorKey: 'action',
-//     header: 'Action',
-//     cell: (info) => {
-//         const rowData = info.row.original as RevenueRow;
+columns.push({
+    accessorKey: 'action',
+    header: 'Action',
+    cell: (info) => {
+        const rowData = info.row.original as RevenueRow;
 
-//         return h(
-//             Button,
-//             {
-//                 class: "py-1 px-2 text-xs",
-//                 onClick: () => {
-//                     const queryParams: Record<string, string> = {
-//                         driver_id: String(rowData.driver_id),
-//                         payment_date: rowData.payment_date,
-//                         period: selectedPeriod.value,
+        return h(
+            Button,
+            {
+                class: "py-1 px-2 text-xs",
+                onClick: () => {
+                    const queryParams: Record<string, string> = {
+                        driver_id: String(rowData.driver_id),
+                        payment_date: rowData.payment_date,
+                        period: selectedPeriod.value,
 
-//                         tab: activeTab.value,
-//                     };
+                        tab: activeTab.value,
+                    };
 
-//                     if (activeTab.value === 'franchise' && selectedFranchise.value !== 'all') {
-//                         queryParams.franchise = selectedFranchise.value;
-//                     } else if (activeTab.value === 'branch' && selectedBranch.value !== 'all') {
-//                         queryParams.branch = selectedBranch.value;
-//                     }
+                    if (activeTab.value === 'franchise' && selectedFranchise.value !== 'all') {
+                        queryParams.franchise = selectedFranchise.value;
+                    } else if (activeTab.value === 'branch' && selectedBranch.value !== 'all') {
+                        queryParams.branch = selectedBranch.value;
+                    }
 
-//                     router.get(superAdmin.driverreport.details().url, queryParams, {
-//                         preserveScroll: true,
-//                         replace: false,
-//                     });
-//                 }
-//             },
-//             () => 'View Details'
-//         );
-//     },
-// });
+                    router.get(superAdmin.driverreport.details().url, queryParams, {
+                        preserveScroll: true,
+                        replace: false,
+                    });
+                }
+            },
+            () => 'View Details'
+        );
+    },
+});
     // --- END: NEW LOGIC ---
 
     return columns;
