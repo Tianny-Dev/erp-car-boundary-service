@@ -25,7 +25,8 @@ import {
   IdCardIcon,
   VenusAndMarsIcon,
 } from 'lucide-vue-next';
-import { reactive, watchEffect } from 'vue';
+import { computed, reactive, watchEffect } from 'vue';
+import { toast } from 'vue-sonner';
 
 // Props passed from Controller
 defineProps<{
@@ -82,9 +83,61 @@ const form = useForm({
   },
 });
 
-const consoleSubmit = () => {
-  console.log(form);
-};
+const disableSubmit = computed(() => {
+  // Helper to check required fields except province
+  const checkRequired = (obj: Record<string, any>, exclude: string[] = []) => {
+    return Object.entries(obj).every(([key, value]) => {
+      if (exclude.includes(key)) return true; // skip excluded fields
+      return value !== '' && value !== null; // must have value
+    });
+  };
+
+  // Branch required fields (exclude province)
+  const branchValid = checkRequired(
+    {
+      name: form.name,
+      email: form.email,
+      phone: form.phone,
+      payment_option_id: form.payment_option_id,
+      address: form.address,
+      region: form.region,
+      province: form.province, // excluded
+      city: form.city,
+      barangay: form.barangay,
+      postal_code: form.postal_code,
+      dti_certificate: form.dti_certificate,
+      mayor_permit: form.mayor_permit,
+      proof_capital: form.proof_capital,
+    },
+    ['province'],
+  );
+
+  // Manager required fields (exclude province)
+  const managerValid = checkRequired(
+    {
+      name: form.manager.name,
+      email: form.manager.email,
+      phone: form.manager.phone,
+      password: form.manager.password,
+      password_confirmation: form.manager.password_confirmation,
+      gender: form.manager.gender,
+      address: form.manager.address,
+      region: form.manager.region,
+      province: form.manager.province, // excluded
+      city: form.manager.city,
+      barangay: form.manager.barangay,
+      postal_code: form.manager.postal_code,
+      valid_id_type: form.manager.valid_id_type,
+      valid_id_number: form.manager.valid_id_number,
+      front_valid_id_picture: form.manager.front_valid_id_picture,
+      back_valid_id_picture: form.manager.back_valid_id_picture,
+    },
+    ['province'],
+  );
+
+  // Final rule
+  return !(branchValid && (!form.has_manager || managerValid));
+});
 
 // Configuration for Branch Details Component
 const branchDetailFields = {
@@ -205,7 +258,10 @@ const managerLabels = {
 const submit = () => {
   form.post(superAdmin.branch.store().url, {
     forceFormData: true,
-    onSuccess: () => form.reset(),
+    onSuccess: () => {
+      form.reset();
+      toast.success('Branch created successfully!');
+    },
   });
 };
 
@@ -231,15 +287,11 @@ watchEffect(() => {
 
 <template>
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div class="mx-auto max-w-4xl rounded-xl border bg-white p-6 shadow-sm">
-      <h2 class="mb-6 text-2xl font-bold">Create New Branch</h2>
+    <div class="m-6 max-w-6xl rounded-xl border bg-white p-6 shadow-sm">
+      <h2 class="mb-6 font-mono text-2xl font-bold">Create New Branch</h2>
 
       <form @submit.prevent="submit" class="space-y-8">
-        <div class="space-y-4">
-          <h3 class="text-lg font-semibold text-gray-700">
-            Branch Information
-          </h3>
-
+        <div class="grid grid-cols-[2fr_1fr] items-start gap-4">
           <div class="grid grid-cols-1 items-start gap-4 md:grid-cols-2">
             <StepPersonal
               :errors="form.errors"
@@ -250,6 +302,7 @@ watchEffect(() => {
               v-model:email="form.email"
               v-model:phone="form.phone"
             />
+
             <div class="grid gap-2">
               <Label class="font-semibold text-auth-blue">Payment Option</Label>
               <div
@@ -277,9 +330,7 @@ watchEffect(() => {
               </div>
               <InputError :message="form.errors['payment_option_id']" />
             </div>
-          </div>
 
-          <div class="grid grid-cols-1 items-start gap-4 pt-4 md:grid-cols-2">
             <StepAddress
               :address-data="branchAddress"
               :field-names="branchAddressFields"
@@ -290,7 +341,7 @@ watchEffect(() => {
             />
           </div>
 
-          <div class="grid grid-cols-1 items-start gap-4 pt-4 md:grid-cols-3">
+          <div class="grid grid-cols-1 gap-5">
             <StepUpload
               :errors="form.errors"
               :labels="branchUploadLabels"
@@ -309,7 +360,7 @@ watchEffect(() => {
             <Checkbox id="hasManager" v-model="form.has_manager" />
             <Label
               for="hasManager"
-              class="cursor-pointer text-lg font-semibold"
+              class="cursor-pointer font-mono text-lg font-semibold"
             >
               Register a new Manager?
             </Label>
@@ -319,7 +370,7 @@ watchEffect(() => {
             v-if="form.has_manager"
             class="space-y-4 rounded-lg border bg-gray-50 p-4"
           >
-            <div class="grid grid-cols-1 items-start gap-4 md:grid-cols-2">
+            <div class="grid grid-cols-1 items-start gap-4 md:grid-cols-3">
               <StepPersonal
                 :errors="form.errors"
                 :show-fields="managerDetailShow"
@@ -368,7 +419,7 @@ watchEffect(() => {
               />
             </div>
 
-            <div class="grid grid-cols-1 items-start gap-4 pt-4 md:grid-cols-2">
+            <div class="grid grid-cols-1 items-start gap-4 pt-4 md:grid-cols-3">
               <StepAddress
                 :address-data="managerAddress"
                 :field-names="managerFieldNames"
@@ -378,49 +429,48 @@ watchEffect(() => {
                 v-model:postal-code="form.manager.postal_code"
               />
             </div>
-
             <div
-              class="grid grid-cols-1 items-start gap-4 border-t pt-4 md:grid-cols-3"
+              class="grid grid-cols-[1fr_1.5fr] items-start gap-4 border-t pt-4"
             >
-              <div class="grid gap-2">
-                <Label class="font-semibold text-auth-blue"
-                  >Valid ID Type</Label
-                >
-                <div
-                  class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
-                >
-                  <div
-                    class="flex items-center justify-center bg-auth-blue px-3"
+              <div class="grid grid-cols-1 items-start gap-4">
+                <div class="grid gap-2">
+                  <Label class="font-semibold text-auth-blue"
+                    >Valid ID Type</Label
                   >
-                    <IdCardIcon class="h-5 w-5 text-white" />
+                  <div
+                    class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
+                  >
+                    <div
+                      class="flex items-center justify-center bg-auth-blue px-3"
+                    >
+                      <IdCardIcon class="h-5 w-5 text-white" />
+                    </div>
+                    <Select v-model="form.manager.valid_id_type">
+                      <SelectTrigger
+                        class="flex-1 cursor-pointer border-0 font-mono font-semibold focus-visible:ring-0"
+                        ><SelectValue placeholder="Select Option"
+                      /></SelectTrigger>
+                      <SelectContent class="font-mono font-semibold">
+                        <SelectItem
+                          v-for="id in idTypeOptions"
+                          :key="id.value"
+                          :value="id.value"
+                          class="cursor-pointer"
+                          >{{ id.label }}</SelectItem
+                        >
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <Select v-model="form.manager.valid_id_type">
-                    <SelectTrigger
-                      class="flex-1 cursor-pointer border-0 font-mono font-semibold focus-visible:ring-0"
-                      ><SelectValue placeholder="Select Option"
-                    /></SelectTrigger>
-                    <SelectContent class="font-mono font-semibold">
-                      <SelectItem
-                        v-for="id in idTypeOptions"
-                        :key="id.value"
-                        :value="id.value"
-                        class="cursor-pointer"
-                        >{{ id.label }}</SelectItem
-                      >
-                    </SelectContent>
-                  </Select>
+                  <InputError :message="form.errors['manager.valid_id_type']" />
                 </div>
-                <InputError :message="form.errors['manager.valid_id_type']" />
+                <StepAccount
+                  :errors="form.errors"
+                  :show-fields="managerIdentityShow"
+                  :field-names="managerIdentityField"
+                  v-model:valid-id-number="form.manager.valid_id_number"
+                />
               </div>
-              <StepAccount
-                :errors="form.errors"
-                :show-fields="managerIdentityShow"
-                :field-names="managerIdentityField"
-                v-model:valid-id-number="form.manager.valid_id_number"
-              />
-              <div
-                class="col-span-1 grid grid-cols-2 items-start gap-4 md:col-span-3"
-              >
+              <div class="col-span-1 grid items-start gap-4">
                 <StepAccount
                   :errors="form.errors"
                   :show-fields="managerIdShow"
@@ -437,11 +487,7 @@ watchEffect(() => {
           <Button type="button" variant="outline" @click="form.reset()"
             >Reset</Button
           >
-          <Button
-            type="submit"
-            :disabled="form.processing"
-            @click="consoleSubmit"
-          >
+          <Button type="submit" :disabled="form.processing || disableSubmit">
             {{ form.processing ? 'Saving...' : 'Create Branch' }}
           </Button>
         </div>

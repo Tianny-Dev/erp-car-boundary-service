@@ -19,47 +19,65 @@ class StoreBranchRequest extends FormRequest
     {
         return [
             // --- Branch Details ---
-            'name' => ['required', 'string', 'max:255', 'unique:branches,name'],
-            'email' => ['required', 'email', 'max:255', 'unique:branches,email'],
-            'phone' => ['required', 'string', 'max:20', 'unique:branches,phone'],
+            'name' => ['required', 'string', 'max:255'],
+            'email' => [
+                'required', 'string', 'email', 'max:255',
+                Rule::unique('users', 'email'),
+                Rule::unique('franchises', 'email'),
+                Rule::unique('branches', 'email')
+            ],
+            'phone' => [
+                'required', 'string', 'max:20',
+                Rule::unique('users', 'phone'),
+                Rule::unique('franchises', 'phone'),
+                Rule::unique('branches', 'phone')
+            ],
             'payment_option_id' => ['required', 'exists:payment_options,id'],
             
             // Branch Address
-            'address' => ['required', 'string'],
-            'region' => ['required', 'string'],
-            'province' => ['nullable', 'string'], // Nullable because NCR has no province
-            'city' => ['required', 'string'],
-            'barangay' => ['required', 'string'],
+            'region' => ['required', 'string', 'max:255'],
+            'province' => ['nullable', 'string', 'max:255', 'required_unless:region,NCR'],
+            'city' => ['required', 'string', 'max:255'],
+            'barangay' => ['required', 'string', 'max:255'],
             'postal_code' => ['required', 'string', 'max:20'],
+            'address' => ['required', 'string', 'max:255'],
 
             // Branch Files
-            'dti_certificate' => ['required', 'file', 'mimes:jpg,png,pdf', 'max:5120'],
-            'mayor_permit' => ['required', 'file', 'mimes:jpg,png,pdf', 'max:5120'],
-            'proof_capital' => ['required', 'file', 'mimes:jpg,png,pdf', 'max:5120'],
-
+            'dti_certificate' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf,docx,doc', 'max:5120'],
+            'mayor_permit' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf,docx,doc', 'max:5120'],
+            'proof_capital' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf,docx,doc', 'max:5120'],
+            
             // --- Manager Toggle ---
             'has_manager' => ['required', 'boolean'],
 
             // --- Manager Details (Required if has_manager is true) ---
             'manager.name' => ['exclude_unless:has_manager,true', 'required', 'string', 'max:255'],
-            'manager.email' => ['exclude_unless:has_manager,true', 'required', 'email', 'unique:users,email'],
+            'manager.email' => ['exclude_unless:has_manager,true', 'required', 'email', 'max:255',
+                Rule::unique('users', 'email'),
+                Rule::unique('franchises', 'email'),
+                Rule::unique('branches', 'email')
+            ],
+            'manager.phone' => ['exclude_unless:has_manager,true', 'required', 'string', 'max:255',
+                Rule::unique('users', 'phone'),
+                Rule::unique('franchises', 'phone'),
+                Rule::unique('branches', 'phone')
+            ],
             'manager.password' => ['exclude_unless:has_manager,true', 'required', 'min:8', 'confirmed'],
-            'manager.phone' => ['exclude_unless:has_manager,true', 'required', 'string', 'unique:users,phone'],
             'manager.gender' => ['exclude_unless:has_manager,true', 'required', new Enum(Gender::class)],
             
             // Manager Address
-            'manager.address' => ['exclude_unless:has_manager,true', 'required', 'string'],
-            'manager.region' => ['exclude_unless:has_manager,true', 'required', 'string'],
-            'manager.province' => ['exclude_unless:has_manager,true', 'nullable', 'string'],
-            'manager.city' => ['exclude_unless:has_manager,true', 'required', 'string'],
-            'manager.barangay' => ['exclude_unless:has_manager,true', 'required', 'string'],
-            'manager.postal_code' => ['exclude_unless:has_manager,true', 'required', 'string'],
+            'manager.address' => ['exclude_unless:has_manager,true', 'required', 'string', 'max:255'],
+            'manager.region' => ['exclude_unless:has_manager,true', 'required', 'string', 'max:255'],
+            'manager.province' => ['exclude_unless:has_manager,true', 'nullable', 'string', 'max:255', 'required_unless:manager.region,NCR'],
+            'manager.city' => ['exclude_unless:has_manager,true', 'required', 'string', 'max:255'],
+            'manager.barangay' => ['exclude_unless:has_manager,true', 'required', 'string', 'max:255'],
+            'manager.postal_code' => ['exclude_unless:has_manager,true', 'required', 'string', 'max:255'],
 
             // Manager ID Details
-            'manager.valid_id_type' => ['exclude_unless:has_manager,true', 'required', new Enum(IdType::class)],
-            'manager.valid_id_number' => ['exclude_unless:has_manager,true', 'required', 'string', 'unique:user_managers,valid_id_number'],
-            'manager.front_valid_id_picture' => ['exclude_unless:has_manager,true', 'required', 'file', 'mimes:jpg,png', 'max:5120'],
-            'manager.back_valid_id_picture' => ['exclude_unless:has_manager,true', 'required', 'file', 'mimes:jpg,png', 'max:5120'],
+            'manager.valid_id_type' => ['exclude_unless:has_manager,true', 'required', 'string', new Enum(IdType::class)],
+            'manager.valid_id_number' => ['exclude_unless:has_manager,true', 'required', 'string', 'max:20', Rule::unique('user_owners', 'valid_id_number')],
+            'manager.front_valid_id_picture' => ['exclude_unless:has_manager,true', 'required', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+            'manager.back_valid_id_picture' => ['exclude_unless:has_manager,true', 'required','file', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
         ];
     }
 }

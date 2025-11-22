@@ -336,7 +336,7 @@ const franchiseColumns: ColumnDef<FranchiseRow>[] = [
     accessorKey: 'owner_name',
     header: () => h('div', { class: 'text-center' }, 'Owner'),
     cell: ({ row }) =>
-      h('div', { class: 'text-center' }, row.getValue('owner_name')),
+      h('div', { class: 'text-center' }, row.getValue('owner_name') || 'N/A'),
   },
   {
     accessorKey: 'email',
@@ -429,7 +429,7 @@ const branchColumns: ColumnDef<BranchRow>[] = [
     accessorKey: 'manager_name',
     header: () => h('div', { class: 'text-center' }, 'Manager'),
     cell: ({ row }) =>
-      h('div', { class: 'text-center' }, row.getValue('manager_name')),
+      h('div', { class: 'text-center' }, row.getValue('manager_name') || 'N/A'),
   },
   {
     accessorKey: 'email',
@@ -744,7 +744,7 @@ const branchColumns: ColumnDef<BranchRow>[] = [
         <Button
           variant="outline"
           class="cursor-pointer"
-          @click="franchiseModal.close"
+          @click="ownerModal.close"
           >Close</Button
         >
       </DialogFooter>

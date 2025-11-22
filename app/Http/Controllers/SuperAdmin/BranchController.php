@@ -54,22 +54,22 @@ class BranchController extends Controller
                 // Create Base User
                 $user = User::create([
                     'user_type_id' => $managerTypeId,
-                    'name' => $managerData['first_name'] . ' ' . $managerData['last_name'],
+                    'name' => $managerData['name'],
                     'email' => $managerData['email'],
                     'password' => Hash::make($managerData['password']),
                     'phone' => $managerData['phone'],
                     'gender' => $managerData['gender'],
                     'address' => $managerData['address'],
                     'region' => $managerData['region'],
-                    'province' => $managerData['province'],
+                    'province' => $managerData['province'] ?? null,
                     'city' => $managerData['city'],
                     'barangay' => $managerData['barangay'],
                     'postal_code' => $managerData['postal_code'],
                 ]);
 
                 // Upload ID Images
-                $frontIdPath = $request->file('manager.front_valid_id_picture')->store('managers/ids', 'public');
-                $backIdPath = $request->file('manager.back_valid_id_picture')->store('managers/ids', 'public');
+                $frontIdPath = $request->file('manager.front_valid_id_picture')->store('owner_ids', 'public');
+                $backIdPath = $request->file('manager.back_valid_id_picture')->store('owner_ids', 'public');
 
                 // Create User Manager Record
                 $user->userManager()->create([
@@ -84,9 +84,9 @@ class BranchController extends Controller
             }
 
             // 3. Upload Branch Files
-            $dtiPath = $request->file('dti_registration_attachment')->store('branches/documents', 'public');
-            $mayorPath = $request->file('mayor_permit_attachment')->store('branches/documents', 'public');
-            $proofPath = $request->file('proof_agreement_attachment')->store('branches/documents', 'public');
+            $dtiPath = $request->file('dti_certificate')->store('branch_documents', 'public');
+            $mayorPath = $request->file('mayor_permit')->store('branch_documents', 'public');
+            $proofPath = $request->file('proof_capital')->store('branch_documents', 'public');
 
             // 4. Create Branch
             Branch::create([
@@ -98,7 +98,7 @@ class BranchController extends Controller
                 'phone' => $request->phone,
                 'address' => $request->address,
                 'region' => $request->region,
-                'province' => $request->province,
+                'province' => $request->province ?? null,
                 'city' => $request->city,
                 'barangay' => $request->barangay,
                 'postal_code' => $request->postal_code,
@@ -108,6 +108,6 @@ class BranchController extends Controller
             ]);
         });
 
-        return redirect(route('super-admin.dashboard'))->with('success', 'Branch created successfully!');
+        return redirect(route('super-admin.dashboard'));
     }
 }
