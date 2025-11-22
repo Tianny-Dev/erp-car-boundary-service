@@ -20,7 +20,23 @@ class MaintenanceRequestController extends Controller
         $requests = Maintenance::where('franchise_id', $franchiseId)
             ->with(['vehicle'])
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(10)
+            ->through(function ($request) {
+                return [
+                    'id' => $request->id,
+                    'maintenance_type' => $request->maintenance_type,
+                    'description' => $request->description,
+                    'maintenance_date' => $request->maintenance_date,
+                    'next_maintenance_date' => $request->next_maintenance_date,
+
+                    'vehicle' => $request->vehicle ? [
+                        'id' => $request->vehicle->id,
+                        'plate_number' => $request->vehicle->plate_number,
+                        'brand' => $request->vehicle->brand,
+                        'model' => $request->vehicle->model,
+                    ] : null,
+                ];
+            });
 
         return Inertia::render('owner/maintenance-requests/Index', [
             'requests' => $requests,
