@@ -139,10 +139,11 @@ const filteredVehicles = computed(() => {
 
 // Status options
 const statuses = ref<Status[]>([
-  { id: 1, name: 'active' },
-  { id: 6, name: 'pending' },
-  { id: 3, name: 'suspended' },
-  { id: 4, name: 'retired' },
+  { id: 1, name: 'Active' },
+  // { id: 3, name: 'suspended' },
+  // { id: 4, name: 'retired' },
+  { id: 5, name: 'Maintenance' },
+  { id: 6, name: 'Pending' },
 ]);
 
 // Dialogs
@@ -327,7 +328,7 @@ const goToPage = (url: string | null) => {
               <TableCell>{{ v.model }}</TableCell>
               <TableCell>{{ v.color }}</TableCell>
               <TableCell>{{ v.year }}</TableCell>
-              <TableCell>
+              <TableCell class="capitalize">
                 <Badge :variant="getStatusVariant(v.status_name)">
                   {{ v.status_name }}
                 </Badge>
