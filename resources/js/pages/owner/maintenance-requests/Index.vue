@@ -172,6 +172,7 @@ const goToPage = (pageUrl: string | null) => {
           <TableHeader>
             <TableRow>
               <TableHead>Vehicle</TableHead>
+              <TableHead>Plate Number</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Description</TableHead>
               <TableHead>Date</TableHead>
@@ -184,6 +185,10 @@ const goToPage = (pageUrl: string | null) => {
               :key="request.id"
               class="hover:bg-muted/50"
             >
+              <TableCell
+                >{{ request.vehicle?.brand }}
+                {{ request.vehicle?.model }}</TableCell
+              >
               <TableCell>{{ request.vehicle?.plate_number }}</TableCell>
               <TableCell>{{ request.maintenance_type }}</TableCell>
               <TableCell>{{ request.description }}</TableCell>
