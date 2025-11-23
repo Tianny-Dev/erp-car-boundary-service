@@ -4,6 +4,7 @@ use App\Http\Controllers\Owner\BoundaryContractController;
 use App\Http\Controllers\Owner\DashboardController;
 use App\Http\Controllers\Owner\ExpenseManagementController;
 use App\Http\Controllers\Owner\FranchiseDriverController;
+use App\Http\Controllers\Owner\MaintenanceRequestController;
 use App\Http\Controllers\Owner\NotificationController;
 use App\Http\Controllers\Owner\PayOutController;
 use App\Http\Controllers\Owner\ReportAndAnalyticController;
@@ -34,4 +35,6 @@ Route::middleware(['auth', 'verified', 'user_type:owner', 'check.active'])->pref
 
     // Suspend Driver
     Route::resource('suspend-drivers', SuspendDriverController::class);
+
+    Route::resource('maintenance-requests', MaintenanceRequestController::class);
 });

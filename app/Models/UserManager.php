@@ -25,7 +25,14 @@ class UserManager extends Model
      */
     public $incrementing = false;
 
-    // protected $fillable = [];
+    protected $fillable = [
+        'id',
+        'status_id',
+        'valid_id_type',
+        'valid_id_number',
+        'front_valid_id_picture',
+        'back_valid_id_picture',
+    ];
 
     // relationship to user, one to one
     public function user(): BelongsTo

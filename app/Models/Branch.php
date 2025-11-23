@@ -12,7 +12,23 @@ class Branch extends Model
 {
     use HasFactory;
 
-    // protected $fillable = [];
+    protected $fillable = [
+        'manager_id',
+        'status_id',
+        'payment_option_id',
+        'email',
+        'name',
+        'phone',
+        'address',
+        'region',
+        'province',
+        'city',
+        'barangay',
+        'postal_code',
+        'dti_registration_attachment',
+        'mayor_permit_attachment',
+        'proof_agreement_attachment',
+    ];
 
     // relationship to manager, one to many
     public function manager(): BelongsTo

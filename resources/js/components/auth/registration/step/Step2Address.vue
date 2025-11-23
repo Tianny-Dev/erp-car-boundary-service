@@ -188,7 +188,7 @@ watch(
 
   <!-- Show "N/A" Province for NCR -->
   <div v-else-if="addressData.isNcr" class="grid gap-2">
-    <Label :for="fieldNames.province" class="text-auth-blue">{{
+    <Label :for="fieldNames.province" class="font-semibold text-auth-blue">{{
       labels.province
     }}</Label>
     <div
