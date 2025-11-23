@@ -39,7 +39,6 @@ class BranchController extends Controller
 
     public function store(StoreBranchRequest $request)
     {
-        dd($request->all());
         DB::transaction(function () use ($request) {
             // 1. Get IDs for Status and UserType
             $activeStatusId = Status::where('name', 'active')->firstOrFail()->id;
@@ -72,7 +71,7 @@ class BranchController extends Controller
                 $backIdPath = $request->file('manager.back_valid_id_picture')->store('owner_ids', 'public');
 
                 // Create User Manager Record
-                $user->userManager()->create([
+                $user->managerDetails()->create([
                     'status_id' => $activeStatusId, // Set to Active
                     'valid_id_type' => $managerData['valid_id_type'],
                     'valid_id_number' => $managerData['valid_id_number'],

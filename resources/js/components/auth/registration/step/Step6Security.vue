@@ -58,7 +58,7 @@ const computedTerms2 = computed<boolean>({
 // --- DEFAULTS ---
 const defaultFieldNames: FieldNames = {
   password: 'password',
-  confirmPassword: 'confirm_password',
+  confirmPassword: 'password_confirmation',
   terms1: 'terms1',
   terms2: 'terms2',
 };

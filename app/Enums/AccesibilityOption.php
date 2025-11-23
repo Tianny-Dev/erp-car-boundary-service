@@ -6,14 +6,14 @@ enum AccesibilityOption: string
 {
     case NORMAL = 'Normal';
     case WHEELCHAIR_ACCESS = 'Wheelchair Access';
-    case PET_FRIENDLY = 'Pet-Friendly';
+    case PET_FRIENDLY_RIDE = 'Pet-Friendly Ride';
 
     public function label(): string
     {
         return match ($this) {
             self::NORMAL => 'Normal',
             self::WHEELCHAIR_ACCESS => 'Wheelchair Access',
-            self::PET_FRIENDLY => 'Pet-Friendly',
+            self::PET_FRIENDLY_RIDE => 'Pet-Friendly Ride',
         };
     }
 
