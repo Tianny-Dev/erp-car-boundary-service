@@ -9,7 +9,6 @@ use App\Models\Franchise;
 use App\Models\Revenue;
 use App\Models\UserDriver;
 use Illuminate\Http\Request;
-use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Database\Eloquent\Builder;

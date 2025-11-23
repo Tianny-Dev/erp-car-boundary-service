@@ -13,6 +13,7 @@ use App\Http\Controllers\SuperAdmin\VehicleController;
 use App\Http\Controllers\SuperAdmin\RevenueController;
 use App\Http\Controllers\SuperAdmin\TransactionController;
 use App\Http\Controllers\SuperAdmin\DriverDetailsController;
+use App\Http\Controllers\SuperAdmin\EarningController;
 
 Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-admin')->name('super-admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -28,7 +29,6 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
     Route::get('/manager/{manager}', [ManagerController::class, 'show'])->name('manager.show');
 
     Route::get('/revenue', [RevenueController::class, 'index'])->name('revenue.index');
-
     Route::get('/revenue/export', [RevenueController::class, 'export'])->name('revenue.export');
 
     Route::get('/transaction', [TransactionController::class, 'index'])->name('transaction.index');
@@ -47,7 +47,8 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
     Route::get('driverreport/details', [DriverDetailsController::class, 'show'])->name('driverreport.details');
     Route::get('/driverreport/details/export', [DriverDetailsController::class, 'exportDetails'])->name('driver_details.export');
 
-
     Route::get('/vehicle', [VehicleController::class, 'index'])->name('vehicle.index');
     Route::get('/vehicle/{vehicle}', [VehicleController::class, 'show'])->name('vehicle.show');
+
+    Route::get('/earning', [EarningController::class, 'index'])->name('earning.index');
 });

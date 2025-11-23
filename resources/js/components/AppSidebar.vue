@@ -21,6 +21,7 @@ import {
   BarChart3,
   Bell,
   CarTaxiFront,
+  ChartNoAxesCombined,
   Clock,
   DollarSign,
   FileSpreadsheet,
@@ -78,6 +79,12 @@ const navConfig: Record<string, NavItem[]> = {
       title: 'Revenue Report',
       href: superAdmin.revenue.index(),
       icon: DollarSign,
+      group: 'Finance',
+    },
+    {
+      title: 'Earning Report',
+      href: superAdmin.earning.index(),
+      icon: ChartNoAxesCombined,
       group: 'Finance',
     },
     {
