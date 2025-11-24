@@ -69,33 +69,9 @@ interface Props {
 const { requests } = defineProps<Props>();
 const paginator = ref(requests);
 
-const breadcrumbs: BreadcrumbItem[] = [
-  {
-    title: 'Maintenance Requests',
-    href: owner.maintenanceRequests.index().url,
-  },
-];
-
-const globalFilter = ref('');
-const pageSize = ref('10');
-
-// const filteredData = computed(() => {
-//   if (!globalFilter.value) return paginator.value.data;
-//   const search = globalFilter.value.toLowerCase();
-
-//   return paginator.value.data.filter((item) =>
-//     Object.values(item)
-//       .filter((v) => v !== null && v !== undefined)
-//       .some((v) => v.toString().toLowerCase().includes(search)),
-//   );
-// });
-
-const paginationLinks = computed(() => {
-  return paginator.value.links.filter(
-    (link) => link.label !== 'Previous' && link.label !== 'Next',
-  );
-});
-
+// -------------------------
+// Watcher: update paginator when props change
+// -------------------------
 watch(
   () => requests,
   (newRequests) => {
@@ -104,22 +80,92 @@ watch(
   { deep: true },
 );
 
-watch(pageSize, (newSize) => {
-  router.get(
-    paginator.value.path,
-    { per_page: newSize },
-    {
-      preserveState: true,
-      preserveScroll: true,
-    },
-  );
+// -------------------------
+// Breadcrumbs
+// -------------------------
+const breadcrumbs: BreadcrumbItem[] = [
+  {
+    title: 'Maintenance Requests',
+    href: owner.maintenanceRequests.index().url,
+  },
+];
+
+// -------------------------
+// Filters / Search
+// -------------------------
+const globalFilter = ref('');
+
+// -------------------------
+// Dialog
+// -------------------------
+// const selectedContract = ref<Request | null>(null);
+// const showDepositDialog = ref(false);
+
+// const filteredData = computed(() => {
+//   if (!globalFilter.value) return paginator.value.data;
+//   const search = globalFilter.value.toLowerCase();
+
+// const openDepositDialog = (contract: Contract) => {
+//   selectedContract.value = contract;
+//   showDepositDialog.value = true;
+// };
+
+// const handleDepositAction = (action: 'approved' | 'flagged') => {
+//   if (selectedContract.value) {
+//     const index = paginator.value.data.findIndex(
+//       (item) => item.id === selectedContract.value!.id,
+//     );
+//     if (index !== -1) {
+//       paginator.value.data[index].depositStatus = action;
+//     }
+//   }
+//   showDepositDialog.value = false;
+// };
+
+// -------------------------
+// Computed: Filtered data for client-side search
+// -------------------------
+const filteredData = computed(() => {
+  if (!globalFilter.value) return paginator.value.data;
+  const search = globalFilter.value.toLowerCase();
+
+  return paginator.value.data.filter((item) => {
+    // Flatten searchable fields including vehicle
+    const vehicleStr = item.vehicle
+      ? [
+          item.vehicle.plate_number,
+          item.vehicle.vin,
+          item.vehicle.brand,
+          item.vehicle.model,
+          item.vehicle.color,
+          item.vehicle.year?.toString(),
+        ].join(' ')
+      : '';
+
+    return (
+      item.description.toLowerCase().includes(search) ||
+      item.maintenance_type.toLowerCase().includes(search) ||
+      vehicleStr.toLowerCase().includes(search)
+    );
+  });
 });
+
+// -------------------------
+// Pagination links without Previous/Next
+// -------------------------
+const paginationLinks = computed(() =>
+  paginator.value.links.filter(
+    (link) => link.label !== 'Previous' && link.label !== 'Next',
+  ),
+);
 
 const goToPage = (pageUrl: string | null) => {
   if (pageUrl) {
     router.get(
       pageUrl,
-      {},
+      {
+        search: globalFilter.value || undefined,
+      },
       {
         preserveState: true,
         preserveScroll: true,
@@ -127,6 +173,18 @@ const goToPage = (pageUrl: string | null) => {
     );
   }
 };
+
+// Watch filters / search and reload table
+watch([globalFilter], () => {
+  router.get(
+    paginator.value.path,
+    {
+      search: globalFilter.value || undefined,
+      per_page: paginator.value.per_page,
+    },
+    { preserveState: true, preserveScroll: true },
+  );
+});
 </script>
 
 <template>
@@ -171,8 +229,10 @@ const goToPage = (pageUrl: string | null) => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Vehicle</TableHead>
+              <TableHead>Brand</TableHead>
+              <TableHead>Model</TableHead>
               <TableHead>Plate Number</TableHead>
+              <TableHead>VIN</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Description</TableHead>
               <TableHead>Date</TableHead>
@@ -180,28 +240,20 @@ const goToPage = (pageUrl: string | null) => {
           </TableHeader>
 
           <TableBody>
-            <TableRow
-              v-for="request in paginator.data"
-              :key="request.id"
-              class="hover:bg-muted/50"
-            >
-              <TableCell
-                >{{ request.vehicle?.brand }}
-                {{ request.vehicle?.model }}</TableCell
-              >
+            <TableRow v-if="filteredData.length === 0">
+              <TableCell colspan="6" class="py-6 text-center text-gray-500">
+                No results found.
+              </TableCell>
+            </TableRow>
+
+            <TableRow v-for="request in filteredData" :key="request.id">
+              <TableCell>{{ request.vehicle?.brand }}</TableCell>
+              <TableCell>{{ request.vehicle?.model }}</TableCell>
               <TableCell>{{ request.vehicle?.plate_number }}</TableCell>
+              <TableCell>{{ request.vehicle?.vin }}</TableCell>
               <TableCell>{{ request.maintenance_type }}</TableCell>
               <TableCell>{{ request.description }}</TableCell>
               <TableCell>{{ request.maintenance_date }}</TableCell>
-            </TableRow>
-
-            <TableRow v-if="paginator.data.length === 0">
-              <TableCell
-                colspan="10"
-                class="py-6 text-center text-muted-foreground"
-              >
-                No results found.
-              </TableCell>
             </TableRow>
           </TableBody>
         </Table>
@@ -226,7 +278,7 @@ const goToPage = (pageUrl: string | null) => {
               @click="goToPage(paginator.prev_page_url)"
             />
 
-            <template v-for="(link, index) in paginationLinks" :key="index">
+            <template v-for="link in paginationLinks" :key="link.label">
               <PaginationItem
                 v-if="!isNaN(Number(link.label))"
                 :value="Number(link.label)"
