@@ -17,9 +17,37 @@ class MaintenanceRequestController extends Controller
         $franchise = $this->getFranchiseOrDefault();
         $franchiseId = $franchise?->id;
 
-        $requests = Maintenance::where('franchise_id', $franchiseId)
-            ->with(['vehicle'])
-            ->orderBy('created_at', 'desc')
+        $query = Maintenance::with(['status', 'franchise', 'vehicle'])
+            ->when($franchiseId, fn ($q) => $q->where('franchise_id', $franchiseId))
+            ->orderBy('created_at', 'desc');
+
+        // Filter by status
+        if ($status = request('status')) {
+            if ($status !== 'all') {
+                $query->whereHas('status', fn($q) => $q->where('name', $status));
+            }
+        }
+
+        // Global search
+        if ($search = request('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('description', 'like', "%{$search}%")
+                ->orWhere('maintenance_type', 'like', "%{$search}%")
+                ->orWhereHas('franchise', fn($q2) => $q2->where('name', 'like', "%{$search}%"))
+                ->orWhereHas('vehicle', function ($q2) use ($search) {
+                    $q2->where(function ($q3) use ($search) {
+                        $q3->where('plate_number', 'like', "%{$search}%")
+                            ->orWhere('vin', 'like', "%{$search}%")
+                            ->orWhere('brand', 'like', "%{$search}%")
+                            ->orWhere('color', 'like', "%{$search}%")
+                            ->orWhere('year', 'like', "%{$search}%")
+                            ->orWhere('model', 'like', "%{$search}%");
+                    });
+                });
+            });
+        }
+
+        $requests = $query
             ->paginate(10)
             ->through(function ($request) {
                 return [
@@ -32,6 +60,7 @@ class MaintenanceRequestController extends Controller
                     'vehicle' => $request->vehicle ? [
                         'id' => $request->vehicle->id,
                         'plate_number' => $request->vehicle->plate_number,
+                        'vin' => $request->vehicle->vin,
                         'brand' => $request->vehicle->brand,
                         'model' => $request->vehicle->model,
                     ] : null,
