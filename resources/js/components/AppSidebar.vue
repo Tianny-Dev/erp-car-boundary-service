@@ -17,9 +17,11 @@ import superAdmin from '@/routes/super-admin';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import {
+  Banknote,
   BarChart3,
   Bell,
   CarTaxiFront,
+  ChartNoAxesCombined,
   Clock,
   DollarSign,
   FileSpreadsheet,
@@ -80,6 +82,12 @@ const navConfig: Record<string, NavItem[]> = {
       group: 'Finance',
     },
     {
+      title: 'Earning Report',
+      href: superAdmin.earning.index(),
+      icon: ChartNoAxesCombined,
+      group: 'Finance',
+    },
+    {
       title: 'Transaction History',
       href: superAdmin.transaction.index(),
       icon: History,
@@ -113,12 +121,12 @@ const navConfig: Record<string, NavItem[]> = {
       group: 'Overview',
     },
 
-    // {
-    //   title: 'Payout',
-    //   href: manager.payout(),
-    //   icon: Banknote,
-    //   group: 'Payment',
-    // },
+    {
+      title: 'Payout',
+      href: manager.payout(),
+      icon: Banknote,
+      group: 'Payment',
+    },
 
     {
       title: 'Driver Management',
@@ -193,12 +201,12 @@ const navConfig: Record<string, NavItem[]> = {
       group: 'Overview',
     },
 
-    // {
-    //   title: 'Payout',
-    //   href: owner.payout(),
-    //   icon: Banknote,
-    //   group: 'Payment',
-    // },
+    {
+      title: 'Payout',
+      href: owner.payout(),
+      icon: Banknote,
+      group: 'Payment',
+    },
 
     {
       title: 'Driver Management',
@@ -255,6 +263,12 @@ const navConfig: Record<string, NavItem[]> = {
       title: 'Support Center',
       href: owner.supportCenter(),
       icon: HelpCircle,
+      group: 'Support',
+    },
+    {
+      title: 'Maintenance Requests',
+      href: owner.maintenanceRequests.index(),
+      icon: Wrench,
       group: 'Support',
     },
   ],

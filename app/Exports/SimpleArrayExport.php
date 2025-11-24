@@ -13,7 +13,7 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use Maatwebsite\Excel\Concerns\Exportable;
 
-class DriverExport implements
+class SimpleArrayExport implements
     FromCollection,
     WithHeadings,
     WithEvents,
@@ -57,8 +57,8 @@ class DriverExport implements
                 $totalRows = $this->data->count() + 2; // +1 title, +1 header
                 $grandTotalRow = $totalRows; // last row
 
-                // Define the starting column for currency (4th column, which is 'D')
-                $startCurrencyColumnIndex = 4;
+                // Define the starting column for currency (3th column, which is 'D')
+                $startCurrencyColumnIndex = 3;
                 $startCurrencyColumnLetter = Coordinate::stringFromColumnIndex($startCurrencyColumnIndex);
 
                 // Define the range for all currency data and the grand total amounts

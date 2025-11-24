@@ -9,11 +9,10 @@ use App\Models\Franchise;
 use App\Models\Revenue;
 use App\Models\UserDriver;
 use Illuminate\Http\Request;
-use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Database\Eloquent\Builder;
-use App\Exports\RevenueExport;
+use App\Exports\DriverExport;
 use Maatwebsite\Excel\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Inertia\Inertia;
@@ -356,7 +355,7 @@ class DriverReportController extends Controller
         $fileName = 'revenues_'.date('Y-m-d');
 
         // 7. Dispatch Download
-        $export = new RevenueExport($exportRows, $headings, $title);
+        $export = new DriverExport($exportRows, $headings, $title);
         $exportType = $filters['export_type'];
 
         // Define the list of keys to ensure the Blade loop iterates over all columns correctly

@@ -14,8 +14,11 @@ return new class extends Migration
         Schema::create('user_managers', function (Blueprint $table) {
             $table->foreignId('id')->primary()->constrained('users')->onDelete('cascade');
             $table->foreignId('status_id')->constrained('statuses')->onDelete('restrict');
+            $table->enum('valid_id_type', ['National ID', 'Passport', 'Driver License', 'Voter ID', 'Unified Multi-Purpose ID', 'TIN ID'])->default('National ID');
+            $table->string('valid_id_number', 20)->unique();
+            $table->string('front_valid_id_picture');
+            $table->string('back_valid_id_picture');
             $table->timestamps();
-            
         });
     }
 

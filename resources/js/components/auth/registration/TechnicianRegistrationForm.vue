@@ -43,12 +43,6 @@ const prevStep = () => {
   }
 };
 
-// const goToStep = (step: number) => {
-//   if (step <= totalSteps && step >= 1) {
-//     currentStep.value = step;
-//   }
-// };
-
 // --- Step 1 Personal State & Config ---
 const selectedGender = ref('');
 const birthday = ref('');

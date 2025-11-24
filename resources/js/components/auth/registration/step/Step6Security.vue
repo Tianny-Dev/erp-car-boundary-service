@@ -58,7 +58,7 @@ const computedTerms2 = computed<boolean>({
 // --- DEFAULTS ---
 const defaultFieldNames: FieldNames = {
   password: 'password',
-  confirmPassword: 'confirm_password',
+  confirmPassword: 'password_confirmation',
   terms1: 'terms1',
   terms2: 'terms2',
 };
@@ -116,7 +116,7 @@ const showConfirmPassword = ref(false);
           </button>
         </div>
       </div>
-      <InputError :message="errors?.password" />
+      <InputError :message="errors?.[fields.password]" />
     </div>
 
     <!-- Confirm Password -->
@@ -151,7 +151,7 @@ const showConfirmPassword = ref(false);
           </button>
         </div>
       </div>
-      <InputError :message="errors?.password_confirmation" />
+      <InputError :message="errors?.[fields.confirmPassword]" />
     </div>
   </template>
 
