@@ -4,6 +4,7 @@ namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\SuperAdmin\EarningDatatableResource;
+use App\Http\Resources\SuperAdmin\EarningShowResource;
 use App\Models\Branch;
 use App\Models\Franchise;
 use App\Models\Revenue;
@@ -15,6 +16,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Database\Eloquent\Builder;
 use App\Models\UserDriver;
 use Illuminate\Support\Str;
+use Carbon\Carbon;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -40,43 +42,20 @@ class EarningController extends Controller
             'period' => $validated['period'] ?? 'daily',
         ];
         
-
-        // 3. Get Dynamic Fee Types for Column Headers
-        $feeTypes = PercentageType::all()->map(function ($type) {
-            return [
-                'id' => $type->id,
-                'db_name' => $type->name,
-                'display' => Str::of($type->name)->replace('_', ' ')->title()->toString(),
-                'slug' => Str::snake($type->name),
-            ];
-        });
+        // 3. Get Shared Data (Fee Types)
+        $feeTypes = $this->getFeeTypes();
 
         // 4. Build Base Query
         $query = $this->buildBaseQuery($filters);
 
-        // 5. Build Dynamic Breakdown Subquery to calculate Total Deductions here for the Driver Earning math
-        $breakdownSelects = [
-            'revenue_breakdowns.revenue_id',
-            DB::raw('SUM(revenue_breakdowns.total_earning) as total_deductions') // Sum of ALL fees
-        ];
-        // Dynamically add columns for each fee type
-        foreach ($feeTypes as $type) {
-            $breakdownSelects[] = DB::raw("SUM(CASE WHEN percentage_types.name = '{$type['db_name']}' THEN total_earning ELSE 0 END) as {$type['slug']}_amount");
-        }
-        $breakdownSubquery = RevenueBreakdown::query()
-            ->join('percentage_types', 'revenue_breakdowns.percentage_type_id', '=', 'percentage_types.id')
-            ->select($breakdownSelects)
-            ->groupBy('revenue_breakdowns.revenue_id');
-        // 6. Join Subquery
-        $query->joinSub($breakdownSubquery, 'breakdowns', function ($join) {
-            $join->on('revenues.id', '=', 'breakdowns.revenue_id');
-        });
+        // 5. Join the Breakdown Subquery (Modular Logic)
+        $query = $this->joinBreakdownSubquery($query, $feeTypes);
 
-        // 7. Apply Grouping & Calculations
+        // 6. Apply Grouping & Calculations (Specific to Index)
         $earnings = $this->applyPeriodGrouping($query, $filters['period'], $filters['tab'], $feeTypes);
         $driversList = $this->getContextualDrivers($filters);
 
-        // 8. Return all data to Inertia
+        // 7. Return all data to Inertia
         return Inertia::render('super-admin/finance/EarningIndex', [
             'earnings' => EarningDatatableResource::collection($earnings),
             'franchises' => fn () => Franchise::select('id', 'name')->get(),
@@ -85,6 +64,118 @@ class EarningController extends Controller
             'filters' => $filters,
             'feeTypes' => $feeTypes,
         ]);
+    }
+
+    public function show(Request $request): Response
+    {
+        // 1. Validate all filters
+        $validated = $request->validate([
+            'tab' => ['sometimes', 'string', Rule::in(['franchise', 'branch'])],
+            'franchise' => ['sometimes', 'nullable', 'string'],
+            'branch' => ['sometimes', 'nullable', 'string'],
+            'driver' => ['required', 'string'],
+            'start' => ['required', 'date'],
+            'end' => ['required', 'date'],
+            'label'   => ['required', 'string'],
+        ]);
+
+        $driverId = $validated['driver'];
+        $dateLabel = $validated['label'];
+
+        // 2. Get Shared Data
+        $feeTypes = $this->getFeeTypes();
+
+        // 3. Build Base Query (Reuse filters, but enforce specific driver)
+        $filters = [
+            'tab' => $validated['tab'] ?? 'franchise',
+            'franchise' => $validated['franchise'] ?? null,
+            'branch' => $validated['branch'] ?? null,
+            'driver' => $driverId, 
+        ];
+
+        // 4. Build Base Query
+        $query = $this->buildBaseQuery($filters);
+
+        // 5. Join the Breakdown Subquery (Modular Logic)
+        $query = $this->joinBreakdownSubquery($query, $feeTypes);
+
+        // 6. APPLY THE DATE FILTER 
+        $query->whereBetween('revenues.payment_date', [
+            $validated['start'], 
+            $validated['end']
+        ]);
+
+        // 7. Select Individual Transactions (No Group By)
+        $selects = [
+            'revenues.id',
+            'revenues.invoice_no',
+            'revenues.payment_date',
+            'revenues.amount as total_amount',
+            // Calculate Driver Earning per transaction
+            DB::raw('(revenues.amount - COALESCE(breakdowns.total_deductions, 0)) as driver_earning')
+        ];
+
+        // Add dynamic fee columns
+        foreach ($feeTypes as $type) {
+            $selects[] = DB::raw("COALESCE(breakdowns.{$type['slug']}_amount, 0) as {$type['slug']}");
+        }
+
+        $transactions = $query->select($selects)
+            ->orderBy('revenues.payment_date', 'desc')
+            ->orderBy('revenues.id', 'desc')
+            ->get();
+
+        // 8. Get Driver Details for Header
+        $driver = UserDriver::with('user')->find($driverId);
+
+        return Inertia::render('super-admin/finance/EarningShow', [
+            'details' => EarningShowResource::collection($transactions),
+            'driver' => [
+                'id' => $driver->id,
+                'name' => $driver->user->name
+            ],
+            'periodLabel' => $dateLabel,
+            'feeTypes' => $feeTypes,
+        ]);
+    }
+
+    /**
+     * Returns a list of fee types.
+     */
+    private function getFeeTypes()
+    {
+        return PercentageType::all()->map(function ($type) {
+            return [
+                'id' => $type->id,
+                'db_name' => $type->name,
+                'display' => Str::of($type->name)->replace('_', ' ')->title()->toString(),
+                'slug' => Str::snake($type->name),
+            ];
+        });
+    }
+
+    /**
+     * The Core Calculation Logic: Pivots rows to columns. Index (aggregated) and Show (per transaction).
+     */
+    private function joinBreakdownSubquery(Builder $query, $feeTypes): Builder
+    {
+        $breakdownSelects = [
+            'revenue_breakdowns.revenue_id',
+            DB::raw('SUM(revenue_breakdowns.total_earning) as total_deductions')
+        ];
+
+        foreach ($feeTypes as $type) {
+            $breakdownSelects[] = DB::raw("SUM(CASE WHEN percentage_types.name = '{$type['db_name']}' THEN total_earning ELSE 0 END) as {$type['slug']}_amount");
+        }
+
+        $breakdownSubquery = RevenueBreakdown::query()
+            ->join('percentage_types', 'revenue_breakdowns.percentage_type_id', '=', 'percentage_types.id')
+            ->select($breakdownSelects)
+            ->groupBy('revenue_breakdowns.revenue_id');
+
+        return $query->joinSub($breakdownSubquery, 'breakdowns', function ($join) {
+            $join->on('revenues.id', '=', 'breakdowns.revenue_id');
+        });
     }
 
     /**
@@ -172,11 +263,13 @@ class EarningController extends Controller
             DB::raw('SUM(revenues.amount) as total_amount'),
             // Driver Earning = Total Revenue - Total Deductions (calculated in subquery)
             DB::raw('(SUM(revenues.amount) - COALESCE(SUM(breakdowns.total_deductions), 0)) as driver_earning'),
-            'users.name as driver_name'
+            'users.name as driver_name',
+            'users.id as driver_id',
         ];
 
         // Add SUM aggregators for each dynamic fee type
         foreach ($feeTypes as $type) {
+            // "{$type['slug']}_amount" must match the alias in joinBreakdownSubquery
             $selects[] = DB::raw("SUM(breakdowns.{$type['slug']}_amount) as total_{$type['slug']}");
         }
 
@@ -217,5 +310,4 @@ class EarningController extends Controller
 
         return $query->get();
     }
-
 }
