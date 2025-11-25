@@ -316,8 +316,8 @@ watch(
       <div class="rounded-lg border">
         <Table>
           <TableHeader>
-            <TableRow>
-              <template v-if="!isGrouped">
+            <template v-if="!isGrouped">
+              <TableRow>
                 <TableHead>Invoice No</TableHead>
                 <TableHead>Expense Type</TableHead>
                 <TableHead>Amount</TableHead>
@@ -327,27 +327,27 @@ watch(
                 <TableHead>Branch</TableHead>
                 <TableHead>Payment Option</TableHead>
                 <TableHead>Action</TableHead>
-              </template>
+              </TableRow>
+            </template>
 
-              <template v-else>
-                <TableRow>
-                  <TableHead>
-                    {{
-                      filters.timePeriod === 'daily'
-                        ? 'Date'
-                        : filters.timePeriod === 'weekly'
-                          ? 'Week'
-                          : filters.timePeriod === 'monthly'
-                            ? 'Month'
-                            : filters.timePeriod === 'yearly'
-                              ? 'Year'
-                              : 'Group'
-                    }}
-                  </TableHead>
-                  <TableHead>Total Expense</TableHead>
-                </TableRow>
-              </template>
-            </TableRow>
+            <template v-else>
+              <TableRow>
+                <TableHead>
+                  {{
+                    filters.timePeriod === 'daily'
+                      ? 'Date'
+                      : filters.timePeriod === 'weekly'
+                        ? 'Week'
+                        : filters.timePeriod === 'monthly'
+                          ? 'Month'
+                          : filters.timePeriod === 'yearly'
+                            ? 'Year'
+                            : 'Group'
+                  }}
+                </TableHead>
+                <TableHead>Total Expense</TableHead>
+              </TableRow>
+            </template>
           </TableHeader>
 
           <TableBody>
