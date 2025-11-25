@@ -260,6 +260,13 @@ const navConfig: Record<string, NavItem[]> = {
     },
 
     {
+      title: 'Driver History',
+      href: owner.driverownerreport(),
+      icon: DollarSign,
+      group: 'Finance',
+    },
+
+    {
       title: 'Support Center',
       href: owner.supportCenter(),
       icon: HelpCircle,
