@@ -13,7 +13,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import {
   Pagination,
   PaginationContent,
@@ -22,6 +21,13 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -34,7 +40,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import finance from '@/routes/finance';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
-import { FileDown } from 'lucide-vue-next';
+import { Search } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
 // -------------------------
@@ -54,9 +60,9 @@ interface Expense {
   payment_option: string | null;
 }
 
-interface ExpensesPaginator {
+interface ExpensesPaginator<T = any> {
   current_page: number;
-  data: Expense[];
+  data: T[];
   first_page_url: string | null;
   from: number | null;
   last_page: number;
@@ -101,8 +107,24 @@ const breadcrumbs: BreadcrumbItem[] = [
   { title: 'Expense Management', href: finance.expenseManagement().url },
 ];
 
-const globalFilter = ref('');
-const pageSize = ref('10');
+const filters = ref({
+  search: '',
+  status: 'all',
+  paymentOption: 'all',
+  timePeriod: 'all',
+});
+
+// Reset filters when switching timePeriod to 'all'
+watch(
+  () => filters.value.timePeriod,
+  (newPeriod) => {
+    if (newPeriod === 'all') {
+      filters.value.status = 'all';
+      filters.value.paymentOption = 'all';
+      filters.value.search = '';
+    }
+  },
+);
 
 // Dialog
 const selectedExpense = ref<Expense | null>(null);
@@ -116,9 +138,21 @@ const viewExpense = (expense: Expense) => {
 // -------------------------
 // Computed: Filtered Data
 // -------------------------
+const isGrouped = computed(() => {
+  return (
+    filters.value.timePeriod === 'daily' ||
+    filters.value.timePeriod === 'weekly' ||
+    filters.value.timePeriod === 'monthly' ||
+    filters.value.timePeriod === 'yearly'
+  );
+});
+
 const filteredData = computed(() => {
-  if (!globalFilter.value) return paginator.value.data;
-  const search = globalFilter.value.toLowerCase();
+  if (isGrouped.value) {
+    return paginator.value.data;
+  }
+  if (!filters.value.search) return paginator.value.data;
+  const search = filters.value.search.toLowerCase();
 
   return paginator.value.data.filter((item) =>
     Object.values(item)
@@ -135,8 +169,56 @@ const paginationLinks = computed(() => {
 });
 
 // -------------------------
+// Helpers
+// -------------------------
+const getStatusVariant = (status: string | null) => {
+  switch (status?.toLowerCase()) {
+    case 'paid':
+      return 'default';
+    case 'overdue':
+      return 'destructive';
+    case 'pending':
+      return 'outline';
+    default:
+      return 'secondary';
+  }
+};
+
+const goToPage = (pageUrl: string | null) => {
+  if (pageUrl) applyFilters(pageUrl);
+};
+
+const applyFilters = (url?: string) => {
+  router.get(
+    url || paginator.value.path,
+    {
+      status: filters.value.status !== 'all' ? filters.value.status : undefined,
+      paymentOption:
+        filters.value.paymentOption !== 'all'
+          ? filters.value.paymentOption
+          : undefined,
+      search: filters.value.search || undefined,
+      timePeriod: filters.value.timePeriod,
+      per_page: paginator.value.per_page,
+    },
+    {
+      preserveState: true,
+      preserveScroll: true,
+    },
+  );
+};
+
+// -------------------------
 // Watchers
 // -------------------------
+watch(
+  filters,
+  () => {
+    applyFilters();
+  },
+  { deep: true },
+);
+
 watch(
   () => expenses,
   (newExpenses) => {
@@ -144,86 +226,90 @@ watch(
   },
   { deep: true },
 );
-
-watch(pageSize, (newSize) => {
-  router.get(
-    paginator.value.path,
-    { per_page: newSize },
-    {
-      preserveState: true,
-      preserveScroll: true,
-    },
-  );
-});
-
-// -------------------------
-// Helpers
-// -------------------------
-const getStatusVariant = (status: string | null) => {
-  switch (status) {
-    case 'Flagged':
-      return 'destructive';
-    case 'Received':
-      return 'default';
-    case 'Pending':
-      return 'outline';
-    default:
-      return 'secondary';
-  }
-};
-
-const exportPDF = () => console.log('Exporting PDF...');
-
-const goToPage = (pageUrl: string | null) => {
-  if (pageUrl) {
-    router.get(
-      pageUrl,
-      {},
-      {
-        preserveState: true,
-        preserveScroll: true,
-      },
-    );
-  }
-};
-
-// const handleApprove = (record: ExpenseRecord) => {
-//   const i = data.value.findIndex((e) => e.id === record.id);
-//   if (i !== -1) data.value[i].status = 'Approved';
-// };
-
-// const handleReject = (record: ExpenseRecord) => {
-//   const i = data.value.findIndex((e) => e.id === record.id);
-//   if (i !== -1) data.value[i].status = 'Rejected';
-// };
 </script>
 
 <template>
   <Head title="Expense Management" />
 
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div
-      class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl bg-white p-4 shadow"
-    >
+    <div class="space-y-6 p-6">
       <!-- Header -->
-      <div class="flex items-center justify-between border-b pb-4">
-        <h1 class="text-xl font-semibold">Expense Records</h1>
-        <Button @click="exportPDF" class="bg-red-600 hover:bg-red-700">
-          <FileDown class="mr-2 h-4 w-4" />
-          Export PDF
-        </Button>
+      <div>
+        <h1 class="mb-1 text-3xl font-bold">Expense Records</h1>
+        <p class="text-gray-600">
+          Monitor Daily, Weekly, Monthly, and Yearly Expenses
+        </p>
       </div>
 
-      <!-- Controls -->
-      <div class="flex items-center justify-between border-b pb-4">
-        <div class="flex items-center gap-2">
-          <span class="text-sm text-gray-600">Search:</span>
-          <Input
-            v-model="globalFilter"
-            placeholder="Search expenses..."
-            class="w-48"
+      <div class="flex flex-col gap-4 md:flex-row md:items-center">
+        <!-- Search/Filters/Period -->
+        <div class="relative flex-1">
+          <Search
+            class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400"
+          />
+          <input
+            v-model="filters.search"
+            placeholder="Search contracts..."
+            class="w-full rounded-md border px-10 py-2"
+            :disabled="isGrouped"
           />
         </div>
+        <!-- ... omit for brevity: filter selects (same as before) ... -->
+        <Select v-model="filters.status">
+          <SelectTrigger class="w-full md:w-48">
+            <SelectValue>{{
+              filters.status === 'all' ? 'Filter by status' : filters.status
+            }}</SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="Pending">Pending</SelectItem>
+            <SelectItem value="Paid">Paid</SelectItem>
+            <SelectItem value="Overdue">Overdue</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select v-model="filters.paymentOption">
+          <SelectTrigger class="w-full md:w-48">
+            <SelectValue>{{
+              filters.paymentOption === 'all'
+                ? 'Payment Option'
+                : filters.paymentOption
+            }}</SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Payment Options</SelectItem>
+            <SelectItem value="Cash">Cash</SelectItem>
+            <SelectItem value="Credit Card">Credit Card</SelectItem>
+            <SelectItem value="Gcash">Gcash</SelectItem>
+            <SelectItem value="Paymaya">Paymaya</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select v-model="filters.timePeriod">
+          <SelectTrigger class="w-full md:w-48">
+            <SelectValue>
+              {{
+                filters.timePeriod === 'all'
+                  ? 'All Time'
+                  : filters.timePeriod === 'daily'
+                    ? 'Daily'
+                    : filters.timePeriod === 'weekly'
+                      ? 'Weekly'
+                      : filters.timePeriod === 'monthly'
+                        ? 'Monthly'
+                        : filters.timePeriod === 'yearly'
+                          ? 'Yearly'
+                          : 'Select Period'
+              }}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Time</SelectItem>
+            <SelectItem value="daily">Daily</SelectItem>
+            <SelectItem value="weekly">Weekly</SelectItem>
+            <SelectItem value="monthly">Monthly</SelectItem>
+            <SelectItem value="yearly">Yearly</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <!-- Table -->
@@ -231,57 +317,84 @@ const goToPage = (pageUrl: string | null) => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Invoice No</TableHead>
-              <TableHead>Expense Type</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Payment Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Franchise</TableHead>
-              <TableHead>Branch</TableHead>
-              <TableHead>Payment Option</TableHead>
-              <TableHead>Action</TableHead>
+              <template v-if="!isGrouped">
+                <TableHead>Invoice No</TableHead>
+                <TableHead>Expense Type</TableHead>
+                <TableHead>Amount</TableHead>
+                <TableHead>Payment Date</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Franchise</TableHead>
+                <TableHead>Branch</TableHead>
+                <TableHead>Payment Option</TableHead>
+                <TableHead>Action</TableHead>
+              </template>
+
+              <template v-else>
+                <TableRow>
+                  <TableHead>
+                    {{
+                      filters.timePeriod === 'daily'
+                        ? 'Date'
+                        : filters.timePeriod === 'weekly'
+                          ? 'Week'
+                          : filters.timePeriod === 'monthly'
+                            ? 'Month'
+                            : filters.timePeriod === 'yearly'
+                              ? 'Year'
+                              : 'Group'
+                    }}
+                  </TableHead>
+                  <TableHead>Total Expense</TableHead>
+                </TableRow>
+              </template>
             </TableRow>
           </TableHeader>
 
           <TableBody>
             <TableRow v-if="filteredData.length === 0">
-              <TableCell colspan="9" class="py-6 text-center text-gray-500">
+              <TableCell
+                :colspan="isGrouped ? 2 : 9"
+                class="py-6 text-center text-gray-500"
+              >
                 No results found.
               </TableCell>
             </TableRow>
 
-            <TableRow
-              v-for="record in filteredData"
-              :key="record.id"
-              class="hover:bg-gray-50"
-            >
-              <TableCell class="font-medium">{{ record.invoice_no }}</TableCell>
-              <TableCell>{{ record.expense_type }}</TableCell>
-              <TableCell class="font-medium">
-                {{ record.currency }} {{ record.amount.toLocaleString() }}
-              </TableCell>
-              <TableCell>{{ record.payment_date || '—' }}</TableCell>
-              <TableCell>
-                <Badge
-                  :variant="getStatusVariant(record.status)"
-                  class="px-2 py-1"
-                >
-                  {{ record.status }}
-                </Badge>
-              </TableCell>
-              <TableCell>{{ record.franchise || '—' }}</TableCell>
-              <TableCell>{{ record.branch || '—' }}</TableCell>
-              <TableCell>{{ record.payment_option || '—' }}</TableCell>
-              <TableCell>
-                <Button
-                  size="sm"
-                  variant="default"
-                  @click="viewExpense(record)"
-                >
-                  View
-                </Button>
-              </TableCell>
-              <!-- <TableCell class="flex gap-2">
+            <template v-if="!isGrouped">
+              <TableRow
+                v-for="expense in filteredData"
+                :key="expense.id"
+                class="hover:bg-gray-50"
+              >
+                <TableCell class="font-medium">{{
+                  expense.invoice_no
+                }}</TableCell>
+                <TableCell>{{ expense.expense_type }}</TableCell>
+                <TableCell class="font-medium">
+                  {{ expense.currency }} {{ expense.amount }}
+                </TableCell>
+                <TableCell>{{ expense.payment_date || '—' }}</TableCell>
+                <TableCell>
+                  <Badge
+                    :variant="getStatusVariant(expense.status)"
+                    class="px-2 py-1"
+                  >
+                    {{ expense.status }}
+                  </Badge>
+                </TableCell>
+                <TableCell>{{ expense.franchise || '—' }}</TableCell>
+                <TableCell>{{ expense.branch || '—' }}</TableCell>
+                <TableCell>{{ expense.payment_option || '—' }}</TableCell>
+                <TableCell>
+                  <Button
+                    size="sm"
+                    variant="default"
+                    @click="viewExpense(expense)"
+                  >
+                    View
+                  </Button>
+                </TableCell>
+                <!-- <TableCell class="flex gap-2">
                 <template v-if="record.status === 'Pending'">
                   <Button
                     size="sm"
@@ -316,7 +429,39 @@ const goToPage = (pageUrl: string | null) => {
                   <Button size="sm" variant="secondary" disabled> View </Button>
                 </template>
               </TableCell> -->
-            </TableRow>
+              </TableRow>
+            </template>
+
+            <template v-else>
+              <TableRow
+                v-for="(row, gidx) in filteredData"
+                :key="
+                  row.payment_date ||
+                  row.week_start ||
+                  row.month_name ||
+                  row.year ||
+                  gidx
+                "
+                class="hover:bg-gray-50"
+              >
+                <TableCell>
+                  <template v-if="filters.timePeriod === 'daily'">
+                    {{ row.payment_date }}
+                  </template>
+                  <template v-else-if="filters.timePeriod === 'weekly'">
+                    {{ row.week_start }} - {{ row.week_end }}
+                  </template>
+                  <template v-else-if="filters.timePeriod === 'monthly'">
+                    {{ row.month_name }}
+                  </template>
+                  <template v-else-if="filters.timePeriod === 'yearly'">
+                    {{ row.year }}
+                  </template>
+                  <template v-else> &mdash; </template>
+                </TableCell>
+                <TableCell> ₱ {{ row.total || row.amount || 0 }} </TableCell>
+              </TableRow>
+            </template>
           </TableBody>
         </Table>
       </div>
