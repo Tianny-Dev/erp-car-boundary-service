@@ -52,4 +52,5 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
 
     Route::get('/earning', [EarningController::class, 'index'])->name('earning.index');
     Route::get('/earning/show', [EarningController::class, 'show'])->name('earning.show');
+    Route::get('/revenue/export/index', [EarningController::class, 'exportIndex'])->name('earning.export.index');
 });

@@ -16,7 +16,8 @@ use Illuminate\Validation\Rule;
 use Illuminate\Database\Eloquent\Builder;
 use App\Models\UserDriver;
 use Illuminate\Support\Str;
-use Carbon\Carbon;
+use App\Exports\EarningExport;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -309,5 +310,90 @@ class EarningController extends Controller
         }
 
         return $query->get();
+    }
+
+    /**
+     * Handles the export process.
+     */
+    public function exportIndex(Request $request)
+    {
+        // 1. Validate all inputs (page filters + modal filters)
+        $validated = $request->validate([
+            'tab' => ['required', 'string', Rule::in(['franchise', 'branch'])],
+            'franchise' => ['nullable', 'string'],
+            'branch' => ['nullable', 'string'],
+            'driver' => ['sometimes', 'nullable', 'string'],
+            'period' => ['required', 'string',Rule::in(['daily', 'weekly', 'monthly'])],
+            'export' => ['required', 'string', Rule::in(['pdf', 'excel', 'csv'])],
+            'year' => ['required', 'integer', 'min:2020', 'max:2100'],
+            'months' => ['required', 'array', 'min:1'],
+            'months.*' => ['required', 'integer', 'min:1', 'max:12'],
+        ]);
+
+        $filters = [
+            'tab' => $validated['tab'] ?? 'franchise',
+            'franchise' => $validated['franchise'] ?? null,
+            'branch' => $validated['branch'] ?? null,
+            'driver' => $validated['driver'] ?? null,
+            'period' => $validated['period'] ?? 'daily',
+            'export' => $validated['export'] ?? 'pdf',
+        ];
+
+        // 2. Get Fee Types
+        $feeTypes = $this->getFeeTypes();
+
+        // 3. Build Query (Filters + Date Year/Month constraints)
+        $query = $this->buildBaseQuery($filters, $validated['year'], $validated['months']);
+
+        // 4. Join Subquery & Group (Reusing your efficient logic)
+        $query = $this->joinBreakdownSubquery($query, $feeTypes);
+        
+        // 5. Get Data
+        $revenues = $this->applyPeriodGrouping($query, $filters['period'], $filters['tab'], $feeTypes);
+
+        // 6. Generate Title
+        $title = $this->buildExportTitle($filters, $validated['year'], $validated['months']);
+        $fileName = 'earnings_' . now()->format('Y-m-d_His');
+
+        // 7. EXPORT
+        if ($filters['export'] === 'pdf') {
+            // Prepare data for PDF View
+            return Pdf::loadView('exports.earning', [
+                'rows' => $revenues,
+                'title' => $title,
+                'tab' => $filters['tab'],
+                'feeTypes' => $feeTypes
+            ])->setPaper('a4', 'landscape')->download($fileName.'.pdf');
+        }
+
+        // Excel/CSV
+        return (new EarningExport(
+            $revenues, 
+            $title, 
+            $filters['tab'],
+            $feeTypes // Pass fee types so Export knows what columns to create
+        ))->download($fileName . '.' . ($filters['export'] === 'excel' ? 'xlsx' : 'csv'));
+    }
+
+    /**
+     * Helper to build a descriptive title for the export.
+     */
+    private function buildExportTitle(array $filters, int $year, array $months): string
+    {
+        $period = ucfirst($filters['period']);
+        $tabName = $filters['tab'] === 'franchise' ? 'Franchise' : 'Branch';
+
+        // Get specific name if filtered
+        $targetName = "All {$tabName}s";
+        if ($filters['franchise']) {
+            $targetName = Franchise::find($filters['franchise'])->name ?? 'Franchise';
+        } elseif ($filters['branch']) {
+            $targetName = Branch::find($filters['branch'])->name ?? 'Branch';
+        }
+
+        // Format months
+        $monthNames = collect($months)->map(fn ($m) => date('F', mktime(0, 0, 0, $m, 1)))->join(', ');
+
+        return "{$period} Total Earnings for {$targetName} - {$monthNames} {$year}";
     }
 }
