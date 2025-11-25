@@ -53,32 +53,43 @@ class EarningExport implements
      */
     public function map($row): array
     {
-        // 1. Resolve Name
-        $nameKey = $this->tabName . '_name';
-        $name = $row->$nameKey ?? 'N/A';
+        // A. Detail View Mapping (Show Method)
+        if ($this->tabName === 'show') {
+            $columns = [
+                $row->invoice_no, // Column A
+                Carbon::parse($row->payment_date)->format('M j, Y'),
+                $row->total_amount ?? 0,
+            ];
+        } 
+        // B. Aggregate View Mapping (Index Method)
+        else {
+            // 1. Resolve Name
+            $nameKey = $this->tabName . '_name';
+            $name = $row->$nameKey ?? 'N/A';
 
-        // 2. Resolve Date Logic (Fixes empty/raw dates)
-        $dateDisplay = 'N/A';
-        if (isset($row->month_name)) {
-            // Monthly
-            $dateDisplay = $row->month_name;
-        } elseif (isset($row->week_start)) {
-            // Weekly
-            $start = Carbon::parse($row->week_start);
-            $end = Carbon::parse($row->week_end);
-            $dateDisplay = $start->format('M j') . ' - ' . $end->format('M j, Y');
-        } else {
-            // Daily (formatted)
-            $dateDisplay = Carbon::parse($row->payment_date)->format('M j, Y');
+            // 2. Resolve Date Logic (Fixes empty/raw dates)
+            $dateDisplay = 'N/A';
+            if (isset($row->month_name)) {
+                // Monthly
+                $dateDisplay = $row->month_name;
+            } elseif (isset($row->week_start)) {
+                // Weekly
+                $start = Carbon::parse($row->week_start);
+                $end = Carbon::parse($row->week_end);
+                $dateDisplay = $start->format('M j') . ' - ' . $end->format('M j, Y');
+            } else {
+                // Daily (formatted)
+                $dateDisplay = Carbon::parse($row->payment_date)->format('M j, Y');
+            }
+
+            // 3. Build Row
+            $columns = [
+                $name,
+                $row->driver_name ?? 'N/A',
+                $dateDisplay,
+                $row->total_amount ?? 0,
+            ];
         }
-
-        // 3. Build Row
-        $columns = [
-            $name,
-            $row->driver_name ?? 'N/A',
-            $dateDisplay,
-            $row->total_amount ?? 0,
-        ];
 
         // 4. Dynamic Fees
         foreach ($this->feeTypes as $type) {
@@ -94,7 +105,12 @@ class EarningExport implements
 
     public function headings(): array
     {
-        $headers = [ucfirst($this->tabName), 'Driver', 'Date', 'Total Amount'];
+        if ($this->tabName === 'show') {
+            $headers = ['Invoice No.', 'Date', 'Trip Amount'];
+        } else {
+            $headers = [ucfirst($this->tabName), 'Driver', 'Date', 'Total Amount'];
+        }
+
         foreach ($this->feeTypes as $type) {
             $headers[] = $type['display'];
         }
@@ -104,10 +120,16 @@ class EarningExport implements
 
     public function columnFormats(): array
     {
-        // Format from Column D (4th) to the end as Currency
-        return [
-            'D:Z' => '"₱"#,##0.00',
-        ];
+        // if show format (C) to the end as Currency else (D) 
+        if ($this->tabName === 'show') {
+            return [
+                'C:Z' => '"₱"#,##0.00',
+            ];
+        } else {
+            return [
+                'D:Z' => '"₱"#,##0.00',
+            ];
+        }
     }
 
     public function registerEvents(): array
@@ -129,15 +151,23 @@ class EarningExport implements
                 // --- 2. Grand Total Row ---
                 $totalRowIndex = $lastRow + 2; 
 
-                // Label "GRAND TOTAL" (Merge A-C)
-                $sheet->mergeCells("A{$totalRowIndex}:C{$totalRowIndex}");
+                // Label "GRAND TOTAL" (Merge A-B) if "show" else (Merge A-C)
+                if ($this->tabName === 'show') {
+                    $sheet->mergeCells("A{$totalRowIndex}:B{$totalRowIndex}");
+                } else {
+                    $sheet->mergeCells("A{$totalRowIndex}:C{$totalRowIndex}");
+                }
                 $sheet->setCellValue("A{$totalRowIndex}", "GRAND TOTAL");
                 $sheet->getStyle("A{$totalRowIndex}")->getFont()->setBold(true);
                 $sheet->getStyle("A{$totalRowIndex}")->getAlignment()->setHorizontal('right');
 
                 // --- 3. Fill Numeric Totals ---
-                // Start at Column 4 (D) -> Total Amount
-                $colIndex = 4;
+                // Start at (C) if show else (D)
+                if ($this->tabName === 'show') {
+                    $colIndex = 3;
+                } else {
+                    $colIndex = 4;
+                }
 
                 // A. Total Amount
                 $this->setTotalCell($sheet, $colIndex, $totalRowIndex, $this->totals['total_amount']);

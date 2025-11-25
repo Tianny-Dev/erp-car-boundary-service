@@ -53,14 +53,21 @@
     <table>
         <thead>
             <tr>
+                @if(isset($isDetailView) && $isDetailView)
+                <th>Invoice No.</th>
+                <th>Date</th>
+                <th>Trip Amount</th>
+            @else
                 <th>{{ ucfirst($tab) }}</th>
                 <th>Driver</th>
                 <th style="width: 15%">Date</th>
                 <th>Total Amount</th>
-                @foreach($feeTypes as $type)
-                    <th>{{ $type['display'] }}</th>
-                @endforeach
-                <th>Driver Earn</th>
+            @endif
+
+            @foreach($feeTypes as $type)
+                <th>{{ $type['display'] }}</th>
+            @endforeach
+            <th>Driver Earn</th>
             </tr>
         </thead>
         <tbody>
@@ -79,12 +86,16 @@
                     }
                 @endphp
                 <tr>
-                    <td>{{ $tab === 'franchise' ? ($row->franchise_name ?? '-') : ($row->branch_name ?? '-') }}</td>
-                    <td>{{ $row->driver_name }}</td>
-                    <td>{{ $dateDisplay }}</td>
-                    
-                    {{-- Total Amount --}}
-                    <td class="money">&#8369;{{ number_format($row->total_amount, 2) }}</td>
+                    @if(isset($isDetailView) && $isDetailView)
+                        <td>{{ $row->invoice_no }}</td>
+                        <td>{{ Carbon::parse($row->payment_date)->format('M j, Y') }}</td>
+                        <td class="money">&#8369;{{ number_format($row->total_amount, 2) }}</td>
+                    @else
+                        <td>{{ $tab === 'franchise' ? ($row->franchise_name ?? '-') : ($row->branch_name ?? '-') }}</td>
+                        <td>{{ $row->driver_name }}</td>
+                        <td>{{ $dateDisplay }}</td>
+                        <td class="money">&#8369;{{ number_format($row->total_amount, 2) }}</td>
+                    @endif
                     
                     {{-- Dynamic Fees --}}
                     @foreach($feeTypes as $type)
@@ -101,7 +112,7 @@
         {{-- GRAND TOTAL FOOTER --}}
         <tfoot>
             <tr class="grand-total">
-                <td colspan="3" style="text-align: left;">GRAND TOTAL</td>
+                <td colspan="{{ isset($isDetailView) && $isDetailView ? 2 : 3 }}" style="text-align: left;">GRAND TOTAL</td>
                 
                 {{-- Sum Total Amount --}}
                 <td class="money">&#8369;{{ number_format($rows->sum('total_amount'), 2) }}</td>

@@ -29,6 +29,30 @@ const breadcrumbs: BreadcrumbItem[] = [
   { title: 'Details', href: '#' },
 ];
 
+// Helper to get params from URL if not in props
+const getUrlParam = (name: string) => {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(name);
+};
+
+const handleExport = (type: 'pdf' | 'excel' | 'csv') => {
+  // 1. Get Filters
+  const startDate = getUrlParam('start');
+  const endDate = getUrlParam('end');
+
+  const params = new URLSearchParams({
+    driver: String(props.driver.id),
+    start: startDate || '',
+    end: endDate || '',
+    label: props.periodLabel,
+    export: type,
+  });
+
+  // 2. Open URL
+  const url = `${superAdmin.earning.export.show().url}?${params.toString()}`;
+  window.open(url, '_blank');
+};
+
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('en-PH', {
     style: 'currency',
@@ -47,13 +71,6 @@ const detailColumns = computed<ColumnDef<any>[]>(() => {
     {
       accessorKey: 'payment_date',
       header: 'Date',
-      cell: ({ getValue }) => {
-        const date = new Date(getValue() as string);
-        return date.toLocaleDateString('en-US', {
-          month: 'short',
-          day: 'numeric',
-        });
-      },
     },
     {
       accessorKey: 'total_amount',
@@ -210,7 +227,13 @@ const goBack = () => {
           :columns="detailColumns"
           :data="props.details.data"
           search-placeholder="Search Invoice No..."
-        />
+        >
+          <template #custom-actions>
+            <Button @click="handleExport('pdf')"> Export PDF </Button>
+            <Button @click="handleExport('excel')"> Export Excel </Button>
+            <Button @click="handleExport('csv')"> Export CSV </Button>
+          </template>
+        </DataTable>
       </div>
     </div>
   </AppLayout>

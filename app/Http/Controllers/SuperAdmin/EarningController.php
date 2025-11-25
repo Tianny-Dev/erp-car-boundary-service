@@ -313,7 +313,7 @@ class EarningController extends Controller
     }
 
     /**
-     * Handles the export process.
+     * Handles the export index process.
      */
     public function exportIndex(Request $request)
     {
@@ -376,6 +376,81 @@ class EarningController extends Controller
     }
 
     /**
+     * Handles the export show process.
+     */
+    public function exportShow(Request $request)
+    {
+        // 1. Validate (Same as show method)
+        $validated = $request->validate([
+            'driver'     => ['required', 'string'],
+            'start' => ['required', 'date'],
+            'end'   => ['required', 'date'],
+            'label'      => ['required', 'string'],
+            'export'     => ['required', 'string', Rule::in(['pdf', 'excel', 'csv'])],
+        ]);
+
+        $driverId = $validated['driver'];
+        $feeTypes = $this->getFeeTypes();
+
+        // 2. Build Query (Same logic as show)
+        $filters = [
+            'driver' => $driverId,
+            'tab' => null,
+        ]; 
+
+        $query = $this->buildBaseQuery($filters);
+        $query = $this->joinBreakdownSubquery($query, $feeTypes);
+        
+        // Apply Date Range
+        $query->whereBetween('revenues.payment_date', [
+            $validated['start'], 
+            $validated['end']
+        ]);
+
+        // 3. Select Columns (Transaction Level)
+        $selects = [
+            'revenues.invoice_no', // Unique to Show
+            'revenues.payment_date',
+            'revenues.amount as total_amount',
+            DB::raw('(revenues.amount - COALESCE(breakdowns.total_deductions, 0)) as driver_earning')
+        ];
+
+        foreach ($feeTypes as $type) {
+            $selects[] = DB::raw("COALESCE(breakdowns.{$type['slug']}_amount, 0) as total_{$type['slug']}");
+        }
+
+        $transactions = $query->select($selects)
+            ->orderBy('revenues.payment_date', 'desc')
+            ->orderBy('revenues.id', 'desc')
+            ->get();
+
+        // 4. Prepare Metadata
+        $driver = UserDriver::with('user')->find($driverId);
+        $driverName = $driver->user->name;
+        $title = "Trip Earning Details for {$driverName} - " . $validated['label'];
+        $fileName = 'details_' . Str::slug($driverName) . '_' . now()->format('Y-m-d');
+
+        // 5. Handle PDF
+        if ($validated['export'] === 'pdf') {
+            return Pdf::loadView('exports.earning', [
+                'rows' => $transactions,
+                'title' => $title,
+                'tab' => null, // Signal that this is the Detail view
+                'feeTypes' => $feeTypes,
+                'isDetailView' => true // New flag
+            ])->setPaper('a4', 'landscape')->download($fileName.'.pdf');
+        }
+
+        // 6. Handle Excel/CSV
+        return (new EarningExport(
+            $transactions,
+            $title,
+            'show', // Pass 'show' as the tab name to signal logic switch
+            $feeTypes
+        ))->download($fileName . '.' . ($validated['export'] === 'excel' ? 'xlsx' : 'csv'));
+    }
+
+    /**
      * Helper to build a descriptive title for the export.
      */
     private function buildExportTitle(array $filters, int $year, array $months): string
@@ -394,6 +469,6 @@ class EarningController extends Controller
         // Format months
         $monthNames = collect($months)->map(fn ($m) => date('F', mktime(0, 0, 0, $m, 1)))->join(', ');
 
-        return "{$period} Total Earnings for {$targetName} - {$monthNames} {$year}";
+        return "{$period} Total Trip Earnings for {$targetName} - {$monthNames} {$year}";
     }
 }
