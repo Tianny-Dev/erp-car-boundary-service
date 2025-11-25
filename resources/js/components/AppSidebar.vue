@@ -18,7 +18,6 @@ import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import {
   Banknote,
-  BarChart3,
   Bell,
   CarTaxiFront,
   ChartNoAxesCombined,
@@ -159,12 +158,12 @@ const navConfig: Record<string, NavItem[]> = {
       icon: FileText,
       group: 'Operations',
     },
-    {
-      title: 'Reports & Analytics',
-      href: manager.reportsAndAnalytics(),
-      icon: BarChart3,
-      group: 'Operations',
-    },
+    // {
+    //   title: 'Reports & Analytics',
+    //   href: manager.reportsAndAnalytics(),
+    //   icon: BarChart3,
+    //   group: 'Operations',
+    // },
 
     {
       title: 'Revenue Management',
@@ -239,12 +238,12 @@ const navConfig: Record<string, NavItem[]> = {
       icon: FileText,
       group: 'Operations',
     },
-    {
-      title: 'Reports & Analytics',
-      href: owner.reportsAndAnalytics(),
-      icon: BarChart3,
-      group: 'Operations',
-    },
+    // {
+    //   title: 'Reports & Analytics',
+    //   href: owner.reportsAndAnalytics(),
+    //   icon: BarChart3,
+    //   group: 'Operations',
+    // },
 
     {
       title: 'Revenue Management',
