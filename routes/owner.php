@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Owner\BoundaryContractController;
 use App\Http\Controllers\Owner\DashboardController;
+use App\Http\Controllers\Owner\DetailsDriverController;
+use App\Http\Controllers\Owner\ReportDriverController;
 use App\Http\Controllers\Owner\ExpenseManagementController;
 use App\Http\Controllers\Owner\FranchiseDriverController;
 use App\Http\Controllers\Owner\MaintenanceRequestController;
@@ -32,6 +34,12 @@ Route::middleware(['auth', 'verified', 'user_type:owner', 'check.active'])->pref
 
     Route::put('/drivers/{id}/status', [FranchiseDriverController::class, 'updateStatus'])
     ->name('drivers.updateStatus');
+
+    // export for driver
+    Route::get('/driverreport', [ReportDriverController::class, 'index'])->name('driverownerreport');
+    Route::get('/driverreport/export', [ReportDriverController::class, 'export'])->name('driverownerreport.export');
+    Route::get('driverreport/details', [DetailsDriverController::class, 'show'])->name('driverownerreport.details');
+    Route::get('/driverreport/details/export', [DetailsDriverController::class, 'exportDetails'])->name('driverownerreport_details.export');
 
     // Suspend Driver
     Route::resource('suspend-drivers', SuspendDriverController::class);
