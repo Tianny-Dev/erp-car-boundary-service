@@ -9,6 +9,8 @@ use App\Models\Branch;
 use App\Models\Franchise;
 use App\Models\UserDriver;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\Database\Eloquent\Builder;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -19,40 +21,24 @@ class DriverController extends Controller
      */
     public function index(Request $request): Response
     {
-        // 1. Validate tab, default to 'franchise'
-        $tab = $request->input('tab', 'franchise');
-        if (! in_array($tab, ['franchise', 'branch'])) {
-            $tab = 'franchise';
-        }
-
-        // 2. Start base query
-        $query = UserDriver::with([
-            'user:id,name,email,phone',
-            'status:id,name',
+        // 1. Validate all filters
+        $validated = $request->validate([
+            'tab' => ['sometimes', 'string', Rule::in(['franchise', 'branch'])],
+            'franchise' => ['sometimes', 'nullable', 'string'],
+            'branch' => ['sometimes', 'nullable', 'string'],
+            'status' => ['sometimes', 'string', Rule::in(['active', 'retired', 'suspended'])],
         ]);
 
-        // 3. Apply conditional filtering based on tab
-        if ($tab === 'franchise') {
-            $query->whereHas('franchises', function ($q) use ($request) {
-                // If a specific franchise ID is provided, filter by it
-                $q->when($request->input('franchise'), function ($sq) use ($request) {
-                    $sq->where('franchises.id', $request->input('franchise'));
-                });
-            });
-            // Eager load franchises to make name available in the resource
-            $query->with('franchises:id,name');
+        // 2. Set defaults
+        $filters = [
+            'tab' => $validated['tab'] ?? 'franchise',
+            'franchise' => $validated['franchise'] ?? null,
+            'branch' => $validated['branch'] ?? null,
+            'status' => $validated['status'] ?? 'active',
+        ];
 
-        } elseif ($tab === 'branch') {
-            $query->whereHas('branches', function ($q) use ($request) {
-                // If a specific branch ID is provided, filter by it
-                $q->when($request->input('branch'), function ($sq) use ($request) {
-                    $sq->where('branches.id', $request->input('branch'));
-                });
-            });
-            // Eager load branches to make name available in the resource
-            $query->with('branches:id,name');
-        }
-
+        // 3. Build and execute query
+        $query = $this->buildBaseQuery($filters);
         $drivers = $query->get();
 
         // 4. Return all data to Inertia
@@ -61,11 +47,41 @@ class DriverController extends Controller
             'franchises' => fn () => Franchise::select('id', 'name')->get(),
             'branches' => fn () => Branch::select('id', 'name')->get(),
             'filters' => [
-                'tab' => $tab,
-                'franchise' => $request->input('franchise'),
-                'branch' => $request->input('branch'),
+                'tab' => $filters['tab'],
+                'franchise' => $filters['franchise'],
+                'branch' => $filters['branch'],
+                'status' => $filters['status'],
             ],
         ]);
+    }
+
+    /**
+     * Creates the base query with all "WHERE" conditions.
+     */
+    private function buildBaseQuery(array $filters): Builder
+    {
+        $query = UserDriver::with([
+            'user:id,name,email,phone',
+            'status:id,name',
+        ])->whereHas('status', fn ($q) => $q->where('name', $filters['status']));
+
+        // Apply tab-specific filtering
+        if ($filters['tab'] === 'franchise') {
+            $query->whereHas('franchises')
+                ->when($filters['franchise'], fn ($q) => $q->where('franchises.id', $filters['franchise']));
+
+            // Eager load franchises to make name available in the resource
+            $query->with('franchises:id,name');
+
+        } elseif ($filters['tab'] === 'branch') {
+            $query->whereHas('branches')
+                ->when($filters['branch'], fn ($q) => $q->where('franchises.id', $filters['branch']));
+
+            // Eager load branches to make name available in the resource
+            $query->with('branches:id,name');
+        }
+
+        return $query;
     }
 
     public function show(UserDriver $driver)
