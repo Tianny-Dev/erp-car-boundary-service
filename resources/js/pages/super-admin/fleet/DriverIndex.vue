@@ -320,26 +320,33 @@ watch(
 
           <div class="flex gap-4">
             <Select v-model="selectedStatus">
-              <SelectTrigger class="w-[150px]">
+              <SelectTrigger class="w-[150px] cursor-pointer">
                 <SelectValue placeholder="Filter by..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="active"> Active </SelectItem>
-                <SelectItem value="retired"> Retired </SelectItem>
-                <SelectItem value="suspended"> Suspended </SelectItem>
+                <SelectItem value="active" class="cursor-pointer">
+                  Active
+                </SelectItem>
+                <SelectItem value="retired" class="cursor-pointer">
+                  Retired
+                </SelectItem>
+                <SelectItem value="suspended" class="cursor-pointer">
+                  Suspended
+                </SelectItem>
               </SelectContent>
             </Select>
 
             <Select v-model="selectedFilter">
-              <SelectTrigger class="w-[240px]">
+              <SelectTrigger class="w-[240px] cursor-pointer">
                 <SelectValue placeholder="Filter by..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">
+                <SelectItem value="all" class="cursor-pointer">
                   All
                   {{ activeTab === 'franchise' ? 'Franchises' : 'Branches' }}
                 </SelectItem>
                 <SelectItem
+                  class="cursor-pointer"
                   v-for="option in selectOptions"
                   :key="option.id"
                   :value="String(option.id)"
