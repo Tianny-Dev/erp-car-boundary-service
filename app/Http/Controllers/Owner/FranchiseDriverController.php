@@ -26,6 +26,12 @@ class FranchiseDriverController extends Controller
                     $s->whereIn('name', ['pending'])
                 )
             );
+            // ->whereHas('driverDetails', fn ($q) =>
+            //     $q->where('is_verified', 1)
+            //     ->whereHas('status', fn ($s) =>
+            //         $s->whereIn('name', ['pending', 'inactive'])
+            //     )
+            // );
 
         // Global search
         if ($search = request('search')) {
