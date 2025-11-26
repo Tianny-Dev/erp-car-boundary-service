@@ -39,7 +39,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
-import finance from '@/routes/finance';
+import owner from '@/routes/owner';
 import type { BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import { Search } from 'lucide-vue-next';
@@ -96,7 +96,7 @@ const {
 const paginator = ref<RevenuesPaginator>(revenues);
 
 const breadcrumbs: BreadcrumbItem[] = [
-  { title: 'Revenue Management', href: finance.revenueManagement().url },
+  { title: 'Revenue Management', href: owner.revenueManagement().url },
 ];
 
 const filters = ref({

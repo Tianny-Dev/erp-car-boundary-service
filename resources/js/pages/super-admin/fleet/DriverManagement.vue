@@ -48,6 +48,7 @@ const props = defineProps<{
     tab: 'franchise' | 'branch';
     franchise: string | null;
     branch: string | null;
+    status: 'active' | 'retired' | 'suspended';
   };
 }>();
 
@@ -74,6 +75,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 const activeTab = ref(props.filters.tab || 'franchise');
 const selectedFranchise = ref(props.filters.franchise || 'all');
 const selectedBranch = ref(props.filters.branch || 'all');
+const selectedStatus = ref(props.filters.status || 'active');
 
 // --- 5. Computed Properties for UI ---
 const title = computed(() => {
@@ -189,10 +191,15 @@ const driverColumns = computed<ColumnDef<DriverRow>[]>(() => {
       header: () => h('div', { class: 'text-center' }, 'Status'),
       cell: ({ row }) => {
         const status = row.getValue('status_name') as string;
+        const badgeClass = {
+          'bg-blue-500 hover:bg-blue-600': status === 'active',
+          'bg-rose-500 hover:bg-rose-600':
+            status === 'suspended' || status === 'retired',
+        };
         return h('div', { class: 'text-center' }, [
           h(
             Badge,
-            { class: ['bg-blue-500 hover:bg-blue-600', 'text-white'] },
+            { class: [badgeClass, 'text-white'] },
             () => status || 'N/A',
           ),
         ]);
@@ -236,12 +243,9 @@ const driverColumns = computed<ColumnDef<DriverRow>[]>(() => {
 
 // --- Watchers to Update URL ---
 const updateFilters = () => {
-  const queryParams: {
-    tab: string;
-    franchise?: string;
-    branch?: string;
-  } = {
+  const queryParams: Record<string, string> = {
     tab: activeTab.value,
+    status: selectedStatus.value,
   };
 
   // **This is the crucial part for "no conflicts"**
@@ -269,12 +273,11 @@ watch(activeTab, (newTab) => {
   } else {
     selectedFranchise.value = 'all';
   }
-  updateFilters();
 });
 
 // Watch for select filter changes (debounced)
 watch(
-  [selectedFranchise, selectedBranch],
+  [selectedFranchise, selectedBranch, activeTab, selectedStatus],
   debounce(() => {
     updateFilters();
   }, 300), // Debounce to avoid firing on every keystroke/click
@@ -315,25 +318,44 @@ watch(
             {{ title }}
           </h2>
 
-          <Select v-model="selectedFilter">
-            <SelectTrigger class="w-[240px] cursor-pointer">
-              <SelectValue placeholder="Filter by..." />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all" class="cursor-pointer">
-                All
-                {{ activeTab === 'franchise' ? 'Franchises' : 'Branches' }}
-              </SelectItem>
-              <SelectItem
-                class="cursor-pointer"
-                v-for="option in selectOptions"
-                :key="option.id"
-                :value="String(option.id)"
-              >
-                {{ option.name }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
+          <div class="flex gap-4">
+            <Select v-model="selectedStatus">
+              <SelectTrigger class="w-[150px] cursor-pointer">
+                <SelectValue placeholder="Filter by..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active" class="cursor-pointer">
+                  Active
+                </SelectItem>
+                <SelectItem value="retired" class="cursor-pointer">
+                  Retired
+                </SelectItem>
+                <SelectItem value="suspended" class="cursor-pointer">
+                  Suspended
+                </SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select v-model="selectedFilter">
+              <SelectTrigger class="w-[240px] cursor-pointer">
+                <SelectValue placeholder="Filter by..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all" class="cursor-pointer">
+                  All
+                  {{ activeTab === 'franchise' ? 'Franchises' : 'Branches' }}
+                </SelectItem>
+                <SelectItem
+                  class="cursor-pointer"
+                  v-for="option in selectOptions"
+                  :key="option.id"
+                  :value="String(option.id)"
+                >
+                  {{ option.name }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <DataTable

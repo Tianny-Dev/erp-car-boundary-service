@@ -10,19 +10,19 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import finance from '@/routes/finance';
+import driver from '@/routes/driver';
 import manager from '@/routes/manager';
 import owner from '@/routes/owner';
+import passenger from '@/routes/passenger';
 import superAdmin from '@/routes/super-admin';
+import technician from '@/routes/technician';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import {
   Banknote,
-  BarChart3,
   Bell,
   CarTaxiFront,
   ChartNoAxesCombined,
-  Clock,
   DollarSign,
   FileSpreadsheet,
   FileText,
@@ -159,12 +159,12 @@ const navConfig: Record<string, NavItem[]> = {
       icon: FileText,
       group: 'Operations',
     },
-    {
-      title: 'Reports & Analytics',
-      href: manager.reportsAndAnalytics(),
-      icon: BarChart3,
-      group: 'Operations',
-    },
+    // {
+    //   title: 'Reports & Analytics',
+    //   href: manager.reportsAndAnalytics(),
+    //   icon: BarChart3,
+    //   group: 'Operations',
+    // },
 
     {
       title: 'Revenue Management',
@@ -239,12 +239,12 @@ const navConfig: Record<string, NavItem[]> = {
       icon: FileText,
       group: 'Operations',
     },
-    {
-      title: 'Reports & Analytics',
-      href: owner.reportsAndAnalytics(),
-      icon: BarChart3,
-      group: 'Operations',
-    },
+    // {
+    //   title: 'Reports & Analytics',
+    //   href: owner.reportsAndAnalytics(),
+    //   icon: BarChart3,
+    //   group: 'Operations',
+    // },
 
     {
       title: 'Revenue Management',
@@ -282,33 +282,33 @@ const navConfig: Record<string, NavItem[]> = {
 
   driver: [
     {
-      title: 'Boundary Contracts',
-      href: finance.boundaryContracts(),
-      icon: FileText,
-      group: 'Operations',
+      title: 'Dashboard',
+      href: driver.dashboard(),
+      icon: LayoutGrid,
+      group: 'Overview',
     },
-    {
-      title: 'Support Center',
-      href: finance.supportCenter(),
-      icon: HelpCircle,
-      group: 'Support',
-    },
+    // {
+    //   title: 'Support Center',
+    //   href: finance.supportCenter(),
+    //   icon: HelpCircle,
+    //   group: 'Support',
+    // },
   ],
 
   technician: [
     {
-      title: 'Maintenance Logs',
-      href: '/maintenance/logs',
-      icon: Wrench,
-      group: 'Operations',
+      title: 'Dashboard',
+      href: technician.dashboard(),
+      icon: LayoutGrid,
+      group: 'Overview',
     },
   ],
 
   passenger: [
     {
-      title: 'Trip History',
-      href: '/trips/history',
-      icon: Clock,
+      title: 'Dashboard',
+      href: passenger.dashboard(),
+      icon: LayoutGrid,
       group: 'Overview',
     },
   ],
