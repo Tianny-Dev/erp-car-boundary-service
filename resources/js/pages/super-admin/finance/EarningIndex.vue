@@ -1,5 +1,22 @@
 <script setup lang="ts">
 import DataTable from '@/components/DataTable.vue';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   Select,
   SelectContent,
@@ -14,7 +31,8 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import { type ColumnDef } from '@tanstack/vue-table';
 import { debounce } from 'lodash-es';
-import { computed, ref, watch } from 'vue';
+import { MoreHorizontal } from 'lucide-vue-next';
+import { computed, h, ref, watch } from 'vue';
 
 // --- Define Props ---
 const props = defineProps<{
@@ -81,6 +99,87 @@ const selectedFilter = computed({
   },
 });
 
+const showExportModal = ref(false);
+const exportType = ref<'pdf' | 'excel' | 'csv'>('pdf');
+const exportYear = ref(String(new Date().getFullYear()));
+const exportMonths = ref<number[]>([]);
+
+// Data for modal selects 2025 is minimum up to latest year
+const yearOptions = computed(() => {
+  const current = new Date().getFullYear();
+  const start = 2025;
+  return Array.from({ length: current - start + 1 }, (_, i) =>
+    String(start + i),
+  );
+});
+
+const monthOptions = [
+  { id: 1, label: 'January' },
+  { id: 2, label: 'February' },
+  { id: 3, label: 'March' },
+  { id: 4, label: 'April' },
+  { id: 5, label: 'May' },
+  { id: 6, label: 'June' },
+  { id: 7, label: 'July' },
+  { id: 8, label: 'August' },
+  { id: 9, label: 'September' },
+  { id: 10, label: 'October' },
+  { id: 11, label: 'November' },
+  { id: 12, label: 'December' },
+];
+
+// Open modal and set the export type
+function openExportModal(type: 'pdf' | 'excel' | 'csv') {
+  exportType.value = type;
+  exportMonths.value = [];
+  showExportModal.value = true;
+}
+
+// Handle checkbox-style "multi-select" for months
+function toggleMonth(monthId: number) {
+  const index = exportMonths.value.indexOf(monthId);
+  if (index > -1) {
+    exportMonths.value.splice(index, 1);
+  } else {
+    exportMonths.value.push(monthId);
+  }
+}
+
+// Build and trigger the download URL
+function handleExport() {
+  if (!exportYear.value || exportMonths.value.length === 0) {
+    return;
+  }
+
+  // 1. Get all *current* page filters
+  const params = new URLSearchParams({
+    tab: activeTab.value,
+    period: selectedPeriod.value,
+    export: exportType.value,
+    year: exportYear.value,
+  });
+
+  // 2. Add branch/franchise filter if not 'all'
+  if (activeTab.value === 'franchise' && selectedFranchise.value !== 'all') {
+    params.append('franchise', selectedFranchise.value);
+  } else if (activeTab.value === 'branch' && selectedBranch.value !== 'all') {
+    params.append('branch', selectedBranch.value);
+  }
+
+  // 3. Add months
+  exportMonths.value.forEach((month) => {
+    params.append('months[]', String(month));
+  });
+
+  // 4. Build URL and open in new tab (triggers download)
+  const url = `${superAdmin.earning.export.index().url}?${params.toString()}`;
+  window.open(url, '_blank');
+
+  // 5. Close modal and reset
+  showExportModal.value = false;
+  exportMonths.value = [];
+}
+
 const formatCurrency = (amount: number): string => {
   return new Intl.NumberFormat('en-PH', {
     style: 'currency',
@@ -117,7 +216,7 @@ const earningColumns = computed<ColumnDef<any>[]>(() => {
   props.feeTypes.forEach((type) => {
     columns.push({
       id: type.slug, // Use slug for ID
-      accessorFn: (row) => row.fees?.[type.slug], // Access the 'fees' object we created in Resource
+      accessorFn: (row) => row.fees?.[type.slug], // Access the 'fees' object created in Resource
       header: type.display, // Display Name (e.g., "Markup Fee")
       cell: ({ getValue }) => {
         const val = getValue() as number;
@@ -133,6 +232,64 @@ const earningColumns = computed<ColumnDef<any>[]>(() => {
     accessorKey: 'driver_earning',
     header: 'Driver Earning',
     cell: (info) => formatCurrency(info.getValue() as number),
+  });
+
+  columns.push({
+    id: 'actions',
+    header: () => h('div', 'Actions'),
+    cell: ({ row }) => {
+      const rowData = row.original as any;
+
+      return h('div', { class: 'relative' }, [
+        h(DropdownMenu, null, () => [
+          h(
+            DropdownMenuTrigger,
+            { asChild: true, class: 'cursor-pointer' },
+            () =>
+              h(Button, { variant: 'ghost', class: 'h-8 w-8 p-0' }, () => [
+                h('span', { class: 'sr-only' }, 'Open menu'),
+                h(MoreHorizontal, { class: 'h-4 w-4' }),
+              ]),
+          ),
+          h(DropdownMenuContent, { align: 'end', class: 'border-2' }, () => [
+            h(DropdownMenuLabel, null, () => 'Actions'),
+            h(
+              DropdownMenuItem,
+              {
+                class: 'cursor-pointer',
+                onClick: () => {
+                  const queryParams: Record<string, string> = {
+                    driver: String(rowData.driver_id),
+                    start: rowData.query_params.start,
+                    end: rowData.query_params.end,
+                    label: rowData.payment_date,
+                    tab: activeTab.value,
+                  };
+
+                  if (
+                    activeTab.value === 'franchise' &&
+                    selectedFranchise.value !== 'all'
+                  ) {
+                    queryParams.franchise = selectedFranchise.value;
+                  } else if (
+                    activeTab.value === 'branch' &&
+                    selectedBranch.value !== 'all'
+                  ) {
+                    queryParams.branch = selectedBranch.value;
+                  }
+
+                  router.get(superAdmin.earning.show().url, queryParams, {
+                    preserveScroll: true,
+                    replace: false,
+                  });
+                },
+              },
+              () => 'View Computation Details',
+            ),
+          ]),
+        ]),
+      ]);
+    },
   });
 
   return columns;
@@ -279,8 +436,68 @@ watch(
           :columns="earningColumns"
           :data="earnings.data"
           search-placeholder="Search earnings..."
-        />
+        >
+          <template #custom-actions>
+            <Button @click="openExportModal('pdf')"> Export PDF </Button>
+            <Button @click="openExportModal('excel')"> Export Excel </Button>
+            <Button @click="openExportModal('csv')"> Export CSV </Button>
+          </template>
+        </DataTable>
       </div>
+
+      <Dialog v-model:open="showExportModal">
+        <DialogContent class="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle> Export {{ exportType.toUpperCase() }} </DialogTitle>
+            <DialogDescription>
+              Select the year and months to export. This will use your currently
+              active filters.
+            </DialogDescription>
+          </DialogHeader>
+          <div class="grid gap-4 py-4">
+            <div class="grid grid-cols-4 items-center gap-4">
+              <label class="text-right">Year</label>
+              <Select v-model="exportYear">
+                <SelectTrigger class="col-span-3">
+                  <SelectValue placeholder="Select year" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem
+                    v-for="year in yearOptions"
+                    :key="year"
+                    :value="year"
+                  >
+                    {{ year }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div class="grid grid-cols-4 items-start gap-4">
+              <label class="pt-2 text-right">Months</label>
+              <div class="col-span-3 grid grid-cols-2 gap-2">
+                <div
+                  v-for="month in monthOptions"
+                  :key="month.id"
+                  class="flex items-center gap-2"
+                >
+                  <Checkbox
+                    :id="`month-${month.id}`"
+                    :model-value="exportMonths.includes(month.id)"
+                    @update:model-value="() => toggleMonth(month.id)"
+                  />
+
+                  <label :for="`month-${month.id}`" class="cursor-pointer">
+                    {{ month.label }}
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button @click="handleExport"> Confirm Export </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   </AppLayout>
 </template>

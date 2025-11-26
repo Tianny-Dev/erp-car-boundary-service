@@ -18,7 +18,6 @@ return new class extends Migration
             $table->foreignId('vehicle_id')->constrained('vehicles')->onDelete('restrict');
             $table->foreignId('passenger_id')->constrained('user_passengers')->onDelete('restrict');
             $table->foreignId('revenue_id')->nullable()->constrained('revenues')->onDelete('restrict');
-            $table->enum('book_status', ['que', 'to_pick_up', 'start_trip', 'end_trip'])->default('que');
             $table->dateTime('start_trip');
             $table->dateTime('end_trip')->nullable();
             $table->decimal('start_lat', 10, 8);
