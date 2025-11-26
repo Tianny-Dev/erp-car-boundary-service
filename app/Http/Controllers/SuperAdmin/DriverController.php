@@ -73,7 +73,7 @@ class DriverController extends Controller
             if ($validated['assign_type'] === 'franchise') {
                 // Ensure franchise exists
                 $franchise = Franchise::findOrFail($validated['assign_id']);
-                // Sync without detaching if uniqueness is not needed, 
+                // Sync without detaching if uniqueness is not needed,
                 $franchise->drivers()->sync([$driver->id]);
             } else {
                 $branch = Branch::findOrFail($validated['assign_id']);
@@ -132,9 +132,9 @@ class DriverController extends Controller
             $driver->status_id = $pendingStatus->id;
             $driver->is_verified = true;
             $driver->save();
-            
+
         });
-        
+
         return back();
     }
 
@@ -151,7 +151,7 @@ class DriverController extends Controller
         // Apply tab-specific filtering
         if ($filters['tab'] === 'franchise') {
             $query->whereHas('franchises', function ($q) use ($filters) {
-                $q->when($filters['franchise'], fn ($subQ) => 
+                $q->when($filters['franchise'], fn ($subQ) =>
                     $subQ->where('franchises.id', $filters['franchise'])
                 );
             });
@@ -161,7 +161,7 @@ class DriverController extends Controller
 
         } elseif ($filters['tab'] === 'branch') {
             $query->whereHas('branches', function ($q) use ($filters) {
-                $q->when($filters['branch'], fn ($subQ) => 
+                $q->when($filters['branch'], fn ($subQ) =>
                     $subQ->where('branches.id', $filters['branch'])
                 );
             });
