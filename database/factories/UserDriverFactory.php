@@ -14,7 +14,7 @@ class UserDriverFactory extends Factory
         return [
             // 'id' is intentionally omitted here
             // It will be provided by the UserFactory
-            'status_id' => 1,
+            'status_id' => fake()->randomElement([1, 1, 1, 2]),
             'payment_option_id' => random_int(1, 4), // From PaymentOptionSeeder
             'license_number' => fake()->unique()->bothify('??-########'),
             'is_verified' => fake()->boolean(),

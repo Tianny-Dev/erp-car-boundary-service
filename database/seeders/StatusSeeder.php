@@ -22,11 +22,11 @@ class StatusSeeder extends Seeder
             ['id' => 6, 'name' => 'pending'],
             ['id' => 7, 'name' => 'overdue'],
             ['id' => 8, 'name' => 'paid'],
-            ['id' => 9, 'name' => 'que'],
-            ['id' => 10, 'name' => 'to_pick_up'],
-            ['id' => 11, 'name' => 'start_trip'],
-            ['id' => 12, 'name' => 'end_trip'],
-            ['id' => 13, 'name' => 'cancelled'],
+            ['id' => 9, 'name' => 'cancelled'],
+            ['id' => 10, 'name' => 'que'],
+            ['id' => 11, 'name' => 'to_pick_up'],
+            ['id' => 12, 'name' => 'start_trip'],
+            ['id' => 13, 'name' => 'end_trip'],
             ['id' => 14, 'name' => 'confirm_pick_up'],
         ]);
     }
