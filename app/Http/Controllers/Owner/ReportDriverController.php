@@ -3,9 +3,7 @@
 namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\SuperAdmin\DriverReportDatatableResource;
-use App\Models\Branch;
-use App\Models\Franchise;
+use App\Http\Resources\Owner\DriverReportDatatableResource;
 use App\Models\Revenue;
 use App\Models\UserDriver;
 use Illuminate\Http\Request;
@@ -72,7 +70,6 @@ class ReportDriverController extends Controller
         // 4. Return all data to Inertia
         return Inertia::render('owner/driver-report/Index', [
             'revenues' => DriverReportDatatableResource::collection($revenues),
-            // No need for franchises/branches to be passed to the Owner view
             'drivers' => fn () => $driversList,
             'filters' => $filters,
         ]);
@@ -93,8 +90,6 @@ class ReportDriverController extends Controller
         $query->whereHas('franchises', function ($q) use ($franchiseId) {
             $q->where('franchises.id', $franchiseId);
         });
-
-        // Removed all old 'tab' and 'franchise'/'branch' filtering logic
 
         return $query->orderBy('users.name')->get();
     }
@@ -136,7 +131,6 @@ class ReportDriverController extends Controller
     private function applyPeriodGrouping(
         Builder $query,
         string $period,
-        string $tab // Kept for grouping logic consistency (franchise/branch joins)
     ) {
         // Fetch all breakdown types to dynamically generate SUM(CASE...) expressions
         $breakdownTypes = DB::table('percentage_types')->pluck('name');
@@ -168,12 +162,6 @@ class ReportDriverController extends Controller
             ->addSelect('franchises.id as franchise_id', 'franchises.name as franchise_name');
         $groupingFields[] = 'franchises.id';
         $groupingFields[] = 'franchises.name';
-
-        // Also join on branches to get the branch name, if it exists (for display)
-        $query->leftJoin('branches', 'revenues.branch_id', '=', 'branches.id')
-            ->addSelect('branches.id as branch_id', 'branches.name as branch_name');
-        $groupingFields[] = 'branches.id';
-        $groupingFields[] = 'branches.name';
 
         // --- Handle Daily Period (GROUPED QUERY) ---
         if ($period === 'daily') {
@@ -229,7 +217,6 @@ class ReportDriverController extends Controller
 
         // 1. Validate all inputs (page filters + modal filters)
         $validated = $request->validate([
-            // Removed 'tab', 'franchise', and 'branch' validation
             'driver' => ['nullable', 'string'],
             'service' => ['required', 'string', Rule::in(['Trips'])],
             'period' => ['required', 'string',Rule::in(['daily', 'weekly', 'monthly'])],
@@ -279,13 +266,8 @@ class ReportDriverController extends Controller
         $arrayData = collect($resourceCollection->toArray(request()));
 
         $exportRows = $arrayData->map(function ($r) use ($filters, $breakdownTypes) {
-            // Since we join franchise and branch, we display both names or default to franchise name
             $tabNameValue = $r['franchise_name'] ?? 'N/A'; // Start with franchise name
 
-            // If branch name is available, display both
-            if (!empty($r['branch_name']) && $r['branch_name'] !== $r['franchise_name']) {
-                 $tabNameValue = $r['franchise_name'] . ' / ' . $r['branch_name'];
-            }
 
             $totalBreakdowns = 0;
             $row = [
@@ -330,7 +312,7 @@ class ReportDriverController extends Controller
         // 6. Define Headings
         $headings = [
             'Driver Name',
-            'Franchise / Branch',
+            'Franchise',
             'Date',
             'Amount',
         ];
