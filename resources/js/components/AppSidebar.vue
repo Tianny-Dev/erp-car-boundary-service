@@ -31,6 +31,7 @@ import {
   History,
   LayoutGrid,
   Octagon,
+  UserCheck,
   Users,
   UserX,
   Wrench,
@@ -62,6 +63,12 @@ const navConfig: Record<string, NavItem[]> = {
       href: superAdmin.dashboard(),
       icon: LayoutGrid,
       group: 'Overview',
+    },
+    {
+      title: 'Driver Verification',
+      href: superAdmin.driver.verification(),
+      icon: UserCheck,
+      group: 'Fleet',
     },
     {
       title: 'Driver Management',
