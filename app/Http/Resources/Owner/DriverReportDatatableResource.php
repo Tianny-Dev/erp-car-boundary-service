@@ -25,7 +25,6 @@ class DriverReportDatatableResource extends JsonResource
                 'amount' => (float) $this->amount, // Use the 'amount' column
                 'service_type' => $this->service_type,
                 'franchise_name' => $this->whenLoaded('franchise', fn () => $this->franchise?->name),
-                'branch_name' => $this->whenLoaded('branch', fn () => $this->branch?->name),
                 'driver_username' => $this->whenLoaded('driver', fn () => $this->driverDetails?->name),
             ];
         }
@@ -41,7 +40,6 @@ class DriverReportDatatableResource extends JsonResource
             'service_type' => $this->service_type,
             // Access the JOINed attributes directly.
             'franchise_name' => $this->franchise_name ?? null,
-            'branch_name' => $this->branch_name ?? null,
             'payment_date' => 'N/A', // Default
             'driver_username' => $this->driver_username ?? null,
         ];
