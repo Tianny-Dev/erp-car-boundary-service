@@ -40,7 +40,9 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
     Route::delete('/allocation/{allocation}', [AllocationController::class, 'destroy'])->name('allocation.destroy');
 
     Route::get('/driver', [DriverController::class, 'index'])->name('driver.index');
+    Route::get('/driver/verification', [DriverController::class, 'verification'])->name('driver.verification');
     Route::get('/driver/{driver}', [DriverController::class, 'show'])->name('driver.show');
+    Route::patch('/driver/{driver}', [DriverController::class, 'verify'])->name('driver.verify');
 
     Route::get('/driverreport', [DriverReportController::class, 'index'])->name('driverreport');
     Route::get('/driverreport/export', [DriverReportController::class, 'export'])->name('driver.export');
