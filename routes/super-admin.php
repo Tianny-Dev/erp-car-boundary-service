@@ -43,6 +43,7 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
     Route::get('/driver/verification', [DriverController::class, 'verification'])->name('driver.verification');
     Route::get('/driver/{driver}', [DriverController::class, 'show'])->name('driver.show');
     Route::patch('/driver/{driver}', [DriverController::class, 'verify'])->name('driver.verify');
+    Route::patch('/drivers/{driver}/assign', [DriverController::class, 'assign'])->name('driver.assign');
 
     Route::get('/driverreport', [DriverReportController::class, 'index'])->name('driverreport');
     Route::get('/driverreport/export', [DriverReportController::class, 'export'])->name('driver.export');

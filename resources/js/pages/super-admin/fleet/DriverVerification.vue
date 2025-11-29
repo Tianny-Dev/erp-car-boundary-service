@@ -19,6 +19,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -31,7 +32,7 @@ import { useDetailsModal } from '@/composables/useDetailsModal';
 import AppLayout from '@/layouts/AppLayout.vue';
 import superAdmin from '@/routes/super-admin';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import { type ColumnDef } from '@tanstack/vue-table';
 import { debounce } from 'lodash-es';
 import { AlertCircleIcon, MoreHorizontal } from 'lucide-vue-next';
@@ -43,6 +44,8 @@ const props = defineProps<{
   drivers: {
     data: DriverRow[];
   };
+  franchises: Array<{ id: number; name: string }>;
+  branches: Array<{ id: number; name: string }>;
   filters: {
     status: 'inactive' | 'pending';
   };
@@ -161,6 +164,34 @@ const handleVerifyDriver = () => {
   );
 };
 
+const isAssignModalOpen = ref(false);
+const driverToAssign = ref<DriverRow | null>(null);
+
+const assignForm = useForm({
+  assign_type: '' as 'franchise' | 'branch' | '',
+  assign_id: '' as string | number,
+});
+
+const openAssignModal = (driver: DriverRow) => {
+  driverToAssign.value = driver;
+  assignForm.reset();
+  isAssignModalOpen.value = true;
+};
+
+const handleAssignDriver = () => {
+  if (!driverToAssign.value) return;
+
+  assignForm.patch(superAdmin.driver.assign(driverToAssign.value.id).url, {
+    onSuccess: () => {
+      isAssignModalOpen.value = false;
+      toast.success(
+        `Driver assigned to ${assignForm.assign_type} successfully`,
+      );
+      assignForm.reset();
+    },
+  });
+};
+
 // Computed columns for the data table
 const driverColumns = computed<ColumnDef<DriverRow>[]>(() => {
   const baseColumns: ColumnDef<DriverRow>[] = [
@@ -182,6 +213,7 @@ const driverColumns = computed<ColumnDef<DriverRow>[]>(() => {
       cell: ({ row }) => {
         const status = row.getValue('status_name') as string;
         const badgeClass = {
+          'bg-rose-500 hover:bg-rose-600': status === 'inactive',
           'bg-amber-500 hover:bg-amber-600': status === 'pending',
         };
         return h('div', { class: 'text-center' }, [
@@ -220,9 +252,9 @@ const driverColumns = computed<ColumnDef<DriverRow>[]>(() => {
                 },
                 () => 'View Driver Details',
               ),
+              h(DropdownMenuSeparator),
               driver.status_name === 'inactive'
                 ? [
-                    h(DropdownMenuSeparator),
                     h(
                       DropdownMenuItem,
                       {
@@ -231,6 +263,20 @@ const driverColumns = computed<ColumnDef<DriverRow>[]>(() => {
                         onClick: () => openVerifyModal(driver),
                       },
                       () => 'Verify Driver',
+                    ),
+                  ]
+                : null,
+              driver.status_name === 'pending'
+                ? [
+                    h(
+                      DropdownMenuItem,
+                      {
+                        class:
+                          'cursor-pointer text-blue-500 focus:text-blue-600',
+                        // NEW: Trigger the Assign Modal
+                        onClick: () => openAssignModal(driver),
+                      },
+                      () => 'Assign Driver',
                     ),
                   ]
                 : null,
@@ -388,6 +434,95 @@ watch(
           :disabled="isVerifyingDriver"
         >
           {{ isVerifyingDriver ? 'Verifying...' : 'Yes, Verify' }}
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+  <Dialog v-model:open="isAssignModalOpen">
+    <DialogContent class="max-w-md font-mono">
+      <DialogHeader>
+        <DialogTitle class="text-xl">Assign Driver</DialogTitle>
+        <DialogDescription>
+          Assign <strong>{{ driverToAssign?.name }}</strong> to a Franchise or
+          Branch. This will set the hire date to today.
+        </DialogDescription>
+      </DialogHeader>
+
+      <div class="grid gap-4 py-4">
+        <div class="grid gap-2">
+          <Label>Assignment Type</Label>
+          <Select
+            v-model="assignForm.assign_type"
+            @update:model-value="assignForm.assign_id = ''"
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="franchise">Franchise</SelectItem>
+              <SelectItem value="branch">Branch</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div class="grid gap-2" v-if="assignForm.assign_type">
+          <Label>
+            Select
+            {{
+              assignForm.assign_type === 'franchise' ? 'Franchise' : 'Branch'
+            }}
+          </Label>
+
+          <Select
+            v-if="assignForm.assign_type === 'franchise'"
+            v-model="assignForm.assign_id"
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select a franchise" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem
+                v-for="item in franchises"
+                :key="item.id"
+                :value="String(item.id)"
+              >
+                {{ item.name }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select
+            v-if="assignForm.assign_type === 'branch'"
+            v-model="assignForm.assign_id"
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select a branch" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem
+                v-for="item in branches"
+                :key="item.id"
+                :value="String(item.id)"
+              >
+                {{ item.name }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          <p v-if="assignForm.errors.assign_id" class="text-sm text-red-500">
+            {{ assignForm.errors.assign_id }}
+          </p>
+        </div>
+      </div>
+
+      <DialogFooter>
+        <Button variant="outline" @click="isAssignModalOpen = false"
+          >Cancel</Button
+        >
+        <Button
+          @click="handleAssignDriver"
+          :disabled="assignForm.processing || !assignForm.assign_id"
+        >
+          {{ assignForm.processing ? 'Assigning...' : 'Confirm Assignment' }}
         </Button>
       </DialogFooter>
     </DialogContent>
