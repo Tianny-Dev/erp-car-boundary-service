@@ -150,15 +150,21 @@ class DriverController extends Controller
 
         // Apply tab-specific filtering
         if ($filters['tab'] === 'franchise') {
-            $query->whereHas('franchises')
-                ->when($filters['franchise'], fn ($q) => $q->where('franchises.id', $filters['franchise']));
+            $query->whereHas('franchises', function ($q) use ($filters) {
+                $q->when($filters['franchise'], fn ($subQ) => 
+                    $subQ->where('franchises.id', $filters['franchise'])
+                );
+            });
 
             // Eager load franchises to make name available in the resource
             $query->with('franchises:id,name');
 
         } elseif ($filters['tab'] === 'branch') {
-            $query->whereHas('branches')
-                ->when($filters['branch'], fn ($q) => $q->where('franchises.id', $filters['branch']));
+            $query->whereHas('branches', function ($q) use ($filters) {
+                $q->when($filters['branch'], fn ($subQ) => 
+                    $subQ->where('branches.id', $filters['branch'])
+                );
+            });
 
             // Eager load branches to make name available in the resource
             $query->with('branches:id,name');
