@@ -14,6 +14,7 @@ use App\Models\UserDriver;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Database\Eloquent\Builder;
+use Carbon\Carbon;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -58,6 +59,37 @@ class DriverController extends Controller
         ]);
     }
 
+    public function assign(Request $request, UserDriver $driver)
+    {
+        $validated = $request->validate([
+            'assign_type' => ['required', 'string', 'in:franchise,branch'],
+            'assign_id' => ['required', 'integer'],
+        ]);
+
+        DB::transaction(function () use ($driver, $validated) {
+            $activeStatus = Status::where('name', 'active')->firstOrFail();
+
+            // 1. Attach to the specific Pivot Table
+            if ($validated['assign_type'] === 'franchise') {
+                // Ensure franchise exists
+                $franchise = Franchise::findOrFail($validated['assign_id']);
+                // Sync without detaching if uniqueness is not needed, 
+                $franchise->drivers()->sync([$driver->id]);
+            } else {
+                $branch = Branch::findOrFail($validated['assign_id']);
+                $branch->drivers()->sync([$driver->id]);
+            }
+
+            // 2. Update Driver Details (Hire Date & Status)
+            $driver->update([
+                'hire_date' => Carbon::now(),
+                'status_id' => $activeStatus->id,
+            ]);
+        });
+
+        return back();
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -83,6 +115,8 @@ class DriverController extends Controller
         // 4. Return all data to Inertia
         return Inertia::render('super-admin/fleet/DriverVerification', [
             'drivers' => DriverVerificationResource::collection($drivers),
+            'franchises' => fn () => Franchise::select('id', 'name')->get(),
+            'branches' => fn () => Branch::select('id', 'name')->get(),
             'filters' => [
                 'status' => $filters['status'],
             ],
