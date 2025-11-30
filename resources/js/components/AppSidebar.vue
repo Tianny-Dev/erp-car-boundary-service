@@ -31,6 +31,7 @@ import {
   History,
   LayoutGrid,
   Octagon,
+  ReceiptText,
   UserCheck,
   Users,
   UserX,
@@ -80,6 +81,12 @@ const navConfig: Record<string, NavItem[]> = {
       title: 'Vehicle Management',
       href: superAdmin.vehicle.index(),
       icon: CarTaxiFront,
+      group: 'Fleet',
+    },
+    {
+      title: 'Boundary Contract',
+      href: superAdmin.boundaryContract.index(),
+      icon: ReceiptText,
       group: 'Fleet',
     },
     {
