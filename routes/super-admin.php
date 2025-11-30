@@ -60,4 +60,5 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
     Route::get('/revenue/export/show', [EarningController::class, 'exportShow'])->name('earning.export.show');
 
     Route::get('/boundary-contract', [BoundaryContractController::class, 'index'])->name('boundaryContract.index');
+    Route::get('/boundary-contract/{contract}', [BoundaryContractController::class, 'show'])->name('boundaryContract.show');
 });
