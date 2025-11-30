@@ -34,8 +34,8 @@ class DriverResource extends JsonResource
             'nbi_clearance' => $this->nbi_clearance ? Storage::url($this->nbi_clearance) : null,
             'selfie_picture' => $this->selfie_picture ? Storage::url($this->selfie_picture) : null,
             'shift' => $this->shift,
-            'hire_date' => $this->hire_date ? $this->hire_date->format('F d, Y') : null,
-            'created_at' => $this->created_at->format('F d, Y'),
+            'hire_date' => $this->hire_date ? date('F j, Y', strtotime($this->hire_date)) : 'N/A',
+            'created_at' => $this->created_at ? $this->created_at->format('F d, Y') : 'N/A',
         ];
     }
 }
