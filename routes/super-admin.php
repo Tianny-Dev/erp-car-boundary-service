@@ -14,6 +14,7 @@ use App\Http\Controllers\SuperAdmin\RevenueController;
 use App\Http\Controllers\SuperAdmin\TransactionController;
 use App\Http\Controllers\SuperAdmin\DriverDetailsController;
 use App\Http\Controllers\SuperAdmin\EarningController;
+use App\Http\Controllers\SuperAdmin\BoundaryContractController;
 
 Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-admin')->name('super-admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -57,4 +58,6 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
     Route::get('/earning/show', [EarningController::class, 'show'])->name('earning.show');
     Route::get('/revenue/export/index', [EarningController::class, 'exportIndex'])->name('earning.export.index');
     Route::get('/revenue/export/show', [EarningController::class, 'exportShow'])->name('earning.export.show');
+
+    Route::get('/boundary-contract', [BoundaryContractController::class, 'index'])->name('boundaryContract.index');
 });
