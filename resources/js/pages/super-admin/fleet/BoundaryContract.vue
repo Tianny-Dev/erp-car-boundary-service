@@ -1,7 +1,16 @@
 <script setup lang="ts">
 import DataTable from '@/components/DataTable.vue';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,14 +25,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useDetailsModal } from '@/composables/useDetailsModal';
 import AppLayout from '@/layouts/AppLayout.vue';
 import superAdmin from '@/routes/super-admin';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import { type ColumnDef } from '@tanstack/vue-table';
 import { debounce } from 'lodash-es';
-import { MoreHorizontal } from 'lucide-vue-next';
+import { AlertCircleIcon, MoreHorizontal } from 'lucide-vue-next';
 import { computed, h, ref, watch } from 'vue';
 
 // --- Define Props ---
@@ -95,6 +106,56 @@ const selectedFilter = computed({
       selectedBranch.value = value;
     }
   },
+});
+
+interface ContractModal {
+  id: number;
+  name: string;
+  amount: number;
+  coverage_area: string;
+  contract_terms: string;
+  renewal_terms: string;
+  start_date: string;
+  end_date: string;
+  status_name: string;
+  driver_name: string;
+  driver_email: string;
+  driver_phone: string;
+  franchise_name?: string;
+  franchise_email?: string;
+  franchise_phone?: string;
+  branch_name?: string;
+  branch_email?: string;
+  branch_phone?: string;
+}
+const contractDetails = computed(() => {
+  const data = contractModal.data.value;
+  if (!data) return [];
+
+  return [
+    { label: 'Contract', value: data.name, type: 'text' },
+    { label: 'Status', value: data.status_name, type: 'text' },
+    { label: 'Amount', value: formatCurrency(data.amount), type: 'text' },
+    { label: 'Coverage Area', value: data.coverage_area, type: 'text' },
+    { label: 'Contract Terms', value: data.contract_terms, type: 'text' },
+    { label: 'Renewal Terms', value: data.renewal_terms, type: 'text' },
+    { label: 'Start Date', value: data.start_date, type: 'text' },
+    { label: 'End Date', value: data.end_date, type: 'text' },
+    { label: 'Driver Name', value: data.driver_name, type: 'text' },
+    { label: 'Driver Email', value: data.driver_email, type: 'text' },
+    { label: 'Driver Phone', value: data.driver_phone, type: 'text' },
+    { label: 'Franchise Name', value: data.franchise_name, type: 'text' },
+    { label: 'Franchise Email', value: data.franchise_email, type: 'text' },
+    { label: 'Franchise Phone', value: data.franchise_phone, type: 'text' },
+    { label: 'Branch Name', value: data.branch_name, type: 'text' },
+    { label: 'Branch Email', value: data.branch_email, type: 'text' },
+    { label: 'Branch Phone', value: data.branch_phone, type: 'text' },
+  ].filter((item) => item.value);
+});
+
+// --- Modal State ---
+const contractModal = useDetailsModal<ContractModal>({
+  baseUrl: '/super-admin/boundary-contract',
 });
 
 const formatCurrency = (amount: number): string => {
@@ -320,5 +381,58 @@ watch(
         />
       </div>
     </div>
+
+    <Dialog v-model:open="contractModal.isOpen.value">
+      <DialogContent class="max-w-3xl overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Contract Details</DialogTitle>
+        </DialogHeader>
+        <DialogDescription>
+          <div
+            v-if="contractModal.isLoading.value"
+            class="grid grid-cols-2 gap-4"
+          >
+            <template v-for="item in 10" :key="item">
+              <Skeleton class="h-5 w-24" />
+              <Skeleton class="h-5 w-3/4" />
+            </template>
+          </div>
+
+          <div
+            v-else-if="contractDetails.length > 0"
+            class="grid grid-cols-2 gap-4"
+          >
+            <template v-for="item in contractDetails" :key="item.label">
+              <div class="font-medium">{{ item.label }}:</div>
+              <div>
+                {{ item.value }}
+              </div>
+            </template>
+          </div>
+
+          <div v-else-if="contractModal.isError.value">
+            <Alert
+              variant="destructive"
+              class="border-2 border-red-500 shadow-lg"
+            >
+              <AlertCircleIcon class="h-4 w-4" />
+              <AlertTitle class="font-bold">Error</AlertTitle>
+              <AlertDescription class="font-semibold">
+                Failed to load contract details.
+              </AlertDescription>
+            </Alert>
+          </div>
+        </DialogDescription>
+
+        <DialogFooter class="mt-5">
+          <Button
+            variant="outline"
+            class="cursor-pointer"
+            @click="contractModal.close"
+            >Close</Button
+          >
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </AppLayout>
 </template>

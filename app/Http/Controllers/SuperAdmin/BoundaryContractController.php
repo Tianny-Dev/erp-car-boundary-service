@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Status;
 use Illuminate\Support\Facades\DB;
 use App\Http\Resources\SuperAdmin\BoundaryContractDatatableResource;
+use App\Http\Resources\SuperAdmin\BoundaryContractResource;
 use App\Models\BoundaryContract;
 use App\Models\Branch;
 use App\Models\Franchise;
@@ -77,5 +78,18 @@ class BoundaryContractController extends Controller
         }
 
         return $query;
+    }
+
+    public function show(BoundaryContract $contract)
+    {
+        // Load relationships and return as JSON
+        $contract->loadMissing([
+            'driver.user:id,name,email,phone',
+            'franchise:id,name,email,phone',
+            'branch:id,name,email,phone', 
+            'status:id,name'
+        ]);
+
+        return new BoundaryContractResource($contract);
     }
 }
