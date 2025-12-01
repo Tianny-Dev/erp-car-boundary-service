@@ -99,7 +99,7 @@ class UserDriver extends Model
     // relationship to boundary contracts, one to many
     public function boundaryContracts(): HasMany
     {
-        return $this->hasMany(BoundaryContract::class);
+        return $this->hasMany(BoundaryContract::class, 'driver_id');
     }
 
     // relationship to revenues, one to many
