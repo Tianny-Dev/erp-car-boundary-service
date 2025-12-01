@@ -11,6 +11,7 @@ use App\Http\Resources\SuperAdmin\BoundaryContractResource;
 use App\Models\BoundaryContract;
 use App\Models\Branch;
 use App\Models\Franchise;
+use App\Models\UserDriver;
 use Illuminate\Validation\Rule;
 use Illuminate\Database\Eloquent\Builder;
 use Carbon\Carbon;
@@ -91,5 +92,53 @@ class BoundaryContractController extends Controller
         ]);
 
         return new BoundaryContractResource($contract);
+    }
+
+    public function create(): Response
+    {
+        return Inertia::render('super-admin/fleet/BoundaryContractCreate', [
+            'franchises' => fn () => Franchise::select('id', 'name')->get(),
+            'branches' => fn () => Branch::select('id', 'name')->get(),
+        ]);
+    }
+
+    public function getAvailableDriver(Request $request)
+    {
+        $request->validate([
+            'type' => ['required', Rule::in(['franchise', 'branch'])],
+            'id'   => ['required', 'integer'],
+        ]);
+
+        $type = $request->type ?? 'franchise'; // Default to 'franchise'
+        $id = $request->id;
+
+        // 1. Get ID of 'active' status
+        $activeStatusId = Status::where('name', 'active')->value('id');
+
+        if (!$activeStatusId) {
+            return response()->json(['drivers' => []]);
+        }
+
+        // 2. Query Drivers
+        $drivers = UserDriver::with('user:id,name')
+            // Filter: Driver must have 'active' status
+            ->where('user_drivers.status_id', $activeStatusId)
+            // Filter: Must be assigned to the selected Franchise OR Branch
+            ->whereHas($type === 'franchise' ? 'franchises' : 'branches', function ($q) use ($id, $type) {
+                $q->where($type === 'franchise' ? 'franchises.id' : 'branches.id', $id);
+            })
+            // Filter: Must NOT have a currently 'active' boundary contract
+            ->whereDoesntHave('boundaryContracts', function ($q) use ($activeStatusId) {
+                $q->where('status_id', $activeStatusId);
+            })
+            ->get()
+            ->map(function ($driver) {
+                return [
+                    'id'   => $driver->user->id,
+                    'name' => $driver->user->name,
+                ];
+            });
+
+        return response()->json($drivers);
     }
 }

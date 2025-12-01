@@ -44,7 +44,7 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
     Route::get('/driver/verification', [DriverController::class, 'verification'])->name('driver.verification');
     Route::get('/driver/{driver}', [DriverController::class, 'show'])->name('driver.show');
     Route::patch('/driver/{driver}', [DriverController::class, 'verify'])->name('driver.verify');
-    Route::patch('/drivers/{driver}/assign', [DriverController::class, 'assign'])->name('driver.assign');
+    Route::patch('/driver/{driver}/assign', [DriverController::class, 'assign'])->name('driver.assign');
 
     Route::get('/driverreport', [DriverReportController::class, 'index'])->name('driverreport');
     Route::get('/driverreport/export', [DriverReportController::class, 'export'])->name('driver.export');
@@ -60,5 +60,8 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
     Route::get('/revenue/export/show', [EarningController::class, 'exportShow'])->name('earning.export.show');
 
     Route::get('/boundary-contract', [BoundaryContractController::class, 'index'])->name('boundaryContract.index');
+    Route::post('/boundary-contract', [BoundaryContractController::class, 'store'])->name('boundaryContract.store');
+    Route::get('/boundary-contract/create', [BoundaryContractController::class, 'create'])->name('boundaryContract.create');
+    Route::get('/boundary-contract/driver', [BoundaryContractController::class, 'getAvailableDriver'])->name('boundaryContract.driver');
     Route::get('/boundary-contract/{contract}', [BoundaryContractController::class, 'show'])->name('boundaryContract.show');
 });
