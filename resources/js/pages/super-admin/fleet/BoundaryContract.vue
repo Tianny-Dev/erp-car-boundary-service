@@ -34,7 +34,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import { type ColumnDef } from '@tanstack/vue-table';
 import { debounce } from 'lodash-es';
-import { AlertCircleIcon, MoreHorizontal } from 'lucide-vue-next';
+import { AlertCircleIcon, MoreHorizontal, PlusIcon } from 'lucide-vue-next';
 import { computed, h, ref, watch } from 'vue';
 
 // --- Define Props ---
@@ -157,6 +157,10 @@ const contractDetails = computed(() => {
 const contractModal = useDetailsModal<ContractModal>({
   baseUrl: '/super-admin/boundary-contract',
 });
+
+const createContract = () => {
+  router.get(superAdmin.boundaryContract.create().url);
+};
 
 const formatCurrency = (amount: number): string => {
   return new Intl.NumberFormat('en-PH', {
@@ -378,7 +382,13 @@ watch(
           :columns="contractColumns"
           :data="contracts.data"
           search-placeholder="Search contracts..."
-        />
+        >
+          <template #custom-actions>
+            <Button class="me-5" @click="createContract"
+              ><PlusIcon />Add Contract</Button
+            >
+          </template>
+        </DataTable>
       </div>
     </div>
 
