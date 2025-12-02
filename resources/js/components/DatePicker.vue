@@ -142,6 +142,7 @@ const handlePlaceholderUpdate = (date: DateValue) => {
           cn(
             'w-full justify-start text-left font-normal',
             !modelValue && 'text-muted-foreground',
+            $attrs.class as any,
           )
         "
       >
