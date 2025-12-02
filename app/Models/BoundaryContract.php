@@ -15,6 +15,7 @@ class BoundaryContract extends Model
         'status_id',
         'franchise_id',
         'branch_id',
+        'driver_id',
         'name',
         'coverage_area',
         'contract_terms',
@@ -22,7 +23,7 @@ class BoundaryContract extends Model
         'end_date',
         'renewal_terms',
         'amount',
-        'due_date',
+        'currency',
     ];
 
     // relationship to status, one to many
