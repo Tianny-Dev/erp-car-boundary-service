@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('franchise_id')->nullable()->constrained('franchises')->onDelete('restrict');
             $table->foreignId('branch_id')->nullable()->constrained('branches')->onDelete('restrict');
             $table->foreignId('driver_id')->constrained('user_drivers')->onDelete('restrict');
+            $table->foreignId('vehicle_id')->constrained('vehicles')->onDelete('restrict');
             $table->string('name', 150);
             $table->decimal('amount', 10, 2);
             $table->string('currency', 10)->default('PHP');

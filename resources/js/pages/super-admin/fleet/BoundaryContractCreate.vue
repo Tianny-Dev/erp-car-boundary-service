@@ -27,8 +27,12 @@ defineProps<{
 
 const contextType = ref<'franchise' | 'branch' | ''>('');
 const selectedEntityId = ref<string>('');
+// drivers
 const availableDrivers = ref<{ id: number; name: string }[]>([]);
 const isLoadingDrivers = ref(false);
+// vehicles
+const availableVehicles = ref<{ id: number; name: string }[]>([]);
+const isLoadingVehicles = ref(false);
 
 // Watcher: When Context Type changes (Franchise vs Branch)
 watch(contextType, () => {
@@ -36,6 +40,7 @@ watch(contextType, () => {
   form.franchise_id = null;
   form.branch_id = null;
   form.driver_id = null;
+  form.vehicle_id = null;
   selectedEntityId.value = '';
   availableDrivers.value = [];
 });
@@ -43,11 +48,14 @@ watch(contextType, () => {
 // Watcher: When the specific ID changes, fetch drivers
 const handleEntityChange = async (newId: any) => {
   if (!newId || !contextType.value) return;
+
+  // Clear errors
   form.errors.franchise_id = '';
   form.errors.branch_id = '';
+
   selectedEntityId.value = newId;
 
-  // Update form IDs based on context
+  // Set IDs
   if (contextType.value === 'franchise') {
     form.franchise_id = parseInt(newId);
     form.branch_id = null;
@@ -56,24 +64,38 @@ const handleEntityChange = async (newId: any) => {
     form.franchise_id = null;
   }
 
-  // Reset driver selection
+  // Reset Selections
   form.driver_id = null;
-  availableDrivers.value = [];
+  form.vehicle_id = null;
+
+  // Set Loading States
   isLoadingDrivers.value = true;
+  isLoadingVehicles.value = true;
+
+  // Clear Lists
+  availableDrivers.value = [];
+  availableVehicles.value = [];
 
   try {
-    const response = await axios.get(superAdmin.boundaryContract.driver().url, {
-      params: {
-        type: contextType.value,
-        id: newId,
+    const response = await axios.get(
+      superAdmin.boundaryContract.resources().url,
+      {
+        params: {
+          type: contextType.value,
+          id: newId,
+        },
       },
-    });
-    availableDrivers.value = response.data;
+    );
+
+    // Destructure response
+    availableDrivers.value = response.data.drivers;
+    availableVehicles.value = response.data.vehicles;
   } catch (error) {
-    toast.error('Failed to load available drivers.');
+    toast.error('Failed to load available resources.');
     console.error(error);
   } finally {
     isLoadingDrivers.value = false;
+    isLoadingVehicles.value = false;
   }
 };
 
@@ -81,6 +103,7 @@ const form = useForm({
   franchise_id: null as number | null,
   branch_id: null as number | null,
   driver_id: null as string | null,
+  vehicle_id: null as string | null,
   name: '',
   amount: '',
   coverage_area: '',
@@ -197,55 +220,98 @@ const breadcrumbs = [
             />
           </div>
         </div>
-
-        <div class="space-y-2">
-          <Label>Assign Driver</Label>
-          <Select
-            v-model="form.driver_id"
-            :disabled="!form.franchise_id && !form.branch_id"
-            @update:model-value="form.errors.driver_id = ''"
-          >
-            <SelectTrigger
-              :class="{
-                'border-red-500': form.errors.driver_id,
-              }"
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div class="space-y-2">
+            <Label>Assign Driver</Label>
+            <Select
+              v-model="form.driver_id"
+              :disabled="!form.franchise_id && !form.branch_id"
+              @update:model-value="form.errors.driver_id = ''"
             >
-              <SelectValue
-                :placeholder="isLoadingDrivers ? 'Loading...' : 'Select Driver'"
-              />
-            </SelectTrigger>
-            <SelectContent>
-              <div
-                v-if="availableDrivers.length === 0"
-                class="p-2 text-sm text-gray-500"
+              <SelectTrigger
+                :class="{
+                  'border-red-500': form.errors.driver_id,
+                }"
               >
-                {{
-                  isLoadingDrivers
-                    ? 'Loading...'
-                    : 'No available active drivers found'
-                }}
-              </div>
-              <SelectItem
-                v-for="driver in availableDrivers"
-                :key="driver.id"
-                :value="String(driver.id)"
-              >
-                {{ driver.name }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-          <p
-            class="text-xs text-rose-500"
-            v-if="
-              availableDrivers.length === 0 &&
-              (form.franchise_id || form.branch_id)
-            "
-          >
-            * Only "active" drivers without current contracts are shown.
-          </p>
-          <InputError :message="form.errors.driver_id" />
-        </div>
+                <SelectValue
+                  :placeholder="
+                    isLoadingDrivers ? 'Loading...' : 'Select Driver'
+                  "
+                />
+              </SelectTrigger>
+              <SelectContent>
+                <div
+                  v-if="availableDrivers.length === 0"
+                  class="p-2 text-sm text-gray-500"
+                >
+                  {{
+                    isLoadingDrivers
+                      ? 'Loading...'
+                      : 'No available active drivers found'
+                  }}
+                </div>
+                <SelectItem
+                  v-for="driver in availableDrivers"
+                  :key="driver.id"
+                  :value="String(driver.id)"
+                >
+                  {{ driver.name }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            <p
+              class="text-xs text-rose-500"
+              v-if="
+                availableDrivers.length === 0 &&
+                (form.franchise_id || form.branch_id)
+              "
+            >
+              * Only "active" drivers without current contracts are shown.
+            </p>
+            <InputError :message="form.errors.driver_id" />
+          </div>
 
+          <div class="space-y-2">
+            <Label>Assign Vehicle</Label>
+            <Select
+              v-model="form.vehicle_id"
+              :disabled="!form.driver_id"
+              @update:model-value="form.errors.vehicle_id = ''"
+            >
+              <SelectTrigger
+                :class="{
+                  'border-red-500': form.errors.vehicle_id,
+                }"
+              >
+                <SelectValue
+                  :placeholder="
+                    isLoadingVehicles ? 'Loading...' : 'Select Vehicle'
+                  "
+                />
+              </SelectTrigger>
+              <SelectContent>
+                <div
+                  v-if="availableVehicles.length === 0"
+                  class="p-2 text-sm text-gray-500"
+                >
+                  {{
+                    isLoadingVehicles
+                      ? 'Loading...'
+                      : 'No available available vehicles found'
+                  }}
+                </div>
+                <SelectItem
+                  v-for="vehicle in availableVehicles"
+                  :key="vehicle.id"
+                  :value="String(vehicle.id)"
+                >
+                  {{ vehicle.name }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            <InputError :message="form.errors.vehicle_id" />
+          </div>
+        </div>
         <div class="my-4 border-t" />
 
         <div class="space-y-4">

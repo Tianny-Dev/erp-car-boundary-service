@@ -6,6 +6,8 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\DB;
 use App\Models\Status;
 use App\Models\BoundaryContract;
+use App\Models\Vehicle;
+use App\Models\UserDriver;
 
 class StoreBoundaryContractRequest extends FormRequest
 {
@@ -66,6 +68,14 @@ class StoreBoundaryContractRequest extends FormRequest
                     if ($hasActiveContract) {
                         $fail('The selected driver already has an active boundary contract.');
                     }
+
+                    $hasActiveStatus = UserDriver::where('id', $value)
+                        ->where('status_id', $activeStatusId)
+                        ->exists();
+
+                    if (!$hasActiveStatus) {
+                        $fail('The selected driver is not active.');
+                    }
                     
                     // 2. Optional: Verify Driver belongs to the selected Franchise/Branch
                     $existsInEntity = false;
@@ -83,6 +93,46 @@ class StoreBoundaryContractRequest extends FormRequest
 
                     if (!$existsInEntity) {
                         $fail('The selected driver does not belong to the selected franchise or branch.');
+                    }
+                },
+            ],
+
+            // LOGIC: Vehicle validation
+            'vehicle_id' => [
+                'required',
+                'integer',
+                'exists:vehicles,id',
+                // Custom rule: Available Status + Belongs to Entity + No Active Contract
+                function ($attribute, $value, $fail) {
+                    $availableStatusId = Status::where('name', 'available')->value('id');
+                    $activeStatusId = Status::where('name', 'active')->value('id');
+
+                    // 1. Check ownership
+                    $vehicle = Vehicle::find($value);
+                    if ($this->franchise_id && $vehicle->franchise_id != $this->franchise_id) {
+                        $fail('The selected vehicle does not belong to this franchise.');
+                        return;
+                    }
+                    if ($this->branch_id && $vehicle->branch_id != $this->branch_id) {
+                        $fail('The selected vehicle does not belong to this branch.');
+                        return;
+                    }
+
+                    // 2. Check Availability (Is it already in an active contract?)
+                    $hasActiveContract = BoundaryContract::where('vehicle_id', $value)
+                        ->where('status_id', $activeStatusId)
+                        ->exists();
+
+                    if ($hasActiveContract) {
+                        $fail('The selected vehicle is currently assigned to another active contract.');
+                    }
+
+                    $hasAvailableStatus = Vehicle::where('id', $value)
+                        ->where('status_id', $availableStatusId)
+                        ->exists();
+
+                    if (!$hasAvailableStatus) {
+                        $fail('The selected vehicle is not available.');
                     }
                 },
             ],
