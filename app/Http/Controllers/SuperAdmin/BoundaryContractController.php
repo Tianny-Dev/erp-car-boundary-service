@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Resources\SuperAdmin\BoundaryContractDatatableResource;
 use App\Http\Resources\SuperAdmin\BoundaryContractResource;
 use App\Http\Requests\SuperAdmin\StoreBoundaryContractRequest;
+use App\Models\Vehicle;
 use App\Models\BoundaryContract;
 use App\Models\Branch;
 use App\Models\Franchise;
@@ -103,7 +104,7 @@ class BoundaryContractController extends Controller
         ]);
     }
 
-    public function getAvailableDriver(Request $request)
+    public function getContractResources(Request $request)
     {
         $request->validate([
             'type' => ['required', Rule::in(['franchise', 'branch'])],
@@ -111,10 +112,11 @@ class BoundaryContractController extends Controller
         ]);
 
         $type = $request->type ?? 'franchise'; // Default to 'franchise'
-        $id = $request->id;
+        $entityId = $request->id;
 
-        // 1. Get ID of 'active' status
+        // 1. Get ID of 'active' and 'available' status
         $activeStatusId = Status::where('name', 'active')->value('id');
+        $availableStatusId = Status::where('name', 'available')->value('id');
 
         if (!$activeStatusId) {
             return response()->json(['drivers' => []]);
@@ -122,33 +124,46 @@ class BoundaryContractController extends Controller
 
         // 2. Query Drivers
         $drivers = UserDriver::with('user:id,name')
-            // Filter: Driver must have 'active' status
-            ->where('user_drivers.status_id', $activeStatusId)
-            // Filter: Must be assigned to the selected Franchise OR Branch
-            ->whereHas($type === 'franchise' ? 'franchises' : 'branches', function ($q) use ($id, $type) {
-                $q->where($type === 'franchise' ? 'franchises.id' : 'branches.id', $id);
+            ->where('status_id', $activeStatusId) // Driver must be active
+            // Check pivot/relationship for franchise/branch ownership
+            ->whereHas($type === 'franchise' ? 'franchises' : 'branches', function ($q) use ($entityId, $type) {
+                $q->where($type === 'franchise' ? 'franchises.id' : 'branches.id', $entityId);
             })
-            // Filter: Must NOT have a currently 'active' boundary contract
+            // Check availability (No active contract)
             ->whereDoesntHave('boundaryContracts', function ($q) use ($activeStatusId) {
                 $q->where('status_id', $activeStatusId);
             })
             ->get()
-            ->map(function ($driver) {
-                return [
-                    'id'   => $driver->user->id,
-                    'name' => $driver->user->name,
-                ];
-            });
+            ->map(fn($d) => ['id' => $d->user->id, 'name' => $d->user->name]);
 
-        return response()->json($drivers);
+        // 3. Query Vehicles
+        $vehicles = Vehicle::query()
+            ->select('id', 'plate_number', 'brand', 'model')
+            ->where('status_id', $availableStatusId) // Vehicle itself must be available
+            // Check ownership
+            ->where($type === 'franchise' ? 'franchise_id' : 'branch_id', $entityId)
+            // Check availability (No active contract)
+            ->whereDoesntHave('boundaryContracts', function ($q) use ($activeStatusId) {
+                $q->where('status_id', $activeStatusId);
+            })
+            ->get()
+            ->map(fn($v) => [
+                'id' => $v->id, 
+                'name' => "{$v->plate_number} - {$v->brand} {$v->model}" 
+            ]);
+
+        return response()->json([
+            'drivers' => $drivers,
+            'vehicles' => $vehicles
+        ]);
     }
 
     public function store(StoreBoundaryContractRequest $request)
     {
-        $activeStatusId = Status::where('name', 'active')->firstOrFail()->id;
+        $pendingStatusId = Status::where('name', 'pending')->firstOrFail()->id;
 
         BoundaryContract::create([
-            'status_id' => $activeStatusId,
+            'status_id' => $pendingStatusId,
             'franchise_id' => $request->franchise_id,
             'branch_id' => $request->branch_id,
             'driver_id' => $request->driver_id,
