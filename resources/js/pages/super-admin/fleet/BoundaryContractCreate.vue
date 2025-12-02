@@ -43,7 +43,8 @@ watch(contextType, () => {
 // Watcher: When the specific ID changes, fetch drivers
 const handleEntityChange = async (newId: any) => {
   if (!newId || !contextType.value) return;
-
+  form.errors.franchise_id = '';
+  form.errors.branch_id = '';
   selectedEntityId.value = newId;
 
   // Update form IDs based on context
@@ -162,7 +163,12 @@ const breadcrumbs = [
               :disabled="!contextType"
               @update:model-value="handleEntityChange"
             >
-              <SelectTrigger>
+              <SelectTrigger
+                :class="{
+                  'border-red-500':
+                    form.errors.franchise_id || form.errors.branch_id,
+                }"
+              >
                 <SelectValue placeholder="Select..." />
               </SelectTrigger>
               <SelectContent>
@@ -197,8 +203,13 @@ const breadcrumbs = [
           <Select
             v-model="form.driver_id"
             :disabled="!form.franchise_id && !form.branch_id"
+            @update:model-value="form.errors.driver_id = ''"
           >
-            <SelectTrigger>
+            <SelectTrigger
+              :class="{
+                'border-red-500': form.errors.driver_id,
+              }"
+            >
               <SelectValue
                 :placeholder="isLoadingDrivers ? 'Loading...' : 'Select Driver'"
               />
@@ -244,6 +255,8 @@ const breadcrumbs = [
               <Input
                 v-model="form.name"
                 placeholder="e.g. Standard Boundary Agreement 2024"
+                :class="{ 'border-red-500': form.errors.name }"
+                @change="form.errors.name = ''"
               />
               <InputError :message="form.errors.name" />
             </div>
@@ -256,6 +269,7 @@ const breadcrumbs = [
                 placeholder="e.g., 1.00"
                 v-model="form.amount"
                 :class="{ 'border-red-500': form.errors.amount }"
+                @change="form.errors.amount = ''"
               />
               <InputError :message="form.errors.amount" />
             </div>
@@ -267,6 +281,8 @@ const breadcrumbs = [
               <DatePicker
                 v-model="form.start_date"
                 placeholder="Pick start date"
+                :class="{ 'border-red-500': form.errors.start_date }"
+                @update:model-value="form.errors.start_date = ''"
               />
               <InputError :message="form.errors.start_date" />
             </div>
@@ -277,6 +293,8 @@ const breadcrumbs = [
                 v-model="form.end_date"
                 :min-date="form.start_date"
                 placeholder="Pick end date"
+                :class="{ 'border-red-500': form.errors.end_date }"
+                @update:model-value="form.errors.end_date = ''"
               />
               <InputError :message="form.errors.end_date" />
             </div>
@@ -287,6 +305,8 @@ const breadcrumbs = [
             <Textarea
               v-model="form.coverage_area"
               placeholder="Define the operational area..."
+              :class="{ 'border-red-500': form.errors.coverage_area }"
+              @change="form.errors.coverage_area = ''"
             />
             <InputError :message="form.errors.coverage_area" />
           </div>
@@ -297,6 +317,8 @@ const breadcrumbs = [
               v-model="form.contract_terms"
               class="h-24"
               placeholder="Terms and conditions..."
+              :class="{ 'border-red-500': form.errors.contract_terms }"
+              @change="form.errors.contract_terms = ''"
             />
             <InputError :message="form.errors.contract_terms" />
           </div>
@@ -306,13 +328,18 @@ const breadcrumbs = [
             <Textarea
               v-model="form.renewal_terms"
               placeholder="Conditions for renewal..."
+              :class="{ 'border-red-500': form.errors.renewal_terms }"
+              @change="form.errors.renewal_terms = ''"
             />
             <InputError :message="form.errors.renewal_terms" />
           </div>
         </div>
 
         <div class="flex justify-end gap-4">
-          <Button type="button" variant="outline" @click="form.reset()"
+          <Button
+            type="button"
+            variant="outline"
+            @click="(form.reset(), (selectedEntityId = ''), (contextType = ''))"
             >Reset</Button
           >
           <Button type="submit" :disabled="form.processing || disableSubmit">
