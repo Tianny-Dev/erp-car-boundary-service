@@ -59,4 +59,10 @@ class Vehicle extends Model
     {
         return $this->hasMany(Maintenance::class);
     }
+
+    // relationship to boundary contracts, one to many
+    public function boundaryContracts(): HasMany
+    {
+        return $this->hasMany(BoundaryContract::class);
+    }
 }
