@@ -46,6 +46,8 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
     Route::patch('/driver/{driver}/assign', [DriverController::class, 'assign'])->name('driver.assign');
 
     Route::get('/vehicle', [VehicleController::class, 'index'])->name('vehicle.index');
+    Route::post('/vehicle', [VehicleController::class, 'store'])->name('vehicle.store');
+    Route::get('/vehicle/create', [VehicleController::class, 'create'])->name('vehicle.create');
     Route::get('/vehicle/{vehicle}', [VehicleController::class, 'show'])->name('vehicle.show');
 
     Route::get('/earning', [EarningController::class, 'index'])->name('earning.index');

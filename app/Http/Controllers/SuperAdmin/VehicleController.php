@@ -5,9 +5,11 @@ namespace App\Http\Controllers\SuperAdmin;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\SuperAdmin\VehicleDatatableResource;
 use App\Http\Resources\SuperAdmin\VehicleResource;
+use App\Http\Requests\SuperAdmin\StoreVehicleRequest;
 use App\Models\Vehicle;
 use App\Models\Branch;
 use App\Models\Franchise;
+use App\Models\Status;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Database\Eloquent\Builder;
@@ -81,5 +83,32 @@ class VehicleController extends Controller
         $vehicle->loadMissing(['status:id,name']);
 
         return new VehicleResource($vehicle);
+    }
+
+    public function create(): Response
+    {
+        return Inertia::render('super-admin/fleet/VehicleCreate', [
+            'franchises' => fn () => Franchise::select('id', 'name')->get(),
+            'branches' => fn () => Branch::select('id', 'name')->get(),
+        ]);
+    }
+
+    public function store(StoreVehicleRequest $request)
+    {
+        $availableStatusId = Status::where('name', 'available')->firstOrFail()->id;
+
+        Vehicle::create([
+            'status_id' => $availableStatusId,
+            'franchise_id' => $request->franchise_id,
+            'branch_id' => $request->branch_id,
+            'plate_number' => $request->plate_number,
+            'vin' => $request->vin,
+            'brand' => $request->brand,
+            'model' => $request->model,
+            'color' => $request->color,
+            'year' => $request->year
+        ]);
+
+        return redirect(route('super-admin.vehicle.index'));
     }
 }
