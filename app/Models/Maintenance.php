@@ -10,7 +10,18 @@ class Maintenance extends Model
 {
     use HasFactory;
 
-    // protected $fillable = [];
+    protected $fillable = [
+        'vehicle_id',
+        'status_id',
+        'technician_id',
+        'franchise_id',
+        'branch_id',
+        'expense_id',
+        'maintenance_type',
+        'description',
+        'maintenance_date',
+        'next_maintenance_date',
+    ];
 
     // relationship to status, one to many
     public function status(): BelongsTo
