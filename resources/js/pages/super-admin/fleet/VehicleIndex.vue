@@ -34,7 +34,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import { type ColumnDef } from '@tanstack/vue-table';
 import { debounce } from 'lodash-es';
-import { AlertCircleIcon, MoreHorizontal } from 'lucide-vue-next';
+import { AlertCircleIcon, MoreHorizontal, PlusIcon } from 'lucide-vue-next';
 import { computed, h, ref, watch } from 'vue';
 
 // --- Define Props ---
@@ -133,6 +133,10 @@ const vehicleDetails = computed(() => {
 const vehicleModal = useDetailsModal<VehicleModal>({
   baseUrl: '/super-admin/vehicle',
 });
+
+const createVehicle = () => {
+  router.get(superAdmin.vehicle.create().url);
+};
 
 // Computed columns for the data table
 const vehicleColumns = computed<ColumnDef<VehicleRow>[]>(() => {
@@ -319,7 +323,13 @@ watch(
           :columns="vehicleColumns"
           :data="vehicles.data"
           search-placeholder="Search vehicles..."
-        />
+        >
+          <template #custom-actions>
+            <Button class="me-5" @click="createVehicle"
+              ><PlusIcon />Add Vehicle</Button
+            >
+          </template>
+        </DataTable>
       </div>
     </div>
   </AppLayout>
