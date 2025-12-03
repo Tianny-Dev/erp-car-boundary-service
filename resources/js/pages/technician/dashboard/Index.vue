@@ -38,6 +38,11 @@ import { Head, router, usePage } from '@inertiajs/vue3';
 import { Check, Clock, Cog, Eye, Wrench } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
+import dayGridPlugin from '@fullcalendar/daygrid';
+import interactionPlugin from '@fullcalendar/interaction';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import FullCalendar from '@fullcalendar/vue3';
+
 const page = usePage();
 const user = page.props.auth.user;
 
@@ -165,6 +170,29 @@ const viewMaintenance = (maintenance: MaintenanceJob) => {
   selectedMaintenance.value = maintenance;
   dialogOpen.value = true;
 };
+
+const calendarEvents = computed(() =>
+  paginator.value.data.map((m) => ({
+    id: String(m.id),
+    title: `${m.maintenance_type} — ${m.vehicle_plate}`,
+    start: m.maintenance_date,
+    // end: m.next_maintenance_date || undefined,
+    allDay: true,
+    extendedProps: m,
+  })),
+);
+
+const calendarOptions = computed(() => ({
+  plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
+  initialView: 'dayGridMonth',
+  selectable: true,
+  editable: false,
+  events: calendarEvents.value,
+  eventClick(info) {
+    selectedMaintenance.value = info.event.extendedProps;
+    dialogOpen.value = true;
+  },
+}));
 </script>
 
 <template>
@@ -386,6 +414,19 @@ const viewMaintenance = (maintenance: MaintenanceJob) => {
               />
             </PaginationContent>
           </Pagination>
+        </div>
+
+        <!-- Calendar View Section -->
+        <div class="mt-8 rounded-lg border p-4">
+          <h2 class="mb-4 text-xl font-semibold">
+            Scheduled Maintenance Calendar
+          </h2>
+
+          <FullCalendar
+            :events="calendarEvents"
+            :options="calendarOptions"
+            height="650px"
+          />
         </div>
       </div>
       <Dialog v-model:open="dialogOpen">
