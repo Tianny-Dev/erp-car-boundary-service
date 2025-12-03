@@ -18,7 +18,7 @@ class DashboardController extends Controller
 
         return Inertia::render('technician/dashboard/Index', [
             'franchiseExists' => (bool) $franchise,
-            'maintenance' => $this->getMaintenanceJobsSummary(),
+            'maintenance' => $this->getMaintenanceJobsSummary(null, $franchiseId),
         ]);
     }
 
@@ -27,9 +27,14 @@ class DashboardController extends Controller
         return auth()->user()->technicianDetails?->franchises()->first();
     }
 
-    protected function getMaintenanceJobsSummary($search = null)
+    protected function getMaintenanceJobsSummary($search = null, ?int $franchiseId)
     {
         $jobsQuery = Maintenance::with(['vehicle.driver'])
+            ->where('franchise_id', $franchiseId)
+            ->whereHas('technician', function ($query) use ($franchiseId) {
+                $query->where('franchise_id', $franchiseId);
+            })
+            ->orderBy('maintenance_date', 'desc')
             ->orderBy('maintenance_date', 'desc');
 
         if ($search) {
@@ -51,11 +56,14 @@ class DashboardController extends Controller
             'description'          => $job->description,
             'maintenance_date'     => $job->maintenance_date,
             'next_maintenance_date'=> $job->next_maintenance_date,
+            'status'               => $job->status?->name,
 
             'vehicle_plate'        => $job->vehicle?->plate_number,
             'driver_name'          => $job->vehicle?->driver?->user->name,
             'driver_email'         => $job->vehicle?->driver?->user->email,
             'driver_phone'         => $job->vehicle?->driver?->user->phone,
+
+            'technician'           => $job->technician?->user->name,
 
             'franchise_id'         => $job->franchise_id,
             'branch_id'            => $job->branch_id,
