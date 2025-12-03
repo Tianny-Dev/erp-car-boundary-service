@@ -87,6 +87,10 @@ interface MaintenancePaginator {
 
 const props = defineProps<{
   franchiseExists: boolean;
+
+  pendingRequest: number;
+  activeRequest: number;
+
   maintenance: MaintenancePaginator;
 }>();
 
@@ -232,7 +236,7 @@ const calendarOptions = computed(() => ({
             <Wrench class="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div class="text-2xl font-bold">2</div>
+            <div class="text-2xl font-bold">{{ activeRequest }}</div>
             <p class="text-xs text-muted-foreground">Active Service/s</p>
           </CardContent>
         </Card>
@@ -246,7 +250,7 @@ const calendarOptions = computed(() => ({
             <Clock class="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div class="text-2xl font-bold">5</div>
+            <div class="text-2xl font-bold">{{ pendingRequest }}</div>
             <p class="text-xs text-muted-foreground">Pending Requests</p>
           </CardContent>
         </Card>
