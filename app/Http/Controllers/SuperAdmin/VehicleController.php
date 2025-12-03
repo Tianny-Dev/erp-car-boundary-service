@@ -43,7 +43,7 @@ class VehicleController extends Controller
         $drivers = $query->get();
 
         // 4. Return all data to Inertia
-        return Inertia::render('super-admin/fleet/VehicleManagement', [
+        return Inertia::render('super-admin/fleet/VehicleIndex', [
             'vehicles' => VehicleDatatableResource::collection($drivers),
             'franchises' => fn () => Franchise::select('id', 'name')->get(),
             'branches' => fn () => Branch::select('id', 'name')->get(),
