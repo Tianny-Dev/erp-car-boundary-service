@@ -38,6 +38,7 @@ import { Head, router, usePage } from '@inertiajs/vue3';
 import { Check, Clock, Cog, Eye, Wrench } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
+import { Badge } from '@/components/ui/badge';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -58,8 +59,12 @@ interface MaintenanceJob {
   driver_email: string | null;
   driver_phone: string | null;
 
+  technician: string | null;
+
   franchise_id: number | null;
   branch_id: number | null;
+
+  status: string;
 
   created_at: string;
 }
@@ -113,11 +118,11 @@ const statusFilter = ref('all');
 const filteredMaintenances = computed(() => {
   let filtered = paginator.value.data;
 
-  // if (statusFilter.value !== 'all') {
-  //   filtered = filtered.filter(
-  //     (v) => v.status_name.toLowerCase() === statusFilter.value,
-  //   );
-  // }
+  if (statusFilter.value !== 'all') {
+    filtered = filtered.filter(
+      (v) => v.status.toLowerCase() === statusFilter.value,
+    );
+  }
 
   if (globalFilter.value) {
     const term = globalFilter.value.toLowerCase();
@@ -137,20 +142,18 @@ const filteredMaintenances = computed(() => {
 });
 
 // Status badge style
-// const getStatusVariant = (status: string) => {
-//   switch (status) {
-//     case 'active':
-//       return 'default';
-//     case 'pending':
-//       return 'secondary';
-//     case 'retired':
-//       return 'destructive';
-//     case 'suspended':
-//       return 'outline';
-//     default:
-//       return 'secondary';
-//   }
-// };
+const getStatusVariant = (status: string) => {
+  switch (status) {
+    case 'active':
+      return 'default';
+    case 'pending':
+      return 'secondary';
+    case 'inactive':
+      return 'destructive';
+    default:
+      return 'secondary';
+  }
+};
 
 // Pagination Helpers
 const paginationLinks = computed(() =>
@@ -299,8 +302,6 @@ const calendarOptions = computed(() => ({
             <option value="all">All Status</option>
             <option value="active">Active</option>
             <option value="pending">Pending</option>
-            <option value="suspended">Suspended</option>
-            <option value="retired">Retired</option>
           </select>
         </div>
 
@@ -313,10 +314,10 @@ const calendarOptions = computed(() => ({
                 <TableHead>Driver</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Phone</TableHead>
-                <!-- <TableHead>Technician</TableHead> -->
+                <TableHead>Technician</TableHead>
                 <TableHead>Maintenance Type</TableHead>
                 <TableHead>Maintenance Date</TableHead>
-                <!-- <TableHead>Status</TableHead> -->
+                <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -331,13 +332,14 @@ const calendarOptions = computed(() => ({
                 <TableCell>{{ maintenance.driver_name }}</TableCell>
                 <TableCell>{{ maintenance.driver_email }}</TableCell>
                 <TableCell>{{ maintenance.driver_phone }}</TableCell>
+                <TableCell>{{ maintenance.technician }}</TableCell>
                 <TableCell>{{ maintenance.maintenance_type }}</TableCell>
                 <TableCell>{{ maintenance.maintenance_date }}</TableCell>
-                <!-- <TableCell>
-                  <Badge :variant="getStatusVariant(v.status_name)">
-                    {{ maintenance.status_name }}
+                <TableCell>
+                  <Badge :variant="getStatusVariant(maintenance.status)">
+                    {{ maintenance.status }}
                   </Badge>
-                </TableCell> -->
+                </TableCell>
                 <TableCell>
                   <TooltipProvider>
                     <Tooltip>
@@ -441,6 +443,9 @@ const calendarOptions = computed(() => ({
           </DialogHeader>
 
           <div class="mt-2 space-y-2" v-if="selectedMaintenance">
+            <Badge :variant="getStatusVariant(selectedMaintenance.status)">
+              {{ selectedMaintenance.status }}
+            </Badge>
             <p>
               <strong>Description:</strong>
               {{ selectedMaintenance.description || '—' }}
@@ -474,6 +479,11 @@ const calendarOptions = computed(() => ({
             <p>
               <strong>Driver Phone:</strong>
               {{ selectedMaintenance.driver_phone || '—' }}
+            </p>
+
+            <p>
+              <strong>Technician:</strong>
+              {{ selectedMaintenance.technician || '—' }}
             </p>
 
             <p>
