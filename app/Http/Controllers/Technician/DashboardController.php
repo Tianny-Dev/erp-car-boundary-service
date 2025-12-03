@@ -31,10 +31,9 @@ class DashboardController extends Controller
     {
         $jobsQuery = Maintenance::with(['vehicle.driver'])
             ->where('franchise_id', $franchiseId)
-            ->whereHas('technician', function ($query) use ($franchiseId) {
-                $query->where('franchise_id', $franchiseId);
-            })
-            ->orderBy('maintenance_date', 'desc')
+            // ->whereHas('technician', function ($query) use ($franchiseId) {
+            //     $query->where('franchise_id', $franchiseId);
+            // })
             ->orderBy('maintenance_date', 'desc');
 
         if ($search) {
