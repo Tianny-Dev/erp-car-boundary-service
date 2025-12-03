@@ -156,7 +156,7 @@ const breadcrumbs = [
 
 <template>
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div class="m-6 max-w-3xl rounded-xl border bg-white p-6 shadow-sm">
+    <div class="m-6 max-w-3xl rounded-xl border p-6 shadow-sm">
       <h2 class="mb-6 font-mono text-2xl font-bold">
         Create New Boundary Contract
       </h2>

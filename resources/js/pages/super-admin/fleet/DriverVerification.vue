@@ -325,16 +325,12 @@ watch(
 
           <div class="flex gap-4">
             <Select v-model="selectedStatus">
-              <SelectTrigger class="w-[150px] cursor-pointer">
+              <SelectTrigger class="w-[150px]">
                 <SelectValue placeholder="Filter by..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="inactive" class="cursor-pointer">
-                  Inactive
-                </SelectItem>
-                <SelectItem value="pending" class="cursor-pointer">
-                  Pending
-                </SelectItem>
+                <SelectItem value="inactive"> Inactive </SelectItem>
+                <SelectItem value="pending"> Pending </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -399,12 +395,7 @@ watch(
       </DialogDescription>
 
       <DialogFooter class="mt-5">
-        <Button
-          variant="outline"
-          class="cursor-pointer"
-          @click="driverModal.close"
-          >Close</Button
-        >
+        <Button variant="outline" @click="driverModal.close">Close</Button>
       </DialogFooter>
     </DialogContent>
   </Dialog>
@@ -421,15 +412,11 @@ watch(
         </DialogDescription>
       </DialogHeader>
       <DialogFooter>
-        <Button
-          variant="outline"
-          @click="isVerifyModalOpen = false"
-          class="cursor-pointer"
+        <Button variant="outline" @click="isVerifyModalOpen = false"
           >Cancel</Button
         >
         <Button
           variant="default"
-          class="cursor-pointer"
           @click="handleVerifyDriver"
           :disabled="isVerifyingDriver"
         >
