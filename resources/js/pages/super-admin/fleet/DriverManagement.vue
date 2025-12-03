@@ -320,33 +320,26 @@ watch(
 
           <div class="flex gap-4">
             <Select v-model="selectedStatus">
-              <SelectTrigger class="w-[150px] cursor-pointer">
+              <SelectTrigger class="w-[150px]">
                 <SelectValue placeholder="Filter by..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="active" class="cursor-pointer">
-                  Active
-                </SelectItem>
-                <SelectItem value="retired" class="cursor-pointer">
-                  Retired
-                </SelectItem>
-                <SelectItem value="suspended" class="cursor-pointer">
-                  Suspended
-                </SelectItem>
+                <SelectItem value="active"> Active </SelectItem>
+                <SelectItem value="retired"> Retired </SelectItem>
+                <SelectItem value="suspended"> Suspended </SelectItem>
               </SelectContent>
             </Select>
 
             <Select v-model="selectedFilter">
-              <SelectTrigger class="w-[240px] cursor-pointer">
+              <SelectTrigger class="w-[240px]">
                 <SelectValue placeholder="Filter by..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all" class="cursor-pointer">
+                <SelectItem value="all">
                   All
                   {{ activeTab === 'franchise' ? 'Franchises' : 'Branches' }}
                 </SelectItem>
                 <SelectItem
-                  class="cursor-pointer"
                   v-for="option in selectOptions"
                   :key="option.id"
                   :value="String(option.id)"
@@ -417,12 +410,7 @@ watch(
       </DialogDescription>
 
       <DialogFooter class="mt-5">
-        <Button
-          variant="outline"
-          class="cursor-pointer"
-          @click="driverModal.close"
-          >Close</Button
-        >
+        <Button variant="outline" @click="driverModal.close">Close</Button>
       </DialogFooter>
     </DialogContent>
   </Dialog>

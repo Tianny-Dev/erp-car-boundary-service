@@ -614,15 +614,11 @@ const branchColumns: ColumnDef<BranchRow>[] = [
         </DialogDescription>
       </DialogHeader>
       <DialogFooter>
-        <Button
-          variant="outline"
-          @click="isAcceptModalOpen = false"
-          class="cursor-pointer"
+        <Button variant="outline" @click="isAcceptModalOpen = false"
           >Cancel</Button
         >
         <Button
           variant="default"
-          class="cursor-pointer"
           @click="handleAcceptFranchise"
           :disabled="isAcceptingFranchise"
         >
@@ -684,12 +680,7 @@ const branchColumns: ColumnDef<BranchRow>[] = [
         </div>
       </DialogDescription>
       <DialogFooter class="mt-5">
-        <Button
-          variant="outline"
-          class="cursor-pointer"
-          @click="franchiseModal.close"
-          >Close</Button
-        >
+        <Button variant="outline" @click="franchiseModal.close">Close</Button>
       </DialogFooter>
     </DialogContent>
   </Dialog>
@@ -741,12 +732,7 @@ const branchColumns: ColumnDef<BranchRow>[] = [
       </DialogDescription>
 
       <DialogFooter class="mt-5">
-        <Button
-          variant="outline"
-          class="cursor-pointer"
-          @click="ownerModal.close"
-          >Close</Button
-        >
+        <Button variant="outline" @click="ownerModal.close">Close</Button>
       </DialogFooter>
     </DialogContent>
   </Dialog>
@@ -800,12 +786,7 @@ const branchColumns: ColumnDef<BranchRow>[] = [
         </div>
       </DialogDescription>
       <DialogFooter class="mt-5">
-        <Button
-          variant="outline"
-          class="cursor-pointer"
-          @click="branchModal.close"
-          >Close</Button
-        >
+        <Button variant="outline" @click="branchModal.close">Close</Button>
       </DialogFooter>
     </DialogContent>
   </Dialog>
@@ -860,12 +841,7 @@ const branchColumns: ColumnDef<BranchRow>[] = [
       </DialogDescription>
 
       <DialogFooter class="mt-5">
-        <Button
-          variant="outline"
-          class="cursor-pointer"
-          @click="managerModal.close"
-          >Close</Button
-        >
+        <Button variant="outline" @click="managerModal.close">Close</Button>
       </DialogFooter>
     </DialogContent>
   </Dialog>

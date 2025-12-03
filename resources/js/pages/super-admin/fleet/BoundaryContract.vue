@@ -337,36 +337,27 @@ watch(
 
           <div class="flex gap-4">
             <Select v-model="selectedStatus">
-              <SelectTrigger class="w-[150px] cursor-pointer">
+              <SelectTrigger class="w-[150px]">
                 <SelectValue placeholder="Filter by..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="active" class="cursor-pointer">
-                  Active
-                </SelectItem>
-                <SelectItem value="pending" class="cursor-pointer">
-                  Pending
-                </SelectItem>
-                <SelectItem value="expired" class="cursor-pointer">
-                  Expired
-                </SelectItem>
-                <SelectItem value="terminated" class="cursor-pointer">
-                  Terminated
-                </SelectItem>
+                <SelectItem value="active"> Active </SelectItem>
+                <SelectItem value="pending"> Pending </SelectItem>
+                <SelectItem value="expired"> Expired </SelectItem>
+                <SelectItem value="terminated"> Terminated </SelectItem>
               </SelectContent>
             </Select>
 
             <Select v-model="selectedFilter">
-              <SelectTrigger class="w-[240px] cursor-pointer">
+              <SelectTrigger class="w-[240px]">
                 <SelectValue placeholder="Filter by..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all" class="cursor-pointer">
+                <SelectItem value="all">
                   All
                   {{ activeTab === 'franchise' ? 'Franchises' : 'Branches' }}
                 </SelectItem>
                 <SelectItem
-                  class="cursor-pointer"
                   v-for="option in selectOptions"
                   :key="option.id"
                   :value="String(option.id)"
@@ -435,12 +426,7 @@ watch(
         </DialogDescription>
 
         <DialogFooter class="mt-5">
-          <Button
-            variant="outline"
-            class="cursor-pointer"
-            @click="contractModal.close"
-            >Close</Button
-          >
+          <Button variant="outline" @click="contractModal.close">Close</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
