@@ -48,6 +48,7 @@ const props = defineProps<{
     tab: 'franchise' | 'branch';
     franchise: string | null;
     branch: string | null;
+    status: 'active' | 'available' | 'maintenance';
   };
 }>();
 
@@ -73,6 +74,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 const activeTab = ref(props.filters.tab || 'franchise');
 const selectedFranchise = ref(props.filters.franchise || 'all');
 const selectedBranch = ref(props.filters.branch || 'all');
+const selectedStatus = ref(props.filters.status || 'active');
 
 // --- 5. Computed Properties for UI ---
 const title = computed(() => {
@@ -152,10 +154,15 @@ const vehicleColumns = computed<ColumnDef<VehicleRow>[]>(() => {
       header: () => h('div', { class: 'text-center' }, 'Status'),
       cell: ({ row }) => {
         const status = row.getValue('status_name') as string;
+        const badgeClass = {
+          'bg-blue-500 hover:bg-blue-600': status === 'active',
+          'bg-rose-500 hover:bg-rose-600': status === 'maintenance',
+          'bg-green-500 hover:bg-green-600': status === 'available',
+        };
         return h('div', { class: 'text-center' }, [
           h(
             Badge,
-            { class: ['bg-blue-500 hover:bg-blue-600', 'text-white'] },
+            { class: [badgeClass, 'text-white'] },
             () => status || 'N/A',
           ),
         ]);
@@ -199,12 +206,9 @@ const vehicleColumns = computed<ColumnDef<VehicleRow>[]>(() => {
 
 // --- Watchers to Update URL ---
 const updateFilters = () => {
-  const queryParams: {
-    tab: string;
-    franchise?: string;
-    branch?: string;
-  } = {
+  const queryParams: Record<string, string> = {
     tab: activeTab.value,
+    status: selectedStatus.value,
   };
 
   // **This is the crucial part for "no conflicts"**
@@ -237,7 +241,7 @@ watch(activeTab, (newTab) => {
 
 // Watch for select filter changes (debounced)
 watch(
-  [selectedFranchise, selectedBranch],
+  [selectedFranchise, selectedBranch, activeTab, selectedStatus],
   debounce(() => {
     updateFilters();
   }, 300), // Debounce to avoid firing on every keystroke/click
@@ -278,24 +282,37 @@ watch(
             {{ title }}
           </h2>
 
-          <Select v-model="selectedFilter">
-            <SelectTrigger class="w-[240px]">
-              <SelectValue placeholder="Filter by..." />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">
-                All
-                {{ activeTab === 'franchise' ? 'Franchises' : 'Branches' }}
-              </SelectItem>
-              <SelectItem
-                v-for="option in selectOptions"
-                :key="option.id"
-                :value="String(option.id)"
-              >
-                {{ option.name }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
+          <div class="flex gap-4">
+            <Select v-model="selectedStatus">
+              <SelectTrigger class="w-[150px]">
+                <SelectValue placeholder="Filter by..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active"> Active </SelectItem>
+                <SelectItem value="available"> Available </SelectItem>
+                <SelectItem value="maintenance"> Maintenance </SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select v-model="selectedFilter">
+              <SelectTrigger class="w-[240px]">
+                <SelectValue placeholder="Filter by..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">
+                  All
+                  {{ activeTab === 'franchise' ? 'Franchises' : 'Branches' }}
+                </SelectItem>
+                <SelectItem
+                  v-for="option in selectOptions"
+                  :key="option.id"
+                  :value="String(option.id)"
+                >
+                  {{ option.name }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <DataTable
