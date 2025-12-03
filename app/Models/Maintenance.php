@@ -52,4 +52,9 @@ class Maintenance extends Model
     {
         return $this->belongsTo(Branch::class);
     }
+
+    public function technician(): BelongsTo
+    {
+        return $this->belongsTo(UserTechnician::class);
+    }
 }
