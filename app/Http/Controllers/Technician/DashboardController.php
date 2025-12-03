@@ -18,6 +18,8 @@ class DashboardController extends Controller
 
         return Inertia::render('technician/dashboard/Index', [
             'franchiseExists' => (bool) $franchise,
+            'pendingRequest' => $this->countRequest($franchiseId, 6),
+            'activeRequest' => $this->countRequest($franchiseId, 1),
             'maintenance' => $this->getMaintenanceJobsSummary(null, $franchiseId),
         ]);
     }
@@ -25,6 +27,13 @@ class DashboardController extends Controller
     protected function getFranchiseOrDefault()
     {
         return auth()->user()->technicianDetails?->franchises()->first();
+    }
+
+    protected function countRequest(?int $franchiseId, int $statusId): int
+    {
+        return $franchiseId
+            ? Maintenance::where('franchise_id', $franchiseId)->where('status_id', $statusId)->count()
+            : 0;
     }
 
     protected function getMaintenanceJobsSummary($search = null, ?int $franchiseId)
