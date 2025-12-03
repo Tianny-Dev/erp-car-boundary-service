@@ -18,7 +18,7 @@ class DashboardController extends Controller
 
         return Inertia::render('technician/dashboard/Index', [
             'franchiseExists' => (bool) $franchise,
-            'maintenanceSummary' => $this->getMaintenanceJobsSummary(),
+            'maintenance' => $this->getMaintenanceJobsSummary(),
         ]);
     }
 
@@ -53,8 +53,9 @@ class DashboardController extends Controller
             'next_maintenance_date'=> $job->next_maintenance_date,
 
             'vehicle_plate'        => $job->vehicle?->plate_number,
-            'driver_name'          => $job->vehicle?->driver?->name,
-            'driver_phone'         => $job->vehicle?->driver?->phone,
+            'driver_name'          => $job->vehicle?->driver?->user->name,
+            'driver_email'         => $job->vehicle?->driver?->user->email,
+            'driver_phone'         => $job->vehicle?->driver?->user->phone,
 
             'franchise_id'         => $job->franchise_id,
             'branch_id'            => $job->branch_id,
