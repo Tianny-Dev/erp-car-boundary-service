@@ -187,6 +187,12 @@ const navConfig: Record<string, NavItem[]> = {
       group: 'Finance',
     },
     {
+      title: 'Driver Report',
+      href: manager.driverownerreport(),
+      icon: DollarSign,
+      group: 'Finance',
+    },
+    {
       title: 'Expense Management',
       href: manager.expenseManagement(),
       icon: FileSpreadsheet,
