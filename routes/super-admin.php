@@ -12,7 +12,6 @@ use App\Http\Controllers\SuperAdmin\AllocationController;
 use App\Http\Controllers\SuperAdmin\VehicleController;
 use App\Http\Controllers\SuperAdmin\RevenueController;
 use App\Http\Controllers\SuperAdmin\TransactionController;
-use App\Http\Controllers\SuperAdmin\DriverDetailsController;
 use App\Http\Controllers\SuperAdmin\EarningController;
 use App\Http\Controllers\SuperAdmin\BoundaryContractController;
 
@@ -45,11 +44,6 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
     Route::get('/driver/{driver}', [DriverController::class, 'show'])->name('driver.show');
     Route::patch('/driver/{driver}', [DriverController::class, 'verify'])->name('driver.verify');
     Route::patch('/driver/{driver}/assign', [DriverController::class, 'assign'])->name('driver.assign');
-
-    Route::get('/driverreport', [DriverReportController::class, 'index'])->name('driverreport');
-    Route::get('/driverreport/export', [DriverReportController::class, 'export'])->name('driver.export');
-    Route::get('driverreport/details', [DriverDetailsController::class, 'show'])->name('driverreport.details');
-    Route::get('/driverreport/details/export', [DriverDetailsController::class, 'exportDetails'])->name('driver_details.export');
 
     Route::get('/vehicle', [VehicleController::class, 'index'])->name('vehicle.index');
     Route::get('/vehicle/{vehicle}', [VehicleController::class, 'show'])->name('vehicle.show');
