@@ -2,7 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\Franchise;
 use App\Models\User;
+use App\Models\UserTechnician;
 use App\Models\Vehicle;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -38,10 +40,22 @@ class DatabaseSeeder extends Seeder
             'driver_id' => null
         ]);
 
+        $franchises = Franchise::all();
+        $technicians = UserTechnician::all();
+
+        foreach ($franchises as $franchise) {
+            $franchise->technicians()->attach(
+                $technicians->random(rand(1, 3))->pluck('id')->toArray()
+            );
+        }
+
         $this->call(BoundaryContractSeeder::class);
         $this->call(RevenueSeeder::class);
 
         $this->call(PercentageTypeSeeder::class);
         $this->call(RevenueBreakdownSeeder::class);
+
+        $this->call(MaintenanceSeeder::class);
+
     }
 }
