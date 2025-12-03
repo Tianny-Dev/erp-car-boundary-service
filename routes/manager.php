@@ -12,6 +12,10 @@ use App\Http\Controllers\Manager\PayOutController;
 use App\Http\Controllers\Manager\SuspendDriverController;
 use App\Http\Controllers\Manager\VehicleController;
 use App\Http\Controllers\Manager\VehicleDriverController;
+
+use App\Http\Controllers\Manager\DetailsDriverController;
+use App\Http\Controllers\Manager\ReportDriverController;
+
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
 
@@ -31,6 +35,11 @@ Route::middleware(['auth', 'verified', 'user_type:manager'])->prefix('manager')-
 
     Route::put('/drivers/{id}/status', [BranchDriverController::class, 'updateStatus'])
     ->name('drivers.updateStatus');
+
+    Route::get('/driverreport', [ReportDriverController::class, 'index'])->name('driverownerreport');
+    Route::get('/driverreport/export', [ReportDriverController::class, 'export'])->name('driverownerreport.export');
+    Route::get('driverreport/details', [DetailsDriverController::class, 'show'])->name('driverownerreport.details');
+    Route::get('/driverreport/details/export', [DetailsDriverController::class, 'exportDetails'])->name('driverownerreport_details.export');
 
     // Suspend Driver
     Route::resource('suspend-drivers', SuspendDriverController::class);

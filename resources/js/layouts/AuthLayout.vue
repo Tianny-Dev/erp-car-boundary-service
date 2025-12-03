@@ -34,7 +34,7 @@ const backgroundImage = userBackgrounds[props.userTypeName] || defaultBg;
 
 <template>
   <div
-    class="flex min-h-svh flex-col items-center justify-center bg-muted bg-[url(@/assets/auth/loginbg.jpg)] p-1.5 sm:p-6 md:p-10"
+    class="flex min-h-svh flex-col items-center justify-center bg-muted bg-[url(@/assets/auth/loginbg.jpg)] bg-no-repeat bg-center bg-cover p-1.5 sm:p-6 md:p-10"
   >
     <div class="w-full max-w-sm md:max-w-3xl">
       <div class="flex flex-col gap-6">
