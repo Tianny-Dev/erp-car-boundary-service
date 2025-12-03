@@ -45,7 +45,7 @@ class BoundaryContractController extends Controller
         $contracts = $query->get();
 
         // 4. Return all data to Inertia
-        return Inertia::render('super-admin/fleet/BoundaryContract', [
+        return Inertia::render('super-admin/fleet/BoundaryContractIndex', [
             'contracts' => BoundaryContractDatatableResource::collection($contracts),
             'franchises' => fn () => Franchise::select('id', 'name')->get(),
             'branches' => fn () => Branch::select('id', 'name')->get(),

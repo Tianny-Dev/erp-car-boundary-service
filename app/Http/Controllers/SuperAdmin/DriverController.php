@@ -46,7 +46,7 @@ class DriverController extends Controller
         $drivers = $query->get();
 
         // 4. Return all data to Inertia
-        return Inertia::render('super-admin/fleet/DriverManagement', [
+        return Inertia::render('super-admin/fleet/DriverIndex', [
             'drivers' => DriverDatatableResource::collection($drivers),
             'franchises' => fn () => Franchise::select('id', 'name')->get(),
             'branches' => fn () => Branch::select('id', 'name')->get(),
