@@ -1,19 +1,42 @@
 <script setup lang="ts">
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
+import {
   Table,
-  // TableBody,
-  // TableCell,
+  TableBody,
+  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import AppLayout from '@/layouts/AppLayout.vue';
 import technician from '@/routes/technician';
 import { type BreadcrumbItem } from '@/types';
-import { Head, usePage } from '@inertiajs/vue3';
-import { Check, Clock, Cog, Wrench } from 'lucide-vue-next';
-import { ref, watch } from 'vue';
+import { Head, router, usePage } from '@inertiajs/vue3';
+import { Check, Clock, Cog, Eye, Wrench } from 'lucide-vue-next';
+import { computed, ref, watch } from 'vue';
 
 const page = usePage();
 const user = page.props.auth.user;
@@ -27,6 +50,7 @@ interface MaintenanceJob {
 
   vehicle_plate: string | null;
   driver_name: string | null;
+  driver_email: string | null;
   driver_phone: string | null;
 
   franchise_id: number | null;
@@ -80,6 +104,33 @@ const breadcrumbs: BreadcrumbItem[] = [
 const globalFilter = ref('');
 const statusFilter = ref('all');
 
+// Filtered Maintenances
+const filteredMaintenances = computed(() => {
+  let filtered = paginator.value.data;
+
+  // if (statusFilter.value !== 'all') {
+  //   filtered = filtered.filter(
+  //     (v) => v.status_name.toLowerCase() === statusFilter.value,
+  //   );
+  // }
+
+  if (globalFilter.value) {
+    const term = globalFilter.value.toLowerCase();
+    filtered = filtered.filter((v) =>
+      [
+        v.vehicle_plate,
+        v.driver_name,
+        v.driver_email,
+        v.driver_phone,
+        v.maintenance_type,
+        v.maintenance_date,
+      ].some((f) => String(f).toLowerCase().includes(term)),
+    );
+  }
+
+  return filtered;
+});
+
 // Status badge style
 // const getStatusVariant = (status: string) => {
 //   switch (status) {
@@ -95,6 +146,25 @@ const statusFilter = ref('all');
 //       return 'secondary';
 //   }
 // };
+
+// Pagination Helpers
+const paginationLinks = computed(() =>
+  paginator.value.links.filter(
+    (link) => link.label !== 'Previous' && link.label !== 'Next',
+  ),
+);
+
+const goToPage = (url: string | null) => {
+  if (!url) return;
+  router.get(url, {}, { preserveState: true, preserveScroll: true });
+};
+
+const selectedMaintenance = ref<MaintenanceJob | null>(null);
+const dialogOpen = ref(false);
+const viewMaintenance = (maintenance: MaintenanceJob) => {
+  selectedMaintenance.value = maintenance;
+  dialogOpen.value = true;
+};
 </script>
 
 <template>
@@ -212,25 +282,180 @@ const statusFilter = ref('all');
             <TableHeader>
               <TableRow>
                 <TableHead>Plate</TableHead>
-                <TableHead>VIN</TableHead>
-                <TableHead>Brand</TableHead>
-                <TableHead>Model</TableHead>
-                <TableHead>Color</TableHead>
-                <TableHead>Year</TableHead>
                 <TableHead>Driver</TableHead>
-                <TableHead>Technician</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Phone</TableHead>
+                <!-- <TableHead>Technician</TableHead> -->
                 <TableHead>Maintenance Type</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>Maintenance Date</TableHead>
+                <!-- <TableHead>Status</TableHead> -->
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
 
             <TableBody>
-              <TableRow class="hover:bg-muted/50"> </TableRow>
+              <TableRow
+                v-for="maintenance in filteredMaintenances"
+                :key="maintenance.id"
+                class="hover:bg-muted/50"
+              >
+                <TableCell>{{ maintenance.vehicle_plate }}</TableCell>
+                <TableCell>{{ maintenance.driver_name }}</TableCell>
+                <TableCell>{{ maintenance.driver_email }}</TableCell>
+                <TableCell>{{ maintenance.driver_phone }}</TableCell>
+                <TableCell>{{ maintenance.maintenance_type }}</TableCell>
+                <TableCell>{{ maintenance.maintenance_date }}</TableCell>
+                <!-- <TableCell>
+                  <Badge :variant="getStatusVariant(v.status_name)">
+                    {{ maintenance.status_name }}
+                  </Badge>
+                </TableCell> -->
+                <TableCell>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger as-child>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          @click="viewMaintenance(maintenance)"
+                          class="cursor-pointer"
+                        >
+                          <Eye />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>View</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </TableCell>
+              </TableRow>
+
+              <TableRow v-if="filteredMaintenances.length === 0">
+                <TableCell
+                  colspan="10"
+                  class="py-6 text-center text-muted-foreground"
+                >
+                  No results found.
+                </TableCell>
+              </TableRow>
             </TableBody>
           </Table>
         </div>
+
+        <!-- Pagination -->
+        <div class="flex items-center justify-between pt-4">
+          <span class="text-sm text-gray-600">
+            Showing {{ paginator.from || 0 }} to {{ paginator.to || 0 }} of
+            {{ paginator.total }} entries
+          </span>
+
+          <Pagination
+            :items-per-page="paginator.per_page"
+            :total="paginator.total"
+            :default-page="paginator.current_page"
+            class="w-auto"
+          >
+            <PaginationContent>
+              <PaginationPrevious
+                :disabled="!paginator.prev_page_url"
+                @click="goToPage(paginator.prev_page_url)"
+              />
+
+              <template v-for="link in paginationLinks" :key="link.label">
+                <PaginationItem
+                  v-if="!isNaN(Number(link.label))"
+                  :value="Number(link.label)"
+                >
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    :class="{ 'bg-gray-100': link.active }"
+                    :disabled="!link.url"
+                    @click="goToPage(link.url)"
+                  >
+                    {{ link.label }}
+                  </Button>
+                </PaginationItem>
+                <PaginationEllipsis v-else-if="link.label.includes('...')" />
+              </template>
+
+              <PaginationNext
+                :disabled="!paginator.next_page_url"
+                @click="goToPage(paginator.next_page_url)"
+              />
+            </PaginationContent>
+          </Pagination>
+        </div>
       </div>
+      <Dialog v-model:open="dialogOpen">
+        <DialogContent class="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Maintenance Details</DialogTitle>
+            <DialogDescription>
+              Job for:
+              <strong>{{ selectedMaintenance?.maintenance_type }}</strong
+              >.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div class="mt-2 space-y-2" v-if="selectedMaintenance">
+            <p>
+              <strong>Description:</strong>
+              {{ selectedMaintenance.description || '—' }}
+            </p>
+
+            <p>
+              <strong>Maintenance Date:</strong>
+              {{ selectedMaintenance.maintenance_date || '—' }}
+            </p>
+
+            <p>
+              <strong>Next Maintenance:</strong>
+              {{ selectedMaintenance.next_maintenance_date || '—' }}
+            </p>
+
+            <p>
+              <strong>Vehicle Plate:</strong>
+              {{ selectedMaintenance.vehicle_plate || '—' }}
+            </p>
+
+            <p>
+              <strong>Driver Name:</strong>
+              {{ selectedMaintenance.driver_name || '—' }}
+            </p>
+
+            <p>
+              <strong>Driver Email:</strong>
+              {{ selectedMaintenance.driver_email || '—' }}
+            </p>
+
+            <p>
+              <strong>Driver Phone:</strong>
+              {{ selectedMaintenance.driver_phone || '—' }}
+            </p>
+
+            <p>
+              <strong>Franchise ID:</strong>
+              {{ selectedMaintenance.franchise_id || '—' }}
+            </p>
+
+            <p>
+              <strong>Branch ID:</strong>
+              {{ selectedMaintenance.branch_id || '—' }}
+            </p>
+
+            <p>
+              <strong>Created At:</strong>
+              {{ selectedMaintenance.created_at || '—' }}
+            </p>
+          </div>
+
+          <DialogFooter>
+            <Button @click="dialogOpen = false">Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   </AppLayout>
 </template>
