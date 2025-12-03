@@ -378,24 +378,18 @@ watch(
           </h2>
           <div class="flex gap-4">
             <Select v-model="selectedPeriod">
-              <SelectTrigger class="w-[150px] cursor-pointer">
+              <SelectTrigger class="w-[150px]">
                 <SelectValue placeholder="Filter by..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="daily" class="cursor-pointer">
-                  Daily
-                </SelectItem>
-                <SelectItem value="weekly" class="cursor-pointer">
-                  Weekly
-                </SelectItem>
-                <SelectItem value="monthly" class="cursor-pointer">
-                  Monthly
-                </SelectItem>
+                <SelectItem value="daily"> Daily </SelectItem>
+                <SelectItem value="weekly"> Weekly </SelectItem>
+                <SelectItem value="monthly"> Monthly </SelectItem>
               </SelectContent>
             </Select>
 
             <Select v-model="selectedDriver">
-              <SelectTrigger class="w-[200px] cursor-pointer">
+              <SelectTrigger class="w-[200px]">
                 <SelectValue placeholder="Select Driver" />
               </SelectTrigger>
               <SelectContent>
@@ -411,16 +405,15 @@ watch(
             </Select>
 
             <Select v-model="selectedFilter">
-              <SelectTrigger class="w-[240px] cursor-pointer">
+              <SelectTrigger class="w-[240px]">
                 <SelectValue placeholder="Filter by..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all" class="cursor-pointer">
+                <SelectItem value="all">
                   All
                   {{ activeTab === 'franchise' ? 'Franchises' : 'Branches' }}
                 </SelectItem>
                 <SelectItem
-                  class="cursor-pointer"
                   v-for="option in selectOptions"
                   :key="option.id"
                   :value="String(option.id)"

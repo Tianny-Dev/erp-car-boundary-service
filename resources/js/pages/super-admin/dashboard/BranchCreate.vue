@@ -287,7 +287,7 @@ watchEffect(() => {
 
 <template>
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div class="m-6 max-w-6xl rounded-xl border bg-white p-6 shadow-sm">
+    <div class="m-6 max-w-6xl rounded-xl border p-6 shadow-sm">
       <h2 class="mb-6 font-mono text-2xl font-bold">Create New Branch</h2>
 
       <form @submit.prevent="submit" class="space-y-8">
@@ -313,7 +313,7 @@ watchEffect(() => {
                 </div>
                 <Select v-model="form.payment_option_id">
                   <SelectTrigger
-                    class="flex-1 cursor-pointer border-0 font-mono font-semibold focus-visible:ring-0"
+                    class="flex-1 border-0 font-mono font-semibold focus-visible:ring-0"
                     ><SelectValue placeholder="Select Option"
                   /></SelectTrigger>
                   <SelectContent class="font-mono font-semibold">
@@ -321,7 +321,6 @@ watchEffect(() => {
                       v-for="opt in paymentOptions"
                       :key="opt.id"
                       :value="String(opt.id)"
-                      class="cursor-pointer"
                     >
                       {{ opt.name }}
                     </SelectItem>
@@ -393,7 +392,7 @@ watchEffect(() => {
                   </div>
                   <Select v-model="form.manager.gender">
                     <SelectTrigger
-                      class="flex-1 cursor-pointer border-0 font-mono font-semibold focus-visible:ring-0"
+                      class="flex-1 border-0 font-mono font-semibold focus-visible:ring-0"
                       ><SelectValue placeholder="Select Gender"
                     /></SelectTrigger>
                     <SelectContent class="font-mono font-semibold">
@@ -401,7 +400,6 @@ watchEffect(() => {
                         v-for="g in genderOptions"
                         :key="g.value"
                         :value="g.value"
-                        class="cursor-pointer"
                         >{{ g.label }}</SelectItem
                       >
                     </SelectContent>
@@ -447,7 +445,7 @@ watchEffect(() => {
                     </div>
                     <Select v-model="form.manager.valid_id_type">
                       <SelectTrigger
-                        class="flex-1 cursor-pointer border-0 font-mono font-semibold focus-visible:ring-0"
+                        class="flex-1 border-0 font-mono font-semibold focus-visible:ring-0"
                         ><SelectValue placeholder="Select Option"
                       /></SelectTrigger>
                       <SelectContent class="font-mono font-semibold">
@@ -455,7 +453,6 @@ watchEffect(() => {
                           v-for="id in idTypeOptions"
                           :key="id.value"
                           :value="id.value"
-                          class="cursor-pointer"
                           >{{ id.label }}</SelectItem
                         >
                       </SelectContent>

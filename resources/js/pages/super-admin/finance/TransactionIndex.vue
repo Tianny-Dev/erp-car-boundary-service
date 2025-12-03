@@ -235,21 +235,17 @@ watch(
           </h2>
           <div class="flex gap-4">
             <Select v-model="selectedService">
-              <SelectTrigger class="w-[150px] cursor-pointer">
+              <SelectTrigger class="w-[150px]">
                 <SelectValue placeholder="Filter by..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Trips" class="cursor-pointer">
-                  Trips
-                </SelectItem>
-                <SelectItem value="Boundary" class="cursor-pointer">
-                  Boundary
-                </SelectItem>
+                <SelectItem value="Trips"> Trips </SelectItem>
+                <SelectItem value="Boundary"> Boundary </SelectItem>
               </SelectContent>
             </Select>
 
             <Select v-model="selectedDriver">
-              <SelectTrigger class="w-[200px] cursor-pointer">
+              <SelectTrigger class="w-[200px]">
                 <SelectValue placeholder="Select Driver" />
               </SelectTrigger>
               <SelectContent>
@@ -265,16 +261,15 @@ watch(
             </Select>
 
             <Select v-model="selectedFilter">
-              <SelectTrigger class="w-[240px] cursor-pointer">
+              <SelectTrigger class="w-[240px]">
                 <SelectValue placeholder="Filter by..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all" class="cursor-pointer">
+                <SelectItem value="all">
                   All
                   {{ activeTab === 'franchise' ? 'Franchises' : 'Branches' }}
                 </SelectItem>
                 <SelectItem
-                  class="cursor-pointer"
                   v-for="option in selectOptions"
                   :key="option.id"
                   :value="String(option.id)"
