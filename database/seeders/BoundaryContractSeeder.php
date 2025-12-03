@@ -27,19 +27,29 @@ class BoundaryContractSeeder extends Seeder
         foreach ($allAssignments as $assignment) {
             $isFranchise = $assignment['type'] === 'franchise';
             $data = $assignment['data'];
+            $driverId = $data->user_driver_id;
 
-            // Contract Logic: 3 Months span, started 1 month ago
+            $vehicle = DB::table('vehicles')
+                ->where('driver_id', $driverId)
+                // Optional: Only allow if vehicle is 'active' (1)
+                // ->where('status_id', 1) 
+                ->first();
+
+            // CRITICAL: If this driver does NOT have a vehicle, skip creating a contract.
+            if (!$vehicle) {
+                continue;
+            }
+
             $startDate = Carbon::now()->subMonth();
             $endDate = Carbon::now()->addMonths(2);
-            
-            // Fixed boundary amount per driver for consistency
             $boundaryAmount = fake()->randomElement([200, 300, 500]);
 
             BoundaryContract::create([
                 'status_id' => 1, // Active
                 'franchise_id' => $isFranchise ? $data->franchise_id : null,
                 'branch_id' => !$isFranchise ? $data->branch_id : null,
-                'driver_id' => $data->user_driver_id,
+                'driver_id'       => $driverId,
+                'vehicle_id'      => $vehicle->id,
                 'name' => 'Boundary Contract - ' . ($isFranchise ? 'Franchise' : 'Branch'),
                 'amount' => $boundaryAmount,
                 'currency' => 'PHP',
