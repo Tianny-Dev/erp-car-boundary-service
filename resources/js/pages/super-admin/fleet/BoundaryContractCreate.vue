@@ -275,7 +275,7 @@ const breadcrumbs = [
             <Label>Assign Vehicle</Label>
             <Select
               v-model="form.vehicle_id"
-              :disabled="!form.driver_id"
+              :disabled="!form.franchise_id && !form.branch_id"
               @update:model-value="form.errors.vehicle_id = ''"
             >
               <SelectTrigger
@@ -309,6 +309,15 @@ const breadcrumbs = [
                 </SelectItem>
               </SelectContent>
             </Select>
+            <p
+              class="text-xs text-rose-500"
+              v-if="
+                availableVehicles.length === 0 &&
+                (form.franchise_id || form.branch_id)
+              "
+            >
+              * Only "available" vehicles without assign drivers are shown.
+            </p>
             <InputError :message="form.errors.vehicle_id" />
           </div>
         </div>
