@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Support\Str;
 use App\Models\Revenue;
+use App\Models\Vehicle;
 use App\Models\BoundaryContract;
 use Illuminate\Database\Seeder;
 
@@ -58,12 +59,53 @@ class RevenueSeeder extends Seeder
         }
 
         // ---------------------------------------------------------
-        // PART 2: GENERATE TRIP REVENUES (Random Logic)
+        // PART 2: GENERATE TRIP REVENUES (Aligned Logic)
         // ---------------------------------------------------------
-        // Use the factory for this to generate extra noise/data
-        Revenue::factory()->count(300)->create([
-            'service_type' => 'Trips',
-            'boundary_contract_id' => null, // Trips don't link to boundary contracts
-        ]);
+        
+        // 1. Get Boundary Contracts (Because drivers MUST have a contract to have trip revenue)
+        $contracts = BoundaryContract::with(['driver', 'vehicle'])->get();
+
+        foreach ($contracts as $contract) {
+            
+            // 2. Validate Vehicle Status
+            // Check if the vehicle associated with this contract/driver is valid for trips.
+            // We assume only 'Active' (1) vehicles generate trip revenue. 
+            // 'Maintenance' (5) or 'Available' (15) usually do not have trips.
+            $vehicle = Vehicle::where('driver_id', $contract->driver_id)
+                              ->where('id', $contract->vehicle_id)
+                              ->first();
+
+            // If driver has no vehicle, or vehicle is not Active, skip.
+            if (!$vehicle || $vehicle->status_id !== 1) {
+                continue;
+            }
+
+            // 3. Generate Trips for this specific Setup
+            // Generate random number of trips within the contract period
+            $numberOfTrips = rand(5, 15); 
+
+            for ($i = 0; $i < $numberOfTrips; $i++) {
+                
+                // Random date within contract start and now
+                $tripDate =  fake()->dateTimeBetween($contract->start_date, 'now');
+                
+                Revenue::create([
+                    'status_id'          => 8, // Paid
+                    'franchise_id'       => $contract->franchise_id, // Inherit from contract
+                    'branch_id'          => $contract->branch_id,    // Inherit from contract
+                    'driver_id'          => $contract->driver_id,
+                    'boundary_contract_id' => null, // Trips don't link to boundary contracts ID directly
+                    'payment_option_id'  => fake()->numberBetween(1, 4),
+                    'invoice_no'         => 'TRP-' . strtoupper(Str::random(8)),
+                    'amount'             => fake()->randomFloat(2, 50, 1500), // Typical trip fare
+                    'currency'           => 'PHP',
+                    'service_type'       => 'Trips',
+                    'payment_date'       => $tripDate,
+                    'notes'              => 'Trip from ' . fake()->streetName() . ' to ' . fake()->streetName(),
+                    'created_at'         => $tripDate,
+                    'updated_at'         => $tripDate,
+                ]);
+            }
+        }
     }
 }
