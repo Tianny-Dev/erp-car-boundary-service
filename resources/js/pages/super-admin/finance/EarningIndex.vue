@@ -487,7 +487,9 @@ watch(
             </div>
           </div>
           <DialogFooter>
-            <Button @click="handleExport"> Confirm Export </Button>
+            <Button @click="handleExport" :disabled="exportMonths.length === 0">
+              Confirm Export
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

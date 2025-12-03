@@ -126,7 +126,8 @@ const monthOptions = [
 // Open modal and set the export type
 function openExportModal(type: 'pdf' | 'excel' | 'csv') {
   exportType.value = type;
-  exportMonths.value = monthOptions.map((month) => month.id);
+  // exportMonths.value = monthOptions.map((month) => month.id);
+  exportMonths.value = [];
   showExportModal.value = true;
 }
 
@@ -403,7 +404,9 @@ watch(
             </div>
           </div>
           <DialogFooter>
-            <Button @click="handleExport"> Confirm Export </Button>
+            <Button @click="handleExport" :disabled="exportMonths.length === 0">
+              Confirm Export
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
