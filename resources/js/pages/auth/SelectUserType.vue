@@ -15,7 +15,7 @@ const props = defineProps<{
 
 <template>
   <div
-    class="flex h-screen w-full items-center justify-center bg-muted bg-[url(@/assets/auth/loginbg.jpg)] p-2 sm:p-6"
+    class="flex h-screen w-full items-center justify-center bg-muted bg-[url(@/assets/auth/loginbg.jpg)] bg-no-repeat bg-center bg-cover p-2 sm:p-6"
   >
     <div
       class="relative w-full max-w-md rounded-2xl bg-white p-4 shadow-2xl sm:p-8"
