@@ -10,49 +10,69 @@ use App\Models\Branch;
 use App\Models\Franchise;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Validation\Rule;
 use Illuminate\Http\Request;
 
 class VehicleController extends Controller
 {
     public function index(Request $request): Response
     {
-        // 1. Validate tab, default to 'franchise'
-        $tab = $request->input('tab', 'franchise');
-        if (! in_array($tab, ['franchise', 'branch'])) {
-            $tab = 'franchise';
-        }
-
-        // 2. Start base query
-        $query = Vehicle::select('id', 'franchise_id', 'branch_id', 'vin', 'plate_number', 'status_id')
-        ->with([
-            'status:id,name',
+        // 1. Validate all filters
+        $validated = $request->validate([
+            'tab' => ['sometimes', 'string', Rule::in(['franchise', 'branch'])],
+            'franchise' => ['sometimes', 'nullable', 'string'],
+            'branch' => ['sometimes', 'nullable', 'string'],
+            'status' => ['sometimes', 'string', Rule::in(['active', 'available', 'maintenance'])],
         ]);
 
-        // 3. Apply conditional filtering based on tab
-        if ($tab === 'franchise') {
-            $query->whereNotNull('franchise_id')
-                ->when($request->input('franchise'), fn($q) => $q->where('franchise_id', $request->input('franchise')))
-                ->with('franchise:id,name');
+        // 2. Set defaults
+        $filters = [
+            'tab' => $validated['tab'] ?? 'franchise',
+            'franchise' => $validated['franchise'] ?? null,
+            'branch' => $validated['branch'] ?? null,
+            'status' => $validated['status'] ?? 'active',
+        ];
 
-        } elseif ($tab === 'branch') {
-            $query->whereNotNull('branch_id')
-                ->when($request->input('branch'), fn($q) => $q->where('branch_id', $request->input('branch')))
-                ->with('branch:id,name');
-        }
-
-        $drivers = $query->get();
+        // 3. Build and execute query
+        $query = $this->buildBaseQuery($filters);
+        $vehicles = $query->get();
 
         // 4. Return all data to Inertia
         return Inertia::render('super-admin/fleet/VehicleIndex', [
-            'vehicles' => VehicleDatatableResource::collection($drivers),
+            'vehicles' => VehicleDatatableResource::collection($vehicles),
             'franchises' => fn () => Franchise::select('id', 'name')->get(),
             'branches' => fn () => Branch::select('id', 'name')->get(),
             'filters' => [
-                'tab' => $tab,
-                'franchise' => $request->input('franchise'),
-                'branch' => $request->input('branch'),
+                'tab' => $filters['tab'],
+                'franchise' => $filters['franchise'],
+                'branch' => $filters['branch'],
+                'status' => $filters['status'],
             ],
         ]);
+    }
+
+    /**
+     * Creates the base query with all "WHERE" conditions.
+     */
+    private function buildBaseQuery(array $filters): Builder
+    {
+        $query = Vehicle::with([
+            'status:id,name',
+        ])->whereHas('status', fn ($q) => $q->where('name', $filters['status']));
+
+        if ($filters['tab'] === 'franchise') {
+            $query->whereNotNull('franchise_id')
+                ->when($filters['franchise'], fn($q) => $q->where('franchise_id', $filters['franchise']))
+                ->with('franchise:id,name');
+
+        } elseif ($filters['tab'] === 'branch') {
+            $query->whereNotNull('branch_id')
+                ->when($filters['branch'], fn($q) => $q->where('branch_id', $filters['branch']))
+                ->with('branch:id,name');
+        }
+        
+        return $query;
     }
 
     public function show(Vehicle $vehicle)
