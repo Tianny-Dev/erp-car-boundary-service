@@ -89,10 +89,4 @@ class Branch extends Model
     {
         return $this->hasMany(Violation::class);
     }
-
-    // relationship to maintenances, one to many
-    public function maintenances(): HasMany
-    {
-        return $this->hasMany(Maintenance::class);
-    }
 }

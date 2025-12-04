@@ -31,15 +31,16 @@ class Expense extends Model
         return $this->belongsTo(Branch::class);
     }
 
+    // relationship to maintenance, one to many
+    public function maintenance(): BelongsTo
+    {
+        return $this->belongsTo(Maintenance::class);
+    }
+
     // relationship to payment option, one to many
     public function paymentOption(): BelongsTo
     {
         return $this->belongsTo(PaymentOption::class);
     }
 
-    // relationship to maintenances, one to many
-    public function maintenances(): HasMany
-    {
-        return $this->hasMany(Maintenance::class);
-    }
 }
