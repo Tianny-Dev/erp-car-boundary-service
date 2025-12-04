@@ -16,6 +16,7 @@ class BoundaryContract extends Model
         'franchise_id',
         'branch_id',
         'driver_id',
+        'vehicle_id',
         'name',
         'coverage_area',
         'contract_terms',

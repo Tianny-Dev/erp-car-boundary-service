@@ -160,22 +160,29 @@ class BoundaryContractController extends Controller
 
     public function store(StoreBoundaryContractRequest $request)
     {
-        $pendingStatusId = Status::where('name', 'pending')->firstOrFail()->id;
+        DB::transaction(function () use ($request) {
 
-        BoundaryContract::create([
-            'status_id' => $pendingStatusId,
-            'franchise_id' => $request->franchise_id,
-            'branch_id' => $request->branch_id,
-            'driver_id' => $request->driver_id,
-            'name' => $request->name,
-            'amount' => $request->amount,
-            'currency' => 'PHP',
-            'coverage_area' => $request->coverage_area,
-            'contract_terms' => $request->contract_terms,
-            'renewal_terms' => $request->renewal_terms,
-            'start_date' => $request->start_date,
-            'end_date' => $request->end_date,
-        ]);
+            $pendingStatusId = Status::where('name', 'pending')->firstOrFail()->id;
+
+            BoundaryContract::create([
+                'status_id' => $pendingStatusId,
+                'franchise_id' => $request->franchise_id,
+                'branch_id' => $request->branch_id,
+                'driver_id' => $request->driver_id,
+                'vehicle_id' => $request->vehicle_id,
+                'name' => $request->name,
+                'amount' => $request->amount,
+                'currency' => 'PHP',
+                'coverage_area' => $request->coverage_area,
+                'contract_terms' => $request->contract_terms,
+                'renewal_terms' => $request->renewal_terms,
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date,
+            ]);
+
+            // Update vehicle driver_id
+            Vehicle::where('id', $request->vehicle_id)->update(['driver_id' => $request->driver_id]);
+        });
 
         return redirect(route('super-admin.boundaryContract.index'));
     }
