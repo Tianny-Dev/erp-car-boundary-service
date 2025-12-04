@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Owner\StoreBoundaryContractRequest;
-use App\Http\Resources\SuperAdmin\BoundaryContractResource;
 use App\Models\BoundaryContract;
 use App\Models\Status;
 use App\Models\Vehicle;
