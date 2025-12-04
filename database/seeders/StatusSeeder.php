@@ -29,6 +29,7 @@ class StatusSeeder extends Seeder
             ['id' => 13, 'name' => 'end_trip'],
             ['id' => 14, 'name' => 'confirm_pick_up'],
             ['id' => 15, 'name' => 'available'],
+            ['id' => 16, 'name' => 'completed'],
         ]);
     }
 }
