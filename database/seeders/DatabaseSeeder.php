@@ -34,20 +34,13 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call(DriverAssignmentSeeder::class);
-        $this->call(ExpenseSeeder::class);
         $this->call(VehicleSeeder::class);
         Vehicle::factory(10)->create([
             'driver_id' => null
         ]);
 
-        $franchises = Franchise::all();
-        $technicians = UserTechnician::all();
-
-        foreach ($franchises as $franchise) {
-            $franchise->technicians()->attach(
-                $technicians->random(rand(1, 3))->pluck('id')->toArray()
-            );
-        }
+        User::factory(30)->create(['user_type_id' => 5]);
+        $this->call(TechnicianAssignmentSeeder::class);
 
         $this->call(BoundaryContractSeeder::class);
         $this->call(RevenueSeeder::class);
@@ -55,6 +48,7 @@ class DatabaseSeeder extends Seeder
         $this->call(PercentageTypeSeeder::class);
         $this->call(RevenueBreakdownSeeder::class);
 
+        $this->call(InventorySeeder::class);
         $this->call(MaintenanceSeeder::class);
 
     }
