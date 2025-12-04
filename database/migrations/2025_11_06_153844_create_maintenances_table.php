@@ -14,10 +14,7 @@ return new class extends Migration
         Schema::create('maintenances', function (Blueprint $table) {
             $table->id();
             $table->foreignId('vehicle_id')->constrained('vehicles')->onDelete('restrict');
-            $table->foreignId('franchise_id')->nullable()->constrained('franchises')->onDelete('restrict');
-            $table->foreignId('branch_id')->nullable()->constrained('branches')->onDelete('restrict');
-            $table->foreignId('expense_id')->constrained('expenses')->onDelete('restrict');
-            $table->enum('maintenance_type', ['Oil Change', 'Tire Replacement', 'Brake Service', 'Engine Repair', 'Inspection', 'Other'])->default('Other');
+            $table->foreignId('inventory_id')->constrained('inventories')->onDelete('restrict');
             $table->text('description');
             $table->date('maintenance_date');
             $table->date('next_maintenance_date');

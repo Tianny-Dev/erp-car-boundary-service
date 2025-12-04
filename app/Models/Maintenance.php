@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Maintenance extends Model
 {
@@ -16,8 +17,6 @@ class Maintenance extends Model
         'technician_id',
         'franchise_id',
         'branch_id',
-        'expense_id',
-        'maintenance_type',
         'description',
         'maintenance_date',
         'next_maintenance_date',
@@ -29,32 +28,27 @@ class Maintenance extends Model
         return $this->belongsTo(Status::class);
     }
 
-    // relationship to expense, one to many
-    public function expense(): BelongsTo
-    {
-        return $this->belongsTo(Expense::class);
-    }
-
     // relationship to vehicle, one to many
     public function vehicle(): BelongsTo
     {
         return $this->belongsTo(Vehicle::class);
     }
 
-    // relationship to franchise, one to many
-    public function franchise(): BelongsTo
-    {
-        return $this->belongsTo(Franchise::class);
-    }
-
-    // relationship to branch, one to many
-    public function branch(): BelongsTo
-    {
-        return $this->belongsTo(Branch::class);
-    }
-
+    // relationship to technician, one to many
     public function technician(): BelongsTo
     {
         return $this->belongsTo(UserTechnician::class);
+    }
+
+    // relationship to inventory, one to many
+    public function inventory(): BelongsTo
+    {
+        return $this->belongsTo(Inventory::class);
+    }
+
+    // relationship to expenses, one to many
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(Expense::class);
     }
 }
