@@ -20,7 +20,7 @@ class DashboardController extends Controller
             'franchiseExists' => (bool) $franchise,
             'pendingRequest' => $this->countRequest($franchiseId, 6),
             'activeRequest' => $this->countRequest($franchiseId, 1),
-            'maintenance' => $this->getMaintenanceJobsSummary(null, $franchiseId),
+            'maintenance' => $this->getMaintenanceJobsSummary( $franchiseId),
         ]);
     }
 
@@ -36,7 +36,7 @@ class DashboardController extends Controller
             : 0;
     }
 
-    protected function getMaintenanceJobsSummary($search = null, ?int $franchiseId)
+    protected function getMaintenanceJobsSummary(?int $franchiseId)
     {
         $jobsQuery = Maintenance::with(['vehicle.driver'])
             ->where('franchise_id', $franchiseId)
@@ -45,7 +45,7 @@ class DashboardController extends Controller
             // })
             ->orderBy('maintenance_date', 'desc');
 
-        if ($search) {
+        if ($search = request('search')) {
             $jobsQuery->where(function ($q) use ($search) {
                 $q->whereHas('vehicle', fn($v) =>
                     $v->where('plate_number', 'like', "%{$search}%")
