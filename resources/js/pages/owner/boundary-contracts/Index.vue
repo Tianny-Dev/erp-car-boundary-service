@@ -32,25 +32,52 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import AppLayout from '@/layouts/AppLayout.vue';
-import finance from '@/routes/finance';
+import owner from '@/routes/owner';
 import type { BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
-import { Calendar, Check, Search, X } from 'lucide-vue-next';
+import { Calendar, Eye, PlusIcon, Search } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
 interface Contract {
   id: number;
   name: string;
+  amount: string;
   coverage_area: string;
   contract_terms: string;
   start_date: string;
   end_date: string;
   status: 'pending' | 'paid' | 'overdue' | string;
+  driver_name: string;
+  driver_email: string;
+  driver_phone: string;
   franchise: string | null;
+  franchise_email?: string;
+  franchise_phone?: string;
   branch: string | null;
-  depositStatus?: 'pending' | 'approved' | 'flagged';
 }
+
+const visibleContractFields = [
+  'name',
+  'amount',
+  'coverage_area',
+  'contract_terms',
+  'start_date',
+  'end_date',
+  'status',
+  'driver_name',
+  'driver_email',
+  'driver_phone',
+  'franchise',
+  'franchise_email',
+  'franchise_phone',
+] as const;
 
 interface ContractsPaginator {
   current_page: number;
@@ -90,7 +117,7 @@ watch(
 // Breadcrumbs
 // -------------------------
 const breadcrumbs: BreadcrumbItem[] = [
-  { title: 'Boundary Contracts', href: finance.boundaryContracts().url },
+  { title: 'Boundary Contracts', href: owner.boundaryContracts.index().url },
 ];
 
 // -------------------------
@@ -104,23 +131,11 @@ const depositFilter = ref('all');
 // Dialog
 // -------------------------
 const selectedContract = ref<Contract | null>(null);
-const showDepositDialog = ref(false);
+const showDialog = ref(false);
 
-const openDepositDialog = (contract: Contract) => {
+const openDialog = (contract: Contract) => {
   selectedContract.value = contract;
-  showDepositDialog.value = true;
-};
-
-const handleDepositAction = (action: 'approved' | 'flagged') => {
-  if (selectedContract.value) {
-    const index = paginator.value.data.findIndex(
-      (item) => item.id === selectedContract.value!.id,
-    );
-    if (index !== -1) {
-      paginator.value.data[index].depositStatus = action;
-    }
-  }
-  showDepositDialog.value = false;
+  showDialog.value = true;
 };
 
 // -------------------------
@@ -128,24 +143,13 @@ const handleDepositAction = (action: 'approved' | 'flagged') => {
 // -------------------------
 const getStatusVariant = (status: string | undefined) => {
   switch (status) {
+    case 'active':
+      return 'default';
     case 'pending':
       return 'secondary';
-    case 'paid':
-      return 'default';
-    case 'overdue':
-      return 'destructive';
-    default:
-      return 'secondary';
-  }
-};
-
-const getDepositVariant = (status?: string) => {
-  switch (status) {
-    case 'pending':
-      return 'secondary';
-    case 'approved':
-      return 'default';
-    case 'flagged':
+    case 'expired':
+      return 'outline';
+    case 'terminated':
       return 'destructive';
     default:
       return 'secondary';
@@ -205,6 +209,10 @@ watch([statusFilter, depositFilter, globalFilter], () => {
     { preserveState: true, preserveScroll: true },
   );
 });
+
+const createContract = () => {
+  router.get(owner.boundaryContracts.create().url);
+};
 </script>
 
 <template>
@@ -216,7 +224,7 @@ watch([statusFilter, depositFilter, globalFilter], () => {
       <div>
         <h1 class="mb-1 text-3xl font-bold">Boundary Contracts</h1>
         <p class="text-gray-600">
-          Monitor due payments, set schedules, and approve boundary deposits
+          Manage Contracts for drivers assigned to vehicles.
         </p>
       </div>
 
@@ -247,19 +255,9 @@ watch([statusFilter, depositFilter, globalFilter], () => {
           </SelectContent>
         </Select>
 
-        <!-- <Select v-model="depositFilter">
-          <SelectTrigger class="w-full md:w-48">
-            <SelectValue>{{
-              depositFilter === 'all' ? 'Deposit status' : depositFilter
-            }}</SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Deposits</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="approved">Approved</SelectItem>
-            <SelectItem value="flagged">Flagged</SelectItem>
-          </SelectContent>
-        </Select> -->
+        <Button class="me-5" @click="createContract"
+          ><PlusIcon />Add Contract</Button
+        >
       </div>
 
       <!-- Table -->
@@ -268,7 +266,9 @@ watch([statusFilter, depositFilter, globalFilter], () => {
           <TableHeader>
             <TableRow>
               <TableHead>Contract Name</TableHead>
+              <TableHead>Driver</TableHead>
               <TableHead>Franchise</TableHead>
+              <TableHead>Amount</TableHead>
               <TableHead>Coverage Area</TableHead>
               <TableHead>Duration</TableHead>
               <TableHead>Status</TableHead>
@@ -285,7 +285,9 @@ watch([statusFilter, depositFilter, globalFilter], () => {
 
             <TableRow v-for="contract in filteredData" :key="contract.id">
               <TableCell class="font-medium">{{ contract.name }}</TableCell>
+              <TableCell>{{ contract.driver_name || '—' }}</TableCell>
               <TableCell>{{ contract.franchise || '—' }}</TableCell>
+              <TableCell class="font-medium">₱{{ contract.amount }}</TableCell>
               <TableCell class="max-w-xs truncate">{{
                 contract.coverage_area
               }}</TableCell>
@@ -299,14 +301,24 @@ watch([statusFilter, depositFilter, globalFilter], () => {
                   {{ contract.status }}
                 </Badge>
               </TableCell>
-              <TableCell>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  @click="openDepositDialog(contract)"
-                >
-                  Review Deposit
-                </Button>
+              <TableCell class="flex gap-2">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger as-child>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        @click="openDialog(contract)"
+                        class="cursor-pointer"
+                      >
+                        <Eye />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>View</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </TableCell>
             </TableRow>
           </TableBody>
@@ -359,47 +371,29 @@ watch([statusFilter, depositFilter, globalFilter], () => {
       </div>
 
       <!-- Deposit Dialog -->
-      <Dialog v-model:open="showDepositDialog">
-        <DialogContent>
+      <Dialog v-model:open="showDialog">
+        <DialogContent class="max-w-3xl overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Review Deposit</DialogTitle>
-            <DialogDescription
-              >Contract: {{ selectedContract?.name }}</DialogDescription
-            >
+            <DialogTitle>Contract Details</DialogTitle>
           </DialogHeader>
 
-          <div v-if="selectedContract" class="space-y-2 py-4">
-            <p>
-              <strong>Franchise:</strong>
-              {{ selectedContract.franchise || '—' }}
-            </p>
-            <p>
-              <strong>Coverage Area:</strong>
-              {{ selectedContract.coverage_area }}
-            </p>
-            <p>
-              <strong>Current Status:</strong>
-              <Badge
-                :variant="getDepositVariant(selectedContract.depositStatus)"
-              >
-                {{ selectedContract.depositStatus ?? 'N/A' }}
-              </Badge>
-            </p>
-          </div>
+          <DialogDescription>
+            <div v-if="selectedContract" class="grid grid-cols-2 gap-4">
+              <template v-for="key in visibleContractFields" :key="key">
+                <div class="font-medium capitalize">
+                  {{ key.replace(/_/g, ' ') }}:
+                </div>
+                <div>
+                  {{ selectedContract[key] }}
+                </div>
+              </template>
+            </div>
+          </DialogDescription>
 
           <DialogFooter>
-            <Button variant="outline" @click="showDepositDialog = false"
+            <Button variant="outline" @click="showDialog = false"
               >Cancel</Button
             >
-            <Button
-              variant="destructive"
-              @click="handleDepositAction('flagged')"
-            >
-              <X class="mr-2 h-4 w-4" /> Flag
-            </Button>
-            <Button @click="handleDepositAction('approved')">
-              <Check class="mr-2 h-4 w-4" /> Approve
-            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
