@@ -12,7 +12,6 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/AppLayout.vue';
 import manager from '@/routes/manager';
-import owner from '@/routes/owner';
 import { type BreadcrumbItem } from '@/types';
 import { Head, useForm } from '@inertiajs/vue3';
 import { computed } from 'vue';
@@ -40,11 +39,11 @@ const { vehicles, drivers } = defineProps<Props>();
 const breadcrumbs: BreadcrumbItem[] = [
   {
     title: 'Boundary Contract',
-    href: owner.boundaryContracts.index().url,
+    href: manager.boundaryContracts.index().url,
   },
   {
     title: 'Create Boundary Contract',
-    href: owner.boundaryContracts.create().url,
+    href: manager.boundaryContracts.create().url,
   },
 ];
 
