@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified', 'user_type:owner', 'check.active'])->prefix('owner')->name('owner.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/boundary-contracts', [BoundaryContractController::class, 'index'])->name('boundaryContracts');
+    Route::resource('/boundary-contracts', BoundaryContractController::class);
     Route::get('/revenue-management', [RevenueManagementController::class, 'index'])->name('revenueManagement');
     Route::get('/expense-management', [ExpenseManagementController::class, 'index'])->name('expenseManagement');
     Route::get('/reports-and-analytics', [ReportAndAnalyticController::class, 'index'])->name('reportsAndAnalytics');
