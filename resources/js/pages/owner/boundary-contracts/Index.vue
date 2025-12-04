@@ -39,7 +39,6 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import AppLayout from '@/layouts/AppLayout.vue';
-import finance from '@/routes/finance';
 import owner from '@/routes/owner';
 import type { BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
@@ -118,7 +117,7 @@ watch(
 // Breadcrumbs
 // -------------------------
 const breadcrumbs: BreadcrumbItem[] = [
-  { title: 'Boundary Contracts', href: finance.boundaryContracts().url },
+  { title: 'Boundary Contracts', href: owner.boundaryContracts.index().url },
 ];
 
 // -------------------------
