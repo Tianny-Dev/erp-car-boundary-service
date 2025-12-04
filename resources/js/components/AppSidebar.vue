@@ -235,10 +235,16 @@ const navConfig: Record<string, NavItem[]> = {
       icon: CarTaxiFront,
       group: 'Management',
     },
+    // {
+    //   title: 'Assign Drivers',
+    //   href: owner.vehicleDrivers.index(),
+    //   icon: Octagon,
+    //   group: 'Management',
+    // },
     {
-      title: 'Assign Drivers',
-      href: owner.vehicleDrivers.index(),
-      icon: Octagon,
+      title: 'Boundary Contracts',
+      href: owner.boundaryContracts.index(),
+      icon: FileText,
       group: 'Management',
     },
     {
@@ -248,12 +254,6 @@ const navConfig: Record<string, NavItem[]> = {
       group: 'Management',
     },
 
-    {
-      title: 'Boundary Contracts',
-      href: owner.boundaryContracts(),
-      icon: FileText,
-      group: 'Operations',
-    },
     // {
     //   title: 'Reports & Analytics',
     //   href: owner.reportsAndAnalytics(),
