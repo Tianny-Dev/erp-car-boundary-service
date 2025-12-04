@@ -32,6 +32,7 @@ import {
   LayoutGrid,
   Octagon,
   ReceiptText,
+  Ticket,
   UserCheck,
   Users,
   UserX,
@@ -315,6 +316,12 @@ const navConfig: Record<string, NavItem[]> = {
       href: technician.dashboard(),
       icon: LayoutGrid,
       group: 'Overview',
+    },
+    {
+      title: 'Tickets / Jobs',
+      href: technician.ticket(),
+      icon: Ticket,
+      group: 'Management',
     },
   ],
 
