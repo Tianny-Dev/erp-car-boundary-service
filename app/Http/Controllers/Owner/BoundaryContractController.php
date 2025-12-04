@@ -7,7 +7,9 @@ use App\Http\Requests\Owner\StoreBoundaryContractRequest;
 use App\Http\Resources\SuperAdmin\BoundaryContractResource;
 use App\Models\BoundaryContract;
 use App\Models\Status;
+use App\Models\Vehicle;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class BoundaryContractController extends Controller
@@ -124,24 +126,29 @@ class BoundaryContractController extends Controller
      */
     public function store(StoreBoundaryContractRequest $request)
     {
-        $pendingStatusId = Status::where('name', 'pending')->firstOrFail()->id;
-        $franchise = auth()->user()->ownerDetails?->franchises()->first();
-        $franchiseId = $franchise?->id;
+        DB::transaction(function () use ($request) {
 
-        BoundaryContract::create([
-            'status_id' => $pendingStatusId,
-            'franchise_id' => $franchiseId,
-            'driver_id' => $request->driver,
-            'vehicle_id' => $request->vehicle,
-            'name' => $request->name,
-            'amount' => $request->amount,
-            'currency' => 'PHP',
-            'coverage_area' => $request->coverage_area,
-            'contract_terms' => $request->contract_terms,
-            'renewal_terms' => $request->renewal_terms,
-            'start_date' => $request->start_date,
-            'end_date' => $request->end_date,
-        ]);
+            $pendingStatusId = Status::where('name', 'pending')->firstOrFail()->id;
+            $franchise = auth()->user()->ownerDetails?->franchises()->first();
+            $franchiseId = $franchise?->id;
+
+            BoundaryContract::create([
+                'status_id' => $pendingStatusId,
+                'franchise_id' => $franchiseId,
+                'driver_id' => $request->driver,
+                'vehicle_id' => $request->vehicle,
+                'name' => $request->name,
+                'amount' => $request->amount,
+                'currency' => 'PHP',
+                'coverage_area' => $request->coverage_area,
+                'contract_terms' => $request->contract_terms,
+                'renewal_terms' => $request->renewal_terms,
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date,
+            ]);
+
+            Vehicle::where('id', $request->vehicle)->update(['driver_id' => $request->driver]);
+        });
 
         return to_route('owner.boundary-contracts.index');
     }
