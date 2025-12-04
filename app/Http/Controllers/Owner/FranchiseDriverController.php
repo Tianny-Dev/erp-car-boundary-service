@@ -23,7 +23,7 @@ class FranchiseDriverController extends Controller
             ->whereHas('driverDetails', fn ($q) =>
                 $q->where('is_verified', 1)
                 ->whereHas('status', fn ($s) =>
-                    $s->whereIn('name', 'pending')
+                    $s->whereIn('name', ['pending'])
                 )
             );
 
