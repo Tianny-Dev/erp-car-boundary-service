@@ -30,7 +30,6 @@ import {
   HelpCircle,
   History,
   LayoutGrid,
-  Octagon,
   ReceiptText,
   Ticket,
   UserCheck,
@@ -150,11 +149,17 @@ const navConfig: Record<string, NavItem[]> = {
       group: 'Management',
     },
     {
-      title: 'Assign Drivers',
-      href: manager.vehicleDrivers.index(),
-      icon: Octagon,
+      title: 'Boundary Contracts',
+      href: manager.boundaryContracts.index(),
+      icon: FileText,
       group: 'Management',
     },
+    // {
+    //   title: 'Assign Drivers',
+    //   href: manager.vehicleDrivers.index(),
+    //   icon: Octagon,
+    //   group: 'Management',
+    // },
     {
       title: 'Suspend Drivers',
       href: manager.suspendDrivers.index(),
@@ -162,12 +167,6 @@ const navConfig: Record<string, NavItem[]> = {
       group: 'Management',
     },
 
-    {
-      title: 'Boundary Contracts',
-      href: manager.boundaryContracts(),
-      icon: FileText,
-      group: 'Operations',
-    },
     // {
     //   title: 'Reports & Analytics',
     //   href: manager.reportsAndAnalytics(),
