@@ -9,6 +9,8 @@ use Illuminate\Support\Str;
 use App\Models\Revenue;
 use App\Models\Vehicle;
 use App\Models\BoundaryContract;
+use App\Models\UserPassenger;
+use App\Models\Route;
 use Illuminate\Database\Seeder;
 
 class RevenueSeeder extends Seeder
@@ -64,6 +66,7 @@ class RevenueSeeder extends Seeder
         
         // 1. Get Boundary Contracts (Because drivers MUST have a contract to have trip revenue)
         $contracts = BoundaryContract::with(['driver', 'vehicle'])->get();
+        $passengerIds = UserPassenger::pluck('id');
 
         foreach ($contracts as $contract) {
             
@@ -85,12 +88,39 @@ class RevenueSeeder extends Seeder
             $numberOfTrips = rand(5, 15); 
 
             for ($i = 0; $i < $numberOfTrips; $i++) {
+
+                // determine status and date
+                $rand = rand(1, 100);
+
+                // Default setup (Paid)
+                $statusId = 8; // Paid
+                $tripDate = fake()->dateTimeBetween($contract->start_date, 'now');
+                $paymentDate = $tripDate; 
+                $routeStatus = 13; // end_trip
+
+                // Override for Pending (Live Trip) - 10% chance
+                if ($rand > 80 && $rand <= 90) {
+                    $statusId = 6; // Pending
+                    $tripDate = Carbon::now(); // Must be NOW
+                    $paymentDate = null;
+                    $routeStatus = 12; // start_trip
+                }
+                // Override for Cancelled - 10% chance
+                elseif ($rand > 90) {
+                    $statusId = 9; // cancelled
+                    $paymentDate = null;
+                    // Keep tripDate historical to show when it was cancelled
+                    $routeStatus = 9; // cancelled
+                }
                 
                 // Random date within contract start and now
                 $tripDate =  fake()->dateTimeBetween($contract->start_date, 'now');
                 
-                Revenue::create([
-                    'status_id'          => 8, // Paid
+                // =========================================================
+                // STEP A: CREATE REVENUE
+                // =========================================================
+                $revenue = Revenue::create([
+                    'status_id'          => $statusId,
                     'franchise_id'       => $contract->franchise_id, // Inherit from contract
                     'branch_id'          => $contract->branch_id,    // Inherit from contract
                     'driver_id'          => $contract->driver_id,
@@ -100,10 +130,58 @@ class RevenueSeeder extends Seeder
                     'amount'             => fake()->randomFloat(2, 50, 1500), // Typical trip fare
                     'currency'           => 'PHP',
                     'service_type'       => 'Trips',
-                    'payment_date'       => $tripDate,
+                    'payment_date'       => $paymentDate,
                     'notes'              => 'Trip from ' . fake()->streetName() . ' to ' . fake()->streetName(),
                     'created_at'         => $tripDate,
                     'updated_at'         => $tripDate,
+                ]);
+
+                // =========================================================
+                // STEP B: CREATE ROUTE (Linked to Revenue)
+                // =========================================================
+                
+                // Geography Logic
+                $startLat = fake()->latitude(14.5, 14.7); // Roughly Metro Manila
+                $startLng = fake()->longitude(120.9, 121.1);
+                $endLat = fake()->latitude(14.5, 14.7);
+                $endLng = fake()->longitude(120.9, 121.1);
+                $startTrip = Carbon::parse($tripDate);
+                $endTrip = Carbon::parse($tripDate)->addMinutes(rand(15, 120));
+                $distance = fake()->randomFloat(2, 2, 25);
+                $speed = fake()->randomFloat(2, 15, 60);
+
+                if ($statusId === 6) { 
+                    // PENDING (In Progress)
+                    $startTrip = Carbon::now(); // Started just now
+                }
+                elseif ($statusId === 9) {
+                    // CANCELLED
+                    $startTrip = null;
+                    $endTrip = null;
+                }
+
+                Route::create([
+                    'status_id'    => $routeStatus,
+                    'driver_id'    => $contract->driver_id, // INTEGRITY: Same as Revenue
+                    'vehicle_id'   => $contract->vehicle_id, // INTEGRITY: Assigned Vehicle
+                    'passenger_id' => $passengerIds->random(), // Random Passenger
+                    'revenue_id'   => $revenue->id, // LINKED
+                    
+                    'start_trip'   => $startTrip,
+                    'end_trip'     => $endTrip,
+                    
+                    'start_lat'    => $startLat,
+                    'start_lng'    => $startLng,
+                    'end_lat'      => $endLat,
+                    'end_lng'      => $endLng,
+                    
+                    'distance_km'       => $distance,
+                    'average_speed_kmh' => $speed,
+                    'max_speed_kmh'     => $speed ? $speed + 10 : null,
+                    'route_path'        => null, // Complex JSON, keeping null for seeder
+                    
+                    'created_at'   => $tripDate,
+                    'updated_at'   => $tripDate,
                 ]);
             }
         }
