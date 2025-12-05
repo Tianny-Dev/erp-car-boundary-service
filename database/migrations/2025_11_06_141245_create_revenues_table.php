@@ -23,7 +23,7 @@ return new class extends Migration
             $table->decimal('amount', 10, 2);
             $table->string('currency', 10)->default('PHP');
             $table->enum('service_type', ['Trips','Boundary'])->default('Trips');
-            $table->date('payment_date')->nullable();
+            $table->dateTime('payment_date')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
         });
