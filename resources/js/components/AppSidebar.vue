@@ -30,6 +30,7 @@ import {
   HelpCircle,
   History,
   LayoutGrid,
+  Map,
   ReceiptText,
   Ticket,
   UserCheck,
@@ -87,6 +88,12 @@ const navConfig: Record<string, NavItem[]> = {
       title: 'Boundary Contract',
       href: superAdmin.boundaryContract.index(),
       icon: ReceiptText,
+      group: 'Fleet',
+    },
+    {
+      title: 'Trip Monitoring',
+      href: superAdmin.route.index(),
+      icon: Map,
       group: 'Fleet',
     },
     {
