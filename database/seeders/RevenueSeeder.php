@@ -40,6 +40,12 @@ class RevenueSeeder extends Seeder
                 $isPaid = fake()->boolean(80); 
                 $statusId = $isPaid ? $STATUS_PAID : $STATUS_OVERDUE;
 
+                // Add random time to the date
+                $randomDateTime = Carbon::parse($date)
+                    ->setHour(rand(0, 23))
+                    ->setMinute(rand(0, 59))
+                    ->setSecond(rand(0, 59));
+
                 Revenue::create([
                     'status_id' => $statusId,
                     'franchise_id' => $contract->franchise_id,
@@ -52,10 +58,10 @@ class RevenueSeeder extends Seeder
                     'currency' => 'PHP',
                     'service_type' => 'Boundary',
                     // If paid, date is the loop date. If overdue, date is null or the due date
-                    'payment_date' => $isPaid ? $date : null, 
+                    'payment_date' => $isPaid ? $randomDateTime : null, 
                     'notes' => $isPaid ? 'Daily boundary remittance' : 'Missed payment',
-                    'created_at' => $date, // Backdate the creation
-                    'updated_at' => $date,
+                    'created_at' => $randomDateTime, // Backdate the creation
+                    'updated_at' => $randomDateTime,
                 ]);
             }
         }
@@ -94,7 +100,10 @@ class RevenueSeeder extends Seeder
 
                 // Default setup (Paid)
                 $statusId = 8; // Paid
-                $tripDate = fake()->dateTimeBetween($contract->start_date, 'now');
+                $tripDate = Carbon::parse(fake()->dateTimeBetween($contract->start_date, 'now'))
+                    ->setHour(rand(0, 23))
+                    ->setMinute(rand(0, 59))
+                    ->setSecond(rand(0, 59));
                 $paymentDate = $tripDate; 
                 $routeStatus = 13; // end_trip
 
@@ -112,9 +121,6 @@ class RevenueSeeder extends Seeder
                     // Keep tripDate historical to show when it was cancelled
                     $routeStatus = 9; // cancelled
                 }
-                
-                // Random date within contract start and now
-                $tripDate =  fake()->dateTimeBetween($contract->start_date, 'now');
                 
                 // =========================================================
                 // STEP A: CREATE REVENUE
