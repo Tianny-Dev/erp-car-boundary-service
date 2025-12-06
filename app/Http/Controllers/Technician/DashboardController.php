@@ -12,16 +12,20 @@ class DashboardController extends Controller
     public function index()
     {
         $franchise = $this->getFranchiseOrDefault();
-        $franchiseId = $franchise?->id;
-
+        $technicianId = $this->getTechnicianId();
         $year = now()->year;
 
         return Inertia::render('technician/dashboard/Index', [
             'franchiseExists' => (bool) $franchise,
-            'pendingRequest' => $this->countRequest($franchiseId, 6),
-            'activeRequest' => $this->countRequest($franchiseId, 1),
-            'maintenance' => $this->getMaintenanceJobsSummary( $franchiseId),
+            'pendingRequest' => $this->countRequest($technicianId, 6),
+            'activeRequest' => $this->countRequest($technicianId, 1),
+            'maintenance' => $this->getMaintenanceJobsSummary( $technicianId),
         ]);
+    }
+
+    protected function getTechnicianId()
+    {
+        return auth()->user()->technicianDetails?->user?->id;
     }
 
     protected function getFranchiseOrDefault()
@@ -29,17 +33,18 @@ class DashboardController extends Controller
         return auth()->user()->technicianDetails?->franchises()->first();
     }
 
-    protected function countRequest(?int $franchiseId, int $statusId): int
+    protected function countRequest(?int $technicianId, int $statusId): int
     {
-        return $franchiseId
-            ? Maintenance::where('franchise_id', $franchiseId)->where('status_id', $statusId)->count()
+        return $technicianId
+            ? Maintenance::where('technician_id', $technicianId)->where('status_id', $statusId)->count()
             : 0;
     }
 
-    protected function getMaintenanceJobsSummary(?int $franchiseId)
+    protected function getMaintenanceJobsSummary(?int $technicianId)
     {
         $jobsQuery = Maintenance::with(['vehicle.driver'])
-            ->where('franchise_id', $franchiseId)
+            // ->where('franchise_id', $franchiseId)
+            ->where('technician_id', $technicianId)
             // ->whereHas('technician', function ($query) use ($franchiseId) {
             //     $query->where('franchise_id', $franchiseId);
             // })

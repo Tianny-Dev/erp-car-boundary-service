@@ -319,7 +319,7 @@ const calendarOptions = computed(() => ({
                 <TableHead>Email</TableHead>
                 <TableHead>Phone</TableHead>
                 <TableHead>Technician</TableHead>
-                <TableHead>Maintenance Type</TableHead>
+                <TableHead>Description</TableHead>
                 <TableHead>Maintenance Date</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
@@ -337,7 +337,7 @@ const calendarOptions = computed(() => ({
                 <TableCell>{{ maintenance.driver_email }}</TableCell>
                 <TableCell>{{ maintenance.driver_phone }}</TableCell>
                 <TableCell>{{ maintenance.technician }}</TableCell>
-                <TableCell>{{ maintenance.maintenance_type }}</TableCell>
+                <TableCell>{{ maintenance.description }}</TableCell>
                 <TableCell>{{ maintenance.maintenance_date }}</TableCell>
                 <TableCell>
                   <Badge :variant="getStatusVariant(maintenance.status)">
