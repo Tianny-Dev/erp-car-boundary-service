@@ -20,7 +20,6 @@ import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import {
   Banknote,
-  Bell,
   CarTaxiFront,
   ChartNoAxesCombined,
   DollarSign,
@@ -122,12 +121,12 @@ const navConfig: Record<string, NavItem[]> = {
       icon: LayoutGrid,
       group: 'Overview',
     },
-    {
-      title: 'Notifications',
-      href: manager.notifications(),
-      icon: Bell,
-      group: 'Overview',
-    },
+    // {
+    //   title: 'Notifications',
+    //   href: manager.notifications(),
+    //   icon: Bell,
+    //   group: 'Overview',
+    // },
 
     {
       title: 'Payout',
@@ -208,12 +207,12 @@ const navConfig: Record<string, NavItem[]> = {
       icon: LayoutGrid,
       group: 'Overview',
     },
-    {
-      title: 'Notifications',
-      href: owner.notifications(),
-      icon: Bell,
-      group: 'Overview',
-    },
+    // {
+    //   title: 'Notifications',
+    //   href: owner.notifications(),
+    //   icon: Bell,
+    //   group: 'Overview',
+    // },
 
     {
       title: 'Payout',
