@@ -441,16 +441,70 @@ const removeDriverFromFranchise = () => {
           </DialogDescription>
         </DialogHeader>
 
-        <div class="mt-2 space-y-2">
+        <!-- Driver Information -->
+        <div class="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
           <p><strong>ID:</strong> {{ selectedDriver?.id }}</p>
-          <p><strong>Username:</strong> {{ selectedDriver?.username }}</p>
           <p><strong>Email:</strong> {{ selectedDriver?.email }}</p>
+
           <p><strong>Phone:</strong> {{ selectedDriver?.phone }}</p>
+          <p><strong>Status:</strong> {{ selectedDriver?.status }}</p>
+
           <p><strong>Region:</strong> {{ selectedDriver?.region }}</p>
           <p><strong>Province:</strong> {{ selectedDriver?.province }}</p>
           <p><strong>City:</strong> {{ selectedDriver?.city }}</p>
           <p><strong>Barangay:</strong> {{ selectedDriver?.barangay }}</p>
-          <p><strong>Status:</strong> {{ selectedDriver?.status || '—' }}</p>
+          <p><strong>Address:</strong> {{ selectedDriver?.address }}</p>
+        </div>
+
+        <!-- Driver License Information -->
+        <div class="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+          <p>
+            <strong>License Number:</strong>
+            {{ selectedDriver?.details.license_number }}
+          </p>
+          <p>
+            <strong>License Expiry:</strong>
+            {{ selectedDriver?.details.license_expiry }}
+          </p>
+        </div>
+
+        <!-- Optional Images -->
+        <div v-if="selectedDriver?.details" class="mt-4">
+          <h3 class="mb-2 text-sm font-semibold">Driver Documents</h3>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div v-if="selectedDriver.details.front_license_picture">
+              <p class="mb-1 text-xs text-gray-500">Front License</p>
+              <img
+                :src="selectedDriver.details.front_license_picture"
+                class="h-28 w-full rounded border object-cover"
+              />
+            </div>
+
+            <div v-if="selectedDriver.details.back_license_picture">
+              <p class="mb-1 text-xs text-gray-500">Back License</p>
+              <img
+                :src="selectedDriver.details.back_license_picture"
+                class="h-28 w-full rounded border object-cover"
+              />
+            </div>
+
+            <div v-if="selectedDriver.details.nbi_clearance">
+              <p class="mb-1 text-xs text-gray-500">NBI Clearance</p>
+              <img
+                :src="selectedDriver.details.nbi_clearance"
+                class="h-28 w-full rounded border object-cover"
+              />
+            </div>
+
+            <div v-if="selectedDriver.details.selfie_picture">
+              <p class="mb-1 text-xs text-gray-500">Selfie</p>
+              <img
+                :src="selectedDriver.details.selfie_picture"
+                class="h-28 w-full rounded border object-cover"
+              />
+            </div>
+          </div>
         </div>
 
         <DialogFooter>

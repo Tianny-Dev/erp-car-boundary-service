@@ -43,26 +43,26 @@ class DriverManagementController extends Controller
                 'status' => $driver->status?->name,
 
                 'details' => [
-                    'license_number'  => $driver->driverDetails?->license_number,
-                    'license_expiry'  => $driver->driverDetails?->license_expiry,
-                    'is_verified'     => $driver->driverDetails?->is_verified,
-                    'shift'           => $driver->driverDetails?->shift,
-                    'hire_date'       => $driver->driverDetails?->hire_date,
+                    'license_number'  => $driver?->license_number,
+                    'license_expiry'  => $driver?->license_expiry,
+                    'is_verified'     => $driver?->is_verified,
+                    'shift'           => $driver?->shift,
+                    'hire_date'       => $driver?->hire_date,
 
-                    'front_license_picture' => $driver->driverDetails?->front_license_picture
-                        ? asset('storage/' . $driver->driverDetails->front_license_picture)
+                    'front_license_picture' => $driver?->front_license_picture
+                        ? asset('storage/' . $driver->front_license_picture)
                         : null,
 
-                    'back_license_picture' => $driver->driverDetails?->back_license_picture
-                        ? asset('storage/' . $driver->driverDetails->back_license_picture)
+                    'back_license_picture' => $driver?->back_license_picture
+                        ? asset('storage/' . $driver->back_license_picture)
                         : null,
 
-                    'nbi_clearance' => $driver->driverDetails?->nbi_clearance
-                        ? asset('storage/' . $driver->driverDetails->nbi_clearance)
+                    'nbi_clearance' => $driver?->nbi_clearance
+                        ? asset('storage/' . $driver->nbi_clearance)
                         : null,
 
-                    'selfie_picture' => $driver->driverDetails?->selfie_picture
-                        ? asset('storage/' . $driver->driverDetails->selfie_picture)
+                    'selfie_picture' => $driver?->selfie_picture
+                        ? asset('storage/' . $driver->selfie_picture)
                         : null,
                 ],
             ]);
