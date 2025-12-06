@@ -229,6 +229,12 @@ const navConfig: Record<string, NavItem[]> = {
     },
 
     {
+      title: 'Driver Applications',
+      href: owner.driversApplication.index(),
+      icon: Users,
+      group: 'Management',
+    },
+    {
       title: 'Driver Management',
       href: owner.drivers.index(),
       icon: Users,
@@ -252,12 +258,12 @@ const navConfig: Record<string, NavItem[]> = {
       icon: FileText,
       group: 'Management',
     },
-    {
-      title: 'Suspend Drivers',
-      href: owner.suspendDrivers.index(),
-      icon: UserX,
-      group: 'Management',
-    },
+    // {
+    //   title: 'Suspend Drivers',
+    //   href: owner.suspendDrivers.index(),
+    //   icon: UserX,
+    //   group: 'Management',
+    // },
 
     // {
     //   title: 'Reports & Analytics',
