@@ -8,30 +8,27 @@ use App\Models\UserDriver;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-class BranchDriverController extends Controller
+class DriverApplicationController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
+        $branch = auth()->user()->managerDetails?->branches()->first();
+
+        if (!$branch) {
+            abort(404, 'Branch not found');
+        }
+
         $driversQuery = User::with('driverDetails.status')
             ->whereHas('userType', fn($q) => $q->where('name', 'driver'))
-            // ->whereHas('driverDetails.status', fn($q) =>
-            //     $q->whereIn('name', ['pending', 'inactive'])
-            // );
             ->whereHas('driverDetails', fn ($q) =>
                 $q->where('is_verified', 1)
                 ->whereHas('status', fn ($s) =>
                     $s->whereIn('name', ['pending'])
                 )
             );
-            // ->whereHas('driverDetails', fn ($q) =>
-            //     $q->where('is_verified', 1)
-            //     ->whereHas('status', fn ($s) =>
-            //         $s->whereIn('name', ['pending', 'inactive'])
-            //     )
-            // );
 
         // Global search
         if ($search = request('search')) {
@@ -52,10 +49,35 @@ class BranchDriverController extends Controller
             'province' => $user->province,
             'city' => $user->city,
             'barangay' => $user->barangay,
+            'address' => $user->address,
             'status' => $user->driverDetails?->status?->name,
+
+            'details' => [
+                'license_number'  => $user->driverDetails?->license_number,
+                'license_expiry'  => $user->driverDetails?->license_expiry,
+                'is_verified'     => $user->driverDetails?->is_verified,
+                'shift'           => $user->driverDetails?->shift,
+                'hire_date'       => $user->driverDetails?->hire_date,
+
+                'front_license_picture' => $user->driverDetails?->front_license_picture
+                    ? asset('storage/' . $user->driverDetails->front_license_picture)
+                    : null,
+
+                'back_license_picture' => $user->driverDetails?->back_license_picture
+                    ? asset('storage/' . $user->driverDetails->back_license_picture)
+                    : null,
+
+                'nbi_clearance' => $user->driverDetails?->nbi_clearance
+                    ? asset('storage/' . $user->driverDetails->nbi_clearance)
+                    : null,
+
+                'selfie_picture' => $user->driverDetails?->selfie_picture
+                    ? asset('storage/' . $user->driverDetails->selfie_picture)
+                    : null,
+            ],
         ]);
 
-        return Inertia::render('manager/branch-driver/Index', [
+        return Inertia::render('manager/driver-application/Index', [
             'drivers' => $drivers,
         ]);
     }
@@ -99,18 +121,15 @@ class BranchDriverController extends Controller
     {
         $driver = UserDriver::findOrFail($id);
 
-        $managerBranches = auth()->user()->managerDetails->branches->pluck('id');
+        $ownerBranches = auth()->user()->managerDetails->branches->pluck('id');
 
-        // Toggle status
         $driver->status_id = $driver->status_id === 1 ? 2 : 1;
         $driver->save();
 
         if ($driver->status_id === 1) {
-            // Status is now active - attach to manager's branches if not already attached
-            $driver->branches()->syncWithoutDetaching($managerBranches);
+            $driver->branches()->syncWithoutDetaching($ownerBranches);
         } else {
-            // Status is now inactive - detach from manager's branches only
-            $driver->branches()->detach($managerBranches);
+            $driver->branches()->detach($ownerBranches);
         }
 
         return back()->with('success', 'Driver status updated successfully.');
