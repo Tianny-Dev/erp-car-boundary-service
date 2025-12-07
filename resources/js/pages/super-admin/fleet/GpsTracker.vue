@@ -13,7 +13,7 @@ import superAdmin from '@/routes/super-admin';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import { debounce } from 'lodash-es';
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 
 // --- Define Props ---
 const props = defineProps<{
@@ -68,6 +68,75 @@ const selectedFilter = computed({
       selectedBranch.value = value;
     }
   },
+});
+
+// --- Auto-Refresh Logic ---
+const userIsActive = ref(true);
+let refreshInterval: ReturnType<typeof setInterval> | null = null;
+let activityTimeout: ReturnType<typeof setTimeout> | null = null;
+
+// 1. Activity Handler: Resets the "idle" timer on user interaction
+const handleUserActivity = () => {
+  if (!userIsActive.value) {
+    userIsActive.value = true;
+    // Optional: Trigger an immediate refresh when waking up from inactivity
+    refreshMapMarkers();
+  }
+
+  if (activityTimeout) clearTimeout(activityTimeout);
+
+  // Set user to inactive after 3 minutes of no movement
+  activityTimeout = setTimeout(
+    () => {
+      userIsActive.value = false;
+    },
+    3 * 60 * 1000,
+  );
+};
+
+// 2. The Refresh Function
+const refreshMapMarkers = () => {
+  // STOP if user is inactive or the tab is hidden (saves server resources)
+  if (!userIsActive.value || document.hidden) return;
+
+  router.reload({
+    only: ['mapMarkers'], // Only fetch the markers, ignore dropdown lists
+    preserveState: true, // Keep the user's current scroll position and component state
+    preserveScroll: true,
+    // Explicitly pass current filters to ensure the backend query is accurate
+    data: {
+      tab: activeTab.value,
+      franchise:
+        selectedFranchise.value !== 'all' ? selectedFranchise.value : null,
+      branch: selectedBranch.value !== 'all' ? selectedBranch.value : null,
+    },
+    onSuccess: () => {
+      console.log('GPS positions updated');
+    },
+    onError: (errors) => {
+      console.error('Auto-refresh failed', errors);
+    },
+  });
+};
+
+// 3. Lifecycle Hooks
+onMounted(() => {
+  window.addEventListener('mousemove', handleUserActivity);
+  window.addEventListener('keydown', handleUserActivity);
+  document.addEventListener('visibilitychange', handleUserActivity); // Check if tab becomes active
+
+  handleUserActivity(); // specific init
+  // 10 seconds (30000ms)
+  refreshInterval = setInterval(refreshMapMarkers, 10 * 1000);
+});
+
+onUnmounted(() => {
+  if (refreshInterval) clearInterval(refreshInterval);
+  if (activityTimeout) clearTimeout(activityTimeout);
+
+  window.removeEventListener('mousemove', handleUserActivity);
+  window.removeEventListener('keydown', handleUserActivity);
+  document.removeEventListener('visibilitychange', handleUserActivity);
 });
 
 // --- Watchers to Update URL ---

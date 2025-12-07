@@ -4,12 +4,11 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { computed, nextTick, ref, watch } from 'vue';
 
-// Generic interface for flexibility
 export interface MarkerData {
   id: number;
   latitude: number;
   longitude: number;
-  [key: string]: any; // Allow any other data (driver_name, etc.)
+  [key: string]: any;
 }
 
 const props = defineProps<{
@@ -19,58 +18,76 @@ const props = defineProps<{
   fitBounds?: boolean;
 }>();
 
-const center = computed<[number, number]>(
-  () => props.center ?? [15.1465, 120.5794],
-);
-const zoom = computed(() => props.zoom ?? 13);
+// --- 3. State ---
 const map = ref<any>(null);
 const mapReady = ref(false);
 
+const defaultCenter = computed<[number, number]>(
+  () => props.center ?? [15.1465, 120.5794],
+);
+const defaultZoom = computed(() => props.zoom ?? 13);
+
+// ---  Smart Bounds Logic ---
+const driversListSignature = computed(() => {
+  return props.locations
+    .map((l) => l.id)
+    .sort() // Sort ID so order doesn't matter
+    .join(',');
+});
+
+function fitMapToBounds() {
+  if (!mapReady.value || !map.value?.leafletObject) return;
+  if (!props.fitBounds || props.locations.length === 0) return;
+
+  const bounds = L.latLngBounds(
+    props.locations.map((loc) => [loc.latitude, loc.longitude]),
+  );
+
+  if (bounds.isValid()) {
+    map.value.leafletObject.fitBounds(bounds, { padding: [50, 50] });
+  }
+}
+
 function onMapReady() {
-  // We wait one tick to ensure the DOM is fully painted before manipulating bounds
   nextTick(() => {
     mapReady.value = true;
+    // Always fit bounds on initial load
+    fitMapToBounds();
   });
 }
 
-// Watch for changes in data or map readiness
-watch(
-  [() => props.locations, () => props.fitBounds, mapReady],
-  ([newLocations, shouldFit, ready]) => {
-    if (!ready || !map.value?.leafletObject) return;
-
-    if (shouldFit) {
-      const bounds = L.latLngBounds(
-        newLocations.map((loc) => [loc.latitude, loc.longitude]),
-      );
-      map.value.leafletObject.fitBounds(bounds);
-    } else {
-      map.value.leafletObject.setView(props.center, props.zoom);
-    }
-  },
-  { immediate: true },
-);
+// Watcher 1: Watch the SIGNATURE, not the locations directly.
+watch(driversListSignature, () => {
+  fitMapToBounds();
+});
 </script>
 
 <template>
-  <div class="isolate z-0 h-[650px] w-full overflow-hidden rounded-lg">
-    <l-map ref="map" :center="center" :zoom="zoom" @ready="onMapReady">
+  <div
+    class="isolate z-0 h-[650px] w-full overflow-hidden rounded-lg border border-gray-200 shadow-inner"
+  >
+    <l-map
+      ref="map"
+      :center="defaultCenter"
+      :zoom="defaultZoom"
+      @ready="onMapReady"
+    >
       <l-tile-layer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         layer-type="base"
         name="OpenStreetMap"
+        attribution='&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
       />
 
       <l-marker
-        v-for="(location, index) in props.locations"
-        :key="`marker-${location.id}-${index}`"
+        v-for="location in props.locations"
+        :key="location.id"
         :lat-lng="[location.latitude, location.longitude]"
       >
         <l-popup>
           <slot name="popup" :item="location">
-            <div class="p-1">
-              <p>Lat: {{ location.latitude }}</p>
-              <p>Lng: {{ location.longitude }}</p>
+            <div class="p-2">
+              <span class="font-bold">ID: {{ location.id }}</span>
             </div>
           </slot>
         </l-popup>
@@ -80,11 +97,9 @@ watch(
 </template>
 
 <style scoped>
-/* Fix for leaflet z-index issues in some Tailwind setups */
-.leaflet-pane {
-  z-index: 10 !important;
-}
-.leaflet-bottom {
-  z-index: 20 !important;
+/* Ensure map controls sit above other UI elements if necessary */
+:deep(.leaflet-bottom),
+:deep(.leaflet-top) {
+  z-index: 400;
 }
 </style>
