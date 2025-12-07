@@ -147,10 +147,10 @@ class RevenueSeeder extends Seeder
                 // =========================================================
                 
                 // Geography Logic
-                $startLat = fake()->latitude(14.5, 14.7); // Roughly Metro Manila
-                $startLng = fake()->longitude(120.9, 121.1);
-                $endLat = fake()->latitude(14.5, 14.7);
-                $endLng = fake()->longitude(120.9, 121.1);
+                $startLat = fake()->latitude(15.1, 15.2); // Roughly Angeles, Pampanga
+                $startLng = fake()->longitude(120.55, 120.65);
+                $endLat   = fake()->latitude(15.1, 15.2);
+                $endLng   = fake()->longitude(120.55, 120.65);
                 $startTrip = Carbon::parse($tripDate);
                 $endTrip = Carbon::parse($tripDate)->addMinutes(rand(15, 120));
                 $distance = fake()->randomFloat(2, 2, 25);

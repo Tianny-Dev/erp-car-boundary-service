@@ -50,19 +50,20 @@ class RouteController extends Controller
         // Main Query: Fetch details for those specific IDs
         $query = Route::whereIn('id', $latestIds)
             ->with([
+                'driver:id',
                 'driver.user:id,name',
                 'vehicle:id,plate_number',
-                'revenue:id,payment_date'
+                'revenue:id,franchise_id,branch_id,payment_date'
             ]);
 
         // Apply Franchise/Branch filters to the main query to ensure data security
         if ($filters['tab'] === 'franchise') {
-            $query->whereHas('revenue', function ($q) use ($filters) {
-                $q->when($filters['franchise'], fn($sub) => $sub->where('franchise_id', $filters['franchise']));
+            $query->whereHas('revenue.franchise', function ($q) use ($filters) {
+                $q->when($filters['franchise'], fn($sub) => $sub->where('id', $filters['franchise']));
             });
         } elseif ($filters['tab'] === 'branch') {
-            $query->whereHas('revenue', function ($q) use ($filters) {
-                $q->when($filters['branch'], fn($sub) => $sub->where('branch_id', $filters['branch']));
+            $query->whereHas('revenue.branch', function ($q) use ($filters) {
+                $q->when($filters['branch'], fn($sub) => $sub->where('id', $filters['branch']));
             });
         }
 

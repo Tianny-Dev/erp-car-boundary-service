@@ -2,66 +2,59 @@
 import { LMap, LMarker, LPopup, LTileLayer } from '@vue-leaflet/vue-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { computed, ref, watch } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 
-// Define the shape of the data we expect from the backend
+// Generic interface for flexibility
 export interface MarkerData {
   id: number;
   latitude: number;
   longitude: number;
-  driver_name?: string;
-  plate_number?: string;
-  payment_date?: string;
-  [key: string]: any; // Allow other properties
+  [key: string]: any; // Allow any other data (driver_name, etc.)
 }
 
 const props = defineProps<{
   locations: MarkerData[];
-  center?: [number, number]; // Tuple for Lat/Lng
+  center?: [number, number];
   zoom?: number;
   fitBounds?: boolean;
 }>();
 
-// Default values handled here for TS safety
 const center = computed<[number, number]>(
   () => props.center ?? [15.1465, 120.5794],
 );
 const zoom = computed(() => props.zoom ?? 13);
-
 const map = ref<any>(null);
 const mapReady = ref(false);
 
 function onMapReady() {
-  mapReady.value = true;
+  // We wait one tick to ensure the DOM is fully painted before manipulating bounds
+  nextTick(() => {
+    mapReady.value = true;
+  });
 }
 
+// Watch for changes in data or map readiness
 watch(
   [() => props.locations, () => props.fitBounds, mapReady],
   ([newLocations, shouldFit, ready]) => {
     if (!ready || !map.value?.leafletObject) return;
 
-    if (shouldFit && newLocations.length > 0) {
+    if (shouldFit) {
       const bounds = L.latLngBounds(
         newLocations.map((loc) => [loc.latitude, loc.longitude]),
       );
-      map.value.leafletObject.fitBounds(bounds, { padding: [50, 50] });
+      map.value.leafletObject.fitBounds(bounds);
     } else {
-      map.value.leafletObject.setView(center.value, zoom.value);
+      map.value.leafletObject.setView(props.center, props.zoom);
     }
   },
-  { immediate: true, deep: true },
+  { immediate: true },
 );
 </script>
 
 <template>
-  <div class="isolate z-0 h-[400px] w-full overflow-hidden rounded-lg">
-    <l-map
-      ref="map"
-      :center="center"
-      :zoom="zoom"
-      @ready="onMapReady"
-      :use-global-leaflet="false"
-    >
+  <div class="isolate z-0 h-[650px] w-full overflow-hidden rounded-lg">
+    <l-map ref="map" :center="center" :zoom="zoom" @ready="onMapReady">
       <l-tile-layer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         layer-type="base"
@@ -74,22 +67,19 @@ watch(
         :lat-lng="[location.latitude, location.longitude]"
       >
         <l-popup>
-          <div class="p-1">
-            <h3 class="text-sm font-bold">{{ location.driver_name }}</h3>
-            <p class="text-xs text-gray-600">
-              Plate: {{ location.plate_number }}
-            </p>
-            <p class="mt-1 text-xs text-gray-500" v-if="location.payment_date">
-              Paid: {{ new Date(location.payment_date).toLocaleDateString() }}
-            </p>
-          </div>
+          <slot name="popup" :item="location">
+            <div class="p-1">
+              <p>Lat: {{ location.latitude }}</p>
+              <p>Lng: {{ location.longitude }}</p>
+            </div>
+          </slot>
         </l-popup>
       </l-marker>
     </l-map>
   </div>
 </template>
 
-<style>
+<style scoped>
 /* Fix for leaflet z-index issues in some Tailwind setups */
 .leaflet-pane {
   z-index: 10 !important;

@@ -169,7 +169,35 @@ watch(
         </div>
 
         <div class="w-full rounded-lg border shadow-sm">
-          <LeafletMap :locations="props.mapMarkers.data" :fit-bounds="true" />
+          <LeafletMap :locations="props.mapMarkers.data" :fit-bounds="true">
+            <template #popup="{ item }">
+              <div class="min-w-[150px] space-y-2 p-1">
+                <div class="border-b pb-1">
+                  <h3 class="font-bold text-gray-900">
+                    {{ item.driver_name }}
+                  </h3>
+                  <span
+                    class="rounded bg-blue-100 px-1.5 py-0.5 font-mono text-[10px] text-blue-700"
+                  >
+                    {{ item.plate_number }}
+                  </span>
+                </div>
+
+                <div class="space-y-1 text-xs text-gray-600">
+                  <div v-if="item.payment_date" class="flex justify-between">
+                    <span>Payment:</span>
+                    <span class="font-medium">
+                      {{ item.payment_date }}
+                    </span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Status:</span>
+                    <span class="font-bold text-green-600">Ended</span>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </LeafletMap>
         </div>
       </div>
     </div>
