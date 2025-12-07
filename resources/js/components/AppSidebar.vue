@@ -34,7 +34,6 @@ import {
   Ticket,
   UserCheck,
   Users,
-  UserX,
   Wrench,
 } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
@@ -143,6 +142,12 @@ const navConfig: Record<string, NavItem[]> = {
     },
 
     {
+      title: 'Driver Applications',
+      href: manager.driversApplication.index(),
+      icon: Users,
+      group: 'Management',
+    },
+    {
       title: 'Driver Management',
       href: manager.drivers.index(),
       icon: Users,
@@ -166,12 +171,6 @@ const navConfig: Record<string, NavItem[]> = {
     //   icon: Octagon,
     //   group: 'Management',
     // },
-    {
-      title: 'Suspend Drivers',
-      href: manager.suspendDrivers.index(),
-      icon: UserX,
-      group: 'Management',
-    },
 
     // {
     //   title: 'Reports & Analytics',
