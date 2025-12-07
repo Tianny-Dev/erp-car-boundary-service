@@ -64,6 +64,7 @@ class RevenueManagementController extends Controller
 
         if ($timePeriod === 'daily') {
             return Revenue::when($franchiseId, fn($q) => $q->where('franchise_id', $franchiseId))
+                ->where('service_type', 'Trips')
                 ->selectRaw("DATE(payment_date) as payment_date, SUM(amount) as total")
                 ->whereHas('status', function ($query) {
                     $query->where('name', 'paid');
@@ -79,6 +80,7 @@ class RevenueManagementController extends Controller
 
         if ($timePeriod === 'weekly') {
             return Revenue::when($franchiseId, fn($q) => $q->where('franchise_id', $franchiseId))
+                ->where('service_type', 'Trips')
                 ->selectRaw("
                     YEAR(payment_date) as year,
                     WEEK(payment_date, 1) as week_num,
@@ -99,6 +101,7 @@ class RevenueManagementController extends Controller
 
         if ($timePeriod === 'monthly') {
             return Revenue::when($franchiseId, fn($q) => $q->where('franchise_id', $franchiseId))
+                ->where('service_type', 'Trips')
                 ->selectRaw("
                     DATE_FORMAT(payment_date, '%Y-%m') as month_sort,
                     DATE_FORMAT(payment_date, '%M %Y') as month_name,
@@ -117,6 +120,7 @@ class RevenueManagementController extends Controller
 
         if ($timePeriod === 'yearly') {
             return Revenue::when($franchiseId, fn($q) => $q->where('franchise_id', $franchiseId))
+                ->where('service_type', 'Trips')
                 ->selectRaw("YEAR(payment_date) as year, SUM(amount) as total")
                 ->whereRelation('status', 'name', 'paid')
                 ->groupBy('year')
@@ -131,6 +135,7 @@ class RevenueManagementController extends Controller
 
         $query = Revenue::with(['status', 'franchise', 'branch', 'paymentOption'])
             ->when($franchiseId, fn($q) => $q->where('franchise_id', $franchiseId))
+            ->where('service_type', 'Trips')
             ->orderByDesc('payment_date');
 
         /**

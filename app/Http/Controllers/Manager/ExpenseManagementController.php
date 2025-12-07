@@ -15,7 +15,7 @@ class ExpenseManagementController extends Controller
         $timePeriod = $request->input('timePeriod', 'all');
 
         return Inertia::render('manager/expense-management/Index', [
-            'expenseTypeBreakdownData' => $this->getExpenseBreakdownByExpenseType($branchId),
+            // 'expenseTypeBreakdownData' => $this->getExpenseBreakdownByExpenseType($branchId),
             'expenseByPaymentOption' => $this->getExpenseByPaymentOption($branchId),
             'expenses' => $this->getPaginatedExpense($branchId, $timePeriod),
             'expenseTrendData' => $this->getExpenseTrendData($branchId),
@@ -33,14 +33,14 @@ class ExpenseManagementController extends Controller
     /**
      * Get expense breakdown by expense type.
      */
-    protected function getExpenseBreakdownByExpenseType(?int $branchId): array
-    {
-        return Expense::where('branch_id', $branchId)
-            ->selectRaw('expense_type as name, SUM(amount) as total')
-            ->groupBy('expense_type')
-            ->get()
-            ->toArray();
-    }
+    // protected function getExpenseBreakdownByExpenseType(?int $branchId): array
+    // {
+    //     return Expense::where('branch_id', $branchId)
+    //         ->selectRaw('expense_type as name, SUM(amount) as total')
+    //         ->groupBy('expense_type')
+    //         ->get()
+    //         ->toArray();
+    // }
 
     /**
      * Get expense breakdown by payment option.
@@ -161,7 +161,7 @@ class ExpenseManagementController extends Controller
                 'invoice_no' => $expense->invoice_no,
                 'amount' => $expense->amount,
                 'currency' => $expense->currency,
-                'expense_type' => $expense->expense_type,
+                // 'expense_type' => $expense->expense_type,
                 'payment_date' => $expense->payment_date,
                 'notes' => $expense->notes,
                 'status' => $expense->status?->name,

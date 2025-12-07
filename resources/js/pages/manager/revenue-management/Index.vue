@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import RevenueBreakDownPieChart from '@/components/manager/charts/revenue-management/RevenueBreakDownPieChart.vue';
 import RevenuePaymentOptionsBreakDownPieChart from '@/components/manager/charts/revenue-management/RevenuePaymentOptionsBreakDownPieChart.vue';
 import RevenueTrendSparkLine from '@/components/manager/charts/revenue-management/RevenueTrendSparkLine.vue';
 
@@ -87,7 +86,7 @@ interface Props {
 }
 
 const {
-  revenueServiceTypeBreakdownData,
+  // revenueServiceTypeBreakdownData,
   revenueByPaymentOption,
   revenues,
   revenueTrendData,
@@ -293,7 +292,7 @@ watch(
             <template v-if="!isGrouped">
               <TableRow>
                 <TableHead>Invoice No</TableHead>
-                <TableHead>Service Type</TableHead>
+                <!-- <TableHead>Service Type</TableHead> -->
                 <TableHead>Amount</TableHead>
                 <TableHead>Payment Date</TableHead>
                 <TableHead>Status</TableHead>
@@ -340,7 +339,7 @@ watch(
                 <TableCell class="font-medium">{{
                   revenue.invoice_no
                 }}</TableCell>
-                <TableCell>{{ revenue.service_type }}</TableCell>
+                <!-- <TableCell>{{ revenue.service_type }}</TableCell> -->
                 <TableCell class="font-medium"
                   >{{ revenue.currency }} {{ revenue.amount }}</TableCell
                 >
@@ -437,7 +436,7 @@ watch(
           </PaginationContent>
         </Pagination>
       </div>
-      <div class="grid gap-6 md:grid-cols-2">
+      <!-- <div class="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Revenue Breakdown by Type</CardTitle>
@@ -462,7 +461,19 @@ watch(
             />
           </CardContent>
         </Card>
-      </div>
+      </div> -->
+      <Card>
+        <CardHeader>
+          <CardTitle>Revenue Breakdown by Payment Options</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <RevenuePaymentOptionsBreakDownPieChart
+            :data="revenueByPaymentOption"
+            category="total"
+            title="Revenue"
+          />
+        </CardContent>
+      </Card>
       <Card>
         <CardHeader><CardTitle>Net Profit Trend</CardTitle></CardHeader>
         <CardContent>
