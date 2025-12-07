@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import ExpenseBreakDownDonutChart from '@/components/owner/charts/expense-management/ExpenseBreakDownDonutChart.vue';
 import ExpensePaymentOptionsBreakDownPieChart from '@/components/owner/charts/expense-management/ExpensePaymentOptionsBreakDownPieChart.vue';
 import ExpenseTrendSparkLine from '@/components/owner/charts/expense-management/ExpenseTrendSparkLine.vue';
 import { Badge } from '@/components/ui/badge';
@@ -51,7 +50,7 @@ interface Expense {
   invoice_no: string;
   amount: number;
   currency: string;
-  expense_type: string;
+  // expense_type: string;
   payment_date: string | null;
   notes: string | null;
   status: string | null;
@@ -83,7 +82,7 @@ interface ExpensesPaginator<T = any> {
 interface Props {
   expenses: ExpensesPaginator;
 
-  expenseTypeBreakdownData: { name: string; total: number }[];
+  // expenseTypeBreakdownData: { name: string; total: number }[];
   expenseByPaymentOption: { name: string; total: number }[];
 
   expenseTrendData: { year: number; expense: number }[];
@@ -93,7 +92,7 @@ interface Props {
 // Props and State
 // -------------------------
 const {
-  expenseTypeBreakdownData,
+  // expenseTypeBreakdownData,
   expenseByPaymentOption,
   expenses,
   expenseTrendData,
@@ -319,7 +318,7 @@ watch(
             <template v-if="!isGrouped">
               <TableRow>
                 <TableHead>Invoice No</TableHead>
-                <TableHead>Expense Type</TableHead>
+                <!-- <TableHead>Expense Type</TableHead> -->
                 <TableHead>Amount</TableHead>
                 <TableHead>Payment Date</TableHead>
                 <TableHead>Status</TableHead>
@@ -369,7 +368,7 @@ watch(
                 <TableCell class="font-medium">{{
                   expense.invoice_no
                 }}</TableCell>
-                <TableCell>{{ expense.expense_type }}</TableCell>
+                <!-- <TableCell>{{ expense.expense_type }}</TableCell> -->
                 <TableCell class="font-medium">
                   {{ expense.currency }} {{ expense.amount }}
                 </TableCell>
@@ -512,7 +511,7 @@ watch(
       </div>
 
       <!-- Charts Section -->
-      <div class="grid gap-6 md:grid-cols-2">
+      <!-- <div class="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Expense Breakdown by Type</CardTitle>
@@ -540,7 +539,21 @@ watch(
             />
           </CardContent>
         </Card>
-      </div>
+      </div> -->
+      <Card>
+        <CardHeader
+          ><CardTitle
+            >Revenue Breakdown by Payment Options</CardTitle
+          ></CardHeader
+        >
+        <CardContent>
+          <ExpensePaymentOptionsBreakDownPieChart
+            :data="expenseByPaymentOption"
+            category="total"
+            title="Expenses"
+          />
+        </CardContent>
+      </Card>
       <Card>
         <CardHeader>
           <CardTitle>Expense Trend</CardTitle>
@@ -577,9 +590,9 @@ watch(
 
         <div class="mt-2 space-y-2">
           <p><strong>Invoice No:</strong> {{ selectedExpense?.invoice_no }}</p>
-          <p>
+          <!-- <p>
             <strong>Service Type:</strong> {{ selectedExpense?.expense_type }}
-          </p>
+          </p> -->
           <p>
             <strong>Amount:</strong> {{ selectedExpense?.currency }}
             {{ selectedExpense?.amount.toLocaleString() }}
