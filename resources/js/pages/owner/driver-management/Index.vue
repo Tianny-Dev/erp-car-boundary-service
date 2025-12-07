@@ -10,6 +10,14 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
   Pagination,
   PaginationContent,
   PaginationEllipsis,
@@ -17,7 +25,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
-import { Spinner } from '@/components/ui/spinner';
 import {
   Table,
   TableBody,
@@ -26,13 +33,32 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import AppLayout from '@/layouts/AppLayout.vue';
 import owner from '@/routes/owner';
 import type { BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
-import { Search } from 'lucide-vue-next';
+import { Edit, Eye, Search, Trash } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
+
+interface DriverDetails {
+  license_number: string | null;
+  license_expiry: string | null;
+  is_verified: number | boolean | null;
+  shift: string | null;
+  hire_date: string | null;
+
+  front_license_picture: string | null;
+  back_license_picture: string | null;
+  nbi_clearance: string | null;
+  selfie_picture: string | null;
+}
 
 interface Driver {
   id: number;
@@ -45,6 +71,14 @@ interface Driver {
   province: string;
   city: string;
   barangay: string;
+  address: string;
+
+  details: DriverDetails;
+}
+
+interface Status {
+  id: number;
+  name: string;
 }
 
 interface DriversPaginator {
@@ -69,9 +103,10 @@ interface DriversPaginator {
 
 interface Props {
   drivers: DriversPaginator;
+  statuses: Status[];
 }
 
-const { drivers } = defineProps<Props>();
+const { drivers, statuses } = defineProps<Props>();
 const paginator = ref(drivers);
 
 // Dialog
@@ -81,6 +116,14 @@ const dialogOpen = ref(false);
 const viewDriver = (driver: Driver) => {
   selectedDriver.value = driver;
   dialogOpen.value = true;
+};
+
+const removeDialogOpen = ref(false);
+const driverToRemove = ref<Driver | null>(null);
+
+const confirmRemoveDriver = (driver: Driver) => {
+  driverToRemove.value = driver;
+  removeDialogOpen.value = true;
 };
 
 // -------------------------
@@ -149,6 +192,8 @@ const getStatusVariant = (status: string) => {
       return 'secondary';
     case 'retired':
       return 'destructive';
+    case 'suspended':
+      return 'destructive';
     default:
       return 'secondary';
   }
@@ -159,12 +204,13 @@ const getStatusVariant = (status: string) => {
 // -------------------------
 const updatingId = ref<number | null>(null);
 
-const toggleStatus = (id: number) => {
-  updatingId.value = id;
+const updateDriverStatus = (driverId: number, statusId: number) => {
+  updatingId.value = driverId;
   const toastId = toast.loading('Updating driver status...');
+
   router.put(
-    `/owner/drivers/${id}`,
-    {},
+    `/owner/drivers/${driverId}`,
+    { status_id: statusId },
     {
       onSuccess: () => toast.success('Driver status updated!', { id: toastId }),
       onError: () =>
@@ -172,6 +218,23 @@ const toggleStatus = (id: number) => {
       onFinish: () => (updatingId.value = null),
     },
   );
+};
+
+// remove driver from franchise
+const removeDriverFromFranchise = () => {
+  if (!driverToRemove.value) return;
+
+  const toastId = toast.loading('Removing driver from your franchise...');
+
+  router.delete(`/owner/drivers/${driverToRemove.value.id}`, {
+    onSuccess: () =>
+      toast.success('Driver removed successfully!', { id: toastId }),
+    onError: () => toast.error('Failed to remove driver.', { id: toastId }),
+    onFinish: () => {
+      driverToRemove.value = null;
+      removeDialogOpen.value = false;
+    },
+  });
 };
 </script>
 
@@ -182,7 +245,7 @@ const toggleStatus = (id: number) => {
       <!-- Header -->
       <div>
         <h1 class="mb-1 text-3xl font-bold">Driver Management</h1>
-        <p class="text-gray-600">Manage all franchise drivers</p>
+        <p class="text-gray-600">Driver Management on your franchise</p>
       </div>
 
       <!-- Filters -->
@@ -250,21 +313,62 @@ const toggleStatus = (id: number) => {
                 </Badge>
               </TableCell>
               <TableCell class="flex gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  :disabled="updatingId === driver.id"
-                  @click="toggleStatus(driver.id)"
-                >
-                  <Spinner
-                    v-if="updatingId === driver.id"
-                    class="mr-2 h-4 w-4"
-                  />
-                  <span v-else>Toggle Status</span>
-                </Button>
-                <Button size="sm" variant="default" @click="viewDriver(driver)">
-                  View
-                </Button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger as-child>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        @click="viewDriver(driver)"
+                        class="cursor-pointer"
+                      >
+                        <Eye />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>View</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger as-child
+                    ><Button size="sm" variant="outline" class="cursor-pointer">
+                      <Edit /> </Button
+                  ></DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuLabel>Action</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      v-for="status in statuses"
+                      :key="status.id"
+                      :disabled="driver.status === status.name"
+                      @click="updateDriverStatus(driver.id, status.id)"
+                    >
+                      {{
+                        status.name.charAt(0).toUpperCase() +
+                        status.name.slice(1)
+                      }}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger as-child>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        @click="confirmRemoveDriver(driver)"
+                      >
+                        <Trash />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Remove driver from your franchise</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </TableCell>
             </TableRow>
 
@@ -337,20 +441,95 @@ const toggleStatus = (id: number) => {
           </DialogDescription>
         </DialogHeader>
 
-        <div class="mt-2 space-y-2">
+        <!-- Driver Information -->
+        <div class="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
           <p><strong>ID:</strong> {{ selectedDriver?.id }}</p>
-          <p><strong>Username:</strong> {{ selectedDriver?.username }}</p>
           <p><strong>Email:</strong> {{ selectedDriver?.email }}</p>
+
           <p><strong>Phone:</strong> {{ selectedDriver?.phone }}</p>
+          <p><strong>Status:</strong> {{ selectedDriver?.status }}</p>
+
           <p><strong>Region:</strong> {{ selectedDriver?.region }}</p>
           <p><strong>Province:</strong> {{ selectedDriver?.province }}</p>
           <p><strong>City:</strong> {{ selectedDriver?.city }}</p>
           <p><strong>Barangay:</strong> {{ selectedDriver?.barangay }}</p>
-          <p><strong>Status:</strong> {{ selectedDriver?.status || '—' }}</p>
+          <p><strong>Address:</strong> {{ selectedDriver?.address }}</p>
+        </div>
+
+        <!-- Driver License Information -->
+        <div class="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+          <p>
+            <strong>License Number:</strong>
+            {{ selectedDriver?.details.license_number }}
+          </p>
+          <p>
+            <strong>License Expiry:</strong>
+            {{ selectedDriver?.details.license_expiry }}
+          </p>
+        </div>
+
+        <!-- Optional Images -->
+        <div v-if="selectedDriver?.details" class="mt-4">
+          <h3 class="mb-2 text-sm font-semibold">Driver Documents</h3>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div v-if="selectedDriver.details.front_license_picture">
+              <p class="mb-1 text-xs text-gray-500">Front License</p>
+              <img
+                :src="selectedDriver.details.front_license_picture"
+                class="h-28 w-full rounded border object-cover"
+              />
+            </div>
+
+            <div v-if="selectedDriver.details.back_license_picture">
+              <p class="mb-1 text-xs text-gray-500">Back License</p>
+              <img
+                :src="selectedDriver.details.back_license_picture"
+                class="h-28 w-full rounded border object-cover"
+              />
+            </div>
+
+            <div v-if="selectedDriver.details.nbi_clearance">
+              <p class="mb-1 text-xs text-gray-500">NBI Clearance</p>
+              <img
+                :src="selectedDriver.details.nbi_clearance"
+                class="h-28 w-full rounded border object-cover"
+              />
+            </div>
+
+            <div v-if="selectedDriver.details.selfie_picture">
+              <p class="mb-1 text-xs text-gray-500">Selfie</p>
+              <img
+                :src="selectedDriver.details.selfie_picture"
+                class="h-28 w-full rounded border object-cover"
+              />
+            </div>
+          </div>
         </div>
 
         <DialogFooter>
           <Button @click="dialogOpen = false">Close</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    <Dialog v-model:open="removeDialogOpen">
+      <DialogContent class="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Confirm Removal</DialogTitle>
+          <DialogDescription>
+            Are you sure you want to remove
+            <strong>{{ driverToRemove?.name }}</strong> from your franchise?
+          </DialogDescription>
+        </DialogHeader>
+
+        <DialogFooter class="flex justify-end gap-2">
+          <Button variant="outline" @click="removeDialogOpen = false"
+            >Cancel</Button
+          >
+          <Button variant="destructive" @click="removeDriverFromFranchise">
+            Confirm
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -3,9 +3,10 @@
 use App\Http\Controllers\Owner\BoundaryContractController;
 use App\Http\Controllers\Owner\DashboardController;
 use App\Http\Controllers\Owner\DetailsDriverController;
+use App\Http\Controllers\Owner\DriverApplicationController;
+use App\Http\Controllers\Owner\DriverManagementController;
 use App\Http\Controllers\Owner\ReportDriverController;
 use App\Http\Controllers\Owner\ExpenseManagementController;
-use App\Http\Controllers\Owner\FranchiseDriverController;
 use App\Http\Controllers\Owner\MaintenanceRequestController;
 use App\Http\Controllers\Owner\NotificationController;
 use App\Http\Controllers\Owner\PayOutController;
@@ -28,11 +29,12 @@ Route::middleware(['auth', 'verified', 'user_type:owner', 'check.active'])->pref
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications');
     Route::get('/payout', [PayOutController::class, 'index'])->name('payout');
 
-    Route::resource('drivers', FranchiseDriverController::class);
+    Route::resource('drivers', DriverManagementController::class);
+    Route::resource('drivers-application', DriverApplicationController::class);
     Route::resource('vehicles', VehicleController::class);
     Route::resource('vehicle-drivers', VehicleDriverController::class);
 
-    Route::put('/drivers/{id}/status', [FranchiseDriverController::class, 'updateStatus'])
+    Route::put('/drivers/{id}/status', [DriverManagementController::class, 'updateStatus'])
     ->name('drivers.updateStatus');
 
     // export for driver
@@ -40,9 +42,6 @@ Route::middleware(['auth', 'verified', 'user_type:owner', 'check.active'])->pref
     Route::get('/driverreport/export', [ReportDriverController::class, 'export'])->name('driverownerreport.export');
     Route::get('driverreport/details', [DetailsDriverController::class, 'show'])->name('driverownerreport.details');
     Route::get('/driverreport/details/export', [DetailsDriverController::class, 'exportDetails'])->name('driverownerreport_details.export');
-
-    // Suspend Driver
-    Route::resource('suspend-drivers', SuspendDriverController::class);
 
     Route::resource('maintenance-requests', MaintenanceRequestController::class);
 });

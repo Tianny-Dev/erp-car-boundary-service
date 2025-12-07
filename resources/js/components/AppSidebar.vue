@@ -20,7 +20,6 @@ import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import {
   Banknote,
-  Bell,
   CarTaxiFront,
   ChartNoAxesCombined,
   DollarSign,
@@ -30,11 +29,11 @@ import {
   HelpCircle,
   History,
   LayoutGrid,
+  Map,
   ReceiptText,
   Ticket,
   UserCheck,
   Users,
-  UserX,
   Wrench,
 } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
@@ -90,6 +89,12 @@ const navConfig: Record<string, NavItem[]> = {
       group: 'Fleet',
     },
     {
+      title: 'Trip Monitoring',
+      href: superAdmin.route.index(),
+      icon: Map,
+      group: 'Fleet',
+    },
+    {
       title: 'Revenue Report',
       href: superAdmin.revenue.index(),
       icon: DollarSign,
@@ -122,12 +127,12 @@ const navConfig: Record<string, NavItem[]> = {
       icon: LayoutGrid,
       group: 'Overview',
     },
-    {
-      title: 'Notifications',
-      href: manager.notifications(),
-      icon: Bell,
-      group: 'Overview',
-    },
+    // {
+    //   title: 'Notifications',
+    //   href: manager.notifications(),
+    //   icon: Bell,
+    //   group: 'Overview',
+    // },
 
     {
       title: 'Payout',
@@ -136,6 +141,12 @@ const navConfig: Record<string, NavItem[]> = {
       group: 'Payment',
     },
 
+    {
+      title: 'Driver Applications',
+      href: manager.driversApplication.index(),
+      icon: Users,
+      group: 'Management',
+    },
     {
       title: 'Driver Management',
       href: manager.drivers.index(),
@@ -160,12 +171,6 @@ const navConfig: Record<string, NavItem[]> = {
     //   icon: Octagon,
     //   group: 'Management',
     // },
-    {
-      title: 'Suspend Drivers',
-      href: manager.suspendDrivers.index(),
-      icon: UserX,
-      group: 'Management',
-    },
 
     // {
     //   title: 'Reports & Analytics',
@@ -208,12 +213,12 @@ const navConfig: Record<string, NavItem[]> = {
       icon: LayoutGrid,
       group: 'Overview',
     },
-    {
-      title: 'Notifications',
-      href: owner.notifications(),
-      icon: Bell,
-      group: 'Overview',
-    },
+    // {
+    //   title: 'Notifications',
+    //   href: owner.notifications(),
+    //   icon: Bell,
+    //   group: 'Overview',
+    // },
 
     {
       title: 'Payout',
@@ -222,6 +227,12 @@ const navConfig: Record<string, NavItem[]> = {
       group: 'Payment',
     },
 
+    {
+      title: 'Driver Applications',
+      href: owner.driversApplication.index(),
+      icon: Users,
+      group: 'Management',
+    },
     {
       title: 'Driver Management',
       href: owner.drivers.index(),
@@ -246,12 +257,12 @@ const navConfig: Record<string, NavItem[]> = {
       icon: FileText,
       group: 'Management',
     },
-    {
-      title: 'Suspend Drivers',
-      href: owner.suspendDrivers.index(),
-      icon: UserX,
-      group: 'Management',
-    },
+    // {
+    //   title: 'Suspend Drivers',
+    //   href: owner.suspendDrivers.index(),
+    //   icon: UserX,
+    //   group: 'Management',
+    // },
 
     // {
     //   title: 'Reports & Analytics',

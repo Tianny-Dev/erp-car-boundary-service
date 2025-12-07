@@ -14,6 +14,7 @@ use App\Http\Controllers\SuperAdmin\RevenueController;
 use App\Http\Controllers\SuperAdmin\TransactionController;
 use App\Http\Controllers\SuperAdmin\EarningController;
 use App\Http\Controllers\SuperAdmin\BoundaryContractController;
+use App\Http\Controllers\SuperAdmin\RouteController;
 
 Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-admin')->name('super-admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -60,4 +61,6 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
     Route::get('/boundary-contract/create', [BoundaryContractController::class, 'create'])->name('boundaryContract.create');
     Route::get('/boundary-contract/resources', [BoundaryContractController::class, 'getContractResources'])->name('boundaryContract.resources');
     Route::get('/boundary-contract/{contract}', [BoundaryContractController::class, 'show'])->name('boundaryContract.show');
+
+    Route::get('/route', [RouteController::class, 'index'])->name('route.index');
 });
