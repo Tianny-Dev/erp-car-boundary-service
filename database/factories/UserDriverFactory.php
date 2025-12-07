@@ -13,6 +13,8 @@ class UserDriverFactory extends Factory
     {
 
         $statusId = fake()->randomElement([1, 1, 1, 2]);
+        $latitude = fake()->latitude(15.1, 15.2); // Roughly Angeles, Pampanga
+        $longitude = fake()->longitude(120.55, 120.65);
 
         return [
             // 'id' is intentionally omitted here
@@ -21,6 +23,9 @@ class UserDriverFactory extends Factory
             'payment_option_id' => random_int(1, 4), // From PaymentOptionSeeder
             'license_number' => fake()->unique()->bothify('??-########'),
             'is_verified' => $statusId == 1,
+            'is_online' => $statusId == 1,
+            'latitude' => $statusId == 1 ? $latitude : null,
+            'longitude' => $statusId == 1 ? $longitude : null,
             'license_expiry' => fake()->dateTimeBetween('+1 year', '+5 years'),
             'front_license_picture' => fake()->imageUrl(640, 480, 'license', true),
             'back_license_picture' => fake()->imageUrl(640, 480, 'license', true),
