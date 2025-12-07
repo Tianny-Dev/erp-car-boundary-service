@@ -27,12 +27,25 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
-import manager from '@/routes/manager';
+import owner from '@/routes/owner';
 import type { BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import { Search } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
+
+interface DriverDetails {
+  license_number: string | null;
+  license_expiry: string | null;
+  is_verified: number | boolean | null;
+  shift: string | null;
+  hire_date: string | null;
+
+  front_license_picture: string | null;
+  back_license_picture: string | null;
+  nbi_clearance: string | null;
+  selfie_picture: string | null;
+}
 
 interface Driver {
   id: number;
@@ -45,6 +58,9 @@ interface Driver {
   province: string;
   city: string;
   barangay: string;
+  address: string;
+
+  details: DriverDetails;
 }
 
 interface DriversPaginator {
@@ -77,6 +93,8 @@ const paginator = ref(drivers);
 // Dialog
 const selectedDriver = ref<Driver | null>(null);
 const dialogOpen = ref(false);
+const confirmDialogOpen = ref(false);
+const driverToToggle = ref<Driver | null>(null);
 
 const viewDriver = (driver: Driver) => {
   selectedDriver.value = driver;
@@ -98,7 +116,7 @@ watch(
 // Breadcrumbs
 // -------------------------
 const breadcrumbs: BreadcrumbItem[] = [
-  { title: 'Driver Management', href: manager.drivers.index().url },
+  { title: 'Driver Applications', href: owner.drivers.index().url },
 ];
 
 // -------------------------
@@ -163,7 +181,7 @@ const toggleStatus = (id: number) => {
   updatingId.value = id;
   const toastId = toast.loading('Updating driver status...');
   router.put(
-    `/manager/drivers/${id}`,
+    `/owner/drivers-application/${id}`,
     {},
     {
       onSuccess: () => toast.success('Driver status updated!', { id: toastId }),
@@ -176,13 +194,15 @@ const toggleStatus = (id: number) => {
 </script>
 
 <template>
-  <Head title="Driver Management" />
+  <Head title="Driver Applications" />
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="space-y-6 p-6">
       <!-- Header -->
       <div>
-        <h1 class="mb-1 text-3xl font-bold">Driver Management</h1>
-        <p class="text-gray-600">Manage all franchise drivers</p>
+        <h1 class="mb-1 text-3xl font-bold">Driver Applications</h1>
+        <p class="text-gray-600">
+          Accept the applications of drivers to your franchise
+        </p>
       </div>
 
       <!-- Filters -->
@@ -254,7 +274,10 @@ const toggleStatus = (id: number) => {
                   size="sm"
                   variant="outline"
                   :disabled="updatingId === driver.id"
-                  @click="toggleStatus(driver.id)"
+                  @click="
+                    driverToToggle = driver;
+                    confirmDialogOpen = true;
+                  "
                 >
                   <Spinner
                     v-if="updatingId === driver.id"
@@ -262,6 +285,7 @@ const toggleStatus = (id: number) => {
                   />
                   <span v-else>Toggle Status</span>
                 </Button>
+
                 <Button size="sm" variant="default" @click="viewDriver(driver)">
                   View
                 </Button>
@@ -351,6 +375,110 @@ const toggleStatus = (id: number) => {
 
         <DialogFooter>
           <Button @click="dialogOpen = false">Close</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    <Dialog v-model:open="confirmDialogOpen">
+      <DialogContent class="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle class="text-xl font-semibold">
+            Confirm Status Change
+          </DialogTitle>
+
+          <DialogDescription class="text-gray-600">
+            You are about to toggle the status of
+            <span class="font-semibold text-gray-900">
+              {{ driverToToggle?.name }} </span
+            >.
+          </DialogDescription>
+        </DialogHeader>
+
+        <!-- Driver Information -->
+        <div class="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+          <p><strong>ID:</strong> {{ driverToToggle?.id }}</p>
+          <p><strong>Email:</strong> {{ driverToToggle?.email }}</p>
+
+          <p><strong>Phone:</strong> {{ driverToToggle?.phone }}</p>
+          <p><strong>Status:</strong> {{ driverToToggle?.status }}</p>
+
+          <p><strong>Region:</strong> {{ driverToToggle?.region }}</p>
+          <p><strong>Province:</strong> {{ driverToToggle?.province }}</p>
+          <p><strong>City:</strong> {{ driverToToggle?.city }}</p>
+          <p><strong>Barangay:</strong> {{ driverToToggle?.barangay }}</p>
+          <p><strong>Address:</strong> {{ driverToToggle?.address }}</p>
+        </div>
+
+        <!-- Driver License Information -->
+        <div class="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+          <p>
+            <strong>License Number:</strong>
+            {{ driverToToggle?.details.license_number }}
+          </p>
+          <p>
+            <strong>License Expiry:</strong>
+            {{ driverToToggle?.details.license_expiry }}
+          </p>
+        </div>
+
+        <!-- Optional Images -->
+        <div v-if="driverToToggle?.details" class="mt-4">
+          <h3 class="mb-2 text-sm font-semibold">Driver Documents</h3>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div v-if="driverToToggle.details.front_license_picture">
+              <p class="mb-1 text-xs text-gray-500">Front License</p>
+              <img
+                :src="driverToToggle.details.front_license_picture"
+                class="h-28 w-full rounded border object-cover"
+              />
+            </div>
+
+            <div v-if="driverToToggle.details.back_license_picture">
+              <p class="mb-1 text-xs text-gray-500">Back License</p>
+              <img
+                :src="driverToToggle.details.back_license_picture"
+                class="h-28 w-full rounded border object-cover"
+              />
+            </div>
+
+            <div v-if="driverToToggle.details.nbi_clearance">
+              <p class="mb-1 text-xs text-gray-500">NBI Clearance</p>
+              <img
+                :src="driverToToggle.details.nbi_clearance"
+                class="h-28 w-full rounded border object-cover"
+              />
+            </div>
+
+            <div v-if="driverToToggle.details.selfie_picture">
+              <p class="mb-1 text-xs text-gray-500">Selfie</p>
+              <img
+                :src="driverToToggle.details.selfie_picture"
+                class="h-28 w-full rounded border object-cover"
+              />
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter class="mt-6 flex justify-end gap-2">
+          <Button variant="outline" @click="confirmDialogOpen = false">
+            Cancel
+          </Button>
+
+          <Button
+            variant="default"
+            :disabled="updatingId === driverToToggle?.id"
+            @click="
+              toggleStatus(driverToToggle!.id);
+              confirmDialogOpen = false;
+            "
+          >
+            <Spinner
+              v-if="updatingId === driverToToggle?.id"
+              class="mr-2 h-4 w-4"
+            />
+            <span v-else>Confirm</span>
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

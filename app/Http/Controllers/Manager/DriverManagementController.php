@@ -4,10 +4,11 @@ namespace App\Http\Controllers\Manager;
 
 use App\Http\Controllers\Controller;
 use App\Models\Status;
+use App\Models\UserDriver;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-class SuspendDriverController extends Controller
+class DriverManagementController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -38,13 +39,38 @@ class SuspendDriverController extends Controller
                 'province' => $driver->user?->province,
                 'city' => $driver->user?->city,
                 'barangay' => $driver->user?->barangay,
+                'address' => $driver->user?->address,
                 'status' => $driver->status?->name,
+
+                'details' => [
+                    'license_number'  => $driver->license_number,
+                    'license_expiry'  => $driver->license_expiry,
+                    'is_verified'     => $driver->is_verified,
+                    'shift'           => $driver->shift,
+                    'hire_date'       => $driver->hire_date,
+
+                    'front_license_picture' => $driver->front_license_picture
+                        ? asset('storage/' . $driver->front_license_picture)
+                        : null,
+
+                    'back_license_picture' => $driver->back_license_picture
+                        ? asset('storage/' . $driver->back_license_picture)
+                        : null,
+
+                    'nbi_clearance' => $driver->nbi_clearance
+                        ? asset('storage/' . $driver->nbi_clearance)
+                        : null,
+
+                    'selfie_picture' => $driver->selfie_picture
+                        ? asset('storage/' . $driver->selfie_picture)
+                        : null,
+                ],
             ]);
 
-        $statuses = Status::whereIn('name', ['active', 'suspended'])
+        $statuses = Status::whereIn('name', ['active', 'suspended', 'retired', 'inactive'])
             ->get(['id', 'name']);
 
-        return Inertia::render('manager/suspend-driver/Index', [
+        return Inertia::render('manager/driver-management/Index', [
             'drivers' => $drivers,
             'statuses' => $statuses,
         ]);
@@ -114,6 +140,14 @@ class SuspendDriverController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $driver = UserDriver::findOrFail($id);
+
+        $ownerBranches = auth()->user()->managerDetails->branches->pluck('id');
+
+        $driver->branches()->detach($ownerBranches);
+        $driver->status_id = 6;
+        $driver->save();
+
+        return back()->with('success', 'Driver removed from your branch successfully.');
     }
 }

@@ -17,6 +17,9 @@ return new class extends Migration
             $table->foreignId('payment_option_id')->constrained('payment_options')->onDelete('restrict');
             $table->string('license_number', 20)->unique();
             $table->boolean('is_verified')->default(false);
+            $table->boolean('is_online')->default(false);
+            $table->decimal('latitude', 10, 8)->nullable();
+            $table->decimal('longitude', 11, 8)->nullable();
             $table->date('license_expiry');
             $table->string('front_license_picture');
             $table->string('back_license_picture');
