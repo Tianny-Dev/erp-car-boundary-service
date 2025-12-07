@@ -89,8 +89,8 @@ const navConfig: Record<string, NavItem[]> = {
       group: 'Fleet',
     },
     {
-      title: 'Trip Monitoring',
-      href: superAdmin.route.index(),
+      title: 'Gps Monitoring',
+      href: superAdmin.gpsTracker.index(),
       icon: Map,
       group: 'Fleet',
     },
