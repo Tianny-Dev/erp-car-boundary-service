@@ -11,13 +11,16 @@ class UserDriverFactory extends Factory
 
     public function definition(): array
     {
+
+        $statusId = fake()->randomElement([1, 1, 1, 2]);
+
         return [
             // 'id' is intentionally omitted here
             // It will be provided by the UserFactory
-            'status_id' => fake()->randomElement([1, 1, 1, 2]),
+            'status_id' => $statusId,
             'payment_option_id' => random_int(1, 4), // From PaymentOptionSeeder
             'license_number' => fake()->unique()->bothify('??-########'),
-            'is_verified' => fake()->boolean(),
+            'is_verified' => $statusId == 1,
             'license_expiry' => fake()->dateTimeBetween('+1 year', '+5 years'),
             'front_license_picture' => fake()->imageUrl(640, 480, 'license', true),
             'back_license_picture' => fake()->imageUrl(640, 480, 'license', true),
