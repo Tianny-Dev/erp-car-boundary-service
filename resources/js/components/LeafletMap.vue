@@ -98,8 +98,10 @@ watch(driversListSignature, () => {
 
 <style scoped>
 /* Ensure map controls sit above other UI elements if necessary */
-:deep(.leaflet-bottom),
-:deep(.leaflet-top) {
-  z-index: 400;
+.leaflet-pane {
+  z-index: 10;
+}
+.leaflet-bottom {
+  z-index: 20;
 }
 </style>

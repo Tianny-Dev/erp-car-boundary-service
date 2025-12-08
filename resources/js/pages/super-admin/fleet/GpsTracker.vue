@@ -101,8 +101,6 @@ const refreshMapMarkers = () => {
 
   router.reload({
     only: ['mapMarkers'], // Only fetch the markers, ignore dropdown lists
-    preserveState: true, // Keep the user's current scroll position and component state
-    preserveScroll: true,
     // Explicitly pass current filters to ensure the backend query is accurate
     data: {
       tab: activeTab.value,
@@ -127,7 +125,7 @@ onMounted(() => {
 
   handleUserActivity(); // specific init
   // 10 seconds (30000ms)
-  refreshInterval = setInterval(refreshMapMarkers, 10 * 1000);
+  refreshInterval = setInterval(refreshMapMarkers, 30 * 1000);
 });
 
 onUnmounted(() => {
@@ -155,7 +153,7 @@ const updateFilters = () => {
     queryParams.branch = selectedBranch.value;
   }
 
-  router.get(superAdmin.route.index().url, queryParams, {
+  router.get(superAdmin.gpsTracker.index().url, queryParams, {
     preserveScroll: true,
     replace: true, // Doesn't pollute browser history
   });
