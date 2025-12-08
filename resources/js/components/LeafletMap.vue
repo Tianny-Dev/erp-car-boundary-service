@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { LMap, LMarker, LPopup, LTileLayer } from '@vue-leaflet/vue-leaflet';
-import L from 'leaflet';
+import L, { type Icon } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { computed, nextTick, ref, watch } from 'vue';
 
@@ -18,7 +18,41 @@ const props = defineProps<{
   fitBounds?: boolean;
 }>();
 
-// --- 3. State ---
+// --- Custom Marker Icons ---
+const createCustomIcon = (color: 'green' | 'red'): Icon => {
+  const colorMap = {
+    green: '#16a34a',
+    red: '#dc2626',
+  };
+
+  const svgIcon = `
+    <svg width="25" height="41" viewBox="0 0 25 41" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12.5 0C5.596 0 0 5.596 0 12.5c0 9.375 12.5 28.5 12.5 28.5S25 21.875 25 12.5C25 5.596 19.404 0 12.5 0z" 
+            fill="${colorMap[color]}" 
+            stroke="#fff" 
+            stroke-width="1"/>
+      <circle cx="12.5" cy="12.5" r="4" fill="#fff"/>
+    </svg>
+  `;
+
+  return L.icon({
+    iconUrl: `data:image/svg+xml;base64,${btoa(svgIcon)}`,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+  });
+};
+
+const onlineIcon = createCustomIcon('green');
+const offlineIcon = createCustomIcon('red');
+
+// Helper to get the correct icon
+const getMarkerIcon = (location: MarkerData) => {
+  const isOnline = location.isOnline === 1 || location.isOnline === true;
+  return isOnline ? onlineIcon : offlineIcon;
+};
+
+// --- State ---
 const map = ref<any>(null);
 const mapReady = ref(false);
 
@@ -83,6 +117,7 @@ watch(driversListSignature, () => {
         v-for="location in props.locations"
         :key="location.id"
         :lat-lng="[location.latitude, location.longitude]"
+        :icon="getMarkerIcon(location)"
       >
         <l-popup>
           <slot name="popup" :item="location">

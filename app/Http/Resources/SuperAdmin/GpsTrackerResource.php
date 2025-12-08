@@ -20,6 +20,7 @@ class GpsTrackerResource extends JsonResource
             'plate_number' => $this->whenLoaded('vehicles', fn () => optional($this->vehicles->first())->plate_number),
             'latitude' => (float) $this->latitude,
             'longitude' => (float) $this->longitude,
+            'isOnline' => $this->is_online,
         ];
 
         // Conditionally add franchise_name if the relation is loaded and not empty

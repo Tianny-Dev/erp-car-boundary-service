@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import LeafletMap, { type MarkerData } from '@/components/LeafletMap.vue';
+import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -243,11 +244,33 @@ watch(
             <template #popup="{ item }">
               <div class="min-w-[150px] space-y-2 p-1">
                 <div class="border-b pb-1">
+                  <h3 class="text-sm text-gray-500">
+                    {{ item.franchise_name ?? item.branch_name }}
+                  </h3>
+                </div>
+                <div class="flex items-center justify-between gap-2">
                   <h3 class="font-bold text-gray-900">
                     {{ item.name }}
                   </h3>
+                  <Badge
+                    :class="[
+                      item.isOnline
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-red-100 text-red-700',
+                    ]"
+                  >
+                    {{ item.isOnline ? 'Online' : 'Offline' }}
+                  </Badge>
+                </div>
+                <div v-if="!item.isOnline">
+                  <span class="font-mono text-xs text-rose-600"
+                    >driver last seen is here</span
+                  >
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="font-semibold text-gray-600">Plate No:</span>
                   <span
-                    class="rounded bg-blue-100 px-1.5 py-0.5 font-mono text-[10px] text-blue-700"
+                    class="inline-block rounded bg-blue-100 px-1.5 py-0.5 font-mono text-sm font-semibold text-blue-700"
                   >
                     {{ item.plate_number }}
                   </span>
