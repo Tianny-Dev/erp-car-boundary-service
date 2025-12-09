@@ -20,12 +20,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useDetailsModal } from '@/composables/useDetailsModal';
 import AppLayout from '@/layouts/AppLayout.vue';
 import superAdmin from '@/routes/super-admin';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import { type ColumnDef } from '@tanstack/vue-table';
 import {
   AlertCircleIcon,
@@ -74,6 +82,7 @@ defineProps<{
     data: BranchRow[];
   };
   stats: Stats;
+  pendingManagers: any[];
 }>();
 
 const formatCurrency = (amount: number): string => {
@@ -330,6 +339,38 @@ const handleAcceptFranchise = () => {
   );
 };
 
+// --- Assign Modal State ---
+const isAssignModalOpen = ref(false);
+const selectedBranch = ref<Partial<BranchRow>>({});
+const isAssigningManager = ref(false);
+
+const assignForm = useForm({
+  assign_id: '' as string | number,
+});
+
+const openAssignModal = (branch: BranchRow) => {
+  selectedBranch.value = branch;
+  assignForm.reset();
+  isAssignModalOpen.value = true;
+};
+
+const handleAssignManager = () => {
+  if (!selectedBranch.value?.id) return;
+  isAssigningManager.value = true;
+  assignForm.patch(superAdmin.branch.assign(selectedBranch.value.id).url, {
+    onSuccess: () => {
+      isAssignModalOpen.value = false;
+      toast.success('Manager assigned successfully!');
+    },
+    onFinish: () => {
+      setTimeout(() => {
+        isAssigningManager.value = false;
+        assignForm.reset();
+      }, 500);
+    },
+  });
+};
+
 const franchiseColumns: ColumnDef<FranchiseRow>[] = [
   {
     accessorKey: 'name',
@@ -497,6 +538,20 @@ const branchColumns: ColumnDef<BranchRow>[] = [
                       onClick: () => managerModal.open(branch.manager_id),
                     },
                     () => 'View Manager Details',
+                  ),
+                ]
+              : null,
+
+            branch.manager_name === null
+              ? [
+                  h(DropdownMenuSeparator),
+                  h(
+                    DropdownMenuItem,
+                    {
+                      class: 'cursor-pointer text-blue-500 focus:text-blue-600',
+                      onClick: () => openAssignModal(branch),
+                    },
+                    () => 'Assign Manager',
                   ),
                 ]
               : null,
@@ -853,6 +908,54 @@ const branchColumns: ColumnDef<BranchRow>[] = [
 
       <DialogFooter class="mt-5">
         <Button variant="outline" @click="managerModal.close">Close</Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+
+  <Dialog v-model:open="isAssignModalOpen">
+    <DialogContent class="max-w-md font-mono">
+      <DialogHeader>
+        <DialogTitle class="text-xl">Assign Manager</DialogTitle>
+        <DialogDescription>
+          Assign a manager to this branch
+          <strong>{{ selectedBranch.name }}</strong
+          >. This will set the status of the manager to active.
+        </DialogDescription>
+      </DialogHeader>
+
+      <div class="grid gap-4 py-4">
+        <div class="grid gap-2">
+          <Label>Available Managers</Label>
+          <Select v-model="assignForm.assign_id">
+            <SelectTrigger>
+              <SelectValue placeholder="Select manager" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem
+                v-for="item in pendingManagers"
+                :key="item.id"
+                :value="String(item.id)"
+              >
+                {{ item.name }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          <p v-if="assignForm.errors.assign_id" class="text-sm text-red-500">
+            {{ assignForm.errors.assign_id }}
+          </p>
+        </div>
+      </div>
+
+      <DialogFooter>
+        <Button variant="outline" @click="isAssignModalOpen = false"
+          >Cancel</Button
+        >
+        <Button
+          @click="handleAssignManager"
+          :disabled="assignForm.processing || !assignForm.assign_id"
+        >
+          {{ assignForm.processing ? 'Assigning...' : 'Confirm Assignment' }}
+        </Button>
       </DialogFooter>
     </DialogContent>
   </Dialog>

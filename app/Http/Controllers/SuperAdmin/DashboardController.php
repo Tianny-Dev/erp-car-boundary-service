@@ -7,6 +7,7 @@ use App\Models\Franchise;
 use App\Models\Branch;
 use App\Models\Revenue;
 use App\Models\Expense;
+use App\Models\UserManager;
 use App\Http\Resources\SuperAdmin\FranchiseDatatableResource;
 use App\Http\Resources\SuperAdmin\BranchDatatableResource;
 use Inertia\Inertia;
@@ -46,6 +47,18 @@ class DashboardController extends Controller
             'status:id,name'
         ])->get();
 
+        $pendingManagers = UserManager::with(['user:id,name'])
+        ->whereHas('status', function ($query) {
+            $query->where('name', 'pending');
+        })
+        ->get()
+        ->map(function ($manager) {
+            return [
+                'id' => $manager->id,
+                'name' => $manager->user->name,
+            ];
+        });
+
         return Inertia::render('super-admin/dashboard/Index', [
             'franchises' => FranchiseDatatableResource::collection($franchises),
             'branches' => BranchDatatableResource::collection($branches),
@@ -55,6 +68,7 @@ class DashboardController extends Controller
                 'total_franchises' => $totalFranchises,
                 'total_branches' => $totalBranches,
             ],
+            'pendingManagers' => $pendingManagers
         ]);
     }
 }

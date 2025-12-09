@@ -18,7 +18,7 @@ use App\Models\PaymentOption;
 use App\Models\Status;
 use App\Models\User;
 use App\Models\UserType;
-
+use App\Rules\ManagerWithoutBranch;
 
 class BranchController extends Controller
 {
@@ -109,5 +109,24 @@ class BranchController extends Controller
         });
 
         return redirect(route('super-admin.dashboard'));
+    }
+
+    public function assign(Request $request, Branch $branch)
+    {
+        $validated = $request->validate([
+            'assign_id' => ['required', 'integer', 'exists:user_managers,id', new ManagerWithoutBranch],
+        ]);
+
+        DB::transaction(function () use ($branch, $validated) {
+            $activeStatus = Status::where('name', 'active')->firstOrFail();
+
+            // Assign manager and activate branch in one go
+            $branch->update([
+                'manager_id' => $validated['assign_id'],
+                'status_id'  => $activeStatus->id,
+            ]);
+        });
+
+        return back();
     }
 }
