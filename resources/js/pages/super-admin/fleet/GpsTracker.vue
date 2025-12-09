@@ -126,7 +126,7 @@ onMounted(() => {
 
   handleUserActivity(); // specific init
   // 10 seconds (30000ms)
-  refreshInterval = setInterval(refreshMapMarkers, 30 * 1000);
+  refreshInterval = setInterval(refreshMapMarkers, 10 * 1000);
 });
 
 onUnmounted(() => {

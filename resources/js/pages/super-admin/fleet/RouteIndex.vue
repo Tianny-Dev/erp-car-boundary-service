@@ -9,9 +9,9 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/AppLayout.vue';
-import superAdmin from '@/routes/super-admin';
+// import superAdmin from '@/routes/super-admin';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/vue3';
+import { Head } from '@inertiajs/vue3';
 import { debounce } from 'lodash-es';
 import { computed, ref, watch } from 'vue';
 
@@ -31,10 +31,10 @@ const props = defineProps<{
 
 // --- 3. Setup Breadcrumbs ---
 const breadcrumbs: BreadcrumbItem[] = [
-  {
-    title: 'Trip Monitoring',
-    href: superAdmin.route.index().url,
-  },
+  // {
+  //   title: 'Trip Monitoring',
+  //   href: superAdmin.route.index().url,
+  // },
 ];
 
 // --- 4. Setup Reactive State for Filters ---
@@ -86,10 +86,10 @@ const updateFilters = () => {
     queryParams.branch = selectedBranch.value;
   }
 
-  router.get(superAdmin.route.index().url, queryParams, {
-    preserveScroll: true,
-    replace: true, // Doesn't pollute browser history
-  });
+  // router.get(superAdmin.route.index().url, queryParams, {
+  //   preserveScroll: true,
+  //   replace: true, // Doesn't pollute browser history
+  // });
 };
 
 // Watch for tab changes (instant update)
