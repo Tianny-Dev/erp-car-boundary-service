@@ -365,10 +365,7 @@ watchEffect(() => {
             </Label>
           </div>
 
-          <div
-            v-if="form.has_manager"
-            class="space-y-4 rounded-lg border bg-gray-50 p-4"
-          >
+          <div v-if="form.has_manager" class="space-y-4 rounded-lg border p-4">
             <div class="grid grid-cols-1 items-start gap-4 md:grid-cols-3">
               <StepPersonal
                 :errors="form.errors"

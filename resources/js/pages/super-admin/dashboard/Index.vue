@@ -95,6 +95,10 @@ const createBranch = () => {
   router.get(superAdmin.branch.create().url);
 };
 
+const createManager = () => {
+  router.get(superAdmin.manager.create().url);
+};
+
 interface FranchiseModal {
   id: number;
   status: string;
@@ -484,14 +488,18 @@ const branchColumns: ColumnDef<BranchRow>[] = [
               },
               () => 'View Branch Details',
             ),
-            h(
-              DropdownMenuItem,
-              {
-                class: 'cursor-pointer',
-                onClick: () => managerModal.open(branch.manager_id),
-              },
-              () => 'View Manager Details',
-            ),
+            branch.manager_name !== null
+              ? [
+                  h(
+                    DropdownMenuItem,
+                    {
+                      class: 'cursor-pointer',
+                      onClick: () => managerModal.open(branch.manager_id),
+                    },
+                    () => 'View Manager Details',
+                  ),
+                ]
+              : null,
           ]),
         ]),
       ]);
@@ -594,6 +602,9 @@ const branchColumns: ColumnDef<BranchRow>[] = [
           search-placeholder="Search branches..."
         >
           <template #custom-actions>
+            <Button class="me-1" @click="createManager"
+              ><PlusIcon />Add Manager</Button
+            >
             <Button class="me-5" @click="createBranch"
               ><PlusIcon />Add Branch</Button
             >

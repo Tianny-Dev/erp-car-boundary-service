@@ -27,7 +27,9 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
     Route::post('/branch', [BranchController::class, 'store'])->name('branch.store');
     Route::get('/branch/{branch}', [BranchController::class, 'show'])->name('branch.show');
 
+    Route::get('/manager/create', [ManagerController::class, 'create'])->name('manager.create');
     Route::get('/manager/{manager}', [ManagerController::class, 'show'])->name('manager.show');
+    Route::post('/manager', [ManagerController::class, 'store'])->name('manager.store');
 
     Route::get('/revenue', [RevenueController::class, 'index'])->name('revenue.index');
     Route::get('/revenue/export', [RevenueController::class, 'export'])->name('revenue.export');

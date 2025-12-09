@@ -234,7 +234,7 @@ function removeFile(side: 'front' | 'back') {
     }}</Label>
     <div class="grid grid-cols-2 gap-3">
       <div>
-        <Label class="mb-2 block text-sm font-semibold text-gray-600">{{
+        <Label class="mb-2 block text-sm font-semibold">{{
           labels.validIdUploadFront
         }}</Label>
         <div
@@ -273,7 +273,7 @@ function removeFile(side: 'front' | 'back') {
         </div>
       </div>
       <div>
-        <Label class="mb-2 block text-sm font-semibold text-gray-600">{{
+        <Label class="mb-2 block text-sm font-semibold">{{
           labels.validIdUploadBack
         }}</Label>
         <div
