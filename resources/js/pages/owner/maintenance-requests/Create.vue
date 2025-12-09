@@ -100,7 +100,7 @@ const submit = () => {
 	<AppLayout :breadcrumbs="breadcrumbs">
 		<div class="m-6 max-w-full rounded-xl border p-6 shadow-sm">
 			<h2 class="mb-6 font-mono text-2xl font-bold">
-				Create New Maitenance Request
+				Create New Maintenance Request
 			</h2>
 
 			<form @submit.prevent="submit" class="flex flex-col gap-6">
@@ -252,7 +252,7 @@ const submit = () => {
 						>Reset</Button
 					>
 					<Button type="submit" :disabled="form.processing || disableSubmit">
-						{{ form.processing ? 'Saving...' : 'Create Maitenance Request' }}
+						{{ form.processing ? 'Saving...' : 'Create Maintenance Request' }}
 					</Button>
 				</div>
 			</form>
