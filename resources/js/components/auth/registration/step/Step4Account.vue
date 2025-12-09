@@ -238,7 +238,7 @@ function removeFile(side: 'front' | 'back') {
           labels.validIdUploadFront
         }}</Label>
         <div
-          class="relative flex h-24 flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 transition-colors hover:bg-gray-100"
+          class="relative flex h-24 flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 transition-colors hover:bg-accent"
           :class="{ 'cursor-pointer': !computedValidIdFront }"
           @click="!computedValidIdFront && licenseFrontInput?.click()"
         >
@@ -277,7 +277,7 @@ function removeFile(side: 'front' | 'back') {
           labels.validIdUploadBack
         }}</Label>
         <div
-          class="relative flex h-24 flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 transition-colors hover:bg-gray-100"
+          class="relative flex h-24 flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 transition-colors hover:bg-accent"
           :class="{ 'cursor-pointer': !computedValidIdBack }"
           @click="!computedValidIdBack && licenseBackInput?.click()"
         >

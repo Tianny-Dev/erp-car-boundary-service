@@ -112,6 +112,7 @@ const refreshMapMarkers = () => {
       franchise:
         selectedFranchise.value !== 'all' ? selectedFranchise.value : null,
       branch: selectedBranch.value !== 'all' ? selectedBranch.value : null,
+      driver: selectedDriver.value !== 'all' ? selectedDriver.value : null,
     },
     onSuccess: () => {
       console.log('GPS positions updated');
