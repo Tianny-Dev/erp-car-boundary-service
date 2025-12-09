@@ -1,9 +1,19 @@
 <script setup lang="ts">
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/AppLayout.vue';
 import owner from '@/routes/owner';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   Pagination,
   PaginationContent,
@@ -20,16 +30,23 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Search } from 'lucide-vue-next';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { Eye, Search, PlusIcon } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
 interface Request {
   id: number;
   vehicle: Vehicle | null;
-  maintenance_type: string;
+  inventory: Inventory | null;
   description: string;
   maintenance_date: string | null;
   next_maintenance_date: string | null;
+  status: string;
 }
 
 interface Vehicle {
@@ -40,6 +57,14 @@ interface Vehicle {
   model: string;
   color: string;
   year: number;
+}
+
+interface Inventory {
+  id: number;
+  code_no: string;
+  name: string;
+  category: string;
+  specification: string;
 }
 
 interface RequestsPaginator {
@@ -98,29 +123,17 @@ const globalFilter = ref('');
 // -------------------------
 // Dialog
 // -------------------------
-// const selectedContract = ref<Request | null>(null);
-// const showDepositDialog = ref(false);
+const selectedRequest = ref<Request | null>(null);
+const dialogOpen = ref(false);
 
 // const filteredData = computed(() => {
 //   if (!globalFilter.value) return paginator.value.data;
 //   const search = globalFilter.value.toLowerCase();
 
-// const openDepositDialog = (contract: Contract) => {
-//   selectedContract.value = contract;
-//   showDepositDialog.value = true;
-// };
-
-// const handleDepositAction = (action: 'approved' | 'flagged') => {
-//   if (selectedContract.value) {
-//     const index = paginator.value.data.findIndex(
-//       (item) => item.id === selectedContract.value!.id,
-//     );
-//     if (index !== -1) {
-//       paginator.value.data[index].depositStatus = action;
-//     }
-//   }
-//   showDepositDialog.value = false;
-// };
+const viewRequest = (request: Request) => {
+  selectedRequest.value = request;
+  dialogOpen.value = true;
+};
 
 // -------------------------
 // Computed: Filtered data for client-side search
@@ -130,7 +143,6 @@ const filteredData = computed(() => {
   const search = globalFilter.value.toLowerCase();
 
   return paginator.value.data.filter((item) => {
-    // Flatten searchable fields including vehicle
     const vehicleStr = item.vehicle
       ? [
           item.vehicle.plate_number,
@@ -144,7 +156,6 @@ const filteredData = computed(() => {
 
     return (
       item.description.toLowerCase().includes(search) ||
-      item.maintenance_type.toLowerCase().includes(search) ||
       vehicleStr.toLowerCase().includes(search)
     );
   });
@@ -185,6 +196,24 @@ watch([globalFilter], () => {
     { preserveState: true, preserveScroll: true },
   );
 });
+
+// -------------------------
+// Helpers
+// -------------------------
+const getStatusVariant = (status: string) => {
+  switch (status) {
+    case 'completed':
+      return 'default';
+    case 'active':
+      return 'secondary';
+    default:
+      return 'secondary';
+  }
+};
+
+const createRequest = () => {
+  router.get(owner.maintenanceRequests.create().url);
+};
 </script>
 
 <template>
@@ -223,19 +252,26 @@ watch([globalFilter], () => {
             <SelectItem value="retired">Retired</SelectItem>
           </SelectContent>
         </Select> -->
+
+        <Button class="me-5" @click="createRequest"
+          ><PlusIcon />New Request</Button
+        >
       </div>
 
       <div class="overflow-x-auto rounded-lg border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Brand</TableHead>
-              <TableHead>Model</TableHead>
+              <!-- <TableHead>Brand</TableHead> -->
+              <!-- <TableHead>Model</TableHead> -->
+              <TableHead>Vehicle</TableHead>
               <TableHead>Plate Number</TableHead>
               <TableHead>VIN</TableHead>
-              <TableHead>Type</TableHead>
+              <TableHead>Inventory</TableHead>
               <TableHead>Description</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead>Date</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
 
@@ -247,13 +283,44 @@ watch([globalFilter], () => {
             </TableRow>
 
             <TableRow v-for="request in filteredData" :key="request.id">
-              <TableCell>{{ request.vehicle?.brand }}</TableCell>
-              <TableCell>{{ request.vehicle?.model }}</TableCell>
+              <!-- <TableCell>{{ request.vehicle?.brand }}</TableCell>
+              <TableCell>{{ request.vehicle?.model }}</TableCell> -->
+              <TableCell
+                >{{ request.vehicle?.brand }}
+                {{ request.vehicle?.model }}</TableCell
+              >
               <TableCell>{{ request.vehicle?.plate_number }}</TableCell>
               <TableCell>{{ request.vehicle?.vin }}</TableCell>
-              <TableCell>{{ request.maintenance_type }}</TableCell>
+              <TableCell>{{ request.inventory?.name }}</TableCell>
               <TableCell>{{ request.description }}</TableCell>
+              <TableCell>
+                <Badge
+                  :variant="getStatusVariant(request.status)"
+                  class="capitalize"
+                >
+                  {{ request.status }}
+                </Badge>
+              </TableCell>
               <TableCell>{{ request.maintenance_date }}</TableCell>
+              <TableCell class="flex gap-2">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger as-child>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        @click="viewRequest(request)"
+                        class="cursor-pointer"
+                      >
+                        <Eye />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>View</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </TableCell>
             </TableRow>
           </TableBody>
         </Table>
@@ -304,5 +371,74 @@ watch([globalFilter], () => {
         </Pagination>
       </div>
     </div>
+
+    <Dialog v-model:open="dialogOpen">
+      <DialogContent class="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Maintenance Request Information</DialogTitle>
+          <DialogDescription>
+            Detailed information for request
+            <strong>{{ selectedRequest?.id }}</strong
+            >.
+          </DialogDescription>
+        </DialogHeader>
+
+        <!-- Request Information -->
+        <div class="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+          <p><strong>ID:</strong> {{ selectedRequest?.id }}</p>
+          <p><strong>Status:</strong> {{ selectedRequest?.status }}</p>
+
+          <p>
+            <strong>Description:</strong> {{ selectedRequest?.description }}
+          </p>
+          <p>
+            <strong>Maintenance Date:</strong>
+            {{ selectedRequest?.maintenance_date }}
+          </p>
+          <p>
+            <strong>Next Maintenance Date:</strong>
+            {{ selectedRequest?.next_maintenance_date }}
+          </p>
+        </div>
+
+        <!-- Vehicle Information -->
+        <div
+          v-if="selectedRequest?.vehicle"
+          class="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm"
+        >
+          <p>
+            <strong>Plate Number:</strong>
+            {{ selectedRequest.vehicle.plate_number }}
+          </p>
+          <p><strong>VIN:</strong> {{ selectedRequest.vehicle.vin }}</p>
+          <p><strong>Brand:</strong> {{ selectedRequest.vehicle.brand }}</p>
+          <p><strong>Model:</strong> {{ selectedRequest.vehicle.model }}</p>
+          <p><strong>Color:</strong> {{ selectedRequest.vehicle.color }}</p>
+          <p><strong>Year:</strong> {{ selectedRequest.vehicle.year }}</p>
+        </div>
+
+        <!-- Inventory Information -->
+        <div
+          v-if="selectedRequest?.inventory"
+          class="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm"
+        >
+          <p>
+            <strong>Code No:</strong> {{ selectedRequest.inventory.code_no }}
+          </p>
+          <p><strong>Name:</strong> {{ selectedRequest.inventory.name }}</p>
+          <p>
+            <strong>Category:</strong> {{ selectedRequest.inventory.category }}
+          </p>
+          <p>
+            <strong>Specification:</strong>
+            {{ selectedRequest.inventory.specification }}
+          </p>
+        </div>
+
+        <DialogFooter>
+          <Button @click="dialogOpen = false">Close</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </AppLayout>
 </template>
