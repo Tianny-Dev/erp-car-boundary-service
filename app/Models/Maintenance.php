@@ -17,6 +17,7 @@ class Maintenance extends Model
         'technician_id',
         'franchise_id',
         'branch_id',
+        'inventory_id',
         'description',
         'maintenance_date',
         'next_maintenance_date',

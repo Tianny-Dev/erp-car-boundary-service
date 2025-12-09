@@ -3,8 +3,12 @@
 namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Owner\StoreMaintenanceRequest;
 use App\Models\Maintenance;
+use App\Models\Inventory;
+use App\Models\Status;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class MaintenanceRequestController extends Controller
@@ -65,12 +69,16 @@ class MaintenanceRequestController extends Controller
                     'maintenance_date' => $request->maintenance_date,
                     'next_maintenance_date' => $request->next_maintenance_date,
 
+                    'status' => $request->status?->name,
+
                     'vehicle' => $request->vehicle ? [
                         'id' => $request->vehicle->id,
                         'plate_number' => $request->vehicle->plate_number,
                         'vin' => $request->vehicle->vin,
                         'brand' => $request->vehicle->brand,
                         'model' => $request->vehicle->model,
+                        'color' => $request->vehicle->color,
+                        'year' => $request->vehicle->year,
                     ] : null,
 
                     'inventory' => $request->inventory ? [
@@ -93,15 +101,71 @@ class MaintenanceRequestController extends Controller
      */
     public function create()
     {
-        //
+        $franchise = auth()->user()->ownerDetails?->franchises()->first();
+
+        if (!$franchise) {
+            abort(404, 'Franchise not found');
+        }
+
+        // Vehicles in this franchise
+        $vehicles = $franchise->vehicles()
+            ->with(['status'])
+            ->get()
+            ->map(function ($vehicle) {
+                return [
+                    'id' => $vehicle->id,
+                    'plate_number' => $vehicle->plate_number,
+                    'vin' => $vehicle->vin,
+                    'brand' => $vehicle->brand,
+                    'model' => $vehicle->model,
+                    'color' => $vehicle->color,
+                    'year' => $vehicle->year,
+                    'status_id' => $vehicle->status_id,
+                    'status_name' => $vehicle->status->name,
+                ];
+            });
+
+        $technicians = $franchise->technicians()
+            ->with('user')
+            ->get()
+            ->map(fn($technicians) => [
+                'id' => $technicians->id,
+                'name' => $technicians->user?->name,
+                'email' => $technicians->user?->email,
+                'phone' => $technicians->user?->phone,
+            ]);
+
+        $inventories = Inventory::all();
+
+        return Inertia::render('owner/maintenance-requests/Create', [
+            'vehicles' => $vehicles,
+            'technicians' => $technicians,
+            'inventories' => $inventories,
+        ]);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreMaintenanceRequest $request)
     {
-        //
+        DB::transaction(function () use ($request) {
+            $pendingStatusId = Status::where('name', 'active')->firstOrFail()->id;
+            $franchise = auth()->user()->ownerDetails?->franchises()->first();
+            $franchiseId = $franchise?->id;
+
+            Maintenance::create([
+                'vehicle_id' => $request->vehicle,
+                'status_id' => $pendingStatusId,
+                'technician_id' => $request->technician,
+                'inventory_id' => $request->inventory,
+                'description' => $request->description,
+                'maintenance_date' => $request->maintenance_date,
+                'next_maintenance_date' => $request->next_maintenance_date,
+            ]);
+        });
+
+        return to_route('owner.maintenance-requests.index');
     }
 
     /**
