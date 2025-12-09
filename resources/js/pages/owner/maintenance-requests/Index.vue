@@ -26,7 +26,7 @@ import { computed, ref, watch } from 'vue';
 interface Request {
   id: number;
   vehicle: Vehicle | null;
-  maintenance_type: string;
+  inventory: Inventory | null;
   description: string;
   maintenance_date: string | null;
   next_maintenance_date: string | null;
@@ -40,6 +40,14 @@ interface Vehicle {
   model: string;
   color: string;
   year: number;
+}
+
+interface Inventory {
+  id: number;
+  code_no: string;
+  name: string;
+  category: string;
+  specification: string;
 }
 
 interface RequestsPaginator {
@@ -144,7 +152,6 @@ const filteredData = computed(() => {
 
     return (
       item.description.toLowerCase().includes(search) ||
-      item.maintenance_type.toLowerCase().includes(search) ||
       vehicleStr.toLowerCase().includes(search)
     );
   });
@@ -233,7 +240,7 @@ watch([globalFilter], () => {
               <TableHead>Model</TableHead>
               <TableHead>Plate Number</TableHead>
               <TableHead>VIN</TableHead>
-              <TableHead>Type</TableHead>
+              <TableHead>Inventory</TableHead>
               <TableHead>Description</TableHead>
               <TableHead>Date</TableHead>
             </TableRow>
@@ -251,7 +258,7 @@ watch([globalFilter], () => {
               <TableCell>{{ request.vehicle?.model }}</TableCell>
               <TableCell>{{ request.vehicle?.plate_number }}</TableCell>
               <TableCell>{{ request.vehicle?.vin }}</TableCell>
-              <TableCell>{{ request.maintenance_type }}</TableCell>
+              <TableCell>{{ request.inventory?.name }}</TableCell>
               <TableCell>{{ request.description }}</TableCell>
               <TableCell>{{ request.maintenance_date }}</TableCell>
             </TableRow>

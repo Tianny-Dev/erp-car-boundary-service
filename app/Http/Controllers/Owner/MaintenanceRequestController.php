@@ -17,8 +17,12 @@ class MaintenanceRequestController extends Controller
         $franchise = $this->getFranchiseOrDefault();
         $franchiseId = $franchise?->id;
 
-        $query = Maintenance::with(['status', 'franchise', 'vehicle'])
-            ->when($franchiseId, fn ($q) => $q->where('franchise_id', $franchiseId))
+        $query = Maintenance::with(['status', 'vehicle', 'inventory'])
+            ->when($franchiseId, function ($q) use ($franchiseId) {
+                $q->whereHas('vehicle', function ($v) use ($franchiseId) {
+                    $v->where('franchise_id', $franchiseId);
+                });
+            })
             ->orderBy('created_at', 'desc');
 
         // Filter by status
@@ -31,10 +35,13 @@ class MaintenanceRequestController extends Controller
         // Global search
         if ($search = request('search')) {
             $query->where(function ($q) use ($search) {
+
+                // Search maintenance fields
                 $q->where('description', 'like', "%{$search}%")
-                ->orWhere('maintenance_type', 'like', "%{$search}%")
-                ->orWhereHas('franchise', fn($q2) => $q2->where('name', 'like', "%{$search}%"))
-                ->orWhereHas('vehicle', function ($q2) use ($search) {
+                    ->orWhere('maintenance_type', 'like', "%{$search}%");
+
+                // Search vehicle fields
+                $q->orWhereHas('vehicle', function ($q2) use ($search) {
                     $q2->where(function ($q3) use ($search) {
                         $q3->where('plate_number', 'like', "%{$search}%")
                             ->orWhere('vin', 'like', "%{$search}%")
@@ -47,6 +54,7 @@ class MaintenanceRequestController extends Controller
             });
         }
 
+        // Paginate
         $requests = $query
             ->paginate(10)
             ->through(function ($request) {
@@ -63,6 +71,14 @@ class MaintenanceRequestController extends Controller
                         'vin' => $request->vehicle->vin,
                         'brand' => $request->vehicle->brand,
                         'model' => $request->vehicle->model,
+                    ] : null,
+
+                    'inventory' => $request->inventory ? [
+                        'id' => $request->inventory->id,
+                        'code_no' => $request->inventory->code_no,
+                        'name' => $request->inventory->name,
+                        'category' => $request->inventory->category,
+                        'specification' => $request->inventory->specification,
                     ] : null,
                 ];
             });
