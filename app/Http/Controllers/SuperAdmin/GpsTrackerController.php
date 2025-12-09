@@ -20,21 +20,25 @@ class GpsTrackerController extends Controller
             'tab' => ['sometimes', 'string', Rule::in(['franchise', 'branch'])],
             'franchise' => ['sometimes', 'nullable', 'string'],
             'branch' => ['sometimes', 'nullable', 'string'],
+            'driver' => ['sometimes', 'nullable', 'string'],
         ]);
 
         $filters = [
             'tab' => $validated['tab'] ?? 'franchise',
             'franchise' => $validated['franchise'] ?? null,
             'branch' => $validated['branch'] ?? null,
+            'driver' => $validated['driver'] ?? null,
         ];
 
         // 1. Fetch Map Data
         $mapRoutes = $this->getOnlineDriverLocations($filters);
+        $driversList = $this->getContextualDrivers($filters);
 
         return Inertia::render('super-admin/fleet/GpsTracker', [
             'mapMarkers' => GpsTrackerResource::collection($mapRoutes),
             'franchises' => fn () => Franchise::select('id', 'name')->get(),
             'branches' => fn () => Branch::select('id', 'name')->get(),
+            'drivers' => fn () => $driversList,
             'filters' => $filters,
         ]);
     }
@@ -52,6 +56,11 @@ class GpsTrackerController extends Controller
                 'user:id,name',
                 'vehicles:id,driver_id,plate_number',  
             ]);
+
+        // Filter by specific driver if selected
+        $query->when($filters['driver'] && $filters['driver'] !== 'all', function ($q) use ($filters) {
+            $q->where('id', $filters['driver']);
+        });
 
         // Apply tab-specific filtering
         if ($filters['tab'] === 'franchise') {
@@ -76,5 +85,40 @@ class GpsTrackerController extends Controller
         }
 
         return $query->get();
+    }
+
+    /**
+     * Efficiently fetches drivers based on the current view context
+     */
+    private function getContextualDrivers(array $filters)
+    {
+        // Start with UserDriver and join the base User table to get names
+        $query = UserDriver::query()
+            ->join('users', 'user_drivers.id', '=', 'users.id')
+            ->select('user_drivers.id', 'users.name');
+
+        if ($filters['tab'] === 'franchise') {
+            if (!empty($filters['franchise']) && $filters['franchise'] !== 'all') {
+                // Get drivers strictly belonging to this franchise
+                $query->whereHas('franchises', function ($q) use ($filters) {
+                    $q->where('franchises.id', $filters['franchise']);
+                });
+            } else {
+                // Get ALL drivers that belong to ANY franchise
+                $query->has('franchises');
+            }
+        } elseif ($filters['tab'] === 'branch') {
+            if (!empty($filters['branch']) && $filters['branch'] !== 'all') {
+                // Get drivers strictly belonging to this branch
+                $query->whereHas('branches', function ($q) use ($filters) {
+                    $q->where('branches.id', $filters['branch']);
+                });
+            } else {
+                // Get ALL drivers that belong to ANY branch
+                $query->has('branches');
+            }
+        }
+
+        return $query->orderBy('users.name')->get();
     }
 }

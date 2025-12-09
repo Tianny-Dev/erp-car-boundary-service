@@ -23,10 +23,12 @@ const props = defineProps<{
   };
   franchises: { id: number; name: string }[];
   branches: { id: number; name: string }[];
+  drivers: { id: number; name: string }[];
   filters: {
     tab: 'franchise' | 'branch';
     franchise: string | null;
     branch: string | null;
+    driver: string | null;
   };
 }>();
 
@@ -42,6 +44,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 const activeTab = ref(props.filters.tab || 'franchise');
 const selectedFranchise = ref(props.filters.franchise || 'all');
 const selectedBranch = ref(props.filters.branch || 'all');
+const selectedDriver = ref(props.filters.driver || 'all');
 
 // --- 5. Computed Properties for UI ---
 const title = computed(() => {
@@ -68,6 +71,7 @@ const selectedFilter = computed({
     } else {
       selectedBranch.value = value;
     }
+    selectedDriver.value = 'all';
   },
 });
 
@@ -144,6 +148,10 @@ const updateFilters = () => {
     tab: activeTab.value,
   };
 
+  if (selectedDriver.value && selectedDriver.value !== 'all') {
+    queryParams.driver = selectedDriver.value;
+  }
+
   // **This is the crucial part for "no conflicts"**
   // Only add the 'franchise' param if the tab is 'franchise'
   if (activeTab.value === 'franchise' && selectedFranchise.value !== 'all') {
@@ -169,11 +177,13 @@ watch(activeTab, (newTab) => {
   } else {
     selectedFranchise.value = 'all';
   }
+  // The main watcher will handle the update
+  selectedDriver.value = 'all';
 });
 
 // Watch for select filter changes (debounced)
 watch(
-  [selectedFranchise, selectedBranch, activeTab],
+  [selectedFranchise, selectedBranch, activeTab, selectedDriver],
   debounce(() => {
     updateFilters();
   }, 300), // Debounce to avoid firing on every keystroke/click
@@ -215,6 +225,22 @@ watch(
           </h2>
 
           <div class="flex gap-4">
+            <Select v-model="selectedDriver">
+              <SelectTrigger class="w-[200px]">
+                <SelectValue placeholder="Select Driver" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Drivers</SelectItem>
+                <SelectItem
+                  v-for="driver in drivers"
+                  :key="driver.id"
+                  :value="String(driver.id)"
+                >
+                  {{ driver.name }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+
             <Select v-model="selectedFilter">
               <SelectTrigger class="w-[240px]">
                 <SelectValue placeholder="Filter by..." />
