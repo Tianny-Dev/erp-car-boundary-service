@@ -204,6 +204,12 @@ const navConfig: Record<string, NavItem[]> = {
       icon: HelpCircle,
       group: 'Support',
     },
+    {
+      title: 'Maintenance Requests',
+      href: manager.maintenanceRequests.index(),
+      icon: Wrench,
+      group: 'Support',
+    },
   ],
 
   owner: [

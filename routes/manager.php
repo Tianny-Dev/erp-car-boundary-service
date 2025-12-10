@@ -5,6 +5,7 @@ use App\Http\Controllers\Manager\DashboardController;
 use App\Http\Controllers\Manager\DriverApplicationController;
 use App\Http\Controllers\Manager\DriverManagementController;
 use App\Http\Controllers\Manager\RevenueManagementController;
+use App\Http\Controllers\Manager\MaintenanceRequestController;
 use App\Http\Controllers\Manager\ExpenseManagementController;
 use App\Http\Controllers\Manager\ReportAndAnalyticController;
 use App\Http\Controllers\Manager\SupportCenterController;
@@ -40,4 +41,6 @@ Route::middleware(['auth', 'verified', 'user_type:manager'])->prefix('manager')-
     Route::get('/driverreport/export', [ReportDriverController::class, 'export'])->name('driverownerreport.export');
     Route::get('driverreport/details', [DetailsDriverController::class, 'show'])->name('driverownerreport.details');
     Route::get('/driverreport/details/export', [DetailsDriverController::class, 'exportDetails'])->name('driverownerreport_details.export');
+
+    Route::resource('maintenance-requests', MaintenanceRequestController::class);
 });
