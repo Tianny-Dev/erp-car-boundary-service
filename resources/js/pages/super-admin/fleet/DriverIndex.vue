@@ -17,6 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import {
   Select,
@@ -31,11 +32,12 @@ import { useDetailsModal } from '@/composables/useDetailsModal';
 import AppLayout from '@/layouts/AppLayout.vue';
 import superAdmin from '@/routes/super-admin';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import { type ColumnDef } from '@tanstack/vue-table';
 import { debounce } from 'lodash-es';
 import { AlertCircleIcon, MoreHorizontal } from 'lucide-vue-next';
 import { computed, h, ref, watch } from 'vue';
+import { toast } from 'vue-sonner';
 
 // --- Define Props ---
 const props = defineProps<{
@@ -167,6 +169,40 @@ const driverModal = useDetailsModal<DriverModal>({
   baseUrl: '/super-admin/driver',
 });
 
+// --- Change Status Modal State ---
+const isChangeModalOpen = ref(false);
+const selectedDriver = ref<Partial<DriverRow>>({});
+
+const changeForm = useForm({
+  status: '' as string,
+});
+
+const openChangeModal = (driver: DriverRow) => {
+  selectedDriver.value = driver;
+  isChangeModalOpen.value = true;
+};
+
+const handleChangeDriver = () => {
+  if (!selectedDriver.value?.id) return;
+
+  changeForm.patch(
+    superAdmin.driver.change(selectedDriver.value.id).url,
+    {
+      onSuccess: () => {
+        changeForm.reset();
+        isChangeModalOpen.value = false;
+        toast.success('Driver change status successfully!');
+      },
+    },
+  );
+};
+
+const statuses = [
+  { value: 'active', label: 'Active' },
+  { value: 'retired', label: 'Retired' },
+  { value: 'suspended', label: 'Suspended' },
+];
+
 // Computed columns for the data table
 const driverColumns = computed<ColumnDef<DriverRow>[]>(() => {
   const baseColumns: ColumnDef<DriverRow>[] = [
@@ -232,6 +268,18 @@ const driverColumns = computed<ColumnDef<DriverRow>[]>(() => {
                 },
                 () => 'View Driver Details',
               ),
+              h(DropdownMenuSeparator),
+              [
+                h(
+                  DropdownMenuItem,
+                  {
+                    class: 'cursor-pointer text-blue-500 focus:text-blue-600',
+                    onClick: () => openChangeModal(driver),
+                  },
+                  () => 'Change Status',
+                ),
+              ]
+              ,
             ]),
           ]),
         ]);
@@ -285,34 +333,25 @@ watch(
 </script>
 
 <template>
+
   <Head title="Driver Management" />
 
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div
-      class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
-    >
+    <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
       <Tabs v-model="activeTab" class="w-full">
         <TabsList class="w-full justify-start p-1.5">
-          <TabsTrigger
-            value="franchise"
-            class="cursor-pointer font-semibold"
-            :class="{ 'pointer-events-none': activeTab === 'franchise' }"
-          >
+          <TabsTrigger value="franchise" class="cursor-pointer font-semibold"
+            :class="{ 'pointer-events-none': activeTab === 'franchise' }">
             Franchise
           </TabsTrigger>
-          <TabsTrigger
-            value="branch"
-            class="cursor-pointer font-semibold"
-            :class="{ 'pointer-events-none': activeTab === 'branch' }"
-          >
+          <TabsTrigger value="branch" class="cursor-pointer font-semibold"
+            :class="{ 'pointer-events-none': activeTab === 'branch' }">
             Branch
           </TabsTrigger>
         </TabsList>
       </Tabs>
 
-      <div
-        class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border"
-      >
+      <div class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border">
         <div class="mb-4 flex items-center justify-between">
           <h2 class="font-mono text-xl font-semibold">
             {{ title }}
@@ -345,12 +384,8 @@ watch(
                   All
                   {{ activeTab === 'franchise' ? 'Franchises' : 'Branches' }}
                 </SelectItem>
-                <SelectItem
-                  class="cursor-pointer"
-                  v-for="option in selectOptions"
-                  :key="option.id"
-                  :value="String(option.id)"
-                >
+                <SelectItem class="cursor-pointer" v-for="option in selectOptions" :key="option.id"
+                  :value="String(option.id)">
                   {{ option.name }}
                 </SelectItem>
               </SelectContent>
@@ -358,11 +393,7 @@ watch(
           </div>
         </div>
 
-        <DataTable
-          :columns="driverColumns"
-          :data="drivers.data"
-          search-placeholder="Search drivers..."
-        />
+        <DataTable :columns="driverColumns" :data="drivers.data" search-placeholder="Search drivers..." />
       </div>
     </div>
   </AppLayout>
@@ -380,20 +411,12 @@ watch(
           </template>
         </div>
 
-        <div
-          v-else-if="driverDetails.length > 0"
-          class="grid grid-cols-2 gap-4"
-        >
+        <div v-else-if="driverDetails.length > 0" class="grid grid-cols-2 gap-4">
           <template v-for="item in driverDetails" :key="item.label">
             <div class="font-medium">{{ item.label }}:</div>
 
             <div v-if="item.type === 'link'">
-              <a
-                :href="item.value"
-                target="_blank"
-                class="text-blue-500 hover:underline"
-                >View</a
-              >
+              <a :href="item.value" target="_blank" class="text-blue-500 hover:underline">View</a>
             </div>
 
             <div v-else>
@@ -403,10 +426,7 @@ watch(
         </div>
 
         <div v-else-if="driverModal.isError.value">
-          <Alert
-            variant="destructive"
-            class="border-2 border-red-500 shadow-lg"
-          >
+          <Alert variant="destructive" class="border-2 border-red-500 shadow-lg">
             <AlertCircleIcon class="h-4 w-4" />
             <AlertTitle class="font-bold">Error</AlertTitle>
             <AlertDescription class="font-semibold">
@@ -418,6 +438,44 @@ watch(
 
       <DialogFooter class="mt-5">
         <Button variant="outline" @click="driverModal.close">Close</Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+
+  <Dialog v-model:open="isChangeModalOpen">
+    <DialogContent class="max-w-md font-mono">
+      <DialogHeader>
+        <DialogTitle class="text-xl">Change Driver Status</DialogTitle>
+        <DialogDescription>
+          Change the status of <strong class="text-blue-500">{{ selectedDriver?.name }}</strong>. From {{
+            selectedDriver?.status_name
+          }} to <em>"{{ changeForm.status }}"</em>.
+        </DialogDescription>
+      </DialogHeader>
+
+      <div class="grid gap-4 py-4">
+        <div class="grid gap-2">
+          <Label>Status</Label>
+          <Select v-model="changeForm.status">
+            <SelectTrigger>
+              <SelectValue placeholder="Select status" />
+            </SelectTrigger>
+            <SelectContent>
+              <template v-for="s in statuses" :key="s.value">
+                <SelectItem v-if="selectedDriver?.status_name !== s.value" :value="s.value">
+                  {{ s.label }}
+                </SelectItem>
+              </template>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <DialogFooter>
+        <Button variant="outline" @click="isChangeModalOpen = false">Cancel</Button>
+        <Button @click="handleChangeDriver" :disabled="changeForm.processing || !changeForm.status">
+          {{ changeForm.processing ? 'Changing...' : 'Confirm Change' }}
+        </Button>
       </DialogFooter>
     </DialogContent>
   </Dialog>

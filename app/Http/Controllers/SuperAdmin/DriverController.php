@@ -138,6 +138,19 @@ class DriverController extends Controller
         return back();
     }
 
+    public function changeStatus(Request $request, UserDriver $driver)
+    {
+        $request->validate([
+            'status' => ['required', 'string', Rule::in(['active', 'retired', 'suspended'])],
+        ]);
+
+        $status = Status::where('name', $request->status)->firstOrFail();
+        $driver->status_id = $status->id;
+        $driver->save();
+
+        return back();
+    }
+
     /**
      * Creates the base query with all "WHERE" conditions.
      */
