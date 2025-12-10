@@ -21,7 +21,7 @@ class EarningShowResource extends JsonResource
             'invoice_no'     => $this->invoice_no,
             'total_amount'   => (float) $this->total_amount,
             'driver_earning' => (float) $this->driver_earning,
-            'payment_date'   => Carbon::parse($this->payment_date)->format('M d, Y'), // e.g. Oct 24, 2023
+            'payment_date' => Carbon::parse($this->payment_date)->format('M d, Y h:i A'),
             'fees'           => [],
         ];
 

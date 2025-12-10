@@ -65,8 +65,8 @@ class EarningDatatableResource extends JsonResource
         // 1. Weekly Logic (Fields exist from Index GroupBy)
         if (isset($resource->week_start) && isset($resource->week_end)) {
             return [
-                'start' => $resource->week_start, // e.g., '2023-10-01'
-                'end'   => $resource->week_end,   // e.g., '2023-10-07'
+                'start' => Carbon::parse($resource->week_start)->format('Y-m-d'), // Ensure date-only format
+                'end'   => Carbon::parse($resource->week_end)->format('Y-m-d'),   // Ensure date-only format
                 'type'  => 'weekly'
             ];
         }

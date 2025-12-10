@@ -101,7 +101,7 @@ class EarningController extends Controller
         $query = $this->joinBreakdownSubquery($query, $feeTypes);
 
         // 6. APPLY THE DATE FILTER 
-        $query->whereBetween('revenues.payment_date', [
+        $query->whereRaw('DATE(revenues.payment_date) BETWEEN ? AND ?', [
             $validated['start'], 
             $validated['end']
         ]);
@@ -291,9 +291,9 @@ class EarningController extends Controller
 
         // Time Period Grouping
         if ($period === 'daily') {
-            return $query->addSelect('revenues.payment_date')
-                ->groupBy('revenues.payment_date')
-                ->orderBy('revenues.payment_date', 'desc')
+            return $query->addSelect(DB::raw('DATE(revenues.payment_date) as payment_date'))
+                ->groupByRaw('DATE(revenues.payment_date)')
+                ->orderByRaw('DATE(revenues.payment_date) DESC')
                 ->get();
         }
         if ($period === 'weekly') {
