@@ -93,6 +93,19 @@ class VehicleController extends Controller
         ]);
     }
 
+    public function changeStatus(Request $request, Vehicle $vehicle)
+    {
+        $request->validate([
+            'status' => ['required', 'string', Rule::in(['active', 'available', 'maintenance'])],
+        ]);
+
+        $status = Status::where('name', $request->status)->firstOrFail();
+        $vehicle->status_id = $status->id;
+        $vehicle->save();
+
+        return back();
+    }
+
     public function store(StoreVehicleRequest $request)
     {
         $availableStatusId = Status::where('name', 'available')->firstOrFail()->id;

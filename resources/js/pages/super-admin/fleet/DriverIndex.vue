@@ -278,8 +278,7 @@ const driverColumns = computed<ColumnDef<DriverRow>[]>(() => {
                   },
                   () => 'Change Status',
                 ),
-              ]
-              ,
+              ],
             ]),
           ]),
         ]);
