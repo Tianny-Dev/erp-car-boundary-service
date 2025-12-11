@@ -1,6 +1,23 @@
 <script setup lang="ts">
 import DataTable from '@/components/DataTable.vue';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   Select,
   SelectContent,
@@ -8,13 +25,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useDetailsModal } from '@/composables/useDetailsModal';
 import AppLayout from '@/layouts/AppLayout.vue';
 import superAdmin from '@/routes/super-admin';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import { type ColumnDef } from '@tanstack/vue-table';
 import { debounce } from 'lodash-es';
+import { AlertCircleIcon, MoreHorizontal } from 'lucide-vue-next';
 import { computed, h, ref, watch } from 'vue';
 
 // --- Define Props ---
@@ -89,6 +109,58 @@ const selectedFilter = computed({
   },
 });
 
+interface TransactionModal {
+  id: number;
+  franchise_name?: string;
+  branch_name?: string;
+  service_type: string;
+  payment_option: string;
+  invoice_no: string;
+  amount: number;
+  driver_name: string;
+  status_name: string;
+  payment_date: string | null;
+  created_at: string | null;
+  notes: string | null;
+}
+const transactionDetails = computed(() => {
+  const data = transactionModal.data.value;
+  if (!data) return [];
+
+  const amount = formatCurrency(data.amount);
+  const nameValue = data.franchise_name || data.branch_name;
+  const nameLabel = data.franchise_name ? 'Franchise' : 'Branch';
+
+  const details = [
+    { label: nameLabel, value: nameValue, type: 'text' },
+    { label: 'Service Type', value: data.service_type, type: 'text' },
+    { label: 'Invoice #', value: data.invoice_no, type: 'text' },
+    { label: 'Driver', value: data.driver_name, type: 'text' },
+    { label: 'Amount', value: amount, type: 'text' },
+    { label: 'Payment Option', value: data.payment_option, type: 'text' },
+    { label: 'Status', value: data.status_name, type: 'text' },
+    { label: 'Transaction Date', value: data.created_at, type: 'text' },
+  ];
+
+  if (data.payment_date) {
+    details.push({
+      label: 'Paid Date',
+      value: data.payment_date,
+      type: 'text',
+    });
+  }
+  if (data.notes) {
+    details.push({ label: 'Notes', value: data.notes, type: 'text' });
+  }
+
+  return details;
+});
+
+// --- Modal State ---
+const transactionModal = useDetailsModal<TransactionModal>({
+  baseUrl: '/super-admin/transaction',
+});
+
 const formatCurrency = (amount: number): string => {
   return new Intl.NumberFormat('en-PH', {
     style: 'currency',
@@ -144,6 +216,38 @@ const transactionColumns = computed<ColumnDef<TransactionRow>[]>(() => {
             { class: [badgeClass, 'text-white'] },
             () => status || 'N/A',
           ),
+        ]);
+      },
+    },
+    {
+      id: 'actions',
+      header: () => h('div', { class: 'text-center' }, 'Actions'),
+      cell: ({ row }) => {
+        const transaction = row.original;
+
+        return h('div', { class: 'relative text-center' }, [
+          h(DropdownMenu, null, () => [
+            h(
+              DropdownMenuTrigger,
+              { asChild: true, class: 'cursor-pointer' },
+              () =>
+                h(Button, { variant: 'ghost', class: 'h-8 w-8 p-0' }, () => [
+                  h('span', { class: 'sr-only' }, 'Open menu'),
+                  h(MoreHorizontal, { class: 'h-4 w-4' }),
+                ]),
+            ),
+            h(DropdownMenuContent, { align: 'end', class: 'border-2' }, () => [
+              h(DropdownMenuLabel, null, () => 'Actions'),
+              h(
+                DropdownMenuItem,
+                {
+                  class: 'cursor-pointer',
+                  onClick: () => transactionModal.open(transaction.id),
+                },
+                () => 'View Transaction Details',
+              ),
+            ]),
+          ]),
         ]);
       },
     },
@@ -289,4 +393,52 @@ watch(
       </div>
     </div>
   </AppLayout>
+
+  <Dialog v-model:open="transactionModal.isOpen.value">
+    <DialogContent class="max-w-3xl overflow-y-auto">
+      <DialogHeader>
+        <DialogTitle>Transaction Details</DialogTitle>
+      </DialogHeader>
+      <DialogDescription>
+        <div
+          v-if="transactionModal.isLoading.value"
+          class="grid grid-cols-2 gap-4"
+        >
+          <template v-for="item in 10" :key="item">
+            <Skeleton class="h-5 w-24" />
+            <Skeleton class="h-5 w-3/4" />
+          </template>
+        </div>
+
+        <div
+          v-else-if="transactionDetails.length > 0"
+          class="grid grid-cols-2 gap-4"
+        >
+          <template v-for="item in transactionDetails" :key="item.label">
+            <div class="font-medium">{{ item.label }}:</div>
+            <div>
+              {{ item.value }}
+            </div>
+          </template>
+        </div>
+
+        <div v-else-if="transactionModal.isError.value">
+          <Alert
+            variant="destructive"
+            class="border-2 border-red-500 shadow-lg"
+          >
+            <AlertCircleIcon class="h-4 w-4" />
+            <AlertTitle class="font-bold">Error</AlertTitle>
+            <AlertDescription class="font-semibold">
+              Failed to load transaction details.
+            </AlertDescription>
+          </Alert>
+        </div>
+      </DialogDescription>
+
+      <DialogFooter class="mt-5">
+        <Button variant="outline" @click="transactionModal.close">Close</Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
 </template>

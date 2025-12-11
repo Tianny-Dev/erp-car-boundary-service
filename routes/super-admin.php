@@ -36,7 +36,7 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
     Route::get('/revenue/export', [RevenueController::class, 'export'])->name('revenue.export');
 
     Route::get('/transaction', [TransactionController::class, 'index'])->name('transaction.index');
-    Route::get('/transaction/{id}', [TransactionController::class, 'show'])->name('transaction.show');
+    Route::get('/transaction/{transaction}', [TransactionController::class, 'show'])->name('transaction.show');
 
     Route::get('/allocation', [AllocationController::class, 'index'])->name('allocation.index');
     Route::post('/allocation', [AllocationController::class, 'store'])->name('allocation.store');

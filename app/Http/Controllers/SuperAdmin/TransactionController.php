@@ -4,6 +4,7 @@ namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\SuperAdmin\TransactionDatatableResource;
+use App\Http\Resources\SuperAdmin\TransactionResource;
 use App\Models\Branch;
 use App\Models\Franchise;
 use App\Models\Revenue;
@@ -118,5 +119,19 @@ class TransactionController extends Controller
         }
 
         return $query->orderBy('users.name')->get();
+    }
+
+    public function show(Revenue $transaction)
+    {
+        // Load relationships and return as JSON
+        $transaction->loadMissing([
+            'status:id,name',
+            'driver.user:id,name',
+            'franchise:id,name',
+            'branch:id,name',
+            'paymentOption:id,name',
+        ]);
+
+        return new TransactionResource($transaction);
     }
 }
