@@ -88,33 +88,9 @@ class RevenueController extends Controller
     /**
      * Applies the SELECT and GROUP BY logic based on the period.
      */
-    private function applyPeriodGrouping(
-        Builder $query,
-        string $period,
-        string $tab
-    ) {
-        // --- Handle Daily Period (Standard Eloquent) ---
-        if ($period === 'daily') {
-            $selects = [
-                'id', 'franchise_id', 'branch_id', 'invoice_no',
-                'service_type', 'amount', 'payment_date',
-            ];
-
-            // Eager load the relationship
-            if ($tab === 'franchise') {
-                $query->with('franchise:id,name');
-            } elseif ($tab === 'branch') {
-                $query->with('branch:id,name');
-            }
-
-            return $query->select($selects)
-                ->orderBy('payment_date', 'desc')
-                ->get();
-        }
-
-        // --- Handle Weekly/Monthly (Grouped Query with JOINs) ---
-
-        // Base selections for grouping
+    private function applyPeriodGrouping(Builder $query, string $period, string $tab)
+    {
+        // Base selections for ALL periods (now including daily)
         $query->selectRaw('
             SUM(revenues.amount) as total_amount,
             revenues.service_type
@@ -132,16 +108,16 @@ class RevenueController extends Controller
         }
 
         // Apply period-specific grouping
-        if ($period === 'weekly') {
+        if ($period === 'daily') {
+            $query->addSelect(DB::raw('DATE(revenues.payment_date) as payment_date'))
+                ->groupBy(DB::raw('DATE(revenues.payment_date)'), 'revenues.service_type')
+                ->orderBy('payment_date', 'desc');
+        } elseif ($period === 'weekly') {
             $query->addSelect(DB::raw('MIN(revenues.payment_date) as week_start, MAX(revenues.payment_date) as week_end'))
-                // Group by week (mode 1 starts on Monday), year, and service_type
                 ->groupByRaw('YEAR(revenues.payment_date), WEEK(revenues.payment_date, 1), revenues.service_type')
                 ->orderBy('week_start', 'desc');
-        }
-
-        if ($period === 'monthly') {
+        } elseif ($period === 'monthly') {
             $query->addSelect(DB::raw('DATE_FORMAT(revenues.payment_date, "%M %Y") as month_name, MIN(revenues.payment_date) as month_sort'))
-                // **THE FIX**: Group by the non-aggregate aliases. The aggregate 'month_sort' is removed from group by.
                 ->groupBy('month_name', 'revenues.service_type')
                 ->orderBy('month_sort', 'desc');
         }
@@ -154,101 +130,58 @@ class RevenueController extends Controller
      */
     public function export(Request $request)
     {
-        // 1. Validate all inputs (page filters + modal filters)
+        // 1. Validate all inputs
         $validated = $request->validate([
             'tab' => ['required', 'string', Rule::in(['franchise', 'branch'])],
             'franchise' => ['nullable', 'string'],
             'branch' => ['nullable', 'string'],
             'service' => ['required', 'string', Rule::in(['Trips', 'Boundary'])],
-            'period' => ['required', 'string',Rule::in(['daily', 'weekly', 'monthly'])],
-            'export_type' => ['required', 'string', Rule::in(['pdf', 'excel', 'csv'])],
+            'period' => ['required', 'string', Rule::in(['daily', 'weekly', 'monthly'])],
+            'export' => ['required', 'string', Rule::in(['pdf', 'excel', 'csv'])],
             'year' => ['required', 'integer', 'min:2020', 'max:2100'],
             'months' => ['required', 'array', 'min:1'],
             'months.*' => ['required', 'integer', 'min:1', 'max:12'],
         ]);
 
         $filters = [
-            'tab' => $validated['tab'] ?? 'franchise',
+            'tab' => $validated['tab'],
             'franchise' => $validated['franchise'] ?? null,
             'branch' => $validated['branch'] ?? null,
-            'service' => $validated['service'] ?? 'Trips',
-            'period' => $validated['period'] ?? 'daily',
-            'export_type' => $validated['export_type'] ?? 'pdf',
+            'service' => $validated['service'],
+            'period' => $validated['period'],
+            'export' => $validated['export'],
         ];
 
         // 2. Build Query with date constraints
-        $query = $this->buildBaseQuery(
-            $filters,
-            $validated['year'],
-            $validated['months']
-        );
+        $query = $this->buildBaseQuery($filters, $validated['year'], $validated['months']);
 
         // 3. Get and group data
-        $revenues = $this->applyPeriodGrouping(
-            $query,
-            $filters['period'],
-            $filters['tab']
-        );
+        $revenues = $this->applyPeriodGrouping($query, $filters['period'], $filters['tab']);
 
-        // 4. Transform data for export
-        $resourceCollection = RevenueDatatableResource::collection($revenues);
-        $arrayData = collect($resourceCollection->toArray(request()));
-
-        // Build rows for export using array items (safe)
-        $exportRows = $arrayData->map(function ($r) use ($filters) {
-            // pick name key (franchise_name / branch_name)
-            $nameKey = $filters['tab'] . '_name';
-            $name = $r[$nameKey] ?? 'N/A';
-
-            // period is provided by the resource as 'payment_date' (for daily) or formatted month_name / week range as we returned
-            $period = $r['payment_date'] ?? '';
-
-            // amount might already be numeric or a formatted string; sanitize it to numeric
-            $amount = $r['amount'] ?? 0;
-
-            return [
-                'name' => $name,
-                'period' => $period,
-                'amount' => $amount,
-            ];
-        })->values();
-
-        // 5. Add Grand Total Row (sum of numeric amounts)
-        $grandTotal = $exportRows->sum('amount');
-
-        $exportRows = $exportRows->push([
-            'name' => 'GRAND TOTAL',
-            'period' => '',
-            'amount' => (float) $grandTotal,
-        ]);
-
-        // Keep headings and title as before
-        $headings = [$filters['tab'] === 'franchise' ? 'Franchise' : 'Branch', 'Date', 'Amount'];
+        // 4. Generate Title
         $title = $this->buildExportTitle($filters, $validated['year'], $validated['months']);
-        $fileName = 'revenues_'.date('Y-m-d');
+        $fileName = 'revenues_' . now()->format('Y-m-d_His');
 
-        // 7. Dispatch Download
-        $export = new RevenueExport($exportRows, $headings, $title);
-        $exportType = $filters['export_type'];
-
-        if ($exportType === 'pdf') {
+        // 5. EXPORT (Let RevenueExport handle transformation)
+        if ($filters['export'] === 'pdf') {
             return Pdf::loadView('exports.revenue', [
-                'rows' => $exportRows,
+                'rows' => $revenues,
                 'title' => $title,
-                'headings' => $headings
+                'tab' => $filters['tab']
             ])
             ->setPaper('a4', 'landscape')
             ->setOption('isHtml5ParserEnabled', true)
             ->setOption('isPhpEnabled', true)
             ->setOption('defaultFont', 'DejaVu Sans')
-            ->download($fileName.'.pdf');
+            ->download($fileName . '.pdf');
         }
-        if ($exportType === 'excel') {
-            return $export->download($fileName.'.xlsx', Excel::XLSX);
-        }
-        if ($exportType === 'csv') {
-            return $export->download($fileName.'.csv', Excel::CSV);
-        }
+
+        // Excel/CSV
+        return (new RevenueExport(
+            $revenues,
+            $title,
+            $filters['tab']
+        ))->download($fileName . '.' . ($filters['export'] === 'excel' ? 'xlsx' : 'csv'));
     }
 
     /**

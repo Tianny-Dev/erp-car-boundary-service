@@ -9,34 +9,39 @@ use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Events\AfterSheet;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\Exportable;
 
 class RevenueExport implements
     FromCollection,
     WithHeadings,
+    WithMapping,
+    WithColumnFormatting,
     WithEvents,
-    ShouldAutoSize,
-    WithStyles
+    ShouldAutoSize
 {
     use Exportable;
     
-    /**
-     * @param Collection $data The transformed data to export.
-     * @param array $headings The column headings.
-     * @param string $title The main title for the document.
-     */
+    // We will store the calculated totals here
+    protected array $totals = [];
+
     public function __construct(
         protected Collection $data,
-        protected array $headings,
-        protected string $title
+        protected string $title,
+        protected string $tabName
     ) {}
 
     /**
      * @return Collection
      */
-    public function collection(): Collection
+    public function collection()
     {
+        // Calculate Grand Total
+        $this->totals['total_amount'] = $this->data->sum('total_amount');
+
         return $this->data;
     }
 
@@ -45,7 +50,50 @@ class RevenueExport implements
      */
     public function headings(): array
     {
-        return $this->headings;
+        return [
+            $this->tabName === 'franchise' ? 'Franchise' : 'Branch',
+            'Date',
+            'Amount'
+        ];
+    }
+
+    /**
+     * Maps and transforms the data for export
+     */
+    public function map($row): array
+    {
+        // 1. Resolve Name
+        $nameKey = $this->tabName . '_name';
+        $name = $row->$nameKey ?? 'N/A';
+
+        // 2. Resolve Date Logic
+        $dateDisplay = 'N/A';
+        if (isset($row->month_name)) {
+            // Monthly
+            $dateDisplay = $row->month_name;
+        } elseif (isset($row->week_start)) {
+            // Weekly
+            $start = Carbon::parse($row->week_start);
+            $end = Carbon::parse($row->week_end);
+            $dateDisplay = $start->format('M j') . ' - ' . $end->format('M j, Y');
+        } elseif (isset($row->payment_date)) {
+            // Daily (grouped by date)
+            $dateDisplay = Carbon::parse($row->payment_date)->format('M j, Y');
+        }
+
+        // 3. Build Row
+        return [
+            $name,
+            $dateDisplay,
+            $row->total_amount ?? 0,
+        ];
+    }
+
+    public function columnFormats(): array
+    {
+        return [
+            'C' => '"₱"#,##0.00',
+        ];
     }
 
     /**
@@ -55,52 +103,41 @@ class RevenueExport implements
     {
         return [
             AfterSheet::class => function (AfterSheet $event) {
-                $totalRows = $this->data->count() + 2; // +1 title, +1 header
-                $grandTotalRow = $totalRows; // last row
+                $sheet = $event->sheet;
+                $lastColumn = $sheet->getHighestColumn();
+                $lastRow = $sheet->getHighestRow();
 
-                // Insert Title
-                $event->sheet->insertNewRowBefore(1, 1);
-                $event->sheet->mergeCells('A1:C1');
-                $event->sheet->setCellValue('A1', $this->title);
-                $event->sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
-                $event->sheet->getStyle('A1')->getAlignment()->setHorizontal('center');
+                // --- 1. Header Styling ---
+                $sheet->insertNewRowBefore(1, 1);
+                $sheet->mergeCells("A1:{$lastColumn}1");
+                $sheet->setCellValue('A1', $this->title);
+                $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+                $sheet->getStyle('A1')->getAlignment()->setHorizontal('center');
+                $sheet->getStyle("A2:{$lastColumn}2")->getFont()->setBold(true);
 
-                // Header row styling
-                $event->sheet->getStyle('A2:C2')->getFont()->setBold(true);
+                // --- 2. Grand Total Row ---
+                $totalRowIndex = $lastRow + 2;
 
-                // Currency formatting (ALL rows including grand total)
-                $event->sheet->getStyle("C3:C{$grandTotalRow}")
-                    ->getNumberFormat()
-                    ->setFormatCode('₱#,##0.00');
+                // Label "GRAND TOTAL" (Merge A-B)
+                $sheet->mergeCells("A{$totalRowIndex}:B{$totalRowIndex}");
+                $sheet->setCellValue("A{$totalRowIndex}", "GRAND TOTAL");
+                $sheet->getStyle("A{$totalRowIndex}")->getFont()->setBold(true);
+                $sheet->getStyle("A{$totalRowIndex}")->getAlignment()->setHorizontal('right');
 
-                // Bold the grand total row
-                $event->sheet->getStyle("A{$grandTotalRow}:C{$grandTotalRow}")
-                    ->getFont()
-                    ->setBold(true);
-
-                // Right align amount column
-                $event->sheet->getStyle("C3:C{$grandTotalRow}")
-                    ->getAlignment()
-                    ->setHorizontal('right');
+                // --- 3. Fill Grand Total Amount ---
+                $this->setTotalCell($sheet, 3, $totalRowIndex, $this->totals['total_amount']);
             },
         ];
     }
 
-
     /**
-     * Apply styles to the worksheet.
+     * Helper to set value, bold it, and format currency
      */
-    public function styles(Worksheet $sheet): void
+    private function setTotalCell($sheet, $colIndex, $rowIndex, $value)
     {
-        // Align the amount column to the right
-        $lastRow = $this->data->count() + 2; // +1 heading, +1 title
-        $sheet->getStyle("C3:C{$lastRow}")
-            ->getAlignment()
-            ->setHorizontal('right');
-
-        // Align the grand total label
-        $sheet->getStyle("A" . ($lastRow - 1))
-            ->getAlignment()
-            ->setHorizontal('right');
+        $colLetter = Coordinate::stringFromColumnIndex($colIndex);
+        $sheet->setCellValue("{$colLetter}{$rowIndex}", $value);
+        $sheet->getStyle("{$colLetter}{$rowIndex}")->getFont()->setBold(true);
+        $sheet->getStyle("{$colLetter}{$rowIndex}")->getNumberFormat()->setFormatCode('"₱"#,##0.00');
     }
 }

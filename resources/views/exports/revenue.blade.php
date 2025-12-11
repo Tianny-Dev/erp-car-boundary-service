@@ -52,29 +52,40 @@
 <table>
     <thead>
         <tr>
-            <th>{{ $headings[0] }}</th>
-            <th>{{ $headings[1] }}</th>
-            <th>{{ $headings[2] }}</th>
+            <th>{{ $tab === 'franchise' ? 'Franchise' : 'Branch' }}</th>
+            <th>Date</th>
+            <th>Amount</th>
         </tr>
     </thead>
 
     <tbody>
         @foreach($rows as $row)
-            <tr class="{{ $loop->last ? 'grand-total' : '' }}">
+            <tr>
+                <td>{{ $row->{$tab . '_name'} ?? 'N/A' }}</td>
                 <td>
-                    {{ $row['name'] }}
+                    @if(isset($row->month_name))
+                        {{ $row->month_name }}
+                    @elseif(isset($row->week_start))
+                        {{ date('M j', strtotime($row->week_start)) }} - {{ date('M j, Y', strtotime($row->week_end)) }}
+                    @elseif(isset($row->payment_date))
+                        {{ date('M j, Y', strtotime($row->payment_date)) }}
+                    @else
+                        N/A
+                    @endif
                 </td>
-
-                <td>
-                    {{ $row['period'] }}
-                </td>
-
                 <td class="amount">
-                    {{-- Format all rows as ₱1,234.56 --}}
-                    ₱{{ number_format((float)$row['amount'], 2) }}
+                    ₱{{ number_format((float)$row->total_amount, 2) }}
                 </td>
             </tr>
         @endforeach
+
+        {{-- Grand Total Row --}}
+        <tr class="grand-total">
+            <td colspan="2" style="text-align: right;">GRAND TOTAL</td>
+            <td class="amount">
+                ₱{{ number_format($rows->sum('total_amount'), 2) }}
+            </td>
+        </tr>
     </tbody>
 </table>
 

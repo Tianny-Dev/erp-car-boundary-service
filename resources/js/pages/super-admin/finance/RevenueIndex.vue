@@ -152,7 +152,7 @@ function handleExport() {
     tab: activeTab.value,
     service: selectedService.value,
     period: selectedPeriod.value,
-    export_type: exportType.value,
+    export: exportType.value,
     year: exportYear.value,
   });
 
@@ -191,15 +191,6 @@ const revenueColumns = computed<ColumnDef<RevenueRow>[]>(() => {
   const isFranchiseTab = activeTab.value === 'franchise';
 
   const columns: ColumnDef<RevenueRow>[] = [
-    // Conditionally add 'Invoice #' only for daily
-    ...(isDaily
-      ? [
-          {
-            accessorKey: 'invoice_no',
-            header: 'Invoice #',
-          } as ColumnDef<RevenueRow>,
-        ]
-      : []),
     {
       accessorKey: isFranchiseTab ? 'franchise_name' : 'branch_name',
       header: isFranchiseTab ? 'Franchise' : 'Branch',
