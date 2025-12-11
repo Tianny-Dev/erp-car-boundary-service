@@ -211,7 +211,7 @@ const viewMaintenance = (maintenance: MaintenanceJob) => {
 const calendarEvents = computed(() =>
   paginator.value.data.map((m) => ({
     id: String(m.id),
-    title: `${m.maintenance_type} — ${m.vehicle_plate}`,
+    title: `${m.vehicle.brand} ${m.vehicle.model} — ${m.inventory.name}`,
     start: m.maintenance_date,
     // end: m.next_maintenance_date || undefined,
     allDay: true,
