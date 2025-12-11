@@ -54,19 +54,44 @@ interface MaintenanceJob {
   maintenance_date: string;
   next_maintenance_date: string | null;
 
-  vehicle_plate: string | null;
-  driver_name: string | null;
-  driver_email: string | null;
-  driver_phone: string | null;
+  vehicle: Vehicle | null;
 
-  technician: string | null;
+  technician: Technician | null;
 
   franchise_id: number | null;
   branch_id: number | null;
 
   status: string;
+  status_id: number;
 
   created_at: string;
+
+  inventory: Inventory | null;
+}
+
+interface Vehicle {
+  id: number;
+  plate_number: string;
+  vin: string;
+  brand: string;
+  model: string;
+  color: string;
+  year: number;
+}
+
+interface Inventory {
+  id: number;
+  code_no: string;
+  name: string;
+  category: string;
+  specification: string;
+}
+
+interface Technician {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
 }
 
 interface Status {
@@ -139,8 +164,6 @@ const getStatusVariant = (status: string) => {
   switch (status) {
     case 'active':
       return 'secondary';
-    case 'pending':
-      return 'outline';
     case 'completed':
       return 'default';
     default:
@@ -192,6 +215,8 @@ const updateJobStatus = (ticketId: number, statusId: number) => {
     },
   );
 };
+
+const completedStatusId = 16;
 </script>
 
 <template>
@@ -235,12 +260,12 @@ const updateJobStatus = (ticketId: number, statusId: number) => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Plate</TableHead>
-                <TableHead>Driver</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Technician</TableHead>
-                <TableHead>Maintenance Type</TableHead>
+                <TableHead>Vehicle</TableHead>
+                <TableHead>Plate Number</TableHead>
+                <TableHead>VIN</TableHead>
+                <TableHead>Technician's Name</TableHead>
+                <TableHead>Inventory</TableHead>
+                <TableHead>Description</TableHead>
                 <TableHead>Maintenance Date</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
@@ -253,15 +278,21 @@ const updateJobStatus = (ticketId: number, statusId: number) => {
                 :key="maintenance.id"
                 class="hover:bg-muted/50"
               >
-                <TableCell>{{ maintenance.vehicle_plate }}</TableCell>
-                <TableCell>{{ maintenance.driver_name }}</TableCell>
-                <TableCell>{{ maintenance.driver_email }}</TableCell>
-                <TableCell>{{ maintenance.driver_phone }}</TableCell>
-                <TableCell>{{ maintenance.technician }}</TableCell>
-                <TableCell>{{ maintenance.maintenance_type }}</TableCell>
+                <TableCell
+                  >{{ maintenance.vehicle?.brand }}
+                  {{ maintenance.vehicle?.model }}</TableCell
+                >
+                <TableCell>{{ maintenance.vehicle?.plate_number }}</TableCell>
+                <TableCell>{{ maintenance.vehicle?.vin }}</TableCell>
+                <TableCell>{{ maintenance.technician.name }}</TableCell>
+                <TableCell>{{ maintenance.inventory?.name }}</TableCell>
+                <TableCell>{{ maintenance.description }}</TableCell>
                 <TableCell>{{ maintenance.maintenance_date }}</TableCell>
                 <TableCell>
-                  <Badge :variant="getStatusVariant(maintenance.status)">
+                  <Badge
+                    :variant="getStatusVariant(maintenance.status)"
+                    class="capitalize"
+                  >
                     {{ maintenance.status }}
                   </Badge>
                 </TableCell>
@@ -300,6 +331,7 @@ const updateJobStatus = (ticketId: number, statusId: number) => {
                         v-for="status in statuses"
                         :key="status.id"
                         @click="updateJobStatus(maintenance.id, status.id)"
+                        :disabled="maintenance.status_id === completedStatusId"
                       >
                         {{
                           status.name.charAt(0).toUpperCase() +
@@ -372,71 +404,74 @@ const updateJobStatus = (ticketId: number, statusId: number) => {
       <Dialog v-model:open="dialogOpen">
         <DialogContent class="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Maintenance Details</DialogTitle>
+            <DialogTitle>Maintenance Request Information</DialogTitle>
             <DialogDescription>
-              Job for:
-              <strong>{{ selectedMaintenance?.maintenance_type }}</strong
+              Detailed information for request
+              <strong>{{ selectedMaintenance?.id }}</strong
               >.
             </DialogDescription>
           </DialogHeader>
 
-          <div class="mt-2 space-y-2" v-if="selectedMaintenance">
-            <Badge :variant="getStatusVariant(selectedMaintenance.status)">
-              {{ selectedMaintenance.status }}
-            </Badge>
+          <!-- Request Information -->
+          <div class="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+            <p><strong>ID:</strong> {{ selectedMaintenance?.id }}</p>
+            <p><strong>Status:</strong> {{ selectedMaintenance?.status }}</p>
+
             <p>
               <strong>Description:</strong>
-              {{ selectedMaintenance.description || '—' }}
+              {{ selectedMaintenance?.description }}
             </p>
-
             <p>
               <strong>Maintenance Date:</strong>
-              {{ selectedMaintenance.maintenance_date || '—' }}
+              {{ selectedMaintenance?.maintenance_date }}
             </p>
-
             <p>
-              <strong>Next Maintenance:</strong>
-              {{ selectedMaintenance.next_maintenance_date || '—' }}
+              <strong>Next Maintenance Date:</strong>
+              {{ selectedMaintenance?.next_maintenance_date }}
             </p>
+          </div>
 
+          <!-- Vehicle Information -->
+          <div
+            v-if="selectedMaintenance?.vehicle"
+            class="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm"
+          >
             <p>
-              <strong>Vehicle Plate:</strong>
-              {{ selectedMaintenance.vehicle_plate || '—' }}
+              <strong>Plate Number:</strong>
+              {{ selectedMaintenance.vehicle.plate_number }}
             </p>
-
+            <p><strong>VIN:</strong> {{ selectedMaintenance.vehicle.vin }}</p>
             <p>
-              <strong>Driver Name:</strong>
-              {{ selectedMaintenance.driver_name || '—' }}
+              <strong>Brand:</strong> {{ selectedMaintenance.vehicle.brand }}
             </p>
-
             <p>
-              <strong>Driver Email:</strong>
-              {{ selectedMaintenance.driver_email || '—' }}
+              <strong>Model:</strong> {{ selectedMaintenance.vehicle.model }}
             </p>
-
             <p>
-              <strong>Driver Phone:</strong>
-              {{ selectedMaintenance.driver_phone || '—' }}
+              <strong>Color:</strong> {{ selectedMaintenance.vehicle.color }}
             </p>
+            <p><strong>Year:</strong> {{ selectedMaintenance.vehicle.year }}</p>
+          </div>
 
+          <!-- Inventory Information -->
+          <div
+            v-if="selectedMaintenance?.inventory"
+            class="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm"
+          >
             <p>
-              <strong>Technician:</strong>
-              {{ selectedMaintenance.technician || '—' }}
+              <strong>Code No:</strong>
+              {{ selectedMaintenance.inventory.code_no }}
             </p>
-
             <p>
-              <strong>Franchise ID:</strong>
-              {{ selectedMaintenance.franchise_id || '—' }}
+              <strong>Name:</strong> {{ selectedMaintenance.inventory.name }}
             </p>
-
             <p>
-              <strong>Branch ID:</strong>
-              {{ selectedMaintenance.branch_id || '—' }}
+              <strong>Category:</strong>
+              {{ selectedMaintenance.inventory.category }}
             </p>
-
             <p>
-              <strong>Created At:</strong>
-              {{ selectedMaintenance.created_at || '—' }}
+              <strong>Specification:</strong>
+              {{ selectedMaintenance.inventory.specification }}
             </p>
           </div>
 

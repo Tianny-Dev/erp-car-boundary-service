@@ -15,7 +15,7 @@ class TicketJobController extends Controller
         $franchise = $this->getFranchiseOrDefault();
         $franchiseId = $franchise?->id;
 
-        $statuses = Status::whereIn('name', ['active', 'pending', 'completed'])
+        $statuses = Status::whereIn('name', ['active', 'completed'])
             ->get(['id', 'name']);
 
         return Inertia::render('technician/ticket-job/Index', [
@@ -33,12 +33,13 @@ class TicketJobController extends Controller
     /**
      * Get paginated tickets/jobs list with relationships.
      */
-    protected function getPaginatedMaintenances(?int $franchiseId)
+    protected function getPaginatedMaintenances()
     {
         $perPage = request('per_page', 10);
+        $technicianId = auth()->id();
 
-        $query = Maintenance::with(['status', 'franchise', 'branch', 'technician', 'vehicle.driver'])
-            ->when($franchiseId, fn($q) => $q->where('franchise_id', $franchiseId))
+        $query = Maintenance::with(['status', 'technician', 'vehicle.driver', 'inventory'])
+            ->when($technicianId, fn($q) => $q->where('technician_id', $technicianId))
             ->orderByDesc('created_at');
 
         /**
@@ -53,7 +54,7 @@ class TicketJobController extends Controller
         /**
          * Regular paginated detailed jobs
          */
-        return $query->when($franchiseId, fn($q) => $q->where('franchise_id', $franchiseId))
+        return $query->when($technicianId, fn($q) => $q->where('technician_id', $technicianId))
             ->orderByDesc('created_at')
             ->paginate($perPage)
             ->through(fn($job) => [
@@ -63,17 +64,34 @@ class TicketJobController extends Controller
                 'maintenance_date'     => $job->maintenance_date,
                 'next_maintenance_date'=> $job->next_maintenance_date,
                 'status'               => $job->status?->name,
+                'status_id'            => $job->status?->id,
 
-                'vehicle_plate'        => $job->vehicle?->plate_number,
-                'driver_name'          => $job->vehicle?->driver?->user->name,
-                'driver_email'         => $job->vehicle?->driver?->user->email,
-                'driver_phone'         => $job->vehicle?->driver?->user->phone,
+                'vehicle' => $job->vehicle ? [
+                    'id' => $job->vehicle->id,
+                    'plate_number' => $job->vehicle->plate_number,
+                    'vin' => $job->vehicle->vin,
+                    'brand' => $job->vehicle->brand,
+                    'model' => $job->vehicle->model,
+                    'color' => $job->vehicle->color,
+                    'year' => $job->vehicle->year,
+                ] : null,
 
-                'technician'           => $job->technician?->user->name,
+                'technician' => $job->technician ? [
+                    'id' => $job->technician->user->id,
+                    'name' => $job->technician->user->name,
+                    'email' => $job->technician->user->email,
+                    'phone' => $job->technician->user->phone,
+                ] : null,
 
-                'franchise_id'         => $job->franchise_id,
-                'branch_id'            => $job->branch_id,
                 'created_at'           => $job->created_at?->toDateString(),
+
+                'inventory' => $job->inventory ? [
+                    'id' => $job->inventory->id,
+                    'code_no' => $job->inventory->code_no,
+                    'name' => $job->inventory->name,
+                    'category' => $job->inventory->category,
+                    'specification' => $job->inventory->specification,
+                ] : null,
             ]);
     }
 
@@ -82,13 +100,12 @@ class TicketJobController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $franchise = auth()->user()->technicianDetails?->franchises()->first();
+        $technicianId = auth()->user()?->technicianDetails?->id;
 
-        if (!$franchise) {
-            return response()->json(['message' => 'Franchise not found'], 404);
-        }
+        $job = Maintenance::where('id', $id)
+            ->where('technician_id', $technicianId)
+            ->first();
 
-        $job = $franchise->maintenances()->find($id);
         if (!$job) {
             return response()->json(['message' => 'Maintenance Job not found'], 404);
         }
@@ -98,8 +115,12 @@ class TicketJobController extends Controller
         ]);
 
         $job->update([
-            'status_id' => $request->status_id
+            'status_id' => $request->status_id,
         ]);
+
+        if ($request->status_id == 16 && $job->inventory) {
+            $job->inventory->decrement('quantity', 1);
+        }
 
         return redirect()->back()->with('success', 'Maintenance Job status updated!');
     }

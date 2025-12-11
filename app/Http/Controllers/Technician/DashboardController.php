@@ -42,7 +42,7 @@ class DashboardController extends Controller
 
     protected function getMaintenanceJobsSummary(?int $technicianId)
     {
-        $jobsQuery = Maintenance::with(['vehicle.driver'])
+        $jobsQuery = Maintenance::with(['status', 'technician', 'vehicle.driver', 'inventory'])
             // ->where('franchise_id', $franchiseId)
             ->where('technician_id', $technicianId)
             // ->whereHas('technician', function ($query) use ($franchiseId) {
@@ -63,24 +63,42 @@ class DashboardController extends Controller
             });
         }
 
-        return $jobsQuery->paginate(10)->through(fn($job) => [
-            'id'                   => $job->id,
-            'maintenance_type'     => $job->maintenance_type,
-            'description'          => $job->description,
-            'maintenance_date'     => $job->maintenance_date,
-            'next_maintenance_date'=> $job->next_maintenance_date,
-            'status'               => $job->status?->name,
+        return $jobsQuery->paginate(10)
+            ->through(fn($job) => [
+                'id'                   => $job->id,
+                'maintenance_type'     => $job->maintenance_type,
+                'description'          => $job->description,
+                'maintenance_date'     => $job->maintenance_date,
+                'next_maintenance_date'=> $job->next_maintenance_date,
+                'status'               => $job->status?->name,
+                'status_id'            => $job->status?->id,
 
-            'vehicle_plate'        => $job->vehicle?->plate_number,
-            'driver_name'          => $job->vehicle?->driver?->user->name,
-            'driver_email'         => $job->vehicle?->driver?->user->email,
-            'driver_phone'         => $job->vehicle?->driver?->user->phone,
+                'vehicle' => $job->vehicle ? [
+                    'id' => $job->vehicle->id,
+                    'plate_number' => $job->vehicle->plate_number,
+                    'vin' => $job->vehicle->vin,
+                    'brand' => $job->vehicle->brand,
+                    'model' => $job->vehicle->model,
+                    'color' => $job->vehicle->color,
+                    'year' => $job->vehicle->year,
+                ] : null,
 
-            'technician'           => $job->technician?->user->name,
+                'technician' => $job->technician ? [
+                    'id' => $job->technician->user->id,
+                    'name' => $job->technician->user->name,
+                    'email' => $job->technician->user->email,
+                    'phone' => $job->technician->user->phone,
+                ] : null,
 
-            'franchise_id'         => $job->franchise_id,
-            'branch_id'            => $job->branch_id,
-            'created_at'           => $job->created_at?->toDateString(),
-        ]);
+                'created_at'           => $job->created_at?->toDateString(),
+
+                'inventory' => $job->inventory ? [
+                    'id' => $job->inventory->id,
+                    'code_no' => $job->inventory->code_no,
+                    'name' => $job->inventory->name,
+                    'category' => $job->inventory->category,
+                    'specification' => $job->inventory->specification,
+                ] : null,
+            ]);
     }
 }

@@ -11,7 +11,13 @@ class Inventory extends Model
     use HasFactory;
 
     protected $fillable = [
-        //
+        'code_no',
+        'name',
+        'category',
+        'specification',
+        'quantity',
+        'unit_price',
+        'notes'
     ];
 
     // relations to maintenances, one to many
