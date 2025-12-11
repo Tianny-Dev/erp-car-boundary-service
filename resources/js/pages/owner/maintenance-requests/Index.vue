@@ -47,6 +47,8 @@ interface Request {
   maintenance_date: string | null;
   next_maintenance_date: string | null;
   status: string;
+
+  technician: Technician | null;
 }
 
 interface Vehicle {
@@ -57,6 +59,13 @@ interface Vehicle {
   model: string;
   color: string;
   year: number;
+}
+
+interface Technician {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
 }
 
 interface Inventory {
@@ -267,6 +276,7 @@ const createRequest = () => {
               <TableHead>Vehicle</TableHead>
               <TableHead>Plate Number</TableHead>
               <TableHead>VIN</TableHead>
+              <TableHead>Technician's Name</TableHead>
               <TableHead>Inventory</TableHead>
               <TableHead>Description</TableHead>
               <TableHead>Status</TableHead>
@@ -291,6 +301,7 @@ const createRequest = () => {
               >
               <TableCell>{{ request.vehicle?.plate_number }}</TableCell>
               <TableCell>{{ request.vehicle?.vin }}</TableCell>
+              <TableCell>{{ request.technician?.name }}</TableCell>
               <TableCell>{{ request.inventory?.name }}</TableCell>
               <TableCell>{{ request.description }}</TableCell>
               <TableCell>

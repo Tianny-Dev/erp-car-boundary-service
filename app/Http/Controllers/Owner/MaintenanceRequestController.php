@@ -21,7 +21,7 @@ class MaintenanceRequestController extends Controller
         $franchise = $this->getFranchiseOrDefault();
         $franchiseId = $franchise?->id;
 
-        $query = Maintenance::with(['status', 'vehicle', 'inventory'])
+        $query = Maintenance::with(['status', 'vehicle', 'inventory', 'technician',])
             ->when($franchiseId, function ($q) use ($franchiseId) {
                 $q->whereHas('vehicle', function ($v) use ($franchiseId) {
                     $v->where('franchise_id', $franchiseId);
@@ -70,6 +70,13 @@ class MaintenanceRequestController extends Controller
                     'next_maintenance_date' => $request->next_maintenance_date,
 
                     'status' => $request->status?->name,
+
+                    'technician' => $request->technician ? [
+                        'id' => $request->technician->user->id,
+                        'name' => $request->technician->user->name,
+                        'email' => $request->technician->user->email,
+                        'phone' => $request->technician->user->phone,
+                    ] : null,
 
                     'vehicle' => $request->vehicle ? [
                         'id' => $request->vehicle->id,
