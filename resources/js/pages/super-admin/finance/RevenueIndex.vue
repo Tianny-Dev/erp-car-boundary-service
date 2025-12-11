@@ -47,7 +47,6 @@ interface RevenueRow {
   id: number | null;
   franchise_name?: string;
   branch_name?: string;
-  invoice_no?: string;
   amount: number;
   payment_date: string;
   service_type: string;

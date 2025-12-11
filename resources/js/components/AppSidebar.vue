@@ -20,6 +20,7 @@ import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import {
   Banknote,
+  BanknoteArrowDown,
   CarTaxiFront,
   ChartNoAxesCombined,
   DollarSign,
@@ -98,6 +99,12 @@ const navConfig: Record<string, NavItem[]> = {
       title: 'Revenue Report',
       href: superAdmin.revenue.index(),
       icon: DollarSign,
+      group: 'Finance',
+    },
+    {
+      title: 'Expense Report',
+      href: superAdmin.expense.index(),
+      icon: BanknoteArrowDown,
       group: 'Finance',
     },
     {

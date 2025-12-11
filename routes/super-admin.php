@@ -13,6 +13,7 @@ use App\Http\Controllers\SuperAdmin\RevenueController;
 use App\Http\Controllers\SuperAdmin\TransactionController;
 use App\Http\Controllers\SuperAdmin\EarningController;
 use App\Http\Controllers\SuperAdmin\BoundaryContractController;
+use App\Http\Controllers\SuperAdmin\ExpenseController;
 use App\Http\Controllers\SuperAdmin\RouteController;
 use App\Http\Controllers\SuperAdmin\GpsTrackerController;
 
@@ -68,6 +69,8 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
     Route::get('/boundary-contract/{contract}', [BoundaryContractController::class, 'show'])->name('boundaryContract.show');
 
     Route::get('/gps-tracker', [GpsTrackerController::class, 'index'])->name('gpsTracker.index');
+
+    Route::get('/expense', [ExpenseController::class, 'index'])->name('expense.index');
 
     // Route::get('/route', [RouteController::class, 'index'])->name('route.index');
 });
