@@ -10,7 +10,7 @@ import { home, selectUserType } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 import { Form, Head, Link } from '@inertiajs/vue3';
-import { Eye, EyeOff, Lock, Phone } from 'lucide-vue-next';
+import { Eye, EyeOff, Lock, User } from 'lucide-vue-next';
 import { ref } from 'vue';
 
 defineProps<{
@@ -45,12 +45,12 @@ const showPassword = ref(false);
       class="flex flex-col gap-2"
     >
       <div class="grid gap-2">
-        <Label for="email" class="text-auth-blue">Email address</Label>
+        <Label for="email" class="text-auth-blue">Email address or Phone Number</Label>
         <div
           class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
         >
           <div class="flex items-center justify-center bg-auth-blue px-3">
-            <Phone class="h-5 w-5 text-white" />
+            <User class="h-5 w-5 text-white" />
           </div>
           <Input
             id="email"
@@ -60,7 +60,7 @@ const showPassword = ref(false);
             autofocus
             :tabindex="1"
             autocomplete="email"
-            placeholder="email@example.com"
+            placeholder="Email or Phone Number"
             class="flex-1 border-0 focus-visible:ring-0"
           />
         </div>
