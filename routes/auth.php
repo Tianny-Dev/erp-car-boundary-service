@@ -13,12 +13,18 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/select-user-type', function () {
-    $userTypes = UserType::whereNotIn('name', ['super_admin', 'manager'])
+    // $userTypes = UserType::whereNotIn('name', ['super_admin', 'manager'])
+    //     ->get()
+    //     ->map(fn($type) => [
+    //         'name' => $type->name,
+    //         'encrypted_id' => Crypt::encryptString($type->id),
+    // ]);
+    $userTypes = UserType::whereIn('name', ['driver', 'passenger'])
         ->get()
         ->map(fn($type) => [
             'name' => $type->name,
             'encrypted_id' => Crypt::encryptString($type->id),
-    ]);
+        ]);
 
     return Inertia::render('auth/SelectUserType', [
         'userTypes' => $userTypes,
