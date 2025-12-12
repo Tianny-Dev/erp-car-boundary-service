@@ -7,7 +7,6 @@ import { computed, nextTick, reactive, ref, watch } from 'vue';
 import MultiStepFooter from './step/MultiStepFooter.vue';
 import Step1Personal from './step/Step1Personal.vue';
 import Step2Address from './step/Step2Address.vue';
-import Step3Preferences from './step/Step3Preferences.vue';
 import Step4Account from './step/Step4Account.vue';
 import Step5Uploads from './step/Step5Uploads.vue';
 import Step6Security from './step/Step6Security.vue';
@@ -15,11 +14,6 @@ import Step6Security from './step/Step6Security.vue';
 defineProps<{
   genderOptions: { value: string; label: string }[];
   idTypes: { value: string; label: string }[];
-  paymentOptions: {
-    id: string;
-    label: string;
-    color: string;
-  }[];
   userType: {
     encrypted_id: string;
     name: string;
@@ -30,7 +24,6 @@ const stepTitles: Record<number, string> = {
   1: 'Basic Information',
   2: 'Home Address',
   3: 'Franchise Details',
-  4: 'Preferences',
   5: 'Identity Verification',
   6: 'Documents to Upload',
   7: 'Account Security',
@@ -100,27 +93,19 @@ const personalStep3Show = {
   birthday: false,
 };
 
-// --- Step 4 (Preferences) State & Config ---
-const selectedPayout = ref('');
-const preferencesStep3Show = {
-  shift: false,
-  language: false,
-  accessibility: false,
-};
-
-// --- Step 5 (Identity Verification) State & Config ---
+// --- Step 4 (Identity Verification) State & Config ---
 const selectedIdType = ref('');
 const validIdFront = ref<File | null>(null);
 const validIdBack = ref<File | null>(null);
-const identityStep5Show = {
+const identityStep4Show = {
   licenseNumber: false,
   licenseExpiry: false,
   expertise: false,
   yearExperience: false,
 };
 
-// --- Step 6 (Documents to Upload) State & Config ---
-const documentsStep6Show = {
+// --- Step 5 (Documents to Upload) State & Config ---
+const documentsStep5Show = {
   nbiClearance: false,
   selfiePicture: false,
   prcCertificate: false,
@@ -128,7 +113,7 @@ const documentsStep6Show = {
   cvAttachment: false,
 };
 
-// --- Step 7 (Account Security) State & Config ---
+// --- Step 6 (Account Security) State & Config ---
 const securityStep6Labels = {
   terms1: 'I Agree to the Franchise Terms and Boundary Policy',
   terms2: 'I confirm all details are true and valid',
@@ -136,7 +121,7 @@ const securityStep6Labels = {
 
 // --- Multi-Step Form State & Config ---
 const currentStep = ref(1);
-const totalSteps = 7;
+const totalSteps = 6;
 const terms1 = ref(false);
 const terms2 = ref(false);
 const canSubmit = computed(() => {
@@ -176,14 +161,13 @@ const fieldStepMap: Record<string, number> = {
   franchise_barangay: 3,
   franchise_postal_code: 3,
   franchise_address: 3,
-  payment_option_id: 4,
-  valid_id_type: 5,
-  valid_id_number: 5,
-  front_valid_id_picture: 5,
-  back_valid_id_picture: 5,
-  dti_certificate: 6,
-  mayor_permit: 6,
-  proof_capital: 6,
+  valid_id_type: 4,
+  valid_id_number: 4,
+  front_valid_id_picture: 4,
+  back_valid_id_picture: 4,
+  dti_certificate: 5,
+  mayor_permit: 5,
+  proof_capital: 5,
 };
 
 watch(
@@ -264,35 +248,25 @@ watch(
         />
       </div>
 
-      <!-- Step 4: Preferences -->
+      <!-- Step 4: Identification -->
       <div v-show="currentStep === 4" class="space-y-4" data-step="4">
-        <Step3Preferences
-          :errors="errors"
-          :payment-options="paymentOptions"
-          :show-fields="preferencesStep3Show"
-          v-model:selectedPayout="selectedPayout"
-        />
-      </div>
-
-      <!-- Step 5: Identification -->
-      <div v-show="currentStep === 5" class="space-y-4" data-step="5">
         <Step4Account
           :errors="errors"
           :id-types="idTypes"
-          :show-fields="identityStep5Show"
+          :show-fields="identityStep4Show"
           v-model:selectedIdType="selectedIdType"
           v-model:validIdFront="validIdFront"
           v-model:validIdBack="validIdBack"
         />
       </div>
 
-      <!-- Step 6: Uploads -->
-      <div v-show="currentStep === 6" class="space-y-4" data-step="6">
-        <Step5Uploads :errors="errors" :show-fields="documentsStep6Show" />
+      <!-- Step 5: Uploads -->
+      <div v-show="currentStep === 5" class="space-y-4" data-step="6">
+        <Step5Uploads :errors="errors" :show-fields="documentsStep5Show" />
       </div>
 
-      <!-- Step 7: Security -->
-      <div v-show="currentStep === 7" class="space-y-4" data-step="7">
+      <!-- Step 6: Security -->
+      <div v-show="currentStep === 6" class="space-y-4" data-step="7">
         <Step6Security
           :errors="errors"
           :labels="securityStep6Labels"

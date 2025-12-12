@@ -342,7 +342,6 @@ class CreateNewUser implements CreatesNewUsers
             'franchise_barangay' => ['required', 'string', 'max:255'],
             'franchise_postal_code' => ['required', 'string', 'max:20'],
             'franchise_address' => ['required', 'string', 'max:255'],
-            'payment_option_id' => ['required', Rule::exists('payment_options', 'id')],
             'valid_id_type' => ['required', 'string', Rule::in(['National ID', 'Passport', 'Driver License', 'Voter ID', 'Unified Multi-Purpose ID', 'TIN ID'])],
             'valid_id_number' => ['required', 'string', 'max:20', Rule::unique('user_owners', 'valid_id_number')],
             'front_valid_id_picture' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
@@ -402,7 +401,6 @@ class CreateNewUser implements CreatesNewUsers
             Franchise::create([
                 'owner_id' => $userOwner->id, // Use the ID from the created owner
                 'status_id' => $pendingStatusId,
-                'payment_option_id' => $input['payment_option_id'],
                 'name' => $input['franchise_name'],
                 'email' => $input['email'], // Same as user
                 'phone' => $input['phone'], // Same as user

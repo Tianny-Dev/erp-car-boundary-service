@@ -16,7 +16,6 @@ return new class extends Migration
             $table->foreignId('owner_id')->constrained('user_owners')->onDelete('restrict');
             $table->foreignId('manager_id')->nullable()->constrained('user_managers')->onDelete('restrict');
             $table->foreignId('status_id')->constrained('statuses')->onDelete('restrict');
-            $table->foreignId('payment_option_id')->constrained('payment_options')->onDelete('restrict');
             $table->string('name')->unique();
             $table->string('email')->unique();
             $table->string('phone', 20)->unique();

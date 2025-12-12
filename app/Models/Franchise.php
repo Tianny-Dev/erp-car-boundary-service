@@ -21,7 +21,6 @@ class Franchise extends Model
         'owner_id',
         'manager_id',
         'status_id',
-        'payment_option_id',
         'email',
         'name',
         'phone',
@@ -52,12 +51,6 @@ class Franchise extends Model
     public function status(): BelongsTo
     {
         return $this->belongsTo(Status::class);
-    }
-
-    // relationship to payment option, one to many
-    public function paymentOption(): BelongsTo
-    {
-        return $this->belongsTo(PaymentOption::class);
     }
 
     // relationship to drivers, many to many (pivot table)
