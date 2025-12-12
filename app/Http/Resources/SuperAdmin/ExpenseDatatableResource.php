@@ -20,7 +20,6 @@ class ExpenseDatatableResource extends JsonResource
             'franchise_name' => $this->franchise_name ?? null,
             'branch_name' => $this->branch_name ?? null,
             'payment_date' => 'N/A', // Default
-            
         ];
 
         // Handle Monthly

@@ -33,13 +33,10 @@ const props = defineProps<{
 
 // --- Define ExpenseRow Interface ---
 interface ExpenseRow {
-  id: number | null;
   franchise_name?: string;
   branch_name?: string;
   amount: number;
   payment_date: string;
-  description: string;
-  plate_number: string;
 }
 
 // --- 3. Setup Breadcrumbs ---
@@ -99,14 +96,6 @@ const expenseColumns = computed<ColumnDef<ExpenseRow>[]>(() => {
     {
       accessorKey: isFranchiseTab ? 'franchise_name' : 'branch_name',
       header: isFranchiseTab ? 'Franchise' : 'Branch',
-    },
-    {
-      accessorKey: 'plate_number',
-      header: 'Plate Number',
-    },
-    {
-      accessorKey: 'description',
-      header: 'Description',
     },
     {
       accessorKey: 'payment_date',
