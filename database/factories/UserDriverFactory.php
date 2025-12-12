@@ -20,7 +20,6 @@ class UserDriverFactory extends Factory
             // 'id' is intentionally omitted here
             // It will be provided by the UserFactory
             'status_id' => $statusId,
-            'payment_option_id' => random_int(1, 4), // From PaymentOptionSeeder
             'license_number' => fake()->unique()->bothify('??-########'),
             'is_verified' => $statusId == 1,
             'is_online' => $statusId == 1,

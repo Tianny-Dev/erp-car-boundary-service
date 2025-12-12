@@ -86,7 +86,6 @@ class CreateNewUser implements CreatesNewUsers
             'license_number' => ['required', 'string', 'max:20'],
             'license_expiry' => ['required', 'date','after_or_equal:' . now()->toDateString()],
             'shift' => ['required', new Enum(Shifts::class)],
-            'payment_option_id' => ['required', 'exists:payment_options,id'],
             'front_license_picture' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
             'back_license_picture' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
             'nbi_clearance' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf,docx,doc', 'max:5120'],
@@ -131,7 +130,6 @@ class CreateNewUser implements CreatesNewUsers
             UserDriver::create([
                 'id' => $newUser->id,
                 'status_id' => $inActiveStatusId,
-                'payment_option_id' => $input['payment_option_id'],
                 'shift' => $input['shift'],
                 'license_number' => $input['license_number'],
                 'license_expiry'=> $input['license_expiry'],

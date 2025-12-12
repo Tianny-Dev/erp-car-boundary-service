@@ -29,7 +29,6 @@ class UserDriver extends Model
     protected $fillable = [
         'id',
         'status_id',
-        'payment_option_id',
         'shift',
         'is_verified',
         'license_number',
@@ -52,12 +51,6 @@ class UserDriver extends Model
     public function status(): BelongsTo
     {
         return $this->belongsTo(Status::class);
-    }
-
-    // relationship to payment option, one to many
-    public function paymentOption(): BelongsTo
-    {
-        return $this->belongsTo(PaymentOption::class);
     }
 
     // relationship to franchises, many to many (pivot table)

@@ -12,12 +12,6 @@ class PaymentOption extends Model
 
     // protected $fillable = [];
 
-    // relationship to drivers, one to many
-    public function drivers(): HasMany
-    {
-        return $this->hasMany(UserDriver::class);
-    }
-
     // relationship to franchises, one to many
     public function franchises(): HasMany
     {

@@ -15,11 +15,6 @@ import Step6Security from './step/Step6Security.vue';
 defineProps<{
   genderOptions: { value: string; label: string }[];
   shifts: { value: string; label: string }[];
-  paymentOptions: {
-    id: string;
-    label: string;
-    color: string;
-  }[];
   userType: {
     encrypted_id: string;
     name: string;
@@ -92,10 +87,10 @@ const identitylabels = {
 
 // --- Step 4 (Preferences) State & Config ---
 const selectedShift = ref('');
-const selectedPayout = ref('');
 const preferencesStep4Show = {
   language: false,
   accessibility: false,
+  paymentOption: false,
 };
 
 // --- Step 5 (Documents to Upload) State & Config ---
@@ -154,7 +149,6 @@ const fieldStepMap: Record<string, number> = {
   license_expiry: 3,
   front_license_picture: 3,
   back_license_picture: 3,
-  payment_option_id: 4,
   shift: 4,
   nbi_clearance: 5,
   selfie_picture: 5,
@@ -243,9 +237,7 @@ watch(
         <Step3Preferences
           :errors="errors"
           :shifts="shifts"
-          :payment-options="paymentOptions"
           :show-fields="preferencesStep4Show"
-          v-model:selectedPayout="selectedPayout"
           v-model:selectedShift="selectedShift"
         />
       </div>
