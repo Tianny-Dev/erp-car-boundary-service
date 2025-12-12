@@ -48,7 +48,10 @@ export function usePageTheme(forcedTheme: 'light' | 'dark') {
     // Only restore theme if we're actually changing pages
     removeBeforeListener = router.on('before', (event) => {
       // Check if the destination page is different from current page
-      if (event.detail.visit.url.href !== window.location.href) {
+      if (
+        event.detail.visit.url.href !== window.location.href &&
+        currentComponent !== page.component
+      ) {
         restoreUserTheme();
       }
     });
