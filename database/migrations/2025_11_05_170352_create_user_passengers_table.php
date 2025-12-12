@@ -14,9 +14,6 @@ return new class extends Migration
         Schema::create('user_passengers', function (Blueprint $table) {
             $table->foreignId('id')->primary()->constrained('users')->onDelete('cascade');
             $table->foreignId('status_id')->constrained('statuses')->onDelete('restrict');
-            $table->foreignId('payment_option_id')->constrained('payment_options')->onDelete('restrict');
-            $table->enum('preferred_language', ['English', 'Filipino', 'Others'])->default('English');
-            $table->enum('accessibility_option', ['Normal', 'Wheelchair Access', 'Pet-Friendly Ride'])->default('Normal');
             $table->date('birth_date');
             $table->timestamps();
         });

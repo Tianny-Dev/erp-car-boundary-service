@@ -174,9 +174,6 @@ class CreateNewUser implements CreatesNewUsers
             'city' => ['required', 'string', 'max:255'],
             'barangay' => ['required', 'string', 'max:255'],
             'postal_code' => ['required', 'string', 'max:20'],
-            'payment_option_id' => ['required', 'exists:payment_options,id'],
-            'preferred_language' => ['required', new Enum(Language::class)],
-            'accessibility_option'=> ['required', new Enum(AccesibilityOption::class)],
             'terms1' => ['required', 'accepted'],
             'terms2' => ['required', 'accepted'],
         ])->validate();
@@ -211,9 +208,6 @@ class CreateNewUser implements CreatesNewUsers
             UserPassenger::create([
                 'id' => $newUser->id,
                 'status_id' => $activeStatusId,
-                'payment_option_id' => $input['payment_option_id'],
-                'preferred_language' => $input['preferred_language'],
-                'accessibility_option' => $input['accessibility_option'],
                 'birth_date' => $input['birth_date'],
             ]);
             // Return the new user from the closure

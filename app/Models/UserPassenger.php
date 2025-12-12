@@ -28,9 +28,6 @@ class UserPassenger extends Model
     protected $fillable = [
         'id',
         'status_id',
-        'payment_option_id',
-        'preferred_language',
-        'accessibility_option',
         'birth_date',
     ];
 
@@ -44,12 +41,6 @@ class UserPassenger extends Model
     public function status(): BelongsTo
     {
         return $this->belongsTo(Status::class);
-    }
-
-    // relationship to payment option, one to many
-    public function paymentOption(): BelongsTo
-    {
-        return $this->belongsTo(PaymentOption::class);
     }
 
     // relationship to routes, one to many

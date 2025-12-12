@@ -7,18 +7,10 @@ import { computed, nextTick, reactive, ref, watch } from 'vue';
 import MultiStepFooter from './step/MultiStepFooter.vue';
 import Step1Personal from './step/Step1Personal.vue';
 import Step2Address from './step/Step2Address.vue';
-import Step3Preferences from './step/Step3Preferences.vue';
 import Step6Security from './step/Step6Security.vue';
 
 defineProps<{
   genderOptions: { value: string; label: string }[];
-  preferredLanguages: { value: string; label: string }[];
-  accessibilityOptions: { value: string; label: string }[];
-  paymentOptions: {
-    id: string;
-    label: string;
-    color: string;
-  }[];
   userType: {
     encrypted_id: string;
     name: string;
@@ -28,8 +20,7 @@ defineProps<{
 const stepTitles: Record<number, string> = {
   1: 'Basic Information',
   2: 'Home Address',
-  3: 'Preferences',
-  4: 'Account Security',
+  3: 'Account Security',
 };
 
 const nextStep = () => {
@@ -70,15 +61,7 @@ const addressLabels = {
   address: 'Address',
 };
 
-// --- Step 3 Preferences State & Config ---
-const selectedLanguage = ref('');
-const selectedAccessibilityOptions = ref('');
-const selectedPayout = ref('');
-const preferencesStep3Show = {
-  shift: false,
-};
-
-// --- Step 4 Security State & Config ---
+// --- Step 3 Security State & Config ---
 const securityStep4Labels = {
   terms1: 'I Agree to the Driver Terms and Code of Conduct',
   terms2: 'I consent to GPS tracking during active trips',
@@ -86,7 +69,7 @@ const securityStep4Labels = {
 
 // --- Multi-Step Form State & Config ---
 const currentStep = ref(1);
-const totalSteps = 4;
+const totalSteps = 3;
 const terms1 = ref(false);
 const terms2 = ref(false);
 const canSubmit = computed(() => {
@@ -120,9 +103,6 @@ const fieldStepMap: Record<string, number> = {
   city: 2,
   barangay: 2,
   postal_code: 2,
-  payment_option_id: 3,
-  preferred_language: 3,
-  accessibility_option: 3,
 };
 
 watch(
@@ -192,22 +172,8 @@ watch(
         />
       </div>
 
-      <!-- Step 3: Preferences -->
+      <!-- Step 3: Security -->
       <div v-show="currentStep === 3" class="space-y-4" data-step="3">
-        <Step3Preferences
-          :errors="errors"
-          :payment-options="paymentOptions"
-          :accessibility-options="accessibilityOptions"
-          :preferred-languages="preferredLanguages"
-          :show-fields="preferencesStep3Show"
-          v-model:selectedLanguage="selectedLanguage"
-          v-model:selectedAccessibilityOptions="selectedAccessibilityOptions"
-          v-model:selectedPayout="selectedPayout"
-        />
-      </div>
-
-      <!-- Step 4: Security -->
-      <div v-show="currentStep === 4" class="space-y-4" data-step="4">
         <Step6Security
           :errors="errors"
           :labels="securityStep4Labels"

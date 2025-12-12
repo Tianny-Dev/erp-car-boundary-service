@@ -18,12 +18,6 @@ class PaymentOption extends Model
         return $this->hasMany(UserDriver::class);
     }
 
-    // relationship to passengers, one to many
-    public function passengers(): HasMany
-    {
-        return $this->hasMany(UserPassenger::class);
-    }
-
     // relationship to franchises, one to many
     public function franchises(): HasMany
     {
