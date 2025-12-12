@@ -32,7 +32,6 @@ class BranchController extends Controller
     public function create(): Response
     {
         return Inertia::render('super-admin/dashboard/BranchCreate', [
-            'paymentOptions' => PaymentOption::select('id', 'name')->get(),
             'genderOptions' => Gender::options(),
             'idTypeOptions' => IdType::options(),
         ]);
@@ -92,7 +91,6 @@ class BranchController extends Controller
             Branch::create([
                 'manager_id' => $managerId,
                 'status_id' => $activeStatusId, // Set to Active
-                'payment_option_id' => $request->payment_option_id,
                 'name' => $request->name,
                 'email' => $request->email,
                 'phone' => $request->phone,

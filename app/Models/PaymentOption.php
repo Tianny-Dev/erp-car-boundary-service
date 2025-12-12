@@ -12,12 +12,6 @@ class PaymentOption extends Model
 
     // protected $fillable = [];
 
-    // relationship to branches, one to many
-    public function branches(): HasMany
-    {
-        return $this->hasMany(Branch::class);
-    }
-
     // relationship to expenses, one to many
     public function expenses(): HasMany
     {

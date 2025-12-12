@@ -18,7 +18,6 @@ class BranchFactory extends Factory
     {
         return [
             'status_id' => 1,
-            'payment_option_id' => random_int(1, 4),
             'name' => fake()->unique()->company(),
             'email' => fake()->unique()->safeEmail(),
             'phone' => fake()->unique()->phoneNumber(),

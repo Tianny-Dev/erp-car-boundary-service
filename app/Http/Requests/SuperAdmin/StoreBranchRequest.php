@@ -32,7 +32,6 @@ class StoreBranchRequest extends FormRequest
                 Rule::unique('franchises', 'phone'),
                 Rule::unique('branches', 'phone')
             ],
-            'payment_option_id' => ['required', 'exists:payment_options,id'],
             
             // Branch Address
             'region' => ['required', 'string', 'max:255'],

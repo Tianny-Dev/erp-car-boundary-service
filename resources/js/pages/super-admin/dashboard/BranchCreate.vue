@@ -20,17 +20,12 @@ import { useAddress } from '@/composables/useAddress';
 import AppLayout from '@/layouts/AppLayout.vue';
 import superAdmin from '@/routes/super-admin';
 import { useForm } from '@inertiajs/vue3';
-import {
-  CircleDollarSignIcon,
-  IdCardIcon,
-  VenusAndMarsIcon,
-} from 'lucide-vue-next';
+import { IdCardIcon, VenusAndMarsIcon } from 'lucide-vue-next';
 import { computed, reactive, watchEffect } from 'vue';
 import { toast } from 'vue-sonner';
 
 // Props passed from Controller
 defineProps<{
-  paymentOptions: Array<{ id: number; name: string }>;
   genderOptions: Array<{ value: string; label: string }>;
   idTypeOptions: Array<{ value: string; label: string }>;
 }>();
@@ -46,7 +41,6 @@ const form = useForm({
   name: '',
   email: '',
   phone: '',
-  payment_option_id: '',
   address: '',
   region: '',
   province: '',
@@ -98,7 +92,6 @@ const disableSubmit = computed(() => {
       name: form.name,
       email: form.email,
       phone: form.phone,
-      payment_option_id: form.payment_option_id,
       address: form.address,
       region: form.region,
       province: form.province, // excluded
@@ -302,33 +295,6 @@ watchEffect(() => {
               v-model:email="form.email"
               v-model:phone="form.phone"
             />
-
-            <div class="grid gap-2">
-              <Label class="font-semibold text-auth-blue">Payment Option</Label>
-              <div
-                class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
-              >
-                <div class="flex items-center justify-center bg-auth-blue px-3">
-                  <CircleDollarSignIcon class="h-5 w-5 text-white" />
-                </div>
-                <Select v-model="form.payment_option_id">
-                  <SelectTrigger
-                    class="flex-1 border-0 font-mono font-semibold focus-visible:ring-0"
-                    ><SelectValue placeholder="Select Option"
-                  /></SelectTrigger>
-                  <SelectContent class="font-mono font-semibold">
-                    <SelectItem
-                      v-for="opt in paymentOptions"
-                      :key="opt.id"
-                      :value="String(opt.id)"
-                    >
-                      {{ opt.name }}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <InputError :message="form.errors['payment_option_id']" />
-            </div>
 
             <StepAddress
               :address-data="branchAddress"
