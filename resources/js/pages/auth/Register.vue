@@ -3,6 +3,7 @@ import DriverRegistrationForm from '@/components/auth/registration/DriverRegistr
 import OwnerRegistrationForm from '@/components/auth/registration/OwnerRegistrationForm.vue';
 import PassengerRegisrationForm from '@/components/auth/registration/PassengerRegisrationForm.vue';
 import TechnicianRegistrationForm from '@/components/auth/registration/TechnicianRegistrationForm.vue';
+import { usePageTheme } from '@/composables/usePageTheme';
 
 defineProps<{
   genderOptions: { value: string; label: string }[];
@@ -24,6 +25,9 @@ defineProps<{
     name: string;
   };
 }>();
+
+// Force light mode on this page only
+usePageTheme('light');
 </script>
 
 <template>

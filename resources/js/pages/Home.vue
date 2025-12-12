@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { usePageTheme } from '@/composables/usePageTheme';
 import HomeLayout from '@/layouts/HomeLayout.vue';
 import { Head } from '@inertiajs/vue3';
 
@@ -21,6 +22,9 @@ interface Props {
 }
 
 const { userTypes } = defineProps<Props>();
+
+// Force light mode on this page only
+usePageTheme('light');
 </script>
 
 <template>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import TextLink from '@/components/TextLink.vue';
+import { usePageTheme } from '@/composables/usePageTheme';
 import { login } from '@/routes';
 import { Link } from '@inertiajs/vue3';
 // Props type
@@ -11,11 +12,14 @@ interface UserType {
 const props = defineProps<{
   userTypes: UserType[];
 }>();
+
+// Force light mode on this page only
+usePageTheme('light');
 </script>
 
 <template>
   <div
-    class="flex h-screen w-full items-center justify-center bg-muted bg-[url(@/assets/auth/loginbg.jpg)] bg-no-repeat bg-center bg-cover p-2 sm:p-6"
+    class="flex h-screen w-full items-center justify-center bg-muted bg-[url(@/assets/auth/loginbg.jpg)] bg-cover bg-center bg-no-repeat p-2 sm:p-6"
   >
     <div
       class="relative w-full max-w-md rounded-2xl bg-white p-4 shadow-2xl sm:p-8"

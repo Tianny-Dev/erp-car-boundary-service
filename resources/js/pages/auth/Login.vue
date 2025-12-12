@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
+import { usePageTheme } from '@/composables/usePageTheme';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { home, selectUserType } from '@/routes';
 import { store } from '@/routes/login';
@@ -20,6 +21,9 @@ defineProps<{
 }>();
 
 const showPassword = ref(false);
+
+// Force light mode on this page only
+usePageTheme('light');
 </script>
 
 <template>
@@ -45,7 +49,9 @@ const showPassword = ref(false);
       class="flex flex-col gap-2"
     >
       <div class="grid gap-2">
-        <Label for="email" class="text-auth-blue">Email address or Phone Number</Label>
+        <Label for="email" class="text-auth-blue"
+          >Email address or Phone Number</Label
+        >
         <div
           class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
         >
