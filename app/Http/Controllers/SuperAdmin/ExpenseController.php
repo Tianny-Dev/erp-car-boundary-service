@@ -119,4 +119,83 @@ class ExpenseController extends Controller
 
         return $query->get();
     }
+
+    /**
+     * Handles the export process.
+     */
+    public function export(Request $request)
+    {
+        // 1. Validate all inputs
+        $validated = $request->validate([
+            'tab' => ['required', 'string', Rule::in(['franchise', 'branch'])],
+            'franchise' => ['nullable', 'string'],
+            'branch' => ['nullable', 'string'],
+            'period' => ['required', 'string', Rule::in(['daily', 'weekly', 'monthly'])],
+            'export' => ['required', 'string', Rule::in(['pdf', 'excel', 'csv'])],
+            'year' => ['required', 'integer', 'min:2020', 'max:2100'],
+            'months' => ['required', 'array', 'min:1'],
+            'months.*' => ['required', 'integer', 'min:1', 'max:12'],
+        ]);
+
+        $filters = [
+            'tab' => $validated['tab'],
+            'franchise' => $validated['franchise'] ?? null,
+            'branch' => $validated['branch'] ?? null,
+            'period' => $validated['period'],
+            'export' => $validated['export'],
+        ];
+
+        // 2. Build Query with date constraints
+        $query = $this->buildBaseQuery($filters, $validated['year'], $validated['months']);
+
+        // 3. Get and group data
+        $expenses = $this->applyPeriodGrouping($query, $filters['period'], $filters['tab']);
+
+        // 4. Generate Title
+        $title = $this->buildExportTitle($filters, $validated['year'], $validated['months']);
+        $fileName = 'expense_' . now()->format('Y-m-d_His');
+
+        // 5. EXPORT (Let ExpenseExport handle transformation)
+        if ($filters['export'] === 'pdf') {
+            return Pdf::loadView('exports.expense', [
+                'rows' => $expenses,
+                'title' => $title,
+                'tab' => $filters['tab']
+            ])
+            ->setPaper('a4', 'landscape')
+            ->setOption('isHtml5ParserEnabled', true)
+            ->setOption('isPhpEnabled', true)
+            ->setOption('defaultFont', 'DejaVu Sans')
+            ->download($fileName . '.pdf');
+        }
+
+        // Excel/CSV
+        return (new ExpenseExport(
+            $expenses,
+            $title,
+            $filters['tab']
+        ))->download($fileName . '.' . ($filters['export'] === 'excel' ? 'xlsx' : 'csv'));
+    }
+
+    /**
+     * Helper to build a descriptive title for the export.
+     */
+    private function buildExportTitle(array $filters, int $year, array $months): string
+    {
+        $period = ucfirst($filters['period']);
+        $tabName = $filters['tab'] === 'franchise' ? 'Franchise' : 'Branch';
+
+        // Get specific name if filtered
+        $targetName = "All {$tabName}s";
+        if ($filters['franchise']) {
+            $targetName = Franchise::find($filters['franchise'])->name ?? 'Franchise';
+        } elseif ($filters['branch']) {
+            $targetName = Branch::find($filters['branch'])->name ?? 'Branch';
+        }
+
+        // Format months
+        $monthNames = collect($months)->map(fn ($m) => date('F', mktime(0, 0, 0, $m, 1)))->join(', ');
+
+        return "{$period} Expense for {$targetName} - {$monthNames} {$year}";
+    }
 }

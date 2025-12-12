@@ -1,5 +1,15 @@
 <script setup lang="ts">
 import DataTable from '@/components/DataTable.vue';
+import Button from '@/components/ui/button/Button.vue';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   Select,
   SelectContent,
@@ -78,6 +88,88 @@ const selectedFilter = computed({
     }
   },
 });
+
+const showExportModal = ref(false);
+const exportType = ref<'pdf' | 'excel' | 'csv'>('pdf');
+const exportYear = ref(String(new Date().getFullYear()));
+const exportMonths = ref<number[]>([]);
+
+// Data for modal selects 2025 is minimum up to latest year
+const yearOptions = computed(() => {
+  const current = new Date().getFullYear();
+  const start = 2025;
+  return Array.from({ length: current - start + 1 }, (_, i) =>
+    String(start + i),
+  );
+});
+
+const monthOptions = [
+  { id: 1, label: 'January' },
+  { id: 2, label: 'February' },
+  { id: 3, label: 'March' },
+  { id: 4, label: 'April' },
+  { id: 5, label: 'May' },
+  { id: 6, label: 'June' },
+  { id: 7, label: 'July' },
+  { id: 8, label: 'August' },
+  { id: 9, label: 'September' },
+  { id: 10, label: 'October' },
+  { id: 11, label: 'November' },
+  { id: 12, label: 'December' },
+];
+
+// Open modal and set the export type
+function openExportModal(type: 'pdf' | 'excel' | 'csv') {
+  exportType.value = type;
+  // exportMonths.value = monthOptions.map((month) => month.id);
+  exportMonths.value = [];
+  showExportModal.value = true;
+}
+
+// Handle checkbox-style "multi-select" for months
+function toggleMonth(monthId: number) {
+  const index = exportMonths.value.indexOf(monthId);
+  if (index > -1) {
+    exportMonths.value.splice(index, 1);
+  } else {
+    exportMonths.value.push(monthId);
+  }
+}
+
+// Build and trigger the download URL
+function handleExport() {
+  if (!exportYear.value || exportMonths.value.length === 0) {
+    return;
+  }
+
+  // 1. Get all *current* page filters
+  const params = new URLSearchParams({
+    tab: activeTab.value,
+    period: selectedPeriod.value,
+    export: exportType.value,
+    year: exportYear.value,
+  });
+
+  // 2. Add branch/franchise filter if not 'all'
+  if (activeTab.value === 'franchise' && selectedFranchise.value !== 'all') {
+    params.append('franchise', selectedFranchise.value);
+  } else if (activeTab.value === 'branch' && selectedBranch.value !== 'all') {
+    params.append('branch', selectedBranch.value);
+  }
+
+  // 3. Add months
+  exportMonths.value.forEach((month) => {
+    params.append('months[]', String(month));
+  });
+
+  // 4. Build URL and open in new tab (triggers download)
+  const url = `${superAdmin.expense.export().url}?${params.toString()}`;
+  window.open(url, '_blank');
+
+  // 5. Close modal and reset
+  showExportModal.value = false;
+  exportMonths.value = [];
+}
 
 const formatCurrency = (amount: number): string => {
   return new Intl.NumberFormat('en-PH', {
@@ -218,8 +310,69 @@ watch(
           :columns="expenseColumns"
           :data="expenses.data"
           search-placeholder="Search expenses..."
-        />
+        >
+          <template #custom-actions>
+            <Button @click="openExportModal('pdf')"> Export PDF </Button>
+            <Button @click="openExportModal('excel')"> Export Excel </Button>
+            <Button @click="openExportModal('csv')"> Export CSV </Button>
+          </template>
+        </DataTable>
       </div>
+      <Dialog v-model:open="showExportModal">
+        <DialogContent class="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle> Export {{ exportType.toUpperCase() }} </DialogTitle>
+            <DialogDescription>
+              Select the year and months to export. This will use your currently
+              active filters.
+            </DialogDescription>
+          </DialogHeader>
+          <div class="grid gap-4 py-4">
+            <div class="grid grid-cols-4 items-center gap-4">
+              <label class="text-right">Year</label>
+              <Select v-model="exportYear">
+                <SelectTrigger class="col-span-3">
+                  <SelectValue placeholder="Select year" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem
+                    v-for="year in yearOptions"
+                    :key="year"
+                    :value="year"
+                  >
+                    {{ year }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div class="grid grid-cols-4 items-start gap-4">
+              <label class="pt-2 text-right">Months</label>
+              <div class="col-span-3 grid grid-cols-2 gap-2">
+                <div
+                  v-for="month in monthOptions"
+                  :key="month.id"
+                  class="flex items-center gap-2"
+                >
+                  <Checkbox
+                    :id="`month-${month.id}`"
+                    :model-value="exportMonths.includes(month.id)"
+                    @update:model-value="() => toggleMonth(month.id)"
+                  />
+
+                  <label :for="`month-${month.id}`" class="cursor-pointer">
+                    {{ month.label }}
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button @click="handleExport" :disabled="exportMonths.length === 0">
+              Confirm Export
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   </AppLayout>
 </template>

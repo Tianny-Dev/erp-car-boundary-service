@@ -71,6 +71,7 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
     Route::get('/gps-tracker', [GpsTrackerController::class, 'index'])->name('gpsTracker.index');
 
     Route::get('/expense', [ExpenseController::class, 'index'])->name('expense.index');
+    Route::get('/expense/export', [ExpenseController::class, 'export'])->name('expense.export');
 
     // Route::get('/route', [RouteController::class, 'index'])->name('route.index');
 });
