@@ -4,45 +4,48 @@ import { Head, Link } from '@inertiajs/vue3';
 </script>
 
 <template>
-  <Head title="Account Inactive" />
+  <Head title="Success!" />
 
   <div
     class="flex h-screen w-full items-center justify-center bg-[#EFF8FF] p-2 sm:p-6"
   >
     <div class="relative z-0 w-full max-w-md">
+      <!-- Background circle with subtle ping -->
       <div
-        class="absolute top-[-60px] left-1/2 z-[-1] h-[125px] w-[125px] -translate-x-1/2 rounded-full bg-white shadow-brand-shadow"
+        class="absolute top-[-60px] left-1/2 z-0 h-[125px] w-[125px] -translate-x-1/2 animate-ping rounded-full bg-white shadow-brand-shadow"
       ></div>
 
+      <!-- Success Icon  -->
       <div>
         <i
-          class="fa-solid fa-clock absolute top-[-45px] left-1/2 -translate-x-1/2 text-[90px] text-auth-blue"
+          class="fa-solid fa-circle-check absolute top-[-45px] left-1/2 z-10 -translate-x-1/2 animate-bounce text-[90px] text-green-500"
         ></i>
       </div>
 
+      <!-- Card background -->
       <div
-        class="absolute left-1/2 z-[-2] h-full w-full -translate-x-1/2 rounded-2xl bg-white shadow-brand-shadow"
+        class="absolute left-1/2 z-0 h-full w-full -translate-x-1/2 rounded-2xl bg-white shadow-brand-shadow"
       ></div>
 
-      <div class="rounded-2xl bg-white p-3 text-center sm:p-8">
+      <!-- Content -->
+      <div
+        class="animate-fadeIn relative rounded-2xl bg-white p-3 text-center sm:p-8"
+      >
         <div class="h-14 sm:h-1"></div>
 
         <h1
-          class="mb-4 rounded-md bg-auth-blue px-1 py-2 text-xl text-white sm:mt-9 sm:px-2 sm:text-2xl"
+          class="animate-slideDown mb-4 rounded-md bg-green-500 px-1 py-2 text-xl text-white sm:mt-9 sm:px-2 sm:text-2xl"
         >
-          Your Account Is Pending Approval
+          Success!
         </h1>
-        <p class="text-md mb-6 text-justify">
-          Thank you for registering. Your account is not active yet because we
-          are reviewing the information you provided. Once your account is
-          approved, you will receive an email or text notification. Please wait
-          patiently while we complete the verification process.
+        <p class="text-md animate-fadeIn mb-6 text-center py-2">
+          Thank you for registering! We're reviewing your information and will notify you by email or text once your account is approved. We appreciate your patience!
         </p>
 
-        <div class="flex gap-3">
+        <div class="animate-fadeIn flex gap-3">
           <Link
             :href="home()"
-            class="block w-full rounded-lg bg-auth-blue px-4 py-2 text-center font-semibold text-white transition hover:bg-brand-blue"
+            class="block w-full rounded-lg bg-green-500 px-4 py-2 text-center font-semibold text-white transition hover:bg-green-700"
           >
             Home
           </Link>
@@ -57,3 +60,32 @@ import { Head, Link } from '@inertiajs/vue3';
     </div>
   </div>
 </template>
+
+<style scoped>
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes slideDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.8s ease forwards;
+}
+.animate-slideDown {
+  animation: slideDown 0.6s ease forwards;
+}
+</style>
