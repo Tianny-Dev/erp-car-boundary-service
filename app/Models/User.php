@@ -122,4 +122,9 @@ class User extends Authenticatable
             ?? $this->passengerDetails?->status->name
             ?? null;
     }
+
+    public function supportTickets()
+    {
+        return $this->hasMany(SupportTicket::class);
+    }
 }

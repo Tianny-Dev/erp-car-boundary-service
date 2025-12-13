@@ -95,4 +95,9 @@ class Status extends Model
     {
         return $this->hasMany(Maintenance::class);
     }
+
+    public function supportTickets()
+    {
+        return $this->hasMany(SupportTicket::class);
+    }
 }
