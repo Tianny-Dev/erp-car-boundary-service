@@ -1,6 +1,10 @@
 <script setup lang="ts">
+import { usePageTheme } from '@/composables/usePageTheme';
 import { home, logout } from '@/routes';
 import { Head, Link } from '@inertiajs/vue3';
+
+// Force light mode on this page only
+usePageTheme('light');
 </script>
 
 <template>
@@ -38,8 +42,10 @@ import { Head, Link } from '@inertiajs/vue3';
         >
           Success!
         </h1>
-        <p class="text-md animate-fadeIn mb-6 text-center py-2">
-          Thank you for registering! We're reviewing your information and will notify you by email or text once your account is approved. We appreciate your patience!
+        <p class="text-md animate-fadeIn mb-6 py-2 text-center">
+          Thank you for registering! We're reviewing your information and will
+          notify you by email or text once your account is approved. We
+          appreciate your patience!
         </p>
 
         <div class="animate-fadeIn flex gap-3">

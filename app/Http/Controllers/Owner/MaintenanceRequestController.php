@@ -7,6 +7,7 @@ use App\Http\Requests\Owner\StoreMaintenanceRequest;
 use App\Models\Maintenance;
 use App\Models\Inventory;
 use App\Models\Status;
+use App\Models\Vehicle;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -169,6 +170,10 @@ class MaintenanceRequestController extends Controller
                 'description' => $request->description,
                 'maintenance_date' => $request->maintenance_date,
                 'next_maintenance_date' => $request->next_maintenance_date,
+            ]);
+
+            Vehicle::where('id', $request->vehicle)->update([
+                'status_id' => 5,
             ]);
         });
 

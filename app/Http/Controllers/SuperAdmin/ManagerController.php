@@ -44,8 +44,9 @@ class ManagerController extends Controller
 
             // Create Base User
             $user = User::create([
+                'username' => $request['username'],
                 'user_type_id' => $managerTypeId,
-                'name' => $request['name'],
+                'name' => empty($request['name']) ? null : $request['name'],
                 'email' => $request['email'],
                 'password' => Hash::make($request['password']),
                 'phone' => $request['phone'],

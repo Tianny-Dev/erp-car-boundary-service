@@ -58,6 +58,7 @@ const form = useForm({
 
   // Manager Details
   manager: {
+    username: '',
     name: '',
     email: '',
     phone: '',
@@ -90,7 +91,7 @@ const disableSubmit = computed(() => {
   const branchValid = checkRequired(
     {
       name: form.name,
-      email: form.email,
+      email: form.email, // excluded
       phone: form.phone,
       address: form.address,
       region: form.region,
@@ -108,8 +109,9 @@ const disableSubmit = computed(() => {
   // Manager required fields (exclude province)
   const managerValid = checkRequired(
     {
-      name: form.manager.name,
-      email: form.manager.email,
+      username: form.manager.username,
+      name: form.manager.name, // excluded
+      email: form.manager.email, // excluded
       phone: form.manager.phone,
       password: form.manager.password,
       password_confirmation: form.manager.password_confirmation,
@@ -125,8 +127,10 @@ const disableSubmit = computed(() => {
       front_valid_id_picture: form.manager.front_valid_id_picture,
       back_valid_id_picture: form.manager.back_valid_id_picture,
     },
-    ['province'],
+    ['province', 'name'],
   );
+
+  console.log({ branchValid, managerValid });
 
   // Final rule
   return !(branchValid && (!form.has_manager || managerValid));
@@ -145,6 +149,7 @@ const branchDetailShow = {
   name: false,
   gender: false,
   birthday: false,
+  userName: false,
 };
 
 // Configuration for Branch Uploads Component
@@ -182,11 +187,13 @@ const managerDetailFields = {
   name: 'manager.name',
   email: 'manager.email',
   phone: 'manager.phone',
+  userName: 'manager.username',
 };
 const managerDetailLabels = {
-  name: 'Full Name (Manager)',
+  name: 'Full Name (Manager) (optional)',
   email: 'Email Address (Manager)',
   phone: 'Phone Number (Manager)',
+  userName: 'Username (Manager)',
 };
 const managerDetailShow = {
   gender: false,
@@ -339,6 +346,7 @@ watchEffect(() => {
                 :field-names="managerDetailFields"
                 :labels="managerDetailLabels"
                 v-model:name="form.manager.name"
+                v-model:userName="form.manager.username"
                 v-model:email="form.manager.email"
                 v-model:phone="form.manager.phone"
               />

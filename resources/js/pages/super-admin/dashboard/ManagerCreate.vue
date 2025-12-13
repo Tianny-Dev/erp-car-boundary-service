@@ -31,6 +31,7 @@ defineProps<{
 const managerAddress = reactive(useAddress());
 
 const form = useForm({
+  username: '',
   name: '',
   email: '',
   phone: '',
@@ -61,6 +62,7 @@ const disableSubmit = computed(() => {
   // Manager required fields (exclude province)
   const managerValid = checkRequired(
     {
+      username: form.username,
       name: form.name,
       email: form.email,
       phone: form.phone,
@@ -78,7 +80,7 @@ const disableSubmit = computed(() => {
       front_valid_id_picture: form.front_valid_id_picture,
       back_valid_id_picture: form.back_valid_id_picture,
     },
-    ['province'],
+    ['province', 'name'],
   );
 
   // Final rule
@@ -172,6 +174,7 @@ watchEffect(() => {
               v-model:name="form.name"
               v-model:email="form.email"
               v-model:phone="form.phone"
+              v-model:user-name="form.username"
             />
 
             <div class="grid gap-2">

@@ -61,7 +61,8 @@ class CreateNewUser implements CreatesNewUsers
     {
         // 1. Validation
         Validator::make($input, [
-            'name' => ['required', 'string', 'max:255'],
+           'username' => ['required', 'string', 'max:255', Rule::unique(User::class)],
+            'name' => ['nullable', 'string', 'max:255'],
             'email' => [
                 'required', 'string', 'email', 'max:255',
                 Rule::unique(User::class),
@@ -113,8 +114,9 @@ class CreateNewUser implements CreatesNewUsers
 
             // 2b. Create User
             $newUser = User::create([
+                'username' => $input['username'],
                 'user_type_id' => $userTypeId,
-                'name' => $input['name'],
+                'name' => empty($input['name']) ? null : $input['name'],
                 'email' => $input['email'],
                 'phone' => $input['phone'],
                 'password' => Hash::make($input['password']),
@@ -150,7 +152,8 @@ class CreateNewUser implements CreatesNewUsers
     {
         // 1. Validation
         Validator::make($input, [
-            'name' => ['required', 'string', 'max:255'],
+            'username' => ['required', 'string', 'max:255', Rule::unique(User::class)],
+            'name' => ['nullable', 'string', 'max:255'],
             'email' => [
                 'required', 'string', 'email', 'max:255',
                 Rule::unique(User::class),
@@ -189,8 +192,9 @@ class CreateNewUser implements CreatesNewUsers
 
             // 2b. Create User
             $newUser = User::create([
+                'username' => $input['username'],
                 'user_type_id' => $userTypeId,
-                'name' => $input['name'],
+                'name' => empty($input['name']) ? null : $input['name'],
                 'email' => $input['email'],
                 'phone' => $input['phone'],
                 'password' => Hash::make($input['password']),
@@ -314,7 +318,8 @@ class CreateNewUser implements CreatesNewUsers
     {
         // 1. Validation
         Validator::make($input, [
-            'name' => ['required', 'string', 'max:255'],
+            'username' => ['required', 'string', 'max:255', Rule::unique(User::class)],
+            'name' => ['nullable', 'string', 'max:255'],
             'email' => [
                 'required', 'string', 'email', 'max:255',
                 Rule::unique(User::class),
@@ -373,8 +378,9 @@ class CreateNewUser implements CreatesNewUsers
 
             // 2b. Create User
             $newUser = User::create([
+                'username' => $input['username'],
                 'user_type_id' => $userTypeId,
-                'name' => $input['name'],
+                'name' => empty($input['name']) ? null : $input['name'],
                 'email' => $input['email'],
                 'phone' => $input['phone'],
                 'password' => Hash::make($input['password']),

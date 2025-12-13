@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, TwoFactorAuthenticatable, HasSlug;
+    use HasFactory, Notifiable, TwoFactorAuthenticatable;
 
     /**
      * The attributes that are mass assignable.
@@ -68,14 +68,14 @@ class User extends Authenticatable
     /**
      * Get the options for generating the slug.
      */
-    public function getSlugOptions() : SlugOptions
-    {
-        return SlugOptions::create()
-            ->generateSlugsFrom('name')
-            ->saveSlugsTo('username')
-            ->slugsShouldBeNoLongerThan(20)
-            ->usingSeparator('_');
-    }
+    // public function getSlugOptions() : SlugOptions
+    // {
+    //     return SlugOptions::create()
+    //         ->generateSlugsFrom('name')
+    //         ->saveSlugsTo('username')
+    //         ->slugsShouldBeNoLongerThan(20)
+    //         ->usingSeparator('_');
+    // }
 
     // relationship to user type, one to many
     public function userType(): BelongsTo
