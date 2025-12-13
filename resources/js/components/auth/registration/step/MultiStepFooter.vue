@@ -72,10 +72,10 @@ function validateRequiredInputs() {
     }
 
     // handle email input should be a valid email
-    if (input.type === 'text' && input.name === 'email') {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return emailRegex.test(input.value);
-    }
+    // if (input.type === 'text' && input.name === 'email') {
+    //   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    //   return emailRegex.test(input.value);
+    // }
 
     // Handle regular inputs
     return input.value.trim() !== '';

@@ -134,6 +134,7 @@ const handleStepChange = () => {
 // --- Form Errors State & Config ---
 const formErrors = ref<Record<string, string>>({});
 const fieldStepMap: Record<string, number> = {
+  username: 1,
   name: 1,
   phone: 1,
   email: 1,

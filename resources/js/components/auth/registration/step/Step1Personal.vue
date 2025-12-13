@@ -20,6 +20,7 @@ interface FieldNames {
   birthDate: string;
   age: string;
   franchiseName: string;
+  userName: string;
 }
 interface Labels {
   name: string;
@@ -29,6 +30,7 @@ interface Labels {
   birthDate: string;
   age: string;
   franchiseName: string;
+  userName: string;
 }
 interface ShowFields {
   name: boolean;
@@ -37,6 +39,7 @@ interface ShowFields {
   gender: boolean;
   birthday: boolean; // Controls the whole birthday/age block
   franchiseName: boolean;
+  userName: boolean;
 }
 
 // --- PROPS ---
@@ -48,6 +51,7 @@ const props = defineProps<{
   phone?: string;
   email?: string;
   franchiseName?: string;
+  userName?: string;
   birthday?: string;
   selectedGender?: string;
   // Customization props (all optional)
@@ -64,6 +68,7 @@ const emit = defineEmits([
   'update:phone',
   'update:email',
   'update:franchiseName',
+  'update:userName',
 ]);
 
 // --- DEFAULTS ---
@@ -75,15 +80,17 @@ const defaultFieldNames: FieldNames = {
   birthDate: 'birth_date',
   age: 'age',
   franchiseName: 'franchise_name',
+  userName: 'username',
 };
 const defaultLabels: Labels = {
-  name: 'Full Name',
+  name: 'Full Name (optional)',
   phone: 'Phone Number',
   email: 'Email Address',
   gender: 'Gender',
   birthDate: 'Date of Birth',
   age: 'Age',
   franchiseName: 'Business / Franchise Name',
+  userName: 'Username',
 };
 const defaultShowFields: ShowFields = {
   name: true,
@@ -92,6 +99,7 @@ const defaultShowFields: ShowFields = {
   gender: true,
   birthday: true,
   franchiseName: true,
+  userName: true,
 };
 
 // Merges defaults with any provided props. Props win.
@@ -127,6 +135,33 @@ const calculatedAge = computed(() => {
 </script>
 
 <template>
+  <!-- User Name -->
+  <div v-if="show.userName" class="grid gap-2">
+    <Label :for="fields.userName" class="font-semibold text-auth-blue">{{
+      labels.userName
+    }}</Label>
+    <div
+      class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
+    >
+      <div class="flex items-center justify-center bg-auth-blue px-3">
+        <UserIcon class="h-5 w-5 text-white" />
+      </div>
+      <Input
+        :id="fields.userName"
+        type="text"
+        :name="fields.userName"
+        :model-value="userName"
+        @update:model-value="emit('update:userName', $event)"
+        required
+        autofocus
+        :autocomplete="fields.userName"
+        placeholder="jdelacruz"
+        class="flex-1 border-0 font-mono font-semibold focus-visible:ring-0"
+      />
+    </div>
+    <InputError :message="errors?.[fields.userName]" />
+  </div>
+
   <!-- Full Name -->
   <div v-if="show.name" class="grid gap-2">
     <Label :for="fields.name" class="font-semibold text-auth-blue">{{
@@ -144,7 +179,6 @@ const calculatedAge = computed(() => {
         :name="fields.name"
         :model-value="name"
         @update:model-value="emit('update:name', $event)"
-        required
         autofocus
         :autocomplete="fields.name"
         placeholder="Juan Delacruz"

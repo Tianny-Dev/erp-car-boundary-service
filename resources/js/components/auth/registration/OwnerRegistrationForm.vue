@@ -91,6 +91,7 @@ const personalStep3Show = {
   email: false,
   gender: false,
   birthday: false,
+  userName: false,
 };
 
 // --- Step 4 (Identity Verification) State & Config ---

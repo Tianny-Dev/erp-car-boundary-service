@@ -52,8 +52,9 @@ class BranchController extends Controller
 
                 // Create Base User
                 $user = User::create([
+                    'username' => $managerData['username'],
                     'user_type_id' => $managerTypeId,
-                    'name' => $managerData['name'],
+                    'name' => empty($managerData['name']) ? null : $managerData['name'],
                     'email' => $managerData['email'],
                     'password' => Hash::make($managerData['password']),
                     'phone' => $managerData['phone'],
