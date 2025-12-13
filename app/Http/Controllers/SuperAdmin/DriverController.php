@@ -107,7 +107,7 @@ class DriverController extends Controller
 
         // 3. Build and execute query
         $query = UserDriver::with([
-            'user:id,name,email,phone',
+            'user:id,username,email,phone',
             'status:id,name',
         ])->whereHas('status', fn ($q) => $q->where('name', $filters['status']));
         $drivers = $query->get();
@@ -189,7 +189,7 @@ class DriverController extends Controller
     public function show(UserDriver $driver)
     {
         // Load relationships and return as JSON
-        $driver->loadMissing(['user:id,name,email,phone,gender,address,region,city,barangay,province,postal_code', 'status:id,name']);
+        $driver->loadMissing(['user:id,username,name,email,phone,gender,address,region,city,barangay,province,postal_code', 'status:id,name']);
 
         return new DriverResource($driver);
     }

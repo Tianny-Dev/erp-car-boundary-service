@@ -21,7 +21,7 @@ class FranchiseDatatableResource extends JsonResource
             'phone' => $this->phone,
             'status_name' => $this->status->name ?? null,
             'owner_id' => $this->owner_id,
-            'owner_name' => $this->owner->user->name ?? null,
+            'owner_username' => $this->owner->user->username ?? null,
         ];
     }
 }

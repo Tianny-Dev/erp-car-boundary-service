@@ -53,7 +53,7 @@ interface FranchiseRow {
   email: string;
   phone: string;
   status_name: string;
-  owner_name: string;
+  owner_username: string;
   owner_id: number;
 }
 
@@ -63,7 +63,7 @@ interface BranchRow {
   email: string;
   phone: string;
   status_name: string;
-  manager_name: string;
+  manager_username: string;
   manager_id: number;
 }
 
@@ -162,6 +162,7 @@ const franchiseDetails = computed(() => {
 interface OwnerModal {
   id: number;
   status: string;
+  username: string;
   name: string;
   email: string;
   phone: string;
@@ -182,6 +183,7 @@ const ownerDetails = computed(() => {
   if (!data) return [];
 
   return [
+    { label: 'Username', value: data.username, type: 'text' },
     { label: 'Name', value: data.name, type: 'text' },
     { label: 'Email', value: data.email, type: 'text' },
     { label: 'Phone', value: data.phone, type: 'text' },
@@ -262,6 +264,7 @@ const branchDetails = computed(() => {
 interface ManagerModal {
   id: number;
   status: string;
+  username: string;
   name: string;
   email: string;
   phone: string;
@@ -278,6 +281,7 @@ const managerDetails = computed(() => {
   if (!data) return [];
 
   return [
+    { label: 'Username', value: data.username, type: 'text' },
     { label: 'Name', value: data.name, type: 'text' },
     { label: 'Email', value: data.email, type: 'text' },
     { label: 'Phone', value: data.phone, type: 'text' },
@@ -378,10 +382,14 @@ const franchiseColumns: ColumnDef<FranchiseRow>[] = [
     cell: ({ row }) => h('div', { class: 'text-center' }, row.getValue('name')),
   },
   {
-    accessorKey: 'owner_name',
+    accessorKey: 'owner_username',
     header: () => h('div', { class: 'text-center' }, 'Owner'),
     cell: ({ row }) =>
-      h('div', { class: 'text-center' }, row.getValue('owner_name') || 'N/A'),
+      h(
+        'div',
+        { class: 'text-center' },
+        row.getValue('owner_username') || 'N/A',
+      ),
   },
   {
     accessorKey: 'email',
@@ -471,10 +479,14 @@ const branchColumns: ColumnDef<BranchRow>[] = [
     cell: ({ row }) => h('div', { class: 'text-center' }, row.getValue('name')),
   },
   {
-    accessorKey: 'manager_name',
+    accessorKey: 'manager_username',
     header: () => h('div', { class: 'text-center' }, 'Manager'),
     cell: ({ row }) =>
-      h('div', { class: 'text-center' }, row.getValue('manager_name') || 'N/A'),
+      h(
+        'div',
+        { class: 'text-center' },
+        row.getValue('manager_username') || 'N/A',
+      ),
   },
   {
     accessorKey: 'email',
@@ -529,7 +541,7 @@ const branchColumns: ColumnDef<BranchRow>[] = [
               },
               () => 'View Branch Details',
             ),
-            branch.manager_name !== null
+            branch.manager_username !== null
               ? [
                   h(
                     DropdownMenuItem,
@@ -542,7 +554,7 @@ const branchColumns: ColumnDef<BranchRow>[] = [
                 ]
               : null,
 
-            branch.manager_name === null
+            branch.manager_username === null
               ? [
                   h(DropdownMenuSeparator),
                   h(

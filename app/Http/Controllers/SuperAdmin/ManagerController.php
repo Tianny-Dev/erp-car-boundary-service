@@ -22,7 +22,7 @@ class ManagerController extends Controller
     public function show(UserManager $manager)
     {
         // Load relationships and return as JSON
-        $manager->loadMissing(['user:id,name,email,phone,gender,address,region,city,barangay,province,postal_code']);
+        $manager->loadMissing(['user:id,username,name,email,phone,gender,address,region,city,barangay,province,postal_code']);
 
         return new ManagerResource($manager);
     }

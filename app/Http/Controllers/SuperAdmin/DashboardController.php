@@ -38,12 +38,12 @@ class DashboardController extends Controller
         })->count();
 
         $franchises = Franchise::with([
-            'owner.user:id,name',
+            'owner.user:id,username',
             'status:id,name'
         ])->get();
 
         $branches = Branch::with([
-            'manager.user:id,name',
+            'manager.user:id,username',
             'status:id,name'
         ])->get();
 

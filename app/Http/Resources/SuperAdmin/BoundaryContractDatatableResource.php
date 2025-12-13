@@ -21,7 +21,7 @@ class BoundaryContractDatatableResource extends JsonResource
             'coverage_area' => $this->coverage_area,
             'start_date' => $this->start_date ? date('F j, Y', strtotime($this->start_date)) : 'N/A',
             'end_date' => $this->end_date ? date('F j, Y', strtotime($this->end_date)) : 'N/A',
-            'driver_name' => $this->whenLoaded('driver', $this->driver->user->name),
+            'driver_username' => $this->whenLoaded('driver', $this->driver->user->username),
             'status_name' => $this->whenLoaded('status', $this->status->name),
             'franchise_name' => $this->whenLoaded('franchise', fn () => $this->franchise?->name),
             'branch_name' => $this->whenLoaded('branch', fn () => $this->branch?->name),

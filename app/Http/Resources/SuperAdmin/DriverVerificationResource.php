@@ -16,7 +16,8 @@ class DriverVerificationResource extends JsonResource
     {
         $data = [
             'id' => $this->id,
-            'name' => $this->whenLoaded('user', $this->user->name),
+            'username' => $this->whenLoaded('user', $this->user->username),
+            'name' => $this->whenLoaded('user', $this->user->name ?? 'N/A'),
             'email' => $this->whenLoaded('user', $this->user->email),
             'phone' => $this->whenLoaded('user', $this->user->phone),
             'status_name' => $this->whenLoaded('status', $this->status->name),

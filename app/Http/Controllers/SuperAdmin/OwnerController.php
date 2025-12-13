@@ -13,7 +13,7 @@ class OwnerController extends Controller
     public function show(UserOwner $owner)
     {
         // Load relationships and return as JSON
-        $owner->loadMissing(['user:id,name,email,phone,gender,address,region,city,barangay,province,postal_code']);
+        $owner->loadMissing(['user:id,username,name,email,phone,gender,address,region,city,barangay,province,postal_code']);
 
         return new OwnerResource($owner);
     }

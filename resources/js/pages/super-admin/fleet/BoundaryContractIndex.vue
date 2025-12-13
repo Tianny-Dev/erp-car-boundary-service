@@ -62,7 +62,7 @@ interface ContractRow {
   end_date: string;
   franchise_name?: string;
   branch_name?: string;
-  driver_name: string;
+  driver_username: string;
   status_name: string;
 }
 
@@ -119,6 +119,7 @@ interface ContractModal {
   end_date: string;
   status_name: string;
   driver_name: string;
+  driver_username: string;
   driver_email: string;
   driver_phone: string;
   franchise_name?: string;
@@ -142,6 +143,7 @@ const contractDetails = computed(() => {
     { label: 'Start Date', value: data.start_date, type: 'text' },
     { label: 'End Date', value: data.end_date, type: 'text' },
     { label: 'Driver Name', value: data.driver_name, type: 'text' },
+    { label: 'Driver Username', value: data.driver_username, type: 'text' },
     { label: 'Driver Email', value: data.driver_email, type: 'text' },
     { label: 'Driver Phone', value: data.driver_phone, type: 'text' },
     { label: 'Franchise Name', value: data.franchise_name, type: 'text' },
@@ -178,7 +180,7 @@ const contractColumns = computed<ColumnDef<ContractRow>[]>(() => {
       header: 'Contract',
     },
     {
-      accessorKey: 'driver_name',
+      accessorKey: 'driver_username',
       header: 'Driver',
     },
     // Conditionally add the correct column

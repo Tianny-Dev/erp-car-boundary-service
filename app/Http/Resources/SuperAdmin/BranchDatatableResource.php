@@ -21,7 +21,7 @@ class BranchDatatableResource extends JsonResource
             'phone' => $this->phone,
             'status_name' => $this->status->name ?? null,
             'manager_id' => $this->manager_id,
-            'manager_name' => $this->manager->user->name ?? null,
+            'manager_username' => $this->manager->user->username ?? null,
         ];
     }
 }

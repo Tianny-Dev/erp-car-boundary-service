@@ -64,7 +64,7 @@ class BoundaryContractController extends Controller
     private function buildBaseQuery(array $filters): Builder
     {
         $query = BoundaryContract::with([
-            'driver.user:id,name',
+            'driver.user:id,username',
             'status:id,name',
         ])->whereHas('status', fn ($q) => $q->where('name', $filters['status']));
 
@@ -87,7 +87,7 @@ class BoundaryContractController extends Controller
     {
         // Load relationships and return as JSON
         $contract->loadMissing([
-            'driver.user:id,name,email,phone',
+            'driver.user:id,username,name,email,phone',
             'franchise:id,name,email,phone',
             'branch:id,name,email,phone', 
             'status:id,name'

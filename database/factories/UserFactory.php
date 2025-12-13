@@ -33,7 +33,7 @@ class UserFactory extends Factory
         return [
             'user_type_id' => random_int(2, 6),
             'username' => fake()->unique()->userName(),
-            'name' => fake()->name(),
+            // 'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'phone' => fake()->unique()->phoneNumber(),

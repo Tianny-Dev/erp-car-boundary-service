@@ -54,7 +54,7 @@ const props = defineProps<{
 // --- Define DriverRow Interface ---
 interface DriverRow {
   id: number;
-  name: string;
+  username: string;
   email: string;
   phone: string;
   status_name: string;
@@ -75,6 +75,7 @@ const selectedStatus = ref(props.filters.status || 'inactive');
 interface DriverModal {
   id: number;
   status: string;
+  username: string;
   name: string;
   email: string;
   phone: string;
@@ -99,6 +100,7 @@ const driverDetails = computed(() => {
   if (!data) return [];
 
   return [
+    { label: 'Username', value: data.username, type: 'text' },
     { label: 'Name', value: data.name, type: 'text' },
     { label: 'Email', value: data.email, type: 'text' },
     { label: 'Phone', value: data.phone, type: 'text' },
@@ -196,8 +198,8 @@ const handleAssignDriver = () => {
 const driverColumns = computed<ColumnDef<DriverRow>[]>(() => {
   const baseColumns: ColumnDef<DriverRow>[] = [
     {
-      accessorKey: 'name',
-      header: 'Name',
+      accessorKey: 'username',
+      header: 'Driver',
     },
     {
       accessorKey: 'email',
@@ -406,7 +408,7 @@ watch(
         <DialogTitle class="text-2xl">Verify Driver?</DialogTitle>
         <DialogDescription class="text-md font-semibold">
           Are you sure you want to verify the driver
-          <strong class="text-blue-500">{{ selectedDriver.name }}</strong
+          <strong class="text-blue-500">{{ selectedDriver.username }}</strong
           >? This will make the driver status in pending and can be assign to a
           franchise/branch.
         </DialogDescription>
@@ -430,8 +432,8 @@ watch(
       <DialogHeader>
         <DialogTitle class="text-xl">Assign Driver</DialogTitle>
         <DialogDescription>
-          Assign <strong>{{ driverToAssign?.name }}</strong> to a Franchise or
-          Branch. This will set the hire date to today.
+          Assign <strong>{{ driverToAssign?.username }}</strong> to a Franchise
+          or Branch. This will set the hire date to today.
         </DialogDescription>
       </DialogHeader>
 
