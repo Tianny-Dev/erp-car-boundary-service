@@ -26,7 +26,7 @@ interface Vehicle {
 
 interface Driver {
   id: number;
-  name: string;
+  username: string;
 }
 
 interface Props {
@@ -100,7 +100,7 @@ const submit = () => {
       <form @submit.prevent="submit" class="flex flex-col gap-6">
         <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div class="grid gap-2">
-            <Label for="driver">Driver</Label>
+            <Label for="driver">Driver Username</Label>
             <Select
               v-model="form.driver"
               @update:model-value="form.errors.driver = ''"
@@ -126,7 +126,7 @@ const submit = () => {
                   :key="driver.id"
                   :value="driver.id"
                 >
-                  {{ driver.name }}
+                  {{ driver.username }}
                 </SelectItem>
               </SelectContent>
             </Select>

@@ -84,14 +84,14 @@ class PayrollDriverController extends Controller
 
         $query = UserDriver::query()
             ->join('users', 'user_drivers.id', '=', 'users.id')
-            ->select('user_drivers.id', 'users.name');
+            ->select('user_drivers.id', 'users.username');
 
         // MANDATORY: Filter drivers by the owner's franchise
         $query->whereHas('franchises', function ($q) use ($franchiseId) {
             $q->where('franchises.id', $franchiseId);
         });
 
-        return $query->orderBy('users.name')->get();
+        return $query->orderBy('users.username')->get();
     }
 
     /**
@@ -159,11 +159,11 @@ class PayrollDriverController extends Controller
             SUM(DISTINCT revenues.amount) as total_amount,
             revenues.service_type,
             users.id as driver_id,
-            users.name as driver_username
+            users.username as driver_username
         ";
 
         // 3. Add Tab-specific Joins and Selects (Kept logic but uses implicit 'franchise' tab)
-        $groupingFields = ['users.id', 'users.name', 'revenues.service_type'];
+        $groupingFields = ['users.id', 'users.username', 'revenues.service_type'];
 
         // Since the report is scoped to ONE franchise, we can enforce the join to get names
         // If revenue has a franchise_id, join the name
@@ -317,7 +317,7 @@ class PayrollDriverController extends Controller
 
         // 6. Define Headings - MODIFIED to show only 'Deduction'
         $headings = [
-            'Driver Name',
+            'Driver Username',
             'Franchise',
             'Date',
             'Amount',

@@ -74,7 +74,7 @@ class DetailsDriverController extends Controller
         $details = $this->fetchRevenueDetails($validated);
 
         // Ensure the driver object is found
-        $driver = User::find($validated['driver_id'], ['id', 'name']);
+        $driver = User::find($validated['driver_id'], ['id', 'username']);
         if (!$driver) {
             return Inertia::location(route('404'));
         }
@@ -84,7 +84,7 @@ class DetailsDriverController extends Controller
             ->toArray();
 
         return Inertia::render('owner/driver-report/Details', [
-            'driver' => $driver->only(['id', 'name']),
+            'driver' => $driver->only(['id', 'username']),
             'periodLabel' => $validated['payment_date'],
             'details' => $details,
             'breakdownTypes' => $breakdownTypes,
@@ -222,7 +222,7 @@ class DetailsDriverController extends Controller
         // --- 2. Data Fetching (Using the shared logic) ---
         $details = $this->fetchRevenueDetails($validated);
 
-        $driver = User::find($driverId, ['id', 'name']);
+        $driver = User::find($driverId, ['id', 'username']);
         if (!$driver) {
             return response()->json(['message' => 'Driver not found.'], 404);
         }
@@ -298,9 +298,9 @@ class DetailsDriverController extends Controller
         );
 
         // --- 5. Dispatch Download ---
-        $fileName = 'driver_details_' . $driver->name . '_' . date('Ymd_His');
+        $fileName = 'driver_details_' . $driver->username . '_' . date('Ymd_His');
         // Use the CLEAN date string for the title
-        $title = "Transaction Details for {$driver->name} ({$validated['period']}: {$validated['payment_date']})";
+        $title = "Transaction Details for {$driver->username} ({$validated['period']}: {$validated['payment_date']})";
 
         if ($exportType === 'pdf') {
             return PDF::loadView('exports.driver_details', [

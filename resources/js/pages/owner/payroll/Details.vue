@@ -55,7 +55,7 @@ interface DetailedRevenueRow {
 
 // --- Define Props ---
 const props = defineProps<{
-  driver: { id: number; name: string };
+  driver: { id: number; username: string };
   periodLabel: string;
   breakdownTypes: string[];
   details: DetailedRevenueRow[];
@@ -320,7 +320,7 @@ const goBack = () => {
           </div>
           <div class="text-right">
             <p class="text-lg font-semibold text-primary">
-              Driver: {{ props.driver.name }}
+              Driver Username: {{ props.driver.username }}
             </p>
             <p class="text-sm text-muted-foreground">
               Period: {{ props.periodLabel }}
@@ -385,7 +385,7 @@ const goBack = () => {
     <DialogContent class="sm:max-w-[425px] md:max-w-2xl lg:max-w-4xl">
       <DialogHeader>
         <DialogTitle class="text-xl font-bold text-primary">
-          Route Details: {{ props.driver.name }}
+          Route Details: {{ props.driver.username }}
         </DialogTitle>
         <DialogDescription v-if="selectedRouteData">
           Data for Invoice No. **{{ selectedRouteData.invoiceNo }}**

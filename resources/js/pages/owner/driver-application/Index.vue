@@ -49,7 +49,7 @@ interface DriverDetails {
 
 interface Driver {
   id: number;
-  name: string;
+  // name: string;
   username: string;
   email: string;
   phone: string;
@@ -237,7 +237,7 @@ const toggleStatus = (id: number) => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
+              <!-- <TableHead>Name</TableHead> -->
               <TableHead>Username</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Phone</TableHead>
@@ -256,7 +256,7 @@ const toggleStatus = (id: number) => {
               :key="driver.id"
               class="hover:bg-muted/50"
             >
-              <TableCell>{{ driver.name }}</TableCell>
+              <!-- <TableCell>{{ driver.name }}</TableCell> -->
               <TableCell>{{ driver.username }}</TableCell>
               <TableCell>{{ driver.email }}</TableCell>
               <TableCell>{{ driver.phone }}</TableCell>
@@ -356,7 +356,7 @@ const toggleStatus = (id: number) => {
           <DialogTitle>Driver's Information</DialogTitle>
           <DialogDescription>
             Detailed information for driver
-            <strong>{{ selectedDriver?.name }}</strong
+            <strong>{{ selectedDriver?.username }}</strong
             >.
           </DialogDescription>
         </DialogHeader>
@@ -389,7 +389,7 @@ const toggleStatus = (id: number) => {
           <DialogDescription class="text-gray-600">
             You are about to toggle the status of
             <span class="font-semibold text-gray-900">
-              {{ driverToToggle?.name }} </span
+              {{ driverToToggle?.username }} </span
             >.
           </DialogDescription>
         </DialogHeader>

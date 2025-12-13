@@ -54,7 +54,7 @@ interface Contract {
   start_date: string;
   end_date: string;
   status: 'pending' | 'paid' | 'overdue' | string;
-  driver_name: string;
+  driver_username: string;
   driver_email: string;
   driver_phone: string;
   franchise: string | null;
@@ -71,7 +71,7 @@ const visibleContractFields = [
   'start_date',
   'end_date',
   'status',
-  'driver_name',
+  'driver_username',
   'driver_email',
   'driver_phone',
   'franchise',
@@ -266,7 +266,7 @@ const createContract = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Contract Name</TableHead>
-              <TableHead>Driver</TableHead>
+              <TableHead>Driver Username</TableHead>
               <TableHead>Franchise</TableHead>
               <TableHead>Amount</TableHead>
               <TableHead>Coverage Area</TableHead>
@@ -285,7 +285,7 @@ const createContract = () => {
 
             <TableRow v-for="contract in filteredData" :key="contract.id">
               <TableCell class="font-medium">{{ contract.name }}</TableCell>
-              <TableCell>{{ contract.driver_name || '—' }}</TableCell>
+              <TableCell>{{ contract.driver_username || '—' }}</TableCell>
               <TableCell>{{ contract.franchise || '—' }}</TableCell>
               <TableCell class="font-medium">₱{{ contract.amount }}</TableCell>
               <TableCell class="max-w-xs truncate">{{
