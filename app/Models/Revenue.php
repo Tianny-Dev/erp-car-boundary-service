@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Revenue extends Model
 {
@@ -56,8 +57,9 @@ class Revenue extends Model
     }
 
     // relationship to routes, one to many
-    public function routes(): HasMany
+    public function route(): HasOne
     {
-        return $this->hasMany(Route::class);
+        // $this->hasOne(RelatedModel::class, 'foreign_key', 'local_key');
+        return $this->hasOne(Route::class);
     }
 }

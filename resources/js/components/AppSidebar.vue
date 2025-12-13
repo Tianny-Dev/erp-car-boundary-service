@@ -291,6 +291,12 @@ const navConfig: Record<string, NavItem[]> = {
       group: 'Finance',
     },
     {
+      title: 'Payroll Management',
+      href: owner.driverownerpayroll(),
+      icon: DollarSign,
+      group: 'Finance',
+    },
+    {
       title: 'Expense Management',
       href: owner.expenseManagement(),
       icon: FileSpreadsheet,

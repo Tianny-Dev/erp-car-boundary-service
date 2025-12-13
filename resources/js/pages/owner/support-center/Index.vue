@@ -8,7 +8,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import {
   Table,
   TableBody,
@@ -19,13 +18,12 @@ import {
 } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea/';
 import AppLayout from '@/layouts/AppLayout.vue';
-import finance from '@/routes/finance';
+import owner from '@/routes/owner';
 import type { BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/vue3';
+import { Head, usePage } from '@inertiajs/vue3';
 import {
   FlexRender,
   getCoreRowModel,
-  getFilteredRowModel,
   getPaginationRowModel,
   useVueTable,
   type ColumnDef,
@@ -37,64 +35,14 @@ import { computed, h, ref } from 'vue';
 const breadcrumbs: BreadcrumbItem[] = [
   {
     title: 'Support Center',
-    href: finance.supportCenter().url,
+    href: owner.supportCenter().url,
   },
 ];
 
-// 🎫 Ticket Type
-interface SupportTicket {
-  id: string;
-  type: 'Payment Dispute' | 'Adjustment Request';
-  description: string;
-  date: string;
-  status: 'Open' | 'In Progress' | 'Resolved';
-}
-
-// 🔹 Data
-const tickets = ref<SupportTicket[]>([
-  {
-    id: 'T-004',
-    type: 'Payment Dispute',
-    description: 'Discrepancy in last payment of $2,500',
-    date: '2025-11-04',
-    status: 'In Progress',
-  },
-  {
-    id: 'T-003',
-    type: 'Adjustment Request',
-    description: 'Need correction for trip revenue entry R-002',
-    date: '2025-11-03',
-    status: 'Resolved',
-  },
-  {
-    id: 'T-002',
-    type: 'Payment Dispute',
-    description: 'Incorrect tax applied on payment R-001',
-    date: '2025-11-02',
-    status: 'Open',
-  },
-  {
-    id: 'T-001',
-    type: 'Adjustment Request',
-    description: 'Manual adjustment needed for logistics revenue',
-    date: '2025-11-01',
-    status: 'Resolved',
-  },
-]);
-
-// 🔍 Search + Pagination
-const globalFilter = ref('');
-const filteredTickets = computed(() => {
-  if (!globalFilter.value) return tickets.value;
-  const q = globalFilter.value.toLowerCase();
-  return tickets.value.filter(
-    (t) =>
-      t.id.toLowerCase().includes(q) ||
-      t.type.toLowerCase().includes(q) ||
-      t.status.toLowerCase().includes(q) ||
-      t.description.toLowerCase().includes(q),
-  );
-});
+// Props from backend
+const page = usePage<{ tickets: any }>();
+const tickets = computed(() => page.props.tickets.data);
+const pagination = computed(() => page.props.tickets);
 
 // 🎨 Helpers
 const getStatusClass = (status: string) => {
@@ -116,24 +64,11 @@ const newTicket = ref({
   description: '',
 });
 
-const addTicket = () => {
-  const id = `T-${String(tickets.value.length + 1).padStart(3, '0')}`;
-  tickets.value.unshift({
-    id,
-    type: newTicket.value.type as 'Payment Dispute' | 'Adjustment Request',
-    description: newTicket.value.description,
-    date: new Date().toISOString().slice(0, 10),
-    status: 'Open',
-  });
-  newTicket.value.description = '';
-  openDialog.value = false;
-};
-
 const openDialog = ref(false);
 
 // 🧩 Table Columns
-const columns: ColumnDef<SupportTicket>[] = [
-  { accessorKey: 'id', header: 'ID' },
+const columns: ColumnDef<any>[] = [
+  { accessorKey: 'ticket_code', header: 'Code' },
   { accessorKey: 'type', header: 'Type' },
   { accessorKey: 'description', header: 'Description' },
   { accessorKey: 'date', header: 'Date' },
@@ -150,14 +85,7 @@ const columns: ColumnDef<SupportTicket>[] = [
     header: 'Action',
     cell: ({}) =>
       h('div', { class: 'flex gap-2' }, [
-        h(
-          Button,
-          {
-            size: 'sm',
-            variant: 'outline',
-          },
-          () => 'View',
-        ),
+        h(Button, { size: 'sm', variant: 'outline' }, () => 'View'),
       ]),
   },
 ];
@@ -165,18 +93,16 @@ const columns: ColumnDef<SupportTicket>[] = [
 // 🧠 Table instance
 const table = useVueTable({
   get data() {
-    return filteredTickets.value;
+    return tickets.value;
   },
   columns,
   getCoreRowModel: getCoreRowModel(),
-  getFilteredRowModel: getFilteredRowModel(),
   getPaginationRowModel: getPaginationRowModel(),
 });
 </script>
 
 <template>
   <Head title="Support Center" />
-
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="flex flex-col gap-4 rounded-xl bg-white p-4 shadow">
       <!-- Header -->
@@ -211,27 +137,15 @@ const table = useVueTable({
                 placeholder="Describe your issue..."
               />
 
-              <Button @click="addTicket" class="w-full bg-brand-blue">
+              <Button
+                @click="$inertia.post('/support-tickets', newTicket)"
+                class="w-full bg-brand-blue"
+              >
                 Submit Ticket
               </Button>
             </div>
           </DialogContent>
         </Dialog>
-      </div>
-
-      <!-- Controls -->
-      <div class="flex items-center justify-between border-b pb-4">
-        <div class="text-sm text-gray-600">
-          Manage disputes and adjustment requests
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-sm text-gray-600">Search:</span>
-          <Input
-            v-model="globalFilter"
-            class="w-48"
-            placeholder="Search tickets..."
-          />
-        </div>
       </div>
 
       <!-- Table -->
@@ -278,6 +192,23 @@ const table = useVueTable({
             </TableRow>
           </TableBody>
         </Table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="mt-4 flex items-center justify-between">
+        <div>
+          Page {{ pagination.current_page }} of {{ pagination.last_page }}
+        </div>
+        <div class="flex gap-2">
+          <Button
+            v-for="link in pagination.links"
+            :key="link.label"
+            :disabled="!link.url || link.active"
+            @click="$inertia.get(link.url)"
+          >
+            {{ link.label }}
+          </Button>
+        </div>
       </div>
     </div>
   </AppLayout>

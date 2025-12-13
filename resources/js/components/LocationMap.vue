@@ -43,13 +43,13 @@ const createCustomIcon = (color: 'green' | 'red'): Icon => {
   });
 };
 
-const onlineIcon = createCustomIcon('green');
-const offlineIcon = createCustomIcon('red');
+const startIcon = createCustomIcon('green');
+const endIcon = createCustomIcon('red');
 
-// Helper to get the correct icon
+// Helper to get the correct icon (Modified slightly to use 'type' property from Details.vue)
 const getMarkerIcon = (location: MarkerData) => {
-  const isOnline = location.isOnline === 1 || location.isOnline === true;
-  return isOnline ? onlineIcon : offlineIcon;
+  // Use the 'type' property we added in mapLocations
+  return location.type === 'Start' ? startIcon : endIcon;
 };
 
 // --- State ---
@@ -61,12 +61,13 @@ const defaultCenter = computed<[number, number]>(
 );
 const defaultZoom = computed(() => props.zoom ?? 13);
 
-// ---  Smart Bounds Logic ---
-const driversListSignature = computed(() => {
+// ---  Smart Bounds Logic ---
+const locationsSignature = computed(() => {
+  // Use location properties to track changes
   return props.locations
-    .map((l) => l.id)
-    .sort() // Sort ID so order doesn't matter
-    .join(',');
+    .map((l) => `${l.id}:${l.latitude},${l.longitude}`)
+    .sort()
+    .join('|');
 });
 
 function fitMapToBounds() {
@@ -85,20 +86,19 @@ function fitMapToBounds() {
 function onMapReady() {
   nextTick(() => {
     mapReady.value = true;
-    // Always fit bounds on initial load
     fitMapToBounds();
   });
 }
 
-// Watcher 1: Watch the SIGNATURE, not the locations directly.
-watch(driversListSignature, () => {
+// Watcher 1: Watch the SIGNATURE, which changes when locations change.
+watch(locationsSignature, () => {
   fitMapToBounds();
 });
 </script>
 
 <template>
   <div
-    class="isolate z-0 h-[650px] w-full overflow-hidden rounded-lg border border-gray-200 shadow-inner"
+    class="isolate z-0 h-full w-full overflow-hidden rounded-lg border border-gray-200 shadow-inner"
   >
     <l-map
       ref="map"
@@ -133,6 +133,8 @@ watch(driversListSignature, () => {
 
 <style scoped>
 /* Ensure map controls sit above other UI elements if necessary */
+/* This style block may need to be in a separate CSS file or your global styles
+   if you are using Vue's scoped styles for LeafletMap.vue */
 .leaflet-pane {
   z-index: 10;
 }

@@ -51,5 +51,7 @@ class DatabaseSeeder extends Seeder
         $this->call(InventorySeeder::class);
         $this->call(MaintenanceSeeder::class);
 
+        $this->call(SupportTicketSeeder::class);
+
     }
 }

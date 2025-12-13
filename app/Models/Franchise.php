@@ -94,4 +94,9 @@ class Franchise extends Model
     {
         return $this->hasMany(Violation::class);
     }
+
+    public function supportTickets()
+    {
+        return $this->hasMany(SupportTicket::class);
+    }
 }
