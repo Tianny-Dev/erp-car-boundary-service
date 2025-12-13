@@ -102,12 +102,19 @@ class TicketJobController extends Controller
     {
         $technicianId = auth()->user()?->technicianDetails?->id;
 
-        $job = Maintenance::where('id', $id)
+        $job = Maintenance::with('vehicle')
+            ->where('id', $id)
             ->where('technician_id', $technicianId)
             ->first();
 
+        $vehicle = $job->vehicle;
+
         if (!$job) {
             return response()->json(['message' => 'Maintenance Job not found'], 404);
+        }
+
+        if (!$vehicle) {
+            return response()->json(['message' => 'Vehicle not found'], 404);
         }
 
         $request->validate([
@@ -116,6 +123,10 @@ class TicketJobController extends Controller
 
         $job->update([
             'status_id' => $request->status_id,
+        ]);
+
+        $vehicle->update([
+            'status_id' => 1,
         ]);
 
         if ($request->status_id == 16 && $job->inventory) {
