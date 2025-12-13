@@ -251,7 +251,7 @@ const completedStatusId = 16;
           >
             <option value="all">All Status</option>
             <option value="active">Active</option>
-            <option value="pending">Pending</option>
+            <option value="completed">Completed</option>
           </select>
         </div>
 
