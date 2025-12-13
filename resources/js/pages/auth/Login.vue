@@ -60,7 +60,7 @@ usePageTheme('light');
           </div>
           <Input
             id="email"
-            type="email"
+            type="text"
             name="email"
             required
             autofocus
