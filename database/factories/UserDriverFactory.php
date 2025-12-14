@@ -15,6 +15,7 @@ class UserDriverFactory extends Factory
         $statusId = fake()->randomElement([1, 1, 1, 2]);
         $latitude = fake()->latitude(15.1, 15.2); // Roughly Angeles, Pampanga
         $longitude = fake()->longitude(120.55, 120.65);
+        $hireDate = fake()->dateTimeBetween('-3 months', 'now');
 
         return [
             // 'id' is intentionally omitted here
@@ -31,7 +32,9 @@ class UserDriverFactory extends Factory
             'back_license_picture' => fake()->imageUrl(640, 480, 'license', true),
             'nbi_clearance' => fake()->imageUrl(640, 480, 'document', true),
             'selfie_picture' => fake()->imageUrl(640, 480, 'person', true),
-            'hire_date' => fake()->optional()->date(),
+            'hire_date' => $statusId == 1 ? $hireDate : null,
+            'created_at' => $statusId == 1 ? $hireDate : now(),
+            'updated_at' => $statusId == 1 ? $hireDate : now(),
         ];
     }
 }

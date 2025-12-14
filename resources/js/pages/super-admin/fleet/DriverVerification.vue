@@ -202,6 +202,10 @@ const driverColumns = computed<ColumnDef<DriverRow>[]>(() => {
       header: 'Driver',
     },
     {
+      accessorKey: 'license_number',
+      header: 'License Number',
+    },
+    {
       accessorKey: 'email',
       header: 'Email',
     },
@@ -257,30 +261,30 @@ const driverColumns = computed<ColumnDef<DriverRow>[]>(() => {
               h(DropdownMenuSeparator),
               driver.status_name === 'inactive'
                 ? [
-                    h(
-                      DropdownMenuItem,
-                      {
-                        class:
-                          'cursor-pointer text-blue-500 focus:text-blue-600',
-                        onClick: () => openVerifyModal(driver),
-                      },
-                      () => 'Verify Driver',
-                    ),
-                  ]
+                  h(
+                    DropdownMenuItem,
+                    {
+                      class:
+                        'cursor-pointer text-blue-500 focus:text-blue-600',
+                      onClick: () => openVerifyModal(driver),
+                    },
+                    () => 'Verify Driver',
+                  ),
+                ]
                 : null,
               driver.status_name === 'pending'
                 ? [
-                    h(
-                      DropdownMenuItem,
-                      {
-                        class:
-                          'cursor-pointer text-blue-500 focus:text-blue-600',
-                        // NEW: Trigger the Assign Modal
-                        onClick: () => openAssignModal(driver),
-                      },
-                      () => 'Assign Driver',
-                    ),
-                  ]
+                  h(
+                    DropdownMenuItem,
+                    {
+                      class:
+                        'cursor-pointer text-blue-500 focus:text-blue-600',
+                      // NEW: Trigger the Assign Modal
+                      onClick: () => openAssignModal(driver),
+                    },
+                    () => 'Assign Driver',
+                  ),
+                ]
                 : null,
             ]),
           ]),
@@ -313,15 +317,12 @@ watch(
 </script>
 
 <template>
+
   <Head title="Driver Verification" />
 
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div
-      class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
-    >
-      <div
-        class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border"
-      >
+    <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+      <div class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border">
         <div class="mb-4 flex items-center justify-between">
           <h2 class="font-mono text-xl font-semibold">Driver Verification</h2>
 
@@ -338,11 +339,7 @@ watch(
           </div>
         </div>
 
-        <DataTable
-          :columns="driverColumns"
-          :data="drivers.data"
-          search-placeholder="Search drivers..."
-        />
+        <DataTable :columns="driverColumns" :data="drivers.data" search-placeholder="Search drivers..." />
       </div>
     </div>
   </AppLayout>
@@ -360,20 +357,12 @@ watch(
           </template>
         </div>
 
-        <div
-          v-else-if="driverDetails.length > 0"
-          class="grid grid-cols-2 gap-4"
-        >
+        <div v-else-if="driverDetails.length > 0" class="grid grid-cols-2 gap-4">
           <template v-for="item in driverDetails" :key="item.label">
             <div class="font-medium">{{ item.label }}:</div>
 
             <div v-if="item.type === 'link'">
-              <a
-                :href="item.value"
-                target="_blank"
-                class="text-blue-500 hover:underline"
-                >View</a
-              >
+              <a :href="item.value" target="_blank" class="text-blue-500 hover:underline">View</a>
             </div>
 
             <div v-else>
@@ -383,10 +372,7 @@ watch(
         </div>
 
         <div v-else-if="driverModal.isError.value">
-          <Alert
-            variant="destructive"
-            class="border-2 border-red-500 shadow-lg"
-          >
+          <Alert variant="destructive" class="border-2 border-red-500 shadow-lg">
             <AlertCircleIcon class="h-4 w-4" />
             <AlertTitle class="font-bold">Error</AlertTitle>
             <AlertDescription class="font-semibold">
@@ -408,20 +394,14 @@ watch(
         <DialogTitle class="text-2xl">Verify Driver?</DialogTitle>
         <DialogDescription class="text-md font-semibold">
           Are you sure you want to verify the driver
-          <strong class="text-blue-500">{{ selectedDriver.username }}</strong
-          >? This will make the driver status in pending and can be assign to a
+          <strong class="text-blue-500">{{ selectedDriver.username }}</strong>? This will make the driver status in
+          pending and can be assign to a
           franchise/branch.
         </DialogDescription>
       </DialogHeader>
       <DialogFooter>
-        <Button variant="outline" @click="isVerifyModalOpen = false"
-          >Cancel</Button
-        >
-        <Button
-          variant="default"
-          @click="handleVerifyDriver"
-          :disabled="isVerifyingDriver"
-        >
+        <Button variant="outline" @click="isVerifyModalOpen = false">Cancel</Button>
+        <Button variant="default" @click="handleVerifyDriver" :disabled="isVerifyingDriver">
           {{ isVerifyingDriver ? 'Verifying...' : 'Yes, Verify' }}
         </Button>
       </DialogFooter>
@@ -440,10 +420,7 @@ watch(
       <div class="grid gap-4 py-4">
         <div class="grid gap-2">
           <Label>Assignment Type</Label>
-          <Select
-            v-model="assignForm.assign_type"
-            @update:model-value="assignForm.assign_id = ''"
-          >
+          <Select v-model="assignForm.assign_type" @update:model-value="assignForm.assign_id = ''">
             <SelectTrigger>
               <SelectValue placeholder="Select type" />
             </SelectTrigger>
@@ -462,37 +439,23 @@ watch(
             }}
           </Label>
 
-          <Select
-            v-if="assignForm.assign_type === 'franchise'"
-            v-model="assignForm.assign_id"
-          >
+          <Select v-if="assignForm.assign_type === 'franchise'" v-model="assignForm.assign_id">
             <SelectTrigger>
               <SelectValue placeholder="Select a franchise" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem
-                v-for="item in franchises"
-                :key="item.id"
-                :value="String(item.id)"
-              >
+              <SelectItem v-for="item in franchises" :key="item.id" :value="String(item.id)">
                 {{ item.name }}
               </SelectItem>
             </SelectContent>
           </Select>
 
-          <Select
-            v-if="assignForm.assign_type === 'branch'"
-            v-model="assignForm.assign_id"
-          >
+          <Select v-if="assignForm.assign_type === 'branch'" v-model="assignForm.assign_id">
             <SelectTrigger>
               <SelectValue placeholder="Select a branch" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem
-                v-for="item in branches"
-                :key="item.id"
-                :value="String(item.id)"
-              >
+              <SelectItem v-for="item in branches" :key="item.id" :value="String(item.id)">
                 {{ item.name }}
               </SelectItem>
             </SelectContent>
@@ -504,13 +467,8 @@ watch(
       </div>
 
       <DialogFooter>
-        <Button variant="outline" @click="isAssignModalOpen = false"
-          >Cancel</Button
-        >
-        <Button
-          @click="handleAssignDriver"
-          :disabled="assignForm.processing || !assignForm.assign_id"
-        >
+        <Button variant="outline" @click="isAssignModalOpen = false">Cancel</Button>
+        <Button @click="handleAssignDriver" :disabled="assignForm.processing || !assignForm.assign_id">
           {{ assignForm.processing ? 'Assigning...' : 'Confirm Assignment' }}
         </Button>
       </DialogFooter>

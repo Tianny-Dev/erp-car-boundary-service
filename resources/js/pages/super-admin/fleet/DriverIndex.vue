@@ -3,6 +3,7 @@ import DataTable from '@/components/DataTable.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import {
   Dialog,
   DialogContent,
@@ -110,6 +111,7 @@ const selectedFilter = computed({
 interface DriverModal {
   id: number;
   status: string;
+  code_number: string;
   username: string;
   name: string;
   email: string;
@@ -136,6 +138,7 @@ const driverDetails = computed(() => {
 
   return [
     { label: 'Username', value: data.username, type: 'text' },
+    { label: 'Code Number', value: data.code_number, type: 'text' },
     { label: 'Name', value: data.name, type: 'text' },
     { label: 'Email', value: data.email, type: 'text' },
     { label: 'Phone', value: data.phone, type: 'text' },
@@ -147,6 +150,8 @@ const driverDetails = computed(() => {
     { label: 'Postal Code', value: data.postal_code, type: 'text' },
     { label: 'Address', value: data.address, type: 'text' },
     { label: 'Registered At', value: data.created_at, type: 'text' },
+    { label: 'Hire Date', value: data.hire_date, type: 'text' },
+    { label: 'Shift', value: data.shift, type: 'text' },
     { label: 'License Number', value: data.license_number, type: 'text' },
     { label: 'License Expiry', value: data.license_expiry, type: 'text' },
     {
@@ -161,8 +166,6 @@ const driverDetails = computed(() => {
     },
     { label: 'NBI Clearance', value: data.nbi_clearance, type: 'link' },
     { label: 'Selfie Picture', value: data.selfie_picture, type: 'link' },
-    { label: 'Shift', value: data.shift, type: 'text' },
-    { label: 'Hire Date', value: data.hire_date, type: 'text' },
   ].filter((item) => item.value);
 });
 

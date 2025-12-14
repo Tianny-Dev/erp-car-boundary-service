@@ -14,6 +14,7 @@ use App\Models\UserDriver;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Database\Eloquent\Builder;
+use Faker\Factory as Faker;
 use Carbon\Carbon;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -126,13 +127,19 @@ class DriverController extends Controller
     public function verify(UserDriver $driver)
     {
         $pendingStatus = Status::where('name', 'pending')->firstOrFail();
+        $faker = Faker::create();
 
-        DB::transaction(function () use ($driver, $pendingStatus) {
-            // Update driver status and verified
+        DB::transaction(function () use ($driver, $pendingStatus, $faker) {
+            // update driver status and verified
             $driver->status_id = $pendingStatus->id;
             $driver->is_verified = true;
-            $driver->save();
+            // generate code number and check for uniqueness
+            do {
+                $code = $faker->unique()->bothify('??-####');
+            } while (UserDriver::where('code_number', $code)->exists());
 
+            $driver->code_number = $code;
+            $driver->save();
         });
 
         return back();
