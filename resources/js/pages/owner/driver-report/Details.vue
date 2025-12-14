@@ -54,11 +54,11 @@ const isExporting = ref<null | 'pdf' | 'excel' | 'csv'>(null);
 // --- 2. Setup Breadcrumbs (Remains the same) ---
 const breadcrumbs: BreadcrumbItem[] = [
   {
-    title: 'Driver Report',
+    title: 'Earning Report',
     href: owner.driverownerreport().url,
   },
   {
-    title: 'Transaction Details',
+    title: 'Details',
     href: '#',
   },
 ];
@@ -267,7 +267,7 @@ const goBack = () => {
 </script>
 
 <template>
-  <Head title="Driver Transaction Details" />
+  <Head title="Transaction Breakdown" />
   <AppLayout :breadcrumbs="breadcrumbs">
     <div
       class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
@@ -280,10 +280,10 @@ const goBack = () => {
         >
           <div>
             <Button variant="outline" class="mb-4 sm:mb-0" @click="goBack">
-              ← Back to Report
+              ← Back
             </Button>
             <h2 class="mt-2 font-mono text-2xl font-bold">
-              Driver Transaction Details
+              Transaction Breakdown
             </h2>
           </div>
           <div class="text-right">

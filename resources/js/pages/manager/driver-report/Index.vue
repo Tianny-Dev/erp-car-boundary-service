@@ -31,7 +31,7 @@ const props = defineProps<{
   revenues: {
     data: RevenueRow[];
   };
-  drivers: { id: number; name: string }[];
+  drivers: { id: number; username: string }[];
   filters: {
     driver: string | null;
     service: 'Trips';
@@ -63,7 +63,7 @@ interface RevenueRow {
 // --- 3. Setup Breadcrumbs ---
 const breadcrumbs: BreadcrumbItem[] = [
   {
-    title: 'Driver Report',
+    title: 'Earning Report',
     href: owner.driverownerreport().url,
   },
 ];
@@ -76,7 +76,7 @@ const selectedPeriod = ref(props.filters.period); // RESTORED: Period state
 // --- 5. Computed Properties for UI ---
 const title = computed(() => {
   // Simplified title since it's only for the owner's branch now
-  return 'Driver Report Summary';
+  return 'Branch Earnings';
 });
 
 const showExportModal = ref(false);
@@ -269,7 +269,7 @@ const revenueColumns = computed<ColumnDef<RevenueRow>[]>(() => {
             });
           },
         },
-        () => 'View Details',
+        () => 'View Computation Details',
       );
     },
   });
@@ -350,7 +350,7 @@ watch(
                   :key="driver.id"
                   :value="String(driver.id)"
                 >
-                  {{ driver.name }}
+                  {{ driver.username }}
                 </SelectItem>
               </SelectContent>
             </Select>

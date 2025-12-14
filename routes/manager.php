@@ -39,10 +39,10 @@ Route::middleware(['auth', 'verified', 'user_type:manager'])->prefix('manager')-
     Route::put('/drivers/{id}/status', [DriverManagementController::class, 'updateStatus'])
     ->name('drivers.updateStatus');
 
-    Route::get('/driverreport', [ReportDriverController::class, 'index'])->name('driverownerreport');
-    Route::get('/driverreport/export', [ReportDriverController::class, 'export'])->name('driverownerreport.export');
-    Route::get('driverreport/details', [DetailsDriverController::class, 'show'])->name('driverownerreport.details');
-    Route::get('/driverreport/details/export', [DetailsDriverController::class, 'exportDetails'])->name('driverownerreport_details.export');
+    Route::get('/earning', [ReportDriverController::class, 'index'])->name('driverownerreport');
+    Route::get('/earning/export', [ReportDriverController::class, 'export'])->name('driverownerreport.export');
+    Route::get('/earning/details', [DetailsDriverController::class, 'show'])->name('driverownerreport.details');
+    Route::get('/earning/details/export', [DetailsDriverController::class, 'exportDetails'])->name('driverownerreport_details.export');
 
     Route::get('/payroll', [PayrollDriverController::class, 'index'])->name('driverownerpayroll');
     Route::get('/payroll/export', [PayrollDriverController::class, 'export'])->name('driverownerpayroll.export');

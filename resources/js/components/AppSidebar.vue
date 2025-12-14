@@ -193,9 +193,15 @@ const navConfig: Record<string, NavItem[]> = {
       group: 'Finance',
     },
     {
-      title: 'Driver Report',
+      title: 'Payroll Management',
+      href: manager.driverownerpayroll(),
+      icon: FileSpreadsheet,
+      group: 'Finance',
+    },
+    {
+      title: 'Earning Report',
       href: manager.driverownerreport(),
-      icon: DollarSign,
+      icon: ChartNoAxesCombined,
       group: 'Finance',
     },
     {
@@ -293,7 +299,7 @@ const navConfig: Record<string, NavItem[]> = {
     {
       title: 'Payroll Management',
       href: owner.driverownerpayroll(),
-      icon: DollarSign,
+      icon: FileSpreadsheet,
       group: 'Finance',
     },
     {
@@ -304,9 +310,9 @@ const navConfig: Record<string, NavItem[]> = {
     },
 
     {
-      title: 'Driver History',
+      title: 'Earning Report',
       href: owner.driverownerreport(),
-      icon: DollarSign,
+      icon: ChartNoAxesCombined,
       group: 'Finance',
     },
 
