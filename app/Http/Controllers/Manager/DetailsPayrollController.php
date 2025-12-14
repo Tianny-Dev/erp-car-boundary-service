@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Owner;
+namespace App\Http\Controllers\Manager;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use App\Models\Revenue;
 use App\Models\Route;
 use App\Models\User;
+use App\Models\UserDriver;
 use App\Models\PercentageType;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
@@ -20,7 +21,7 @@ use App\Exports\SimpleArrayExport;
 class DetailsPayrollController extends Controller
 {
 
-    // --- Core Data Fetching Logic (Unchanged) ---
+    // --- Core Data Fetching Logic (Updated for Branch only) ---
     private function fetchRevenueDetails(array $validated): \Illuminate\Support\Collection
     {
         // 1. Get the date range... (same logic)
@@ -35,8 +36,8 @@ class DetailsPayrollController extends Controller
         $query = Revenue::query()
             ->with([
                 'revenueBreakdowns.percentageType',
+                // 'franchise', // Removed: No longer needed for logic/filtering
                 'driver',
-                'franchise',
                 'branch',
                 // Load the 'route' relation, selecting only the necessary columns
                 'route' => function ($q) {
@@ -55,16 +56,15 @@ class DetailsPayrollController extends Controller
             ->where('service_type', 'Trips')
             ->orderBy('payment_date', 'asc');
 
-        // 3. Apply Contextual Filters... (same logic)
-        if (isset($validated['tab']) && $validated['tab'] === 'franchise' && !empty($validated['franchise']) && $validated['franchise'] !== 'all') {
-            $query->where('franchise_id', $validated['franchise']);
-        } elseif (isset($validated['tab']) && $validated['tab'] === 'branch' && !empty($validated['branch']) && $validated['branch'] !== 'all') {
+        // 3. Apply Contextual Filters (Updated: Only Branch Filter)
+        // Note: The 'tab' check is simplified, or can be removed if the 'branch' parameter is always present.
+        if (!empty($validated['branch']) && $validated['branch'] !== 'all') {
             $query->where('branch_id', $validated['branch']);
         }
 
         $revenues = $query->get();
 
-        // --- TEMPORARY DEBUGGING LOG INSERTED HERE ---
+        // --- TEMPORARY DEBUGGING LOG INSERTED HERE (UNCHANGED) ---
         Log::info('Payroll Details: Route Data Check (First 5 records):', $revenues->take(5)->map(function($r) {
             return [
                 'id' => $r->id,
@@ -75,7 +75,7 @@ class DetailsPayrollController extends Controller
         })->toArray());
         // --- END DEBUGGING LOG ---
 
-        // *** IMPORTANT: Map the 'route' relation to 'route_data' for the frontend interface ***
+        // Map the 'route' relation to 'route_data' for the frontend interface
         return $revenues->map(function ($revenue) {
             $revenue->route_data = $revenue->route;
             unset($revenue->route);
@@ -115,17 +115,30 @@ class DetailsPayrollController extends Controller
         return response()->json(['route' => $route]);
     }
 
-    // --- Show Method (Unchanged) ---
+    // --- Show Method (Updated: Removed franchise field from being required, kept as sometimes) ---
     public function show(Request $request): Response
     {
         $validated = $request->validate([
             'driver_id' => ['required', 'string', 'exists:users,id'],
             'payment_date' => ['required', 'string'],
             'period' => ['required', 'string', 'in:daily,weekly,monthly'],
-            'tab' => ['sometimes', 'string', 'in:franchise,branch'],
+            // Allow franchise to be passed from previous page, but it's ignored in fetchRevenueDetails
             'franchise' => ['sometimes', 'nullable', 'string'],
-            'branch' => ['sometimes', 'nullable', 'string'],
+            'branch' => ['sometimes', 'nullable', 'string'], // Retained 'branch' filter
         ]);
+
+        // Ensure that if 'branch' is present, the tab is treated as 'branch'
+        if (!empty($validated['branch'])) {
+            $validated['tab'] = 'branch';
+        }
+        // Ensure that if 'franchise' is present, the tab is treated as 'franchise'
+        // NOTE: The core logic now ignores 'franchise' but we keep this for consistency if the previous page still sends it.
+        else if (!empty($validated['franchise'])) {
+             $validated['tab'] = 'franchise';
+        }
+        else {
+             $validated['tab'] = 'branch'; // Default to branch if neither is specified (safety)
+        }
 
         $details = $this->fetchRevenueDetails($validated);
 
@@ -138,7 +151,7 @@ class DetailsPayrollController extends Controller
             ->map(fn($name) => ucwords(str_replace('_', ' ', $name)))
             ->toArray();
 
-        return Inertia::render('owner/payroll/Details', [
+        return Inertia::render('manager/payroll/Details', [
             'driver' => $driver->only(['id', 'username']),
             'periodLabel' => $validated['payment_date'],
             'details' => $details,
@@ -212,21 +225,16 @@ class DetailsPayrollController extends Controller
     }
     // ---------------------------------------------------------------------
 
-    // --- Export Method (Updated for formal PDF with custom ID format) ---
+    // --- Export Method (Updated: Removed franchise logic from validation) ---
     public function exportDetails(Request $request)
     {
-        // Fetch the authenticated user's primary franchise name for the ID suffix
-        $userFranchise = auth()->user()->ownerDetails?->franchises()->first();
-        $authFranchiseName = $userFranchise?->name;
-
-        // 1. Validate inputs (Unchanged)
+        // 1. Validate inputs (Updated: Removed franchise, tab - allowed franchise sometimes)
         $validated = $request->validate([
             'driver_id' => ['required', 'string', 'exists:users,id'],
             'payment_date' => ['required', 'string'],
             'period' => ['required', 'string', 'in:daily,weekly,monthly'],
-            'tab' => ['sometimes', 'string', 'in:franchise,branch'],
-            'franchise' => ['sometimes', 'nullable', 'string'],
-            'branch' => ['sometimes', 'nullable', 'string'],
+            'franchise' => ['sometimes', 'nullable', 'string'], // Included for compatibility with old links/requests
+            'branch' => ['sometimes', 'nullable', 'string'], // Retained 'branch' filter
             'export_type' => ['required', 'string', Rule::in(['pdf', 'excel', 'csv'])],
         ]);
 
@@ -239,36 +247,27 @@ class DetailsPayrollController extends Controller
         // --- 2. Data Fetching ---
         $details = $this->fetchRevenueDetails($validated);
 
+        // Fetch the driver user record
         $driver = User::find($driverId, ['id', 'username']);
         if (!$driver) {
             return response()->json(['message' => 'Driver not found.'], 404);
         }
 
-        // Determine the franchise name to use for the ID suffix
-        $idFranchiseName = null;
-
-        // If filtering by franchise, use the filtered franchise name
-        if (isset($validated['tab']) && $validated['tab'] === 'franchise' && !empty($validated['franchise']) && $validated['franchise'] !== 'all') {
-             // Try to get the name from the revenue details, otherwise fall back to the authenticated user's primary franchise
-             $idFranchiseName = $details->first()?->franchise->name ?? $authFranchiseName;
-        // If not explicitly filtering by a franchise, use the authenticated user's primary franchise name
-        } else {
-             $idFranchiseName = $authFranchiseName;
+        // --- CORRECTED CODE_NUMBER FETCHING (Unchanged) ---
+        $userDriverRecord = UserDriver::find($driverId, ['id', 'code_number']);
+        $driverCodeNumber = $userDriverRecord?->code_number ?? null;
+        if (!$userDriverRecord) {
+            Log::warning("UserDriver record not found for Driver ID: {$driverId} during export.");
         }
+        // ----------------------------------------
 
-        // Prepare the formatted ID string (e.g., 34_franchise_name)
+        // Prepare the formatted ID string (No franchise suffix needed anymore)
         $formattedDriverId = $driver->id;
-        if ($idFranchiseName) {
-            // Remove spaces from the franchise name and replace with underscores
-            $cleanedFranchiseName = preg_replace('/\s+/', '_', $idFranchiseName);
-            // Ensure no duplicate underscores if the name already contains them (optional, but clean)
-            $cleanedFranchiseName = trim($cleanedFranchiseName, '_');
-            $formattedDriverId .= '_' . $cleanedFranchiseName;
-        }
+        // Logic to add a franchise/branch suffix has been removed.
 
         $breakdownTypesDb = PercentageType::pluck('name')->toArray();
 
-        // --- 3. Prepare Data Rows for Export (including totals) ---
+        // --- 3. Prepare Data Rows for Export (including totals) (Unchanged) ---
         $exportRows = collect([]);
         $grandTotals = [
             'amount' => 0.0,
@@ -312,7 +311,7 @@ class DetailsPayrollController extends Controller
         $grandTotalRow['driver_earning'] = $grandTotals['driver_earning'];
         $exportRows->push($grandTotalRow);
 
-        // --- 4. Define Headings and Data Keys (Simplified for the table) ---
+        // --- 4. Define Headings and Data Keys (Simplified for the table) (Unchanged) ---
         $headings = [
             'Invoice No.',
             'Date/Time',
@@ -329,7 +328,7 @@ class DetailsPayrollController extends Controller
             'driver_earning'
         ];
 
-        // --- 5. Dispatch Download (Updated PDF data) ---
+        // --- 5. Dispatch Download (Updated PDF data) (Unchanged) ---
         $fileName = 'driver_payroll_' . $driver->username . '_' . date('Ymd_His');
         $title = "DRIVER TRANSACTION REPORT";
 
@@ -339,10 +338,11 @@ class DetailsPayrollController extends Controller
                 'title' => $title,
                 'headings' => $headings,
                 'dataKeys' => $dataKeys,
-                // NEW: Formal payroll data
+                // Formal payroll data
                 'payrollData' => [
                     'driver_name' => $driver->username,
-                    'driver_id_display' => $formattedDriverId,
+                    // CORRECTED: Using the extracted string value
+                    'driver_id_display' => $driverCodeNumber,
                     'period' => ucwords($validated['period']) . ' Period',
                     'period_label' => $validated['payment_date'],
                     'grand_totals' => $grandTotals,

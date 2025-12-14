@@ -15,6 +15,8 @@ use App\Http\Controllers\Manager\VehicleController;
 use App\Http\Controllers\Manager\VehicleDriverController;
 
 use App\Http\Controllers\Manager\DetailsDriverController;
+use App\Http\Controllers\Manager\DetailsPayrollController;
+use App\Http\Controllers\Manager\PayrollDriverController;
 use App\Http\Controllers\Manager\ReportDriverController;
 
 use Illuminate\Support\Facades\Route;
@@ -41,6 +43,12 @@ Route::middleware(['auth', 'verified', 'user_type:manager'])->prefix('manager')-
     Route::get('/driverreport/export', [ReportDriverController::class, 'export'])->name('driverownerreport.export');
     Route::get('driverreport/details', [DetailsDriverController::class, 'show'])->name('driverownerreport.details');
     Route::get('/driverreport/details/export', [DetailsDriverController::class, 'exportDetails'])->name('driverownerreport_details.export');
+
+    Route::get('/payroll', [PayrollDriverController::class, 'index'])->name('driverownerpayroll');
+    Route::get('/payroll/export', [PayrollDriverController::class, 'export'])->name('driverownerpayroll.export');
+    Route::get('/payroll/details', [DetailsPayrollController::class, 'show'])->name('driverownerpayroll.details');
+    Route::get('/payroll/details/export', [DetailsPayrollController::class, 'exportDetails'])->name('driverownerpayroll_details.export');
+    Route::get('/payroll/details/fetch-route', [DetailsPayrollController::class, 'fetchRouteDetails'])->name('driverownerpayroll_details.fetchRoute');
 
     Route::resource('maintenance-requests', MaintenanceRequestController::class);
 
