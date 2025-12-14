@@ -20,6 +20,7 @@ class UserDriverFactory extends Factory
             // 'id' is intentionally omitted here
             // It will be provided by the UserFactory
             'status_id' => $statusId,
+            'code_number' => $statusId == 1 ? fake()->unique()->bothify('??-####') : null,
             'license_number' => fake()->unique()->bothify('??-########'),
             'is_verified' => $statusId == 1,
             'is_online' => $statusId == 1,

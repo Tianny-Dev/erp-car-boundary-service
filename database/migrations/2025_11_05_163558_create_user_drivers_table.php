@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('user_drivers', function (Blueprint $table) {
             $table->foreignId('id')->primary()->constrained('users')->onDelete('cascade');
             $table->foreignId('status_id')->constrained('statuses')->onDelete('restrict');
+            $table->string('code_number', 20)->unique()->nullable();
             $table->string('license_number', 20)->unique();
             $table->boolean('is_verified')->default(false);
             $table->boolean('is_online')->default(false);
