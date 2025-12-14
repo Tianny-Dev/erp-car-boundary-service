@@ -16,7 +16,7 @@ class GpsTrackerResource extends JsonResource
     {
         $data = [
             'id' => $this->id,
-            'name' => $this->whenLoaded('user', $this->user->name),
+            'username' => $this->whenLoaded('user', $this->user->username),
             'plate_number' => $this->whenLoaded('vehicles', fn () => optional($this->vehicles->first())->plate_number),
             'latitude' => (float) $this->latitude,
             'longitude' => (float) $this->longitude,
