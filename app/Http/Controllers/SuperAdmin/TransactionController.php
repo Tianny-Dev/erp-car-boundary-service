@@ -61,7 +61,7 @@ class TransactionController extends Controller
     {
         $query = Revenue::with([
             'status:id,name',
-            'driver.user:id,name',
+            'driver.user:id,username',
         ])->where('service_type', $filters['service']);
 
         // Filter by specific driver if selected
@@ -91,10 +91,10 @@ class TransactionController extends Controller
      */
     private function getContextualDrivers(array $filters)
     {
-        // Start with UserDriver and join the base User table to get names
+        // Start with UserDriver and join the base User table to get username
         $query = UserDriver::query()
             ->join('users', 'user_drivers.id', '=', 'users.id')
-            ->select('user_drivers.id', 'users.name');
+            ->select('user_drivers.id', 'users.username');
 
         if ($filters['tab'] === 'franchise') {
             if (!empty($filters['franchise']) && $filters['franchise'] !== 'all') {
@@ -118,7 +118,7 @@ class TransactionController extends Controller
             }
         }
 
-        return $query->orderBy('users.name')->get();
+        return $query->orderBy('users.username')->get();
     }
 
     public function show(Revenue $transaction)
@@ -126,7 +126,7 @@ class TransactionController extends Controller
         // Load relationships and return as JSON
         $transaction->loadMissing([
             'status:id,name',
-            'driver.user:id,name',
+            'driver.user:id,username',
             'franchise:id,name',
             'branch:id,name',
             'paymentOption:id,name',

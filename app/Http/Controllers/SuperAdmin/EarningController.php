@@ -133,7 +133,7 @@ class EarningController extends Controller
             'details' => EarningShowResource::collection($transactions),
             'driver' => [
                 'id' => $driver->id,
-                'name' => $driver->user->name
+                'username' => $driver->user->username,
             ],
             'periodLabel' => $dateLabel,
             'feeTypes' => $feeTypes,
@@ -221,10 +221,10 @@ class EarningController extends Controller
      */
     private function getContextualDrivers(array $filters)
     {
-        // Start with UserDriver and join the base User table to get names
+        // Start with UserDriver and join the base User table to get username
         $query = UserDriver::query()
             ->join('users', 'user_drivers.id', '=', 'users.id')
-            ->select('user_drivers.id', 'users.name');
+            ->select('user_drivers.id', 'users.username');
 
         if ($filters['tab'] === 'franchise') {
             if (!empty($filters['franchise']) && $filters['franchise'] !== 'all') {
@@ -248,7 +248,7 @@ class EarningController extends Controller
             }
         }
 
-        return $query->orderBy('users.name')->get();
+        return $query->orderBy('users.username')->get();
     }
 
     /**
@@ -264,7 +264,7 @@ class EarningController extends Controller
             DB::raw('SUM(revenues.amount) as total_amount'),
             // Driver Earning = Total Revenue - Total Deductions (calculated in subquery)
             DB::raw('(SUM(revenues.amount) - COALESCE(SUM(breakdowns.total_deductions), 0)) as driver_earning'),
-            'users.name as driver_name',
+            'users.username as driver_username',
             'users.id as driver_id',
         ];
 
@@ -287,7 +287,7 @@ class EarningController extends Controller
 
         // Apply Selects
         $query->addSelect($selects)
-              ->groupBy('users.id', 'users.name');
+              ->groupBy('users.id', 'users.username');
 
         // Time Period Grouping
         if ($period === 'daily') {

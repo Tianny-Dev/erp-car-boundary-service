@@ -44,7 +44,7 @@ const props = defineProps<{
   };
   franchises: { id: number; name: string }[];
   branches: { id: number; name: string }[];
-  drivers: { id: number; name: string }[];
+  drivers: { id: number; username: string }[];
   filters: {
     tab: 'franchise' | 'branch';
     franchise: string | null;
@@ -63,7 +63,7 @@ interface TransactionRow {
   amount: number;
   date: string;
   service_type: string;
-  driver_name: string;
+  driver_username: string;
   status_name: string;
 }
 
@@ -117,7 +117,7 @@ interface TransactionModal {
   payment_option: string;
   invoice_no: string;
   amount: number;
-  driver_name: string;
+  driver_username: string;
   status_name: string;
   payment_date: string | null;
   created_at: string | null;
@@ -135,7 +135,7 @@ const transactionDetails = computed(() => {
     { label: nameLabel, value: nameValue, type: 'text' },
     { label: 'Service Type', value: data.service_type, type: 'text' },
     { label: 'Invoice #', value: data.invoice_no, type: 'text' },
-    { label: 'Driver', value: data.driver_name, type: 'text' },
+    { label: 'Driver', value: data.driver_username, type: 'text' },
     { label: 'Amount', value: amount, type: 'text' },
     { label: 'Payment Option', value: data.payment_option, type: 'text' },
     { label: 'Status', value: data.status_name, type: 'text' },
@@ -183,7 +183,7 @@ const transactionColumns = computed<ColumnDef<TransactionRow>[]>(() => {
       header: isFranchiseTab ? 'Franchise' : 'Branch',
     },
     {
-      accessorKey: 'driver_name',
+      accessorKey: 'driver_username',
       header: 'Driver',
     },
     {
@@ -306,33 +306,24 @@ watch(
 </script>
 
 <template>
+
   <Head title=" Transaction History" />
 
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div
-      class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
-    >
+    <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
       <Tabs v-model="activeTab" class="w-full">
         <TabsList class="w-full justify-start p-1.5">
-          <TabsTrigger
-            value="franchise"
-            class="cursor-pointer font-semibold"
-            :class="{ 'pointer-events-none': activeTab === 'franchise' }"
-          >
+          <TabsTrigger value="franchise" class="cursor-pointer font-semibold"
+            :class="{ 'pointer-events-none': activeTab === 'franchise' }">
             Franchise
           </TabsTrigger>
-          <TabsTrigger
-            value="branch"
-            class="cursor-pointer font-semibold"
-            :class="{ 'pointer-events-none': activeTab === 'branch' }"
-          >
+          <TabsTrigger value="branch" class="cursor-pointer font-semibold"
+            :class="{ 'pointer-events-none': activeTab === 'branch' }">
             Branch
           </TabsTrigger>
         </TabsList>
       </Tabs>
-      <div
-        class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border"
-      >
+      <div class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border">
         <div class="mb-4 flex items-center justify-between">
           <h2 class="font-mono text-xl font-semibold">
             {{ title }}
@@ -354,12 +345,8 @@ watch(
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Drivers</SelectItem>
-                <SelectItem
-                  v-for="driver in drivers"
-                  :key="driver.id"
-                  :value="String(driver.id)"
-                >
-                  {{ driver.name }}
+                <SelectItem v-for="driver in drivers" :key="driver.id" :value="String(driver.id)">
+                  {{ driver.username }}
                 </SelectItem>
               </SelectContent>
             </Select>
@@ -373,11 +360,7 @@ watch(
                   All
                   {{ activeTab === 'franchise' ? 'Franchises' : 'Branches' }}
                 </SelectItem>
-                <SelectItem
-                  v-for="option in selectOptions"
-                  :key="option.id"
-                  :value="String(option.id)"
-                >
+                <SelectItem v-for="option in selectOptions" :key="option.id" :value="String(option.id)">
                   {{ option.name }}
                 </SelectItem>
               </SelectContent>
@@ -385,11 +368,8 @@ watch(
           </div>
         </div>
 
-        <DataTable
-          :columns="transactionColumns"
-          :data="transactions.data"
-          search-placeholder="Search transactions..."
-        />
+        <DataTable :columns="transactionColumns" :data="transactions.data"
+          search-placeholder="Search transactions..." />
       </div>
     </div>
   </AppLayout>
@@ -400,20 +380,14 @@ watch(
         <DialogTitle>Transaction Details</DialogTitle>
       </DialogHeader>
       <DialogDescription>
-        <div
-          v-if="transactionModal.isLoading.value"
-          class="grid grid-cols-2 gap-4"
-        >
+        <div v-if="transactionModal.isLoading.value" class="grid grid-cols-2 gap-4">
           <template v-for="item in 10" :key="item">
             <Skeleton class="h-5 w-24" />
             <Skeleton class="h-5 w-3/4" />
           </template>
         </div>
 
-        <div
-          v-else-if="transactionDetails.length > 0"
-          class="grid grid-cols-2 gap-4"
-        >
+        <div v-else-if="transactionDetails.length > 0" class="grid grid-cols-2 gap-4">
           <template v-for="item in transactionDetails" :key="item.label">
             <div class="font-medium">{{ item.label }}:</div>
             <div>
@@ -423,10 +397,7 @@ watch(
         </div>
 
         <div v-else-if="transactionModal.isError.value">
-          <Alert
-            variant="destructive"
-            class="border-2 border-red-500 shadow-lg"
-          >
+          <Alert variant="destructive" class="border-2 border-red-500 shadow-lg">
             <AlertCircleIcon class="h-4 w-4" />
             <AlertTitle class="font-bold">Error</AlertTitle>
             <AlertDescription class="font-semibold">

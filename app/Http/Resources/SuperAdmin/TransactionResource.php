@@ -21,7 +21,7 @@ class TransactionResource extends JsonResource
             'service_type' => $this->service_type,
             'payment_option' => $this->payment_option,
             'amount' => (float) $this->amount,
-            'driver_name' => $this->whenLoaded('driver', $this->driver->user->name),
+            'driver_username' => $this->whenLoaded('driver', $this->driver->user->username),
             'created_at' => $this->created_at ? date('M d, Y h:i A', strtotime($this->created_at)) : null,
             'payment_date' => $this->payment_date ? date('M d, Y h:i A', strtotime($this->payment_date)) : null,
             'franchise_name' => $this->whenLoaded('franchise', fn () => $this->franchise?->name),

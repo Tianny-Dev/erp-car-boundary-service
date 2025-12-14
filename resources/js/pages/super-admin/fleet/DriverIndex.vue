@@ -59,7 +59,7 @@ interface DriverRow {
   id: number;
   franchise_name?: string;
   branch_name?: string;
-  name: string;
+  username: string;
   email: string;
   phone: string;
   status_name: string;
@@ -110,6 +110,7 @@ const selectedFilter = computed({
 interface DriverModal {
   id: number;
   status: string;
+  username: string;
   name: string;
   email: string;
   phone: string;
@@ -134,6 +135,7 @@ const driverDetails = computed(() => {
   if (!data) return [];
 
   return [
+    { label: 'Username', value: data.username, type: 'text' },
     { label: 'Name', value: data.name, type: 'text' },
     { label: 'Email', value: data.email, type: 'text' },
     { label: 'Phone', value: data.phone, type: 'text' },
@@ -207,8 +209,8 @@ const statuses = [
 const driverColumns = computed<ColumnDef<DriverRow>[]>(() => {
   const baseColumns: ColumnDef<DriverRow>[] = [
     {
-      accessorKey: 'name',
-      header: 'Name',
+      accessorKey: 'username',
+      header: 'Driver',
     },
     // Conditionally add the correct column
     activeTab.value === 'franchise'
@@ -446,7 +448,7 @@ watch(
       <DialogHeader>
         <DialogTitle class="text-xl">Change Driver Status</DialogTitle>
         <DialogDescription>
-          Change the status of <strong class="text-blue-500">{{ selectedDriver?.name }}</strong>. From {{
+          Change the status of <strong class="text-blue-500">{{ selectedDriver?.username }}</strong>. From {{
             selectedDriver?.status_name
           }} to <em>"{{ changeForm.status }}"</em>.
         </DialogDescription>

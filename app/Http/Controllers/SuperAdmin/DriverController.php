@@ -157,7 +157,7 @@ class DriverController extends Controller
     private function buildBaseQuery(array $filters): Builder
     {
         $query = UserDriver::with([
-            'user:id,name,email,phone',
+            'user:id,username,email,phone',
             'status:id,name',
         ])->whereHas('status', fn ($q) => $q->where('name', $filters['status']));
 

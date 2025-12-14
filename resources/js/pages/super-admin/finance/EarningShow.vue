@@ -13,7 +13,7 @@ const props = defineProps<{
   details: {
     data: any[];
   };
-  driver: { id: number; name: string };
+  driver: { id: number; username: string };
   periodLabel: string;
   feeTypes: {
     id: number;
@@ -142,35 +142,24 @@ const goBack = () => {
 </script>
 
 <template>
+
   <Head title="Earning Computation Details" />
 
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div
-      class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
-    >
-      <div
-        class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border"
-      >
-        <div
-          class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between"
-        >
+    <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+      <div class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border">
+        <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <Button
-              variant="outline"
-              class="mb-4 gap-2 sm:mb-0"
-              @click="goBack"
-            >
+            <Button variant="outline" class="mb-4 gap-2 sm:mb-0" @click="goBack">
               <span>&larr;</span> Back
             </Button>
             <h2 class="mt-4 font-mono text-2xl font-bold">
               Transaction Breakdown
             </h2>
           </div>
-          <div
-            class="rounded-lg border border-primary/10 bg-primary/5 p-4 text-right"
-          >
+          <div class="rounded-lg border border-primary/10 bg-primary/5 p-4 text-right">
             <p class="text-lg font-semibold text-primary">
-              {{ props.driver.name }}
+              {{ props.driver.username }}
             </p>
             <p class="font-mono text-sm text-muted-foreground">
               {{ props.periodLabel }}
@@ -179,14 +168,9 @@ const goBack = () => {
         </div>
 
         <div
-          class="mb-8 grid grid-cols-2 gap-4 rounded-lg border bg-gray-50 p-4 sm:grid-cols-3 lg:grid-cols-6 dark:bg-zinc-900/50"
-        >
-          <div
-            class="col-span-2 border-r border-dashed border-gray-300 pr-4 sm:col-span-1 dark:border-gray-700"
-          >
-            <p
-              class="text-xs font-bold tracking-wider text-gray-500 uppercase dark:text-gray-400"
-            >
+          class="mb-8 grid grid-cols-2 gap-4 rounded-lg border bg-gray-50 p-4 sm:grid-cols-3 lg:grid-cols-6 dark:bg-zinc-900/50">
+          <div class="col-span-2 border-r border-dashed border-gray-300 pr-4 sm:col-span-1 dark:border-gray-700">
+            <p class="text-xs font-bold tracking-wider text-gray-500 uppercase dark:text-gray-400">
               Total Trips
             </p>
             <p class="text-xl font-bold text-gray-900 dark:text-gray-100">
@@ -194,14 +178,8 @@ const goBack = () => {
             </p>
           </div>
 
-          <div
-            v-for="item in grandTotals.breakdowns"
-            :key="item.name"
-            class="col-span-1"
-          >
-            <p
-              class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400"
-            >
+          <div v-for="item in grandTotals.breakdowns" :key="item.name" class="col-span-1">
+            <p class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
               {{ item.name }}
             </p>
             <p class="text-lg font-semibold text-gray-700 dark:text-gray-300">
@@ -209,12 +187,8 @@ const goBack = () => {
             </p>
           </div>
 
-          <div
-            class="col-span-2 -m-2 flex flex-col justify-center p-2 sm:col-span-1"
-          >
-            <p
-              class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400"
-            >
+          <div class="col-span-2 -m-2 flex flex-col justify-center p-2 sm:col-span-1">
+            <p class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
               Driver Earning
             </p>
             <p class="text-lg font-semibold text-gray-700 dark:text-gray-300">
@@ -223,11 +197,7 @@ const goBack = () => {
           </div>
         </div>
 
-        <DataTable
-          :columns="detailColumns"
-          :data="props.details.data"
-          search-placeholder="Search Invoice No..."
-        >
+        <DataTable :columns="detailColumns" :data="props.details.data" search-placeholder="Search Invoice No...">
           <template #custom-actions>
             <Button @click="handleExport('pdf')"> Export PDF </Button>
             <Button @click="handleExport('excel')"> Export Excel </Button>

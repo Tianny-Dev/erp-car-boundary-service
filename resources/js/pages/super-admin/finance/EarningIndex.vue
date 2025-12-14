@@ -41,7 +41,7 @@ const props = defineProps<{
   };
   franchises: { id: number; name: string }[];
   branches: { id: number; name: string }[];
-  drivers: { id: number; name: string }[];
+  drivers: { id: number; username: string }[];
   filters: {
     tab: 'franchise' | 'branch';
     franchise: string | null;
@@ -198,7 +198,7 @@ const earningColumns = computed<ColumnDef<any>[]>(() => {
       header: isFranchiseTab ? 'Franchise' : 'Branch',
     },
     {
-      accessorKey: 'driver_name',
+      accessorKey: 'driver_username',
       header: 'Driver',
     },
     {
@@ -345,33 +345,23 @@ watch(
 </script>
 
 <template>
-  <Head title="Earning Report" />
 
+  <Head title="Earning Report" />
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div
-      class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
-    >
+    <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
       <Tabs v-model="activeTab" class="w-full">
         <TabsList class="w-full justify-start p-1.5">
-          <TabsTrigger
-            value="franchise"
-            class="cursor-pointer font-semibold"
-            :class="{ 'pointer-events-none': activeTab === 'franchise' }"
-          >
+          <TabsTrigger value="franchise" class="cursor-pointer font-semibold"
+            :class="{ 'pointer-events-none': activeTab === 'franchise' }">
             Franchise
           </TabsTrigger>
-          <TabsTrigger
-            value="branch"
-            class="cursor-pointer font-semibold"
-            :class="{ 'pointer-events-none': activeTab === 'branch' }"
-          >
+          <TabsTrigger value="branch" class="cursor-pointer font-semibold"
+            :class="{ 'pointer-events-none': activeTab === 'branch' }">
             Branch
           </TabsTrigger>
         </TabsList>
       </Tabs>
-      <div
-        class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border"
-      >
+      <div class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border">
         <div class="mb-4 flex items-center justify-between">
           <h2 class="font-mono text-xl font-semibold">
             {{ title }}
@@ -394,12 +384,8 @@ watch(
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Drivers</SelectItem>
-                <SelectItem
-                  v-for="driver in drivers"
-                  :key="driver.id"
-                  :value="String(driver.id)"
-                >
-                  {{ driver.name }}
+                <SelectItem v-for="driver in drivers" :key="driver.id" :value="String(driver.id)">
+                  {{ driver.username }}
                 </SelectItem>
               </SelectContent>
             </Select>
@@ -413,11 +399,7 @@ watch(
                   All
                   {{ activeTab === 'franchise' ? 'Franchises' : 'Branches' }}
                 </SelectItem>
-                <SelectItem
-                  v-for="option in selectOptions"
-                  :key="option.id"
-                  :value="String(option.id)"
-                >
+                <SelectItem v-for="option in selectOptions" :key="option.id" :value="String(option.id)">
                   {{ option.name }}
                 </SelectItem>
               </SelectContent>
@@ -425,11 +407,7 @@ watch(
           </div>
         </div>
 
-        <DataTable
-          :columns="earningColumns"
-          :data="earnings.data"
-          search-placeholder="Search earnings..."
-        >
+        <DataTable :columns="earningColumns" :data="earnings.data" search-placeholder="Search earnings...">
           <template #custom-actions>
             <Button @click="openExportModal('pdf')"> Export PDF </Button>
             <Button @click="openExportModal('excel')"> Export Excel </Button>
@@ -455,11 +433,7 @@ watch(
                   <SelectValue placeholder="Select year" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem
-                    v-for="year in yearOptions"
-                    :key="year"
-                    :value="year"
-                  >
+                  <SelectItem v-for="year in yearOptions" :key="year" :value="year">
                     {{ year }}
                   </SelectItem>
                 </SelectContent>
@@ -468,16 +442,9 @@ watch(
             <div class="grid grid-cols-4 items-start gap-4">
               <label class="pt-2 text-right">Months</label>
               <div class="col-span-3 grid grid-cols-2 gap-2">
-                <div
-                  v-for="month in monthOptions"
-                  :key="month.id"
-                  class="flex items-center gap-2"
-                >
-                  <Checkbox
-                    :id="`month-${month.id}`"
-                    :model-value="exportMonths.includes(month.id)"
-                    @update:model-value="() => toggleMonth(month.id)"
-                  />
+                <div v-for="month in monthOptions" :key="month.id" class="flex items-center gap-2">
+                  <Checkbox :id="`month-${month.id}`" :model-value="exportMonths.includes(month.id)"
+                    @update:model-value="() => toggleMonth(month.id)" />
 
                   <label :for="`month-${month.id}`" class="cursor-pointer">
                     {{ month.label }}

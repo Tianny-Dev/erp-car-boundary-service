@@ -20,7 +20,7 @@ class TransactionDatatableResource extends JsonResource
             'status_name' => $this->whenLoaded('status', $this->status->name),
             'service_type' => $this->service_type,
             'amount' => (float) $this->amount,
-            'driver_name' => optional($this->driver?->user)->name,
+            'driver_username' => optional($this->driver?->user)->username,
             'date' => $this->status?->name === 'paid' && $this->payment_date
                 ? date('F j, Y', strtotime($this->payment_date))
                 : date('F j, Y', strtotime($this->created_at)),

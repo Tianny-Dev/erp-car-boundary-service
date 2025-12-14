@@ -16,7 +16,7 @@ class DriverDatatableResource extends JsonResource
     {
         $data = [
             'id' => $this->id,
-            'name' => $this->whenLoaded('user', $this->user->name),
+            'username' => $this->whenLoaded('user', $this->user->username),
             'email' => $this->whenLoaded('user', $this->user->email),
             'phone' => $this->whenLoaded('user', $this->user->phone),
             'status_name' => $this->whenLoaded('status', $this->status->name),

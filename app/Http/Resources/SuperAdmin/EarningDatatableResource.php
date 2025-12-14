@@ -18,7 +18,7 @@ class EarningDatatableResource extends JsonResource
         // 1. Standard Fields
         $data = [
             'driver_id'      => $this->driver_id,
-            'driver_name'    => $this->driver_name,
+            'driver_username'    => $this->driver_username,
             'franchise_name' => $this->franchise_name ?? null,
             'branch_name'    => $this->branch_name ?? null,
             'total_amount'   => (float) $this->total_amount,
