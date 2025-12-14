@@ -22,18 +22,18 @@ class TransactionController extends Controller
         // 1. Validate all filters
         $validated = $request->validate([
             'tab' => ['sometimes', 'string', Rule::in(['franchise', 'branch'])],
-            'franchise' => ['sometimes', 'nullable', 'string'],
-            'branch' => ['sometimes', 'nullable', 'string'],
-            'driver' => ['sometimes', 'nullable', 'string'],
+            'franchise' => ['sometimes', 'nullable', 'array'], 
+            'branch' => ['sometimes', 'nullable', 'array'],
+            'driver' => ['sometimes', 'nullable', 'array'],
             'service' => ['sometimes', 'string', Rule::in(['Trips', 'Boundary'])],
         ]);
 
         // 2. Set defaults
         $filters = [
             'tab' => $validated['tab'] ?? 'franchise',
-            'franchise' => $validated['franchise'] ?? null,
-            'branch' => $validated['branch'] ?? null,
-            'driver' => $validated['driver'] ?? null,
+            'franchise' => $validated['franchise'] ?? [],
+            'branch' => $validated['branch'] ?? [],
+            'driver' => $validated['driver'] ?? [],
             'service' => $validated['service'] ?? 'Trips',
         ];
 
@@ -65,21 +65,18 @@ class TransactionController extends Controller
         ])->where('service_type', $filters['service']);
 
         // Filter by specific driver if selected
-        $query->when($filters['driver'] && $filters['driver'] !== 'all', function ($q) use ($filters) {
-            $q->where('driver_id', $filters['driver']);
+        $query->when(!empty($filters['driver']), function ($q) use ($filters) {
+            $q->whereIn('driver_id', $filters['driver']);
         });
 
         // Apply tab-specific filtering
         if ($filters['tab'] === 'franchise') {
             $query->whereNotNull('franchise_id')
-                ->when($filters['franchise'], fn ($q) => $q->where('franchise_id', $filters['franchise']));
-
+                ->when(!empty($filters['franchise']), fn ($q) => $q->whereIn('franchise_id', $filters['franchise']));
             $query->with('franchise:id,name');
-
-        } elseif ($filters['tab'] === 'branch') {
+        } else {
             $query->whereNotNull('branch_id')
-                ->when($filters['branch'], fn ($q) => $q->where('branch_id', $filters['branch']));
-                
+                ->when(!empty($filters['branch']), fn ($q) => $q->whereIn('branch_id', $filters['branch']));
             $query->with('branch:id,name');
         }
 
