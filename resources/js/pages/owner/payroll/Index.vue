@@ -31,7 +31,7 @@ const props = defineProps<{
   revenues: {
     data: RevenueRow[];
   };
-  drivers: { id: number; name: string }[];
+  drivers: { id: number; username: string }[];
   filters: {
     driver: string | null;
     service: 'Trips';
@@ -174,7 +174,7 @@ const revenueColumns = computed<ColumnDef<RevenueRow>[]>(() => {
   const columns: ColumnDef<RevenueRow>[] = [
     {
       accessorKey: 'driver_username',
-      header: 'Driver Name',
+      header: 'Driver Username',
     },
     {
       // Now explicitly show Franchise Name since the data is tied to one
@@ -321,7 +321,7 @@ watch(
                   :key="driver.id"
                   :value="String(driver.id)"
                 >
-                  {{ driver.name }}
+                  {{ driver.username }}
                 </SelectItem>
               </SelectContent>
             </Select>

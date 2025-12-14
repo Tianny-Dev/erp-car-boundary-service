@@ -94,7 +94,7 @@
     <div class="payroll-header-box">
         <div class="payroll-header-row">
             <div class="payroll-header-col">
-                <span class="payroll-header-label">DRIVER NAME:</span> {{ $payrollData['driver_name'] }}
+                <span class="payroll-header-label">DRIVER USERNAME:</span> {{ $payrollData['driver_name'] }}
             </div>
             <div class="payroll-header-col">
                 <span class="payroll-header-label">DRIVER ID:</span> {{ $payrollData['driver_id_display'] }}

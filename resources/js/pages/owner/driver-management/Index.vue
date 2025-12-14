@@ -280,7 +280,7 @@ const removeDriverFromFranchise = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
+              <!-- <TableHead>Name</TableHead> -->
               <TableHead>Username</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Phone</TableHead>
@@ -299,7 +299,7 @@ const removeDriverFromFranchise = () => {
               :key="driver.id"
               class="hover:bg-muted/50"
             >
-              <TableCell>{{ driver.name }}</TableCell>
+              <!-- <TableCell>{{ driver.name }}</TableCell> -->
               <TableCell>{{ driver.username }}</TableCell>
               <TableCell>{{ driver.email }}</TableCell>
               <TableCell>{{ driver.phone }}</TableCell>
@@ -436,7 +436,7 @@ const removeDriverFromFranchise = () => {
           <DialogTitle>Driver's Information</DialogTitle>
           <DialogDescription>
             Detailed information for driver
-            <strong>{{ selectedDriver?.name }}</strong
+            <strong>{{ selectedDriver?.username }}</strong
             >.
           </DialogDescription>
         </DialogHeader>
@@ -519,7 +519,7 @@ const removeDriverFromFranchise = () => {
           <DialogTitle>Confirm Removal</DialogTitle>
           <DialogDescription>
             Are you sure you want to remove
-            <strong>{{ driverToRemove?.name }}</strong> from your franchise?
+            <strong>{{ driverToRemove?.username }}</strong> from your franchise?
           </DialogDescription>
         </DialogHeader>
 

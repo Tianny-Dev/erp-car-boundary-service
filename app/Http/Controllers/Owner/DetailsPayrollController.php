@@ -129,7 +129,7 @@ class DetailsPayrollController extends Controller
 
         $details = $this->fetchRevenueDetails($validated);
 
-        $driver = User::find($validated['driver_id'], ['id', 'name']);
+        $driver = User::find($validated['driver_id'], ['id', 'username']);
         if (!$driver) {
             return Inertia::location(route('404'));
         }
@@ -139,7 +139,7 @@ class DetailsPayrollController extends Controller
             ->toArray();
 
         return Inertia::render('owner/payroll/Details', [
-            'driver' => $driver->only(['id', 'name']),
+            'driver' => $driver->only(['id', 'username']),
             'periodLabel' => $validated['payment_date'],
             'details' => $details,
             'breakdownTypes' => $breakdownTypes,
@@ -239,7 +239,7 @@ class DetailsPayrollController extends Controller
         // --- 2. Data Fetching ---
         $details = $this->fetchRevenueDetails($validated);
 
-        $driver = User::find($driverId, ['id', 'name']);
+        $driver = User::find($driverId, ['id', 'username']);
         if (!$driver) {
             return response()->json(['message' => 'Driver not found.'], 404);
         }
@@ -330,7 +330,7 @@ class DetailsPayrollController extends Controller
         ];
 
         // --- 5. Dispatch Download (Updated PDF data) ---
-        $fileName = 'driver_payroll_' . $driver->name . '_' . date('Ymd_His');
+        $fileName = 'driver_payroll_' . $driver->username . '_' . date('Ymd_His');
         $title = "DRIVER TRANSACTION REPORT";
 
         if ($exportType === 'pdf') {
@@ -341,7 +341,7 @@ class DetailsPayrollController extends Controller
                 'dataKeys' => $dataKeys,
                 // NEW: Formal payroll data
                 'payrollData' => [
-                    'driver_name' => $driver->name,
+                    'driver_name' => $driver->username,
                     'driver_id_display' => $formattedDriverId,
                     'period' => ucwords($validated['period']) . ' Period',
                     'period_label' => $validated['payment_date'],
@@ -372,7 +372,7 @@ class DetailsPayrollController extends Controller
                 return $formattedRow;
             });
 
-            $titleForExcel = "Transaction Details for {$driver->name} ({$validated['period']}: {$validated['payment_date']})";
+            $titleForExcel = "Transaction Details for {$driver->username} ({$validated['period']}: {$validated['payment_date']})";
             $export = new SimpleArrayExport(
                 $excelRows,
                 $headings,
