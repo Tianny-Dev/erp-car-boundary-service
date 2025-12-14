@@ -48,6 +48,7 @@ import { computed, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 
 interface DriverDetails {
+  code_number: string | null;
   license_number: string | null;
   license_expiry: string | null;
   is_verified: number | boolean | null;
@@ -280,7 +281,7 @@ const removeDriverFromBranch = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
+              <!-- <TableHead>Name</TableHead> -->
               <TableHead>Username</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Phone</TableHead>
@@ -299,7 +300,7 @@ const removeDriverFromBranch = () => {
               :key="driver.id"
               class="hover:bg-muted/50"
             >
-              <TableCell>{{ driver.name }}</TableCell>
+              <!-- <TableCell>{{ driver.name }}</TableCell> -->
               <TableCell>{{ driver.username }}</TableCell>
               <TableCell>{{ driver.email }}</TableCell>
               <TableCell>{{ driver.phone }}</TableCell>
@@ -443,7 +444,7 @@ const removeDriverFromBranch = () => {
 
         <!-- Driver Information -->
         <div class="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-          <p><strong>ID:</strong> {{ selectedDriver?.id }}</p>
+          <p><strong>ID:</strong> {{ selectedDriver?.details.code_number }}</p>
           <p><strong>Email:</strong> {{ selectedDriver?.email }}</p>
 
           <p><strong>Phone:</strong> {{ selectedDriver?.phone }}</p>

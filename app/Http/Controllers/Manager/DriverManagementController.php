@@ -43,6 +43,7 @@ class DriverManagementController extends Controller
                 'status' => $driver->status?->name,
 
                 'details' => [
+                    'code_number'  => $driver->code_number,
                     'license_number'  => $driver->license_number,
                     'license_expiry'  => $driver->license_expiry,
                     'is_verified'     => $driver->is_verified,

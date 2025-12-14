@@ -53,6 +53,7 @@ class DriverApplicationController extends Controller
             'status' => $user->driverDetails?->status?->name,
 
             'details' => [
+                'code_number'  => $user->driverDetails?->code_number,
                 'license_number'  => $user->driverDetails?->license_number,
                 'license_expiry'  => $user->driverDetails?->license_expiry,
                 'is_verified'     => $user->driverDetails?->is_verified,

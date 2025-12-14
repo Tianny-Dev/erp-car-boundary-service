@@ -51,7 +51,7 @@ class BoundaryContractController extends Controller
                 'renewal_terms' => $contract->renewal_terms,
                 'start_date' => $contract->start_date,
                 'end_date' => $contract->end_date,
-                'driver_name' => $contract->driver?->user->name,
+                'driver_username' => $contract->driver?->user->username,
                 'driver_email' => $contract->driver?->user->email,
                 'driver_phone' => $contract->driver?->user->phone,
                 'status' => $contract->status?->name,
@@ -104,7 +104,7 @@ class BoundaryContractController extends Controller
             ->get()
             ->map(fn($driver) => [
                 'id' => $driver->id,
-                'name' => $driver->user?->name,
+                'username' => $driver->user?->username,
                 'email' => $driver->user?->email,
                 'phone' => $driver->user?->phone,
             ]);

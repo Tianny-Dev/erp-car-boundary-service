@@ -84,14 +84,14 @@ class ReportDriverController extends Controller
 
         $query = UserDriver::query()
             ->join('users', 'user_drivers.id', '=', 'users.id')
-            ->select('user_drivers.id', 'users.name');
+            ->select('user_drivers.id', 'users.username');
 
         // MANDATORY: Filter drivers by the Manager's Branch
         $query->whereHas('branches', function ($q) use ($branchId) {
             $q->where('branches.id', $branchId);
         });
 
-        return $query->orderBy('users.name')->get();
+        return $query->orderBy('users.username')->get();
     }
 
     /**
@@ -150,11 +150,11 @@ class ReportDriverController extends Controller
             SUM(DISTINCT revenues.amount) as total_amount,
             revenues.service_type,
             users.id as driver_id,
-            users.name as driver_username
+            users.username as driver_username
         ";
 
         // 3. Add Tab-specific Joins and Selects (Kept logic but uses implicit 'Branch' tab)
-        $groupingFields = ['users.id', 'users.name', 'revenues.service_type'];
+        $groupingFields = ['users.id', 'users.username', 'revenues.service_type'];
 
         // Since the report is scoped to ONE Branch, we can enforce the join to get names
         // If revenue has a branch_id, join the name

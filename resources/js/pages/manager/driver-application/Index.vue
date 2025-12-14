@@ -35,6 +35,7 @@ import { computed, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 
 interface DriverDetails {
+  code_number: string | null;
   license_number: string | null;
   license_expiry: string | null;
   is_verified: number | boolean | null;
@@ -237,7 +238,7 @@ const toggleStatus = (id: number) => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
+              <!-- <TableHead>Name</TableHead> -->
               <TableHead>Username</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Phone</TableHead>
@@ -256,7 +257,7 @@ const toggleStatus = (id: number) => {
               :key="driver.id"
               class="hover:bg-muted/50"
             >
-              <TableCell>{{ driver.name }}</TableCell>
+              <!-- <TableCell>{{ driver.name }}</TableCell> -->
               <TableCell>{{ driver.username }}</TableCell>
               <TableCell>{{ driver.email }}</TableCell>
               <TableCell>{{ driver.phone }}</TableCell>
@@ -362,7 +363,7 @@ const toggleStatus = (id: number) => {
         </DialogHeader>
 
         <div class="mt-2 space-y-2">
-          <p><strong>ID:</strong> {{ selectedDriver?.id }}</p>
+          <p><strong>ID:</strong> {{ selectedDriver?.details.code_number }}</p>
           <p><strong>Username:</strong> {{ selectedDriver?.username }}</p>
           <p><strong>Email:</strong> {{ selectedDriver?.email }}</p>
           <p><strong>Phone:</strong> {{ selectedDriver?.phone }}</p>
@@ -396,7 +397,7 @@ const toggleStatus = (id: number) => {
 
         <!-- Driver Information -->
         <div class="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-          <p><strong>ID:</strong> {{ driverToToggle?.id }}</p>
+          <p><strong>ID:</strong> {{ driverToToggle?.details.code_number }}</p>
           <p><strong>Email:</strong> {{ driverToToggle?.email }}</p>
 
           <p><strong>Phone:</strong> {{ driverToToggle?.phone }}</p>
