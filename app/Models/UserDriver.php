@@ -28,6 +28,7 @@ class UserDriver extends Model
 
     protected $fillable = [
         'id',
+        'code_number',
         'status_id',
         'shift',
         'is_verified',

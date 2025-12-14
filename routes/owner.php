@@ -20,7 +20,6 @@ use App\Http\Controllers\Owner\VehicleController;
 use App\Http\Controllers\Owner\VehicleDriverController;
 use Illuminate\Support\Facades\Route;
 
-
 Route::middleware(['auth', 'verified', 'user_type:owner', 'check.active'])->prefix('owner')->name('owner.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('/boundary-contracts', BoundaryContractController::class);
@@ -52,4 +51,7 @@ Route::middleware(['auth', 'verified', 'user_type:owner', 'check.active'])->pref
     Route::get('/payroll/details/fetch-route', [DetailsPayrollController::class, 'fetchRouteDetails'])->name('driverownerpayroll_details.fetchRoute');
 
     Route::resource('maintenance-requests', MaintenanceRequestController::class);
+
+    Route::put('/support-tickets/{ticket}/complete', [SupportCenterController::class, 'markAsCompleted'])
+    ->name('supportTickets.complete');
 });

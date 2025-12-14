@@ -48,6 +48,7 @@ class SupportCenterController extends Controller
                     'description' => $tickets->description,
 
                     'status' => $tickets->status?->name,
+                    'status_id' => $tickets->status_id,
 
                     'date' => $tickets->date,
 
@@ -80,5 +81,16 @@ class SupportCenterController extends Controller
     protected function getFranchiseOrDefault()
     {
         return auth()->user()->ownerDetails?->franchises()->first();
+    }
+
+    public function markAsCompleted(SupportTicket $ticket)
+    {
+        if ($ticket->status_id !== 16) {
+            $ticket->update([
+                'status_id' => 16,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Ticket marked as completed!');
     }
 }
