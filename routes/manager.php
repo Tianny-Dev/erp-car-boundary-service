@@ -43,4 +43,7 @@ Route::middleware(['auth', 'verified', 'user_type:manager'])->prefix('manager')-
     Route::get('/driverreport/details/export', [DetailsDriverController::class, 'exportDetails'])->name('driverownerreport_details.export');
 
     Route::resource('maintenance-requests', MaintenanceRequestController::class);
+
+    Route::put('/support-tickets/{ticket}/complete', [SupportCenterController::class, 'markAsCompleted'])
+    ->name('supportTickets.complete');
 });
