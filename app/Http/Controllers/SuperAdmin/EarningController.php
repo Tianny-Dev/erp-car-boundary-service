@@ -72,8 +72,6 @@ class EarningController extends Controller
         // 1. Validate all filters
         $validated = $request->validate([
             'tab' => ['sometimes', 'string', Rule::in(['franchise', 'branch'])],
-            'franchise' => ['sometimes', 'nullable', 'string'],
-            'branch' => ['sometimes', 'nullable', 'string'],
             'driver' => ['required', 'string'],
             'start' => ['required', 'date'],
             'end' => ['required', 'date'],
