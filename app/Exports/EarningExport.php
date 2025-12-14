@@ -85,7 +85,7 @@ class EarningExport implements
             // 3. Build Row
             $columns = [
                 $name,
-                $row->driver_name ?? 'N/A',
+                $row->driver_username ?? 'N/A',
                 $dateDisplay,
                 $row->total_amount ?? 0,
             ];
