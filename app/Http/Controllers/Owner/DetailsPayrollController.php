@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use App\Models\Revenue;
 use App\Models\Route;
 use App\Models\User;
+use App\Models\UserDriver;
 use App\Models\PercentageType;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
@@ -212,7 +213,7 @@ class DetailsPayrollController extends Controller
     }
     // ---------------------------------------------------------------------
 
-    // --- Export Method (Updated for formal PDF with custom ID format) ---
+    // --- Export Method (Updated for formal PDF with corrected code_number fetch) ---
     public function exportDetails(Request $request)
     {
         // Fetch the authenticated user's primary franchise name for the ID suffix
@@ -239,10 +240,24 @@ class DetailsPayrollController extends Controller
         // --- 2. Data Fetching ---
         $details = $this->fetchRevenueDetails($validated);
 
+        // Fetch the driver user record
         $driver = User::find($driverId, ['id', 'username']);
         if (!$driver) {
             return response()->json(['message' => 'Driver not found.'], 404);
         }
+
+        // --- CORRECTED CODE_NUMBER FETCHING ---
+        // Fetch the UserDriver record and extract the code_number string
+        $userDriverRecord = UserDriver::find($driverId, ['id', 'code_number']);
+        $driverCodeNumber = null;
+
+        if ($userDriverRecord) {
+            $driverCodeNumber = $userDriverRecord->code_number;
+        } else {
+            // Log a warning if the record is missing but don't stop the process
+            Log::warning("UserDriver record not found for Driver ID: {$driverId} during export.");
+        }
+        // ----------------------------------------
 
         // Determine the franchise name to use for the ID suffix
         $idFranchiseName = null;
@@ -342,7 +357,8 @@ class DetailsPayrollController extends Controller
                 // NEW: Formal payroll data
                 'payrollData' => [
                     'driver_name' => $driver->username,
-                    'driver_id_display' => $formattedDriverId,
+                    // *** CORRECTED: Using the extracted string value ***
+                    'driver_id_display' => $driverCodeNumber,
                     'period' => ucwords($validated['period']) . ' Period',
                     'period_label' => $validated['payment_date'],
                     'grand_totals' => $grandTotals,
