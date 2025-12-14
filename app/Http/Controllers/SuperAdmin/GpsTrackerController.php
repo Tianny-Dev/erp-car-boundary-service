@@ -53,7 +53,7 @@ class GpsTrackerController extends Controller
                 ->whereNotNull('latitude');
             })
             ->with([
-                'user:id,name',
+                'user:id,username',
                 'vehicles:id,driver_id,plate_number',  
             ]);
 
@@ -92,10 +92,10 @@ class GpsTrackerController extends Controller
      */
     private function getContextualDrivers(array $filters)
     {
-        // Start with UserDriver and join the base User table to get names
+        // Start with UserDriver and join the base User table to get username
         $query = UserDriver::query()
             ->join('users', 'user_drivers.id', '=', 'users.id')
-            ->select('user_drivers.id', 'users.name');
+            ->select('user_drivers.id', 'users.username');
 
         if ($filters['tab'] === 'franchise') {
             if (!empty($filters['franchise']) && $filters['franchise'] !== 'all') {
@@ -119,6 +119,6 @@ class GpsTrackerController extends Controller
             }
         }
 
-        return $query->orderBy('users.name')->get();
+        return $query->orderBy('users.username')->get();
     }
 }
