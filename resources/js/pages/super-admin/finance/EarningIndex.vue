@@ -266,18 +266,6 @@ const earningColumns = computed<ColumnDef<any>[]>(() => {
                     tab: activeTab.value,
                   };
 
-                  if (
-                    activeTab.value === 'franchise' &&
-                    selectedFranchise.value !== 'all'
-                  ) {
-                    queryParams.franchise = selectedFranchise.value;
-                  } else if (
-                    activeTab.value === 'branch' &&
-                    selectedBranch.value !== 'all'
-                  ) {
-                    queryParams.branch = selectedBranch.value;
-                  }
-
                   router.get(superAdmin.earning.show().url, queryParams, {
                     preserveScroll: true,
                     replace: false,
