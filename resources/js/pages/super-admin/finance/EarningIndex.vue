@@ -2,6 +2,7 @@
 import DataTable from '@/components/DataTable.vue';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import MultiSelect from '@/components/MultiSelect.vue';
 import {
   Dialog,
   DialogContent,
@@ -44,9 +45,9 @@ const props = defineProps<{
   drivers: { id: number; username: string }[];
   filters: {
     tab: 'franchise' | 'branch';
-    franchise: string | null;
-    branch: string | null;
-    driver: string | null;
+    franchise: string[];
+    branch: string[];
+    driver: string[];
     period: 'daily' | 'weekly' | 'monthly';
   };
   feeTypes: {
@@ -67,9 +68,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 // --- 4. Setup Reactive State for Filters ---
 const activeTab = ref(props.filters.tab);
-const selectedFranchise = ref(props.filters.franchise || 'all');
-const selectedBranch = ref(props.filters.branch || 'all');
-const selectedDriver = ref(props.filters.driver || 'all');
+const selectedFranchise = ref<string[]>(props.filters.franchise || []);
+const selectedBranch = ref<string[]>(props.filters.branch || []);
+const selectedDriver = ref<string[]>(props.filters.driver || []);
 const selectedPeriod = ref(props.filters.period);
 
 // --- 5. Computed Properties for UI ---
@@ -79,24 +80,25 @@ const title = computed(() => {
     : 'Branch Earnings';
 });
 
-const selectOptions = computed(() => {
-  return activeTab.value === 'franchise' ? props.franchises : props.branches;
+const selectedContext = computed({
+  get: () => activeTab.value === 'franchise' ? selectedFranchise.value : selectedBranch.value,
+  set: (val: string[]) => {
+    if (activeTab.value === 'franchise') {
+      selectedFranchise.value = val;
+    } else {
+      selectedBranch.value = val;
+    }
+    selectedDriver.value = [];
+  }
 });
 
-const selectedFilter = computed({
-  get() {
-    return activeTab.value === 'franchise'
-      ? selectedFranchise.value
-      : selectedBranch.value;
-  },
-  set(value: string) {
-    if (activeTab.value === 'franchise') {
-      selectedFranchise.value = value;
-    } else {
-      selectedBranch.value = value;
-    }
-    selectedDriver.value = 'all';
-  },
+// Mapping options for the MultiSelect
+const driverOptions = computed(() =>
+  props.drivers.map(d => ({ id: d.id, label: d.username }))
+);
+const contextOptions = computed(() => {
+  const data = activeTab.value === 'franchise' ? props.franchises : props.branches;
+  return data.map(item => ({ id: item.id, label: item.name }));
 });
 
 const showExportModal = ref(false);
@@ -159,23 +161,28 @@ function handleExport() {
     year: exportYear.value,
   });
 
-  // 2. Add branch/franchise filter if not 'all'
-  if (activeTab.value === 'franchise' && selectedFranchise.value !== 'all') {
-    params.append('franchise', selectedFranchise.value);
-  } else if (activeTab.value === 'branch' && selectedBranch.value !== 'all') {
-    params.append('branch', selectedBranch.value);
+  // 2. Add branch/franchise
+  if (activeTab.value === 'franchise' && selectedFranchise.value.length > 0) {
+    selectedFranchise.value.forEach((f) => params.append('franchise[]', f));
+  } else if (activeTab.value === 'branch' && selectedBranch.value.length > 0) {
+    selectedBranch.value.forEach((b) => params.append('branch[]', b));
   }
 
-  // 3. Add months
+  // 3. Add drivers
+  if (selectedDriver.value.length > 0) {
+    selectedDriver.value.forEach((d) => params.append('driver[]', d));
+  }
+
+  // 4. Add months
   exportMonths.value.forEach((month) => {
     params.append('months[]', String(month));
   });
 
-  // 4. Build URL and open in new tab (triggers download)
+  // 5. Build URL and open in new tab (triggers download)
   const url = `${superAdmin.earning.export.index().url}?${params.toString()}`;
   window.open(url, '_blank');
 
-  // 5. Close modal and reset
+  // 6. Close modal and reset
   showExportModal.value = false;
   exportMonths.value = [];
 }
@@ -285,36 +292,24 @@ const earningColumns = computed<ColumnDef<any>[]>(() => {
 
 // --- Watchers to Update URL ---
 const updateFilters = () => {
-  const queryParams: Record<string, string> = {
+  router.get(superAdmin.earning.index().url, {
     tab: activeTab.value,
     period: selectedPeriod.value,
-  };
-
-  if (selectedDriver.value && selectedDriver.value !== 'all') {
-    queryParams.driver = selectedDriver.value;
-  }
-
-  if (activeTab.value === 'franchise' && selectedFranchise.value !== 'all') {
-    queryParams.franchise = selectedFranchise.value;
-  } else if (activeTab.value === 'branch' && selectedBranch.value !== 'all') {
-    queryParams.branch = selectedBranch.value;
-  }
-
-  router.get(superAdmin.earning.index().url, queryParams, {
+    driver: selectedDriver.value,
+    franchise: activeTab.value === 'franchise' ? selectedFranchise.value : [],
+    branch: activeTab.value === 'branch' ? selectedBranch.value : [],
+  }, {
     preserveScroll: true,
     replace: true,
   });
 };
 
 // Watch for tab changes
-watch(activeTab, (newTab) => {
-  if (newTab === 'franchise') {
-    selectedBranch.value = 'all';
-  } else {
-    selectedFranchise.value = 'all';
-  }
-  // The main watcher will handle the update
-  selectedDriver.value = 'all';
+watch(activeTab, () => {
+  selectedFranchise.value = [];
+  selectedBranch.value = [];
+  selectedDriver.value = [];
+  updateFilters(); // Trigger reload
 });
 
 // Watch all filters for changes (debounced)
@@ -366,32 +361,16 @@ watch(
               </SelectContent>
             </Select>
 
-            <Select v-model="selectedDriver">
-              <SelectTrigger class="w-[200px]">
-                <SelectValue placeholder="Select Driver" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Drivers</SelectItem>
-                <SelectItem v-for="driver in drivers" :key="driver.id" :value="String(driver.id)">
-                  {{ driver.username }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
+            <MultiSelect v-model="selectedDriver" :options="driverOptions" placeholder="Select Drivers"
+              all-label="All Drivers" @change="updateFilters" />
 
-            <Select v-model="selectedFilter">
-              <SelectTrigger class="w-[240px]">
-                <SelectValue placeholder="Filter by..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">
-                  All
-                  {{ activeTab === 'franchise' ? 'Franchises' : 'Branches' }}
-                </SelectItem>
-                <SelectItem v-for="option in selectOptions" :key="option.id" :value="String(option.id)">
-                  {{ option.name }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
+            <MultiSelect v-model="selectedContext" :options="contextOptions"
+              :placeholder="activeTab === 'franchise' ? 'Select Franchises' : 'Select Branches'"
+              :all-label="activeTab === 'franchise' ? 'All Franchises' : 'All Branches'" @change="(val) => {
+                if (activeTab === 'franchise') selectedFranchise = val;
+                else selectedBranch = val;
+                updateFilters();
+              }" />
           </div>
         </div>
 

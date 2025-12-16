@@ -72,7 +72,7 @@ const handleOpenChange = (isOpen: boolean) => {
     <Popover :open="open" @update:open="handleOpenChange">
         <PopoverTrigger as-child>
             <Button variant="outline" role="combobox" :aria-expanded="open"
-                class="w-[200px] justify-between font-normal p-4">
+                class="w-[200px] justify-between font-normal p-5">
                 <span class="truncate">{{ selectedLabels }}</span>
                 <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
@@ -90,7 +90,7 @@ const handleOpenChange = (isOpen: boolean) => {
                         class="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground w-full h-full">
                         <Checkbox :id="String(option.id)" :model-value="localValue.includes(String(option.id))"
                             @update:model-value="() => toggleOption(String(option.id))"
-                            class="mr-2 h-4 w-4 cursor-pointer" />
+                            class="mr-2 h-4 w-4 cursor-pointer border-accent-foreground/30" />
                         <span class="truncate ">{{ option.label }}</span>
                     </Label>
                 </div>

@@ -28,18 +28,18 @@ class EarningController extends Controller
         // 1. Validate all filters
         $validated = $request->validate([
             'tab' => ['sometimes', 'string', Rule::in(['franchise', 'branch'])],
-            'franchise' => ['sometimes', 'nullable', 'string'],
-            'branch' => ['sometimes', 'nullable', 'string'],
-            'driver' => ['sometimes', 'nullable', 'string'],
+            'franchise' => ['sometimes', 'nullable', 'array'], 
+            'branch' => ['sometimes', 'nullable', 'array'],
+            'driver' => ['sometimes', 'nullable', 'array'],
             'period' => ['sometimes', 'string', Rule::in(['daily', 'weekly', 'monthly'])],
         ]);
 
         // 2. Set defaults
         $filters = [
             'tab' => $validated['tab'] ?? 'franchise',
-            'franchise' => $validated['franchise'] ?? null,
-            'branch' => $validated['branch'] ?? null,
-            'driver' => $validated['driver'] ?? null,
+            'franchise' => $validated['franchise'] ?? [],
+            'branch' => $validated['branch'] ?? [],
+            'driver' => $validated['driver'] ?? [],
             'period' => $validated['period'] ?? 'daily',
         ];
         
@@ -87,9 +87,9 @@ class EarningController extends Controller
         // 3. Build Base Query (Reuse filters, but enforce specific driver)
         $filters = [
             'tab' => $validated['tab'] ?? 'franchise',
-            'franchise' => $validated['franchise'] ?? null,
-            'branch' => $validated['branch'] ?? null,
-            'driver' => $driverId, 
+            'franchise' => $validated['franchise'] ?? [],
+            'branch' => $validated['branch'] ?? [],
+            'driver' => [$driverId], 
         ];
 
         // 4. Build Base Query
@@ -192,23 +192,22 @@ class EarningController extends Controller
         if ($year) {
             $query->whereYear('payment_date', $year);
         }
-        if (! empty($months)) {
+        if (!empty($months)) {
             $query->whereIn(DB::raw('MONTH(payment_date)'), $months);
         }
 
         // Filter by specific driver if selected
-        $query->when($filters['driver'] && $filters['driver'] !== 'all', function ($q) use ($filters) {
-            $q->where('driver_id', $filters['driver']);
+        $query->when(!empty($filters['driver']), function ($q) use ($filters) {
+            $q->whereIn('driver_id', $filters['driver']);
         });
 
         // Apply tab-specific filtering
         if ($filters['tab'] === 'franchise') {
             $query->whereNotNull('franchise_id')
-                ->when($filters['franchise'], fn ($q) => $q->where('franchise_id', $filters['franchise']));
-
+                ->when(!empty($filters['franchise']), fn ($q) => $q->whereIn('franchise_id', $filters['franchise']));
         } elseif ($filters['tab'] === 'branch') {
             $query->whereNotNull('branch_id')
-                ->when($filters['branch'], fn ($q) => $q->where('branch_id', $filters['branch']));
+                ->when(!empty($filters['branch']), fn ($q) => $q->whereIn('branch_id', $filters['branch']));
         }
 
         return $query;
@@ -318,9 +317,9 @@ class EarningController extends Controller
         // 1. Validate all inputs (page filters + modal filters)
         $validated = $request->validate([
             'tab' => ['required', 'string', Rule::in(['franchise', 'branch'])],
-            'franchise' => ['nullable', 'string'],
-            'branch' => ['nullable', 'string'],
-            'driver' => ['sometimes', 'nullable', 'string'],
+            'franchise' => ['sometimes', 'nullable', 'array'], 
+            'branch' => ['sometimes', 'nullable', 'array'],
+            'driver' => ['sometimes', 'nullable', 'array'],
             'period' => ['required', 'string',Rule::in(['daily', 'weekly', 'monthly'])],
             'export' => ['required', 'string', Rule::in(['pdf', 'excel', 'csv'])],
             'year' => ['required', 'integer', 'min:2020', 'max:2100'],
@@ -330,9 +329,9 @@ class EarningController extends Controller
 
         $filters = [
             'tab' => $validated['tab'] ?? 'franchise',
-            'franchise' => $validated['franchise'] ?? null,
-            'branch' => $validated['branch'] ?? null,
-            'driver' => $validated['driver'] ?? null,
+            'franchise' => $validated['franchise'] ?? [],
+            'branch' => $validated['branch'] ?? [],
+            'driver' => $validated['driver'] ?? [],
             'period' => $validated['period'] ?? 'daily',
             'export' => $validated['export'] ?? 'pdf',
         ];
@@ -392,9 +391,9 @@ class EarningController extends Controller
 
         // 2. Build Query (Same logic as show)
         $filters = [
-            'driver' => $driverId,
+            'driver' => [$driverId],
             'tab' => null,
-        ]; 
+        ];
 
         $query = $this->buildBaseQuery($filters);
         $query = $this->joinBreakdownSubquery($query, $feeTypes);
@@ -458,10 +457,16 @@ class EarningController extends Controller
 
         // Get specific name if filtered
         $targetName = "All {$tabName}s";
-        if ($filters['franchise']) {
-            $targetName = Franchise::find($filters['franchise'])->name ?? 'Franchise';
-        } elseif ($filters['branch']) {
-            $targetName = Branch::find($filters['branch'])->name ?? 'Branch';
+        if (!empty($filters['franchise'])) {
+            $names = Franchise::whereIn('id', $filters['franchise'])
+                ->pluck('name')
+                ->join(', ');
+            $targetName = $names ?: 'Franchise';
+        } elseif (!empty($filters['branch'])) {
+            $names = Branch::whereIn('id', $filters['branch'])
+                ->pluck('name')
+                ->join(', ');
+            $targetName = $names ?: 'Branch';
         }
 
         // Format months
