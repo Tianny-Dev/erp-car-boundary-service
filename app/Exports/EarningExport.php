@@ -57,7 +57,7 @@ class EarningExport implements
         if ($this->tabName === 'show') {
             $columns = [
                 $row->invoice_no, // Column A
-                Carbon::parse($row->payment_date)->format('M j, Y'),
+                Carbon::parse($row->payment_date)->format('M d, Y h:i A'),
                 $row->total_amount ?? 0,
             ];
         } 

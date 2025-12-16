@@ -53,7 +53,7 @@
     <table>
         <thead>
             <tr>
-                @if(isset($isDetailView) && $isDetailView)
+            @if(isset($isDetailView) && $isDetailView)
                 <th>Invoice No.</th>
                 <th>Date</th>
                 <th>Trip Amount</th>
@@ -88,7 +88,7 @@
                 <tr>
                     @if(isset($isDetailView) && $isDetailView)
                         <td>{{ $row->invoice_no }}</td>
-                        <td>{{ Carbon::parse($row->payment_date)->format('M j, Y') }}</td>
+                        <td>{{ Carbon::parse($row->payment_date)->format('M d, Y h:i A') }}</td>
                         <td class="money">&#8369;{{ number_format($row->total_amount, 2) }}</td>
                     @else
                         <td>{{ $tab === 'franchise' ? ($row->franchise_name ?? '-') : ($row->branch_name ?? '-') }}</td>
