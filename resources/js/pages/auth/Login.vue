@@ -14,10 +14,24 @@ import { Form, Head, Link } from '@inertiajs/vue3';
 import { Eye, EyeOff, Lock, User } from 'lucide-vue-next';
 import { ref } from 'vue';
 
+// Define types to match your AuthLayout
+interface FranchiseData {
+  id: number;
+  name: string;
+  region: string;
+  province: string;
+  city: string;
+  latitude: string;
+  longitude: string;
+}
+
+// UPDATE: Added franchises and userTypes to props
 defineProps<{
   status?: string;
   canResetPassword: boolean;
   canRegister: boolean;
+  franchises: FranchiseData[];
+  userTypes: any[];
 }>();
 
 const showPassword = ref(false);
@@ -29,7 +43,8 @@ usePageTheme('light');
 <template>
   <!-- Log in to your account -->
   <AuthBase
-    text-overlay="Welcome Back, User!"
+    :franchises="franchises"
+    text-overlay=""
     title="ACCOUNT LOGIN"
     description="Enter your email and password to log in "
   >

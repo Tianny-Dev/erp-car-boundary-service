@@ -18,6 +18,7 @@ use Inertia\Inertia;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
 use Laravel\Fortify\Contracts\LoginResponse;
+use App\Models\Franchise;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -63,10 +64,13 @@ class FortifyServiceProvider extends ServiceProvider
      */
     private function configureViews(): void
     {
+        // For the Login Page
         Fortify::loginView(fn (Request $request) => Inertia::render('auth/Login', [
             'canResetPassword' => Features::enabled(Features::resetPasswords()),
             'canRegister' => Features::enabled(Features::registration()),
             'status' => $request->session()->get('status'),
+            'franchises' => Franchise::select(['id', 'name', 'region', 'province', 'city', 'latitude', 'longitude'])->get(),
+            'userTypes'  => [] // Ensure this matches your Vue props
         ]));
 
         Fortify::resetPasswordView(fn (Request $request) => Inertia::render('auth/ResetPassword', [
@@ -86,14 +90,17 @@ class FortifyServiceProvider extends ServiceProvider
             $paymentOptions = PaymentOption::all()->map(function ($option) {
                 return [
                     'id' => $option->id,
-                    'label' => $option->name, // This can be any field you want to display
-                    'color' => $option->color ?? 'bg-blue-500', // Default color, can be set dynamically
+                    'label' => $option->name,
+                    'color' => $option->color ?? 'bg-blue-500',
                 ];
             });
 
             return Inertia::render('auth/Register', [
                 'genderOptions' => Gender::options(),
                 'paymentOptions' => $paymentOptions,
+                // YOU NEED THESE HERE TOO:
+                'franchises' => Franchise::select(['id', 'name', 'region', 'province', 'city', 'latitude', 'longitude'])->get(),
+                'userTypes'  => []
             ]);
         });
 

@@ -1,5 +1,6 @@
 <?php
 use App\Models\UserType;
+use App\Models\Franchise;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -16,6 +17,7 @@ Route::get('/', function () {
     return Inertia::render('Home', [
         'canRegister' => Features::enabled(Features::registration()),
         'userTypes' => $userTypes,
+        'franchises' => Franchise::select(['id', 'name', 'region', 'province', 'city', 'latitude', 'longitude'])->get(),
     ]);
 })->name('home');
 

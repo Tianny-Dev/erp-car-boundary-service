@@ -17,13 +17,25 @@ import Terms from '@/components/landing/Terms.vue';
 import Testimonials from '@/components/landing/Testimonials.vue';
 import Works from '@/components/landing/Works.vue';
 
-interface Props {
-  userTypes: { name: string; encrypted_id: string }[];
+// 1. Define the data structure
+interface FranchiseData {
+  id: number;
+  name: string;
+  region: string;
+  province: string;
+  city: string;
 }
 
-const { userTypes } = defineProps<Props>();
+// 2. Define a SINGLE Props interface
+interface Props {
+  userTypes: { name: string; encrypted_id: string }[];
+  franchises: FranchiseData[];
+}
 
-// Force light mode on this page only
+// 3. Destructure BOTH variables so they are available to your template
+const { userTypes, franchises } = defineProps<Props>();
+
+// Force light mode
 usePageTheme('light');
 </script>
 
@@ -44,7 +56,7 @@ usePageTheme('light');
     <!-- How It Works End -->
 
     <!-- Franchise Start -->
-    <Franchise :userTypes="userTypes" />
+    <Franchise :userTypes="userTypes" :franchises="franchises" />
     <!-- Franchise End -->
 
     <!-- Driver Start -->
