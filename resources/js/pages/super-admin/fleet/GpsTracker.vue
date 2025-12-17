@@ -7,7 +7,6 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import superAdmin from '@/routes/super-admin';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
-import { debounce } from 'lodash-es';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 
 // --- Define Props ---
@@ -163,14 +162,6 @@ watch(activeTab, () => {
   selectedDriver.value = [];
   updateFilters(); // Trigger reload
 });
-
-// Watch for select filter changes (debounced)
-watch(
-  [activeTab],
-  debounce(() => {
-    updateFilters();
-  }, 300), // Debounce to avoid firing on every keystroke/click
-);
 </script>
 
 <template>
