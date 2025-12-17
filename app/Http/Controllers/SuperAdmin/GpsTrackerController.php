@@ -18,16 +18,16 @@ class GpsTrackerController extends Controller
     {
         $validated = $request->validate([
             'tab' => ['sometimes', 'string', Rule::in(['franchise', 'branch'])],
-            'franchise' => ['sometimes', 'nullable', 'string'],
-            'branch' => ['sometimes', 'nullable', 'string'],
-            'driver' => ['sometimes', 'nullable', 'string'],
+            'franchise' => ['sometimes', 'nullable', 'array'], 
+            'branch' => ['sometimes', 'nullable', 'array'],
+            'driver' => ['sometimes', 'nullable', 'array'],
         ]);
 
         $filters = [
             'tab' => $validated['tab'] ?? 'franchise',
-            'franchise' => $validated['franchise'] ?? null,
-            'branch' => $validated['branch'] ?? null,
-            'driver' => $validated['driver'] ?? null,
+            'franchise' => $validated['franchise'] ?? [],
+            'branch' => $validated['branch'] ?? [],
+            'driver' => $validated['driver'] ?? [],
         ];
 
         // 1. Fetch Map Data
@@ -58,15 +58,15 @@ class GpsTrackerController extends Controller
             ]);
 
         // Filter by specific driver if selected
-        $query->when($filters['driver'] && $filters['driver'] !== 'all', function ($q) use ($filters) {
-            $q->where('id', $filters['driver']);
+        $query->when(!empty($filters['driver']), function ($q) use ($filters) {
+            $q->whereIn('id', $filters['driver']);
         });
 
         // Apply tab-specific filtering
         if ($filters['tab'] === 'franchise') {
             $query->whereHas('franchises', function ($q) use ($filters) {
                 $q->when($filters['franchise'], fn ($subQ) =>
-                    $subQ->where('franchises.id', $filters['franchise'])
+                    $subQ->whereIn('franchises.id', $filters['franchise'])
                 );
             });
 
@@ -76,7 +76,7 @@ class GpsTrackerController extends Controller
         } elseif ($filters['tab'] === 'branch') {
             $query->whereHas('branches', function ($q) use ($filters) {
                 $q->when($filters['branch'], fn ($subQ) =>
-                    $subQ->where('branches.id', $filters['branch'])
+                    $subQ->whereIn('branches.id', $filters['branch'])
                 );
             });
 
@@ -98,20 +98,20 @@ class GpsTrackerController extends Controller
             ->select('user_drivers.id', 'users.username');
 
         if ($filters['tab'] === 'franchise') {
-            if (!empty($filters['franchise']) && $filters['franchise'] !== 'all') {
+            if (!empty($filters['franchise'])) {
                 // Get drivers strictly belonging to this franchise
                 $query->whereHas('franchises', function ($q) use ($filters) {
-                    $q->where('franchises.id', $filters['franchise']);
+                    $q->whereIn('franchises.id', $filters['franchise']);
                 });
             } else {
                 // Get ALL drivers that belong to ANY franchise
                 $query->has('franchises');
             }
         } elseif ($filters['tab'] === 'branch') {
-            if (!empty($filters['branch']) && $filters['branch'] !== 'all') {
+            if (!empty($filters['branch'])) {
                 // Get drivers strictly belonging to this branch
                 $query->whereHas('branches', function ($q) use ($filters) {
-                    $q->where('branches.id', $filters['branch']);
+                    $q->whereIn('branches.id', $filters['branch']);
                 });
             } else {
                 // Get ALL drivers that belong to ANY branch

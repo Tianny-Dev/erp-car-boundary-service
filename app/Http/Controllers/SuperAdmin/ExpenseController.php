@@ -24,16 +24,16 @@ class ExpenseController extends Controller
         // 1. Validate all filters
         $validated = $request->validate([
             'tab' => ['sometimes', 'string', Rule::in(['franchise', 'branch'])],
-            'franchise' => ['sometimes', 'nullable', 'string'],
-            'branch' => ['sometimes', 'nullable', 'string'],
+            'franchise' => ['sometimes', 'nullable', 'array'], 
+            'branch' => ['sometimes', 'nullable', 'array'],
             'period' => ['sometimes', 'string', Rule::in(['daily', 'weekly', 'monthly'])],
         ]);
 
         // 2. Set defaults
         $filters = [
             'tab' => $validated['tab'] ?? 'franchise',
-            'franchise' => $validated['franchise'] ?? null,
-            'branch' => $validated['branch'] ?? null,
+            'franchise' => $validated['franchise'] ?? [],
+            'branch' => $validated['branch'] ?? [],
             'period' => $validated['period'] ?? 'daily',
         ];
 
@@ -71,11 +71,10 @@ class ExpenseController extends Controller
         // Apply tab-specific filtering
         if ($filters['tab'] === 'franchise') {
             $query->whereNotNull('franchise_id')
-                ->when($filters['franchise'], fn ($q) => $q->where('franchise_id', $filters['franchise']));
-
+                ->when(!empty($filters['franchise']), fn ($q) => $q->whereIn('franchise_id', $filters['franchise']));
         } elseif ($filters['tab'] === 'branch') {
             $query->whereNotNull('branch_id')
-                ->when($filters['branch'], fn ($q) => $q->where('branch_id', $filters['branch']));
+                ->when(!empty($filters['branch']), fn ($q) => $q->whereIn('branch_id', $filters['branch']));
         }
 
         return $query;
@@ -128,8 +127,8 @@ class ExpenseController extends Controller
         // 1. Validate all inputs
         $validated = $request->validate([
             'tab' => ['required', 'string', Rule::in(['franchise', 'branch'])],
-            'franchise' => ['nullable', 'string'],
-            'branch' => ['nullable', 'string'],
+            'franchise' => ['sometimes', 'nullable', 'array'], 
+            'branch' => ['sometimes', 'nullable', 'array'],
             'period' => ['required', 'string', Rule::in(['daily', 'weekly', 'monthly'])],
             'export' => ['required', 'string', Rule::in(['pdf', 'excel', 'csv'])],
             'year' => ['required', 'integer', 'min:2020', 'max:2100'],
@@ -139,8 +138,8 @@ class ExpenseController extends Controller
 
         $filters = [
             'tab' => $validated['tab'],
-            'franchise' => $validated['franchise'] ?? null,
-            'branch' => $validated['branch'] ?? null,
+            'franchise' => $validated['franchise'] ?? [],
+            'branch' => $validated['branch'] ?? [],
             'period' => $validated['period'],
             'export' => $validated['export'],
         ];
@@ -187,10 +186,16 @@ class ExpenseController extends Controller
 
         // Get specific name if filtered
         $targetName = "All {$tabName}s";
-        if ($filters['franchise']) {
-            $targetName = Franchise::find($filters['franchise'])->name ?? 'Franchise';
-        } elseif ($filters['branch']) {
-            $targetName = Branch::find($filters['branch'])->name ?? 'Branch';
+        if (!empty($filters['franchise'])) {
+            $names = Franchise::whereIn('id', $filters['franchise'])
+                ->pluck('name')
+                ->join(', ');
+            $targetName = $names ?: 'Franchise';
+        } elseif (!empty($filters['branch'])) {
+            $names = Branch::whereIn('id', $filters['branch'])
+                ->pluck('name')
+                ->join(', ');
+            $targetName = $names ?: 'Branch';
         }
 
         // Format months

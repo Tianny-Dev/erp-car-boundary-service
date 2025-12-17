@@ -21,12 +21,22 @@ class DriverApplicationController extends Controller
             abort(404, 'Franchise not found');
         }
 
+        // $driversQuery = User::with('driverDetails.status')
+        //     ->whereHas('userType', fn($q) => $q->where('name', 'driver'))
+        //     ->whereHas('driverDetails', fn ($q) =>
+        //         $q->where('is_verified', 1)
+        //         ->whereHas('status', fn ($s) =>
+        //             $s->whereIn('name', ['pending'])
+        //         )
+        //     );
+
         $driversQuery = User::with('driverDetails.status')
-            ->whereHas('userType', fn($q) => $q->where('name', 'driver'))
+            ->whereHas('userType', fn ($q) =>
+                $q->where('name', 'driver')
+            )
             ->whereHas('driverDetails', fn ($q) =>
-                $q->where('is_verified', 1)
-                ->whereHas('status', fn ($s) =>
-                    $s->whereIn('name', ['pending'])
+                $q->whereHas('status', fn ($s) =>
+                    $s->whereIn('name', ['pending', 'inactive'])
                 )
             );
 
@@ -131,6 +141,12 @@ class DriverApplicationController extends Controller
         if ($driver->status_id === 1) {
             // Status is now active - attach to owner's franchises if not already attached
             $driver->franchises()->syncWithoutDetaching($ownerFranchises);
+
+            if ($driver->driverDetails) {
+                $driver->driverDetails->update([
+                    'is_verified' => true,
+                ]);
+            }
         } else {
             // Status is now inactive - detach from owner's franchises only
             $driver->franchises()->detach($ownerFranchises);

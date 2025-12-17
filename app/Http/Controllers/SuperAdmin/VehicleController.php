@@ -23,16 +23,16 @@ class VehicleController extends Controller
         // 1. Validate all filters
         $validated = $request->validate([
             'tab' => ['sometimes', 'string', Rule::in(['franchise', 'branch'])],
-            'franchise' => ['sometimes', 'nullable', 'string'],
-            'branch' => ['sometimes', 'nullable', 'string'],
+            'franchise' => ['sometimes', 'nullable', 'array'], 
+            'branch' => ['sometimes', 'nullable', 'array'],
             'status' => ['sometimes', 'string', Rule::in(['active', 'available', 'maintenance'])],
         ]);
 
         // 2. Set defaults
         $filters = [
             'tab' => $validated['tab'] ?? 'franchise',
-            'franchise' => $validated['franchise'] ?? null,
-            'branch' => $validated['branch'] ?? null,
+            'franchise' => $validated['franchise'] ?? [],
+            'branch' => $validated['branch'] ?? [],
             'status' => $validated['status'] ?? 'active',
         ];
 
@@ -65,12 +65,12 @@ class VehicleController extends Controller
 
         if ($filters['tab'] === 'franchise') {
             $query->whereNotNull('franchise_id')
-                ->when($filters['franchise'], fn($q) => $q->where('franchise_id', $filters['franchise']))
+                ->when(!empty($filters['franchise']), fn ($q) => $q->whereIn('franchise_id', $filters['franchise']))
                 ->with('franchise:id,name');
 
         } elseif ($filters['tab'] === 'branch') {
             $query->whereNotNull('branch_id')
-                ->when($filters['branch'], fn($q) => $q->where('branch_id', $filters['branch']))
+                ->when(!empty($filters['branch']), fn ($q) => $q->whereIn('branch_id', $filters['branch']))
                 ->with('branch:id,name');
         }
         

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import DataTable from '@/components/DataTable.vue';
+import MultiSelect from '@/components/MultiSelect.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,8 +17,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
   Select,
@@ -48,8 +49,8 @@ const props = defineProps<{
   branches: { id: number; name: string }[];
   filters: {
     tab: 'franchise' | 'branch';
-    franchise: string | null;
-    branch: string | null;
+    franchise: string[];
+    branch: string[];
     status: 'active' | 'available' | 'maintenance';
   };
 }>();
@@ -74,8 +75,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 // --- 4. Setup Reactive State for Filters ---
 const activeTab = ref(props.filters.tab || 'franchise');
-const selectedFranchise = ref(props.filters.franchise || 'all');
-const selectedBranch = ref(props.filters.branch || 'all');
+const selectedFranchise = ref<string[]>(props.filters.franchise || []);
+const selectedBranch = ref<string[]>(props.filters.branch || []);
 const selectedStatus = ref(props.filters.status || 'active');
 
 // --- 5. Computed Properties for UI ---
@@ -85,25 +86,25 @@ const title = computed(() => {
     : 'Branch Vehicles';
 });
 
-// Computed list for the select dropdown based on the active tab
-const selectOptions = computed(() => {
-  return activeTab.value === 'franchise' ? props.franchises : props.branches;
-});
-
-// A computed v-model for the *single* select component
-const selectedFilter = computed({
-  get() {
-    return activeTab.value === 'franchise'
+const selectedContext = computed({
+  get: () =>
+    activeTab.value === 'franchise'
       ? selectedFranchise.value
-      : selectedBranch.value;
-  },
-  set(value: string) {
+      : selectedBranch.value,
+  set: (val: string[]) => {
     if (activeTab.value === 'franchise') {
-      selectedFranchise.value = value;
+      selectedFranchise.value = val;
     } else {
-      selectedBranch.value = value;
+      selectedBranch.value = val;
     }
   },
+});
+
+// Mapping options for the MultiSelect
+const contextOptions = computed(() => {
+  const data =
+    activeTab.value === 'franchise' ? props.franchises : props.branches;
+  return data.map((item) => ({ id: item.id, label: item.name }));
 });
 
 interface VehicleModal {
@@ -152,16 +153,13 @@ const openChangeModal = (vehicle: VehicleRow) => {
 const handleChangeVehicle = () => {
   if (!selectedVehicle.value?.id) return;
 
-  changeForm.patch(
-    superAdmin.vehicle.change(selectedVehicle.value.id).url,
-    {
-      onSuccess: () => {
-        changeForm.reset();
-        isChangeModalOpen.value = false;
-        toast.success('Vehicle change status successfully!');
-      },
+  changeForm.patch(superAdmin.vehicle.change(selectedVehicle.value.id).url, {
+    onSuccess: () => {
+      changeForm.reset();
+      isChangeModalOpen.value = false;
+      toast.success('Vehicle change status successfully!');
     },
-  );
+  });
 };
 
 const statuses = [
@@ -257,42 +255,31 @@ const vehicleColumns = computed<ColumnDef<VehicleRow>[]>(() => {
 
 // --- Watchers to Update URL ---
 const updateFilters = () => {
-  const queryParams: Record<string, string> = {
-    tab: activeTab.value,
-    status: selectedStatus.value,
-  };
-
-  // **This is the crucial part for "no conflicts"**
-  // Only add the 'franchise' param if the tab is 'franchise'
-  if (activeTab.value === 'franchise' && selectedFranchise.value !== 'all') {
-    queryParams.franchise = selectedFranchise.value;
-  }
-  // Only add the 'branch' param if the tab is 'branch'
-  else if (activeTab.value === 'branch' && selectedBranch.value !== 'all') {
-    queryParams.branch = selectedBranch.value;
-  }
-
-  router.get(superAdmin.vehicle.index().url, queryParams, {
-    preserveScroll: true,
-    replace: true, // Doesn't pollute browser history
-  });
+  router.get(
+    superAdmin.vehicle.index().url,
+    {
+      tab: activeTab.value,
+      status: selectedStatus.value,
+      franchise: activeTab.value === 'franchise' ? selectedFranchise.value : [],
+      branch: activeTab.value === 'branch' ? selectedBranch.value : [],
+    },
+    {
+      preserveScroll: true,
+      replace: true,
+    },
+  );
 };
 
 // Watch for tab changes (instant update)
-watch(activeTab, (newTab) => {
-  // When tab switches, reset the *other* filter to 'all'
-  // This helps keep the URL clean
-  if (newTab === 'franchise') {
-    selectedBranch.value = 'all';
-  } else {
-    selectedFranchise.value = 'all';
-  }
-  updateFilters();
+watch(activeTab, () => {
+  selectedFranchise.value = [];
+  selectedBranch.value = [];
+  updateFilters(); // Trigger reload
 });
 
 // Watch for select filter changes (debounced)
 watch(
-  [selectedFranchise, selectedBranch, activeTab, selectedStatus],
+  [selectedStatus],
   debounce(() => {
     updateFilters();
   }, 300), // Debounce to avoid firing on every keystroke/click
@@ -300,25 +287,34 @@ watch(
 </script>
 
 <template>
-
   <Head title="Vehicle Management" />
 
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+    <div
+      class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
+    >
       <Tabs v-model="activeTab" class="w-full">
         <TabsList class="w-full justify-start p-1.5">
-          <TabsTrigger value="franchise" class="cursor-pointer font-semibold"
-            :class="{ 'pointer-events-none': activeTab === 'franchise' }">
+          <TabsTrigger
+            value="franchise"
+            class="cursor-pointer font-semibold"
+            :class="{ 'pointer-events-none': activeTab === 'franchise' }"
+          >
             Franchise
           </TabsTrigger>
-          <TabsTrigger value="branch" class="cursor-pointer font-semibold"
-            :class="{ 'pointer-events-none': activeTab === 'branch' }">
+          <TabsTrigger
+            value="branch"
+            class="cursor-pointer font-semibold"
+            :class="{ 'pointer-events-none': activeTab === 'branch' }"
+          >
             Branch
           </TabsTrigger>
         </TabsList>
       </Tabs>
 
-      <div class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border">
+      <div
+        class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border"
+      >
         <div class="mb-4 flex items-center justify-between">
           <h2 class="font-mono text-xl font-semibold">
             {{ title }}
@@ -336,24 +332,33 @@ watch(
               </SelectContent>
             </Select>
 
-            <Select v-model="selectedFilter">
-              <SelectTrigger class="w-[240px]">
-                <SelectValue placeholder="Filter by..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">
-                  All
-                  {{ activeTab === 'franchise' ? 'Franchises' : 'Branches' }}
-                </SelectItem>
-                <SelectItem v-for="option in selectOptions" :key="option.id" :value="String(option.id)">
-                  {{ option.name }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
+            <MultiSelect
+              v-model="selectedContext"
+              :options="contextOptions"
+              :placeholder="
+                activeTab === 'franchise'
+                  ? 'Select Franchises'
+                  : 'Select Branches'
+              "
+              :all-label="
+                activeTab === 'franchise' ? 'All Franchises' : 'All Branches'
+              "
+              @change="
+                (val) => {
+                  if (activeTab === 'franchise') selectedFranchise = val;
+                  else selectedBranch = val;
+                  updateFilters();
+                }
+              "
+            />
           </div>
         </div>
 
-        <DataTable :columns="vehicleColumns" :data="vehicles.data" search-placeholder="Search vehicles...">
+        <DataTable
+          :columns="vehicleColumns"
+          :data="vehicles.data"
+          search-placeholder="Search vehicles..."
+        >
           <template #custom-actions>
             <Button class="me-5" @click="createVehicle">
               <PlusIcon />Add Vehicle
@@ -377,12 +382,20 @@ watch(
           </template>
         </div>
 
-        <div v-else-if="vehicleDetails.length > 0" class="grid grid-cols-2 gap-4">
+        <div
+          v-else-if="vehicleDetails.length > 0"
+          class="grid grid-cols-2 gap-4"
+        >
           <template v-for="item in vehicleDetails" :key="item.label">
             <div class="font-medium">{{ item.label }}:</div>
 
             <div v-if="item.type === 'link'">
-              <a :href="item.value" target="_blank" class="text-blue-500 hover:underline">View</a>
+              <a
+                :href="item.value"
+                target="_blank"
+                class="text-blue-500 hover:underline"
+                >View</a
+              >
             </div>
 
             <div v-else>
@@ -392,7 +405,10 @@ watch(
         </div>
 
         <div v-else-if="vehicleModal.isError.value">
-          <Alert variant="destructive" class="border-2 border-red-500 shadow-lg">
+          <Alert
+            variant="destructive"
+            class="border-2 border-red-500 shadow-lg"
+          >
             <AlertCircleIcon class="h-4 w-4" />
             <AlertTitle class="font-bold">Error</AlertTitle>
             <AlertDescription class="font-semibold">
@@ -413,11 +429,12 @@ watch(
       <DialogHeader>
         <DialogTitle class="text-xl">Change Driver Status</DialogTitle>
         <DialogDescription>
-          Change the status of this vehicle plate number <strong class="text-blue-500">{{ selectedVehicle?.plate_number
-          }}</strong>.
-          From {{
-            selectedVehicle?.status_name
-          }} to <em>"{{ changeForm.status }}"</em>.
+          Change the status of this vehicle plate number
+          <strong class="text-blue-500">{{
+            selectedVehicle?.plate_number
+          }}</strong
+          >. From {{ selectedVehicle?.status_name }} to
+          <em>"{{ changeForm.status }}"</em>.
         </DialogDescription>
       </DialogHeader>
 
@@ -430,7 +447,10 @@ watch(
             </SelectTrigger>
             <SelectContent>
               <template v-for="s in statuses" :key="s.value">
-                <SelectItem v-if="selectedVehicle?.status_name !== s.value" :value="s.value">
+                <SelectItem
+                  v-if="selectedVehicle?.status_name !== s.value"
+                  :value="s.value"
+                >
                   {{ s.label }}
                 </SelectItem>
               </template>
@@ -440,8 +460,13 @@ watch(
       </div>
 
       <DialogFooter>
-        <Button variant="outline" @click="isChangeModalOpen = false">Cancel</Button>
-        <Button @click="handleChangeVehicle" :disabled="changeForm.processing || !changeForm.status">
+        <Button variant="outline" @click="isChangeModalOpen = false"
+          >Cancel</Button
+        >
+        <Button
+          @click="handleChangeVehicle"
+          :disabled="changeForm.processing || !changeForm.status"
+        >
           {{ changeForm.processing ? 'Changing...' : 'Confirm Change' }}
         </Button>
       </DialogFooter>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import DataTable from '@/components/DataTable.vue';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import MultiSelect from '@/components/MultiSelect.vue';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -91,7 +91,10 @@ const title = computed(() => {
 });
 
 const selectedContext = computed({
-  get: () => activeTab.value === 'franchise' ? selectedFranchise.value : selectedBranch.value,
+  get: () =>
+    activeTab.value === 'franchise'
+      ? selectedFranchise.value
+      : selectedBranch.value,
   set: (val: string[]) => {
     if (activeTab.value === 'franchise') {
       selectedFranchise.value = val;
@@ -99,16 +102,17 @@ const selectedContext = computed({
       selectedBranch.value = val;
     }
     selectedDriver.value = [];
-  }
+  },
 });
 
 // Mapping options for the MultiSelect
 const driverOptions = computed(() =>
-  props.drivers.map(d => ({ id: d.id, label: d.username }))
+  props.drivers.map((d) => ({ id: d.id, label: d.username })),
 );
 const contextOptions = computed(() => {
-  const data = activeTab.value === 'franchise' ? props.franchises : props.branches;
-  return data.map(item => ({ id: item.id, label: item.name }));
+  const data =
+    activeTab.value === 'franchise' ? props.franchises : props.branches;
+  return data.map((item) => ({ id: item.id, label: item.name }));
 });
 
 interface TransactionModal {
@@ -260,16 +264,20 @@ const transactionColumns = computed<ColumnDef<TransactionRow>[]>(() => {
 
 // --- Watchers to Update URL ---
 const updateFilters = () => {
-  router.get(superAdmin.transaction.index().url, {
-    tab: activeTab.value,
-    service: selectedService.value,
-    driver: selectedDriver.value,
-    franchise: activeTab.value === 'franchise' ? selectedFranchise.value : [],
-    branch: activeTab.value === 'branch' ? selectedBranch.value : [],
-  }, {
-    preserveScroll: true,
-    replace: true,
-  });
+  router.get(
+    superAdmin.transaction.index().url,
+    {
+      tab: activeTab.value,
+      service: selectedService.value,
+      driver: selectedDriver.value,
+      franchise: activeTab.value === 'franchise' ? selectedFranchise.value : [],
+      branch: activeTab.value === 'branch' ? selectedBranch.value : [],
+    },
+    {
+      preserveScroll: true,
+      replace: true,
+    },
+  );
 };
 
 // Watch for tab changes
@@ -282,10 +290,7 @@ watch(activeTab, () => {
 
 // Watch all filters for changes (debounced)
 watch(
-  [
-    activeTab,
-    selectedService,
-  ],
+  [selectedService],
   debounce(() => {
     updateFilters();
   }, 300),
@@ -293,24 +298,33 @@ watch(
 </script>
 
 <template>
-
   <Head title=" Transaction History" />
 
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+    <div
+      class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
+    >
       <Tabs v-model="activeTab" class="w-full">
         <TabsList class="w-full justify-start p-1.5">
-          <TabsTrigger value="franchise" class="cursor-pointer font-semibold"
-            :class="{ 'pointer-events-none': activeTab === 'franchise' }">
+          <TabsTrigger
+            value="franchise"
+            class="cursor-pointer font-semibold"
+            :class="{ 'pointer-events-none': activeTab === 'franchise' }"
+          >
             Franchise
           </TabsTrigger>
-          <TabsTrigger value="branch" class="cursor-pointer font-semibold"
-            :class="{ 'pointer-events-none': activeTab === 'branch' }">
+          <TabsTrigger
+            value="branch"
+            class="cursor-pointer font-semibold"
+            :class="{ 'pointer-events-none': activeTab === 'branch' }"
+          >
             Branch
           </TabsTrigger>
         </TabsList>
       </Tabs>
-      <div class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border">
+      <div
+        class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border"
+      >
         <div class="mb-4 flex items-center justify-between">
           <h2 class="font-mono text-xl font-semibold">
             {{ title }}
@@ -326,21 +340,41 @@ watch(
               </SelectContent>
             </Select>
 
-            <MultiSelect v-model="selectedDriver" :options="driverOptions" placeholder="Select Drivers"
-              all-label="All Drivers" @change="updateFilters" />
+            <MultiSelect
+              v-model="selectedDriver"
+              :options="driverOptions"
+              placeholder="Select Drivers"
+              all-label="All Drivers"
+              @change="updateFilters"
+            />
 
-            <MultiSelect v-model="selectedContext" :options="contextOptions"
-              :placeholder="activeTab === 'franchise' ? 'Select Franchises' : 'Select Branches'"
-              :all-label="activeTab === 'franchise' ? 'All Franchises' : 'All Branches'" @change="(val) => {
-                if (activeTab === 'franchise') selectedFranchise = val;
-                else selectedBranch = val;
-                updateFilters();
-              }" />
+            <MultiSelect
+              v-model="selectedContext"
+              :options="contextOptions"
+              :placeholder="
+                activeTab === 'franchise'
+                  ? 'Select Franchises'
+                  : 'Select Branches'
+              "
+              :all-label="
+                activeTab === 'franchise' ? 'All Franchises' : 'All Branches'
+              "
+              @change="
+                (val) => {
+                  if (activeTab === 'franchise') selectedFranchise = val;
+                  else selectedBranch = val;
+                  updateFilters();
+                }
+              "
+            />
           </div>
         </div>
 
-        <DataTable :columns="transactionColumns" :data="transactions.data"
-          search-placeholder="Search transactions..." />
+        <DataTable
+          :columns="transactionColumns"
+          :data="transactions.data"
+          search-placeholder="Search transactions..."
+        />
       </div>
     </div>
   </AppLayout>
@@ -351,14 +385,20 @@ watch(
         <DialogTitle>Transaction Details</DialogTitle>
       </DialogHeader>
       <DialogDescription>
-        <div v-if="transactionModal.isLoading.value" class="grid grid-cols-2 gap-4">
+        <div
+          v-if="transactionModal.isLoading.value"
+          class="grid grid-cols-2 gap-4"
+        >
           <template v-for="item in 10" :key="item">
             <Skeleton class="h-5 w-24" />
             <Skeleton class="h-5 w-3/4" />
           </template>
         </div>
 
-        <div v-else-if="transactionDetails.length > 0" class="grid grid-cols-2 gap-4">
+        <div
+          v-else-if="transactionDetails.length > 0"
+          class="grid grid-cols-2 gap-4"
+        >
           <template v-for="item in transactionDetails" :key="item.label">
             <div class="font-medium">{{ item.label }}:</div>
             <div>
@@ -368,7 +408,10 @@ watch(
         </div>
 
         <div v-else-if="transactionModal.isError.value">
-          <Alert variant="destructive" class="border-2 border-red-500 shadow-lg">
+          <Alert
+            variant="destructive"
+            class="border-2 border-red-500 shadow-lg"
+          >
             <AlertCircleIcon class="h-4 w-4" />
             <AlertTitle class="font-bold">Error</AlertTitle>
             <AlertDescription class="font-semibold">
