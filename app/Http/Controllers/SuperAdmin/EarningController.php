@@ -224,20 +224,20 @@ class EarningController extends Controller
             ->select('user_drivers.id', 'users.username');
 
         if ($filters['tab'] === 'franchise') {
-            if (!empty($filters['franchise']) && $filters['franchise'] !== 'all') {
+            if (!empty($filters['franchise'])) {
                 // Get drivers strictly belonging to this franchise
                 $query->whereHas('franchises', function ($q) use ($filters) {
-                    $q->where('franchises.id', $filters['franchise']);
+                    $q->whereIn('franchises.id', $filters['franchise']);
                 });
             } else {
                 // Get ALL drivers that belong to ANY franchise
                 $query->has('franchises');
             }
         } elseif ($filters['tab'] === 'branch') {
-            if (!empty($filters['branch']) && $filters['branch'] !== 'all') {
+            if (!empty($filters['branch'])) {
                 // Get drivers strictly belonging to this branch
                 $query->whereHas('branches', function ($q) use ($filters) {
-                    $q->where('branches.id', $filters['branch']);
+                    $q->whereIn('branches.id', $filters['branch']);
                 });
             } else {
                 // Get ALL drivers that belong to ANY branch
