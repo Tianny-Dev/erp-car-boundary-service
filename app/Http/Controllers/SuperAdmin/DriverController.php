@@ -29,16 +29,16 @@ class DriverController extends Controller
         // 1. Validate all filters
         $validated = $request->validate([
             'tab' => ['sometimes', 'string', Rule::in(['franchise', 'branch'])],
-            'franchise' => ['sometimes', 'nullable', 'string'],
-            'branch' => ['sometimes', 'nullable', 'string'],
+            'franchise' => ['sometimes', 'nullable', 'array'], 
+            'branch' => ['sometimes', 'nullable', 'array'],
             'status' => ['sometimes', 'string', Rule::in(['active', 'retired', 'suspended'])],
         ]);
 
         // 2. Set defaults
         $filters = [
             'tab' => $validated['tab'] ?? 'franchise',
-            'franchise' => $validated['franchise'] ?? null,
-            'branch' => $validated['branch'] ?? null,
+            'franchise' => $validated['franchise'] ?? [],
+            'branch' => $validated['branch'] ?? [],
             'status' => $validated['status'] ?? 'active',
         ];
 
@@ -171,8 +171,8 @@ class DriverController extends Controller
         // Apply tab-specific filtering
         if ($filters['tab'] === 'franchise') {
             $query->whereHas('franchises', function ($q) use ($filters) {
-                $q->when($filters['franchise'], fn ($subQ) =>
-                    $subQ->where('franchises.id', $filters['franchise'])
+                $q->when(!empty($filters['franchise']), fn ($subQ) =>
+                    $subQ->whereIn('franchises.id', $filters['franchise'])
                 );
             });
 
@@ -181,8 +181,8 @@ class DriverController extends Controller
 
         } elseif ($filters['tab'] === 'branch') {
             $query->whereHas('branches', function ($q) use ($filters) {
-                $q->when($filters['branch'], fn ($subQ) =>
-                    $subQ->where('branches.id', $filters['branch'])
+                $q->when(!empty($filters['branch']), fn ($subQ) =>
+                    $subQ->whereIn('branches.id', $filters['branch'])
                 );
             });
 

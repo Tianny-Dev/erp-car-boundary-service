@@ -3,6 +3,7 @@ import DataTable from '@/components/DataTable.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import MultiSelect from '@/components/MultiSelect.vue';
 import {
   Dialog,
   DialogContent,
@@ -46,8 +47,8 @@ const props = defineProps<{
   branches: { id: number; name: string }[];
   filters: {
     tab: 'franchise' | 'branch';
-    franchise: string | null;
-    branch: string | null;
+    franchise: string[];
+    branch: string[];
     status: 'active' | 'retired' | 'suspended';
   };
 }>();
@@ -76,8 +77,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 // --- 4. Setup Reactive State for Filters ---
 const activeTab = ref(props.filters.tab || 'franchise');
-const selectedFranchise = ref(props.filters.franchise || 'all');
-const selectedBranch = ref(props.filters.branch || 'all');
+const selectedFranchise = ref<string[]>(props.filters.franchise || []);
+const selectedBranch = ref<string[]>(props.filters.branch || []);
 const selectedStatus = ref(props.filters.status || 'active');
 
 // --- 5. Computed Properties for UI ---
@@ -87,25 +88,25 @@ const title = computed(() => {
     : 'Branch Contracts';
 });
 
-// Computed list for the select dropdown based on the active tab
-const selectOptions = computed(() => {
-  return activeTab.value === 'franchise' ? props.franchises : props.branches;
-});
-
-// A computed v-model for the *single* select component
-const selectedFilter = computed({
-  get() {
-    return activeTab.value === 'franchise'
+const selectedContext = computed({
+  get: () =>
+    activeTab.value === 'franchise'
       ? selectedFranchise.value
-      : selectedBranch.value;
-  },
-  set(value: string) {
+      : selectedBranch.value,
+  set: (val: string[]) => {
     if (activeTab.value === 'franchise') {
-      selectedFranchise.value = value;
+      selectedFranchise.value = val;
     } else {
-      selectedBranch.value = value;
+      selectedBranch.value = val;
     }
   },
+});
+
+// Mapping options for the MultiSelect
+const contextOptions = computed(() => {
+  const data =
+    activeTab.value === 'franchise' ? props.franchises : props.branches;
+  return data.map((item) => ({ id: item.id, label: item.name }));
 });
 
 interface ContractModal {
@@ -262,41 +263,31 @@ const contractColumns = computed<ColumnDef<ContractRow>[]>(() => {
 
 // --- Watchers to Update URL ---
 const updateFilters = () => {
-  const queryParams: Record<string, string> = {
-    tab: activeTab.value,
-    status: selectedStatus.value,
-  };
-
-  // **This is the crucial part for "no conflicts"**
-  // Only add the 'franchise' param if the tab is 'franchise'
-  if (activeTab.value === 'franchise' && selectedFranchise.value !== 'all') {
-    queryParams.franchise = selectedFranchise.value;
-  }
-  // Only add the 'branch' param if the tab is 'branch'
-  else if (activeTab.value === 'branch' && selectedBranch.value !== 'all') {
-    queryParams.branch = selectedBranch.value;
-  }
-
-  router.get(superAdmin.boundaryContract.index().url, queryParams, {
-    preserveScroll: true,
-    replace: true, // Doesn't pollute browser history
-  });
+  router.get(
+    superAdmin.boundaryContract.index().url,
+    {
+      tab: activeTab.value,
+      status: selectedStatus.value,
+      franchise: activeTab.value === 'franchise' ? selectedFranchise.value : [],
+      branch: activeTab.value === 'branch' ? selectedBranch.value : [],
+    },
+    {
+      preserveScroll: true,
+      replace: true, // Doesn't pollute browser history
+    },
+  );
 };
 
 // Watch for tab changes (instant update)
-watch(activeTab, (newTab) => {
-  // When tab switches, reset the *other* filter to 'all'
-  // This helps keep the URL clean
-  if (newTab === 'franchise') {
-    selectedBranch.value = 'all';
-  } else {
-    selectedFranchise.value = 'all';
-  }
+watch(activeTab, () => {
+  selectedFranchise.value = [];
+  selectedBranch.value = [];
+  updateFilters(); // Trigger reload
 });
 
 // Watch for select filter changes (debounced)
 watch(
-  [selectedFranchise, selectedBranch, activeTab, selectedStatus],
+  [selectedStatus],
   debounce(() => {
     updateFilters();
   }, 300), // Debounce to avoid firing on every keystroke/click
@@ -350,24 +341,25 @@ watch(
               </SelectContent>
             </Select>
 
-            <Select v-model="selectedFilter">
-              <SelectTrigger class="w-[240px]">
-                <SelectValue placeholder="Filter by..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">
-                  All
-                  {{ activeTab === 'franchise' ? 'Franchises' : 'Branches' }}
-                </SelectItem>
-                <SelectItem
-                  v-for="option in selectOptions"
-                  :key="option.id"
-                  :value="String(option.id)"
-                >
-                  {{ option.name }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
+            <MultiSelect
+              v-model="selectedContext"
+              :options="contextOptions"
+              :placeholder="
+                activeTab === 'franchise'
+                  ? 'Select Franchises'
+                  : 'Select Branches'
+              "
+              :all-label="
+                activeTab === 'franchise' ? 'All Franchises' : 'All Branches'
+              "
+              @change="
+                (val) => {
+                  if (activeTab === 'franchise') selectedFranchise = val;
+                  else selectedBranch = val;
+                  updateFilters();
+                }
+              "
+            />
           </div>
         </div>
 
