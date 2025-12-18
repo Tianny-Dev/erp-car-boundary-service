@@ -4,6 +4,7 @@ namespace App\Http\Resources\SuperAdmin;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Models\Expense;
 
 class TransactionDatatableResource extends JsonResource
 {
@@ -14,13 +15,15 @@ class TransactionDatatableResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $isExpense = $this->resource instanceof Expense;
+
         $data = [
             'id' => $this->id,
             'invoice_no' => $this->invoice_no,
             'status_name' => $this->whenLoaded('status', $this->status->name),
-            'service_type' => $this->service_type,
+            'service_type' => $isExpense ? 'Maintenance' : $this->service_type,
             'amount' => (float) $this->amount,
-            'driver_username' => optional($this->driver?->user)->username,
+            'driver_username' => !$isExpense ? optional($this->driver?->user)->username : 'N/A',
             'date' => $this->status?->name === 'paid' && $this->payment_date
                 ? date('F j, Y', strtotime($this->payment_date))
                 : date('F j, Y', strtotime($this->created_at)),

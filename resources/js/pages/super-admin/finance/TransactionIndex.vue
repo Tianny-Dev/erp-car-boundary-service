@@ -47,6 +47,7 @@ const props = defineProps<{
   branches: { id: number; name: string }[];
   drivers: { id: number; username: string }[];
   filters: {
+    type: 'revenue' | 'expense';
     tab: 'franchise' | 'branch';
     franchise: string[];
     branch: string[];
@@ -57,14 +58,15 @@ const props = defineProps<{
 
 // --- Define TransactionRow Interface ---
 interface TransactionRow {
-  id: number | null;
+  id: number;
   franchise_name?: string;
   branch_name?: string;
+  type: string;
   invoice_no: string;
   amount: number;
   date: string;
   service_type: string;
-  driver_username: string;
+  driver_username?: string;
   status_name: string;
 }
 
@@ -78,6 +80,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 // --- 4. Setup Reactive State for Filters ---
 const activeTab = ref(props.filters.tab);
+const selectedType = ref(props.filters.type);
 const selectedFranchise = ref<string[]>(props.filters.franchise || []);
 const selectedBranch = ref<string[]>(props.filters.branch || []);
 const selectedDriver = ref<string[]>(props.filters.driver || []);
@@ -123,7 +126,12 @@ interface TransactionModal {
   payment_option: string;
   invoice_no: string;
   amount: number;
-  driver_username: string;
+  driver_username?: string;
+  vehicle_plate?: string;
+  description?: string;
+  maintenance_date?: string;
+  inventory_name?: string;
+  inventory_category?: string;
   status_name: string;
   payment_date: string | null;
   created_at: string | null;
@@ -141,12 +149,32 @@ const transactionDetails = computed(() => {
     { label: nameLabel, value: nameValue, type: 'text' },
     { label: 'Service Type', value: data.service_type, type: 'text' },
     { label: 'Invoice #', value: data.invoice_no, type: 'text' },
-    { label: 'Driver', value: data.driver_username, type: 'text' },
+
     { label: 'Amount', value: amount, type: 'text' },
     { label: 'Payment Option', value: data.payment_option, type: 'text' },
     { label: 'Status', value: data.status_name, type: 'text' },
     { label: 'Transaction Date', value: data.created_at, type: 'text' },
   ];
+
+  if (props.filters.type === 'revenue') {
+    details.push({
+      label: 'Driver',
+      value: data.driver_username,
+      type: 'text',
+    });
+  } else {
+    details.push(
+      { label: 'Vehicle', value: data.vehicle_plate, type: 'text' },
+      { label: 'Inventory', value: data.inventory_name, type: 'text' },
+      { label: 'Category', value: data.inventory_category, type: 'text' },
+      { label: 'Description', value: data.description, type: 'text' },
+      {
+        label: 'Maintenance Date',
+        value: data.maintenance_date,
+        type: 'text',
+      },
+    );
+  }
 
   if (data.payment_date) {
     details.push({
@@ -161,6 +189,12 @@ const transactionDetails = computed(() => {
 
   return details;
 });
+
+const openDetails = (id: number) => {
+  transactionModal.open(id, {
+    params: { type: props.filters.type },
+  });
+};
 
 // --- Modal State ---
 const transactionModal = useDetailsModal<TransactionModal>({
@@ -178,6 +212,7 @@ const formatCurrency = (amount: number): string => {
 // Computed columns for the data table
 const transactionColumns = computed<ColumnDef<TransactionRow>[]>(() => {
   const isFranchiseTab = activeTab.value === 'franchise';
+  const isRevenue = selectedType.value === 'revenue';
 
   const columns: ColumnDef<TransactionRow>[] = [
     {
@@ -188,10 +223,14 @@ const transactionColumns = computed<ColumnDef<TransactionRow>[]>(() => {
       accessorKey: isFranchiseTab ? 'franchise_name' : 'branch_name',
       header: isFranchiseTab ? 'Franchise' : 'Branch',
     },
-    {
-      accessorKey: 'driver_username',
-      header: 'Driver',
-    },
+    ...(isRevenue
+      ? [
+          {
+            accessorKey: 'driver_username',
+            header: 'Driver',
+          },
+        ]
+      : []),
     {
       accessorKey: 'date',
       header: 'Date',
@@ -248,7 +287,7 @@ const transactionColumns = computed<ColumnDef<TransactionRow>[]>(() => {
                 DropdownMenuItem,
                 {
                   class: 'cursor-pointer',
-                  onClick: () => transactionModal.open(transaction.id),
+                  onClick: () => openDetails(transaction.id),
                 },
                 () => 'View Transaction Details',
               ),
@@ -268,8 +307,10 @@ const updateFilters = () => {
     superAdmin.transaction.index().url,
     {
       tab: activeTab.value,
-      service: selectedService.value,
-      driver: selectedDriver.value,
+      type: selectedType.value,
+      service:
+        selectedType.value === 'revenue' ? selectedService.value : undefined,
+      driver: selectedType.value === 'revenue' ? selectedDriver.value : [],
       franchise: activeTab.value === 'franchise' ? selectedFranchise.value : [],
       branch: activeTab.value === 'branch' ? selectedBranch.value : [],
     },
@@ -290,7 +331,7 @@ watch(activeTab, () => {
 
 // Watch all filters for changes (debounced)
 watch(
-  [selectedService],
+  [selectedService, selectedType],
   debounce(() => {
     updateFilters();
   }, 300),
@@ -330,7 +371,17 @@ watch(
             {{ title }}
           </h2>
           <div class="flex gap-4">
-            <Select v-model="selectedService">
+            <Select v-model="selectedType">
+              <SelectTrigger class="w-[150px]">
+                <SelectValue placeholder="Filter by..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="revenue"> Revenue </SelectItem>
+                <SelectItem value="expense"> Expense </SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select v-if="selectedType === 'revenue'" v-model="selectedService">
               <SelectTrigger class="w-[150px]">
                 <SelectValue placeholder="Filter by..." />
               </SelectTrigger>
