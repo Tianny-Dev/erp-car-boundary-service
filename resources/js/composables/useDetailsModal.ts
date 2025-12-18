@@ -1,4 +1,4 @@
-import axios from 'axios'; // Import axios
+import axios, { AxiosRequestConfig } from 'axios'; // Import axios
 import { ref } from 'vue';
 
 /**
@@ -26,9 +26,25 @@ export function useDetailsModal<TData = unknown>({
       return fetcher(...args);
     }
     if (baseUrl) {
+      let config: AxiosRequestConfig = {};
+      const pathSegments = [...args];
+
+      // SAFE CHECK: If the last argument is an object containing 'params' or 'headers',
+      // treat it as Axios Config and remove it from the URL path construction.
+      if (pathSegments.length > 0) {
+        const lastArg = pathSegments[pathSegments.length - 1];
+        if (
+          typeof lastArg === 'object' &&
+          lastArg !== null &&
+          (lastArg.params || lastArg.headers)
+        ) {
+          config = pathSegments.pop();
+        }
+      }
+
       // A simple convention for baseUrl: join args with a slash.
-      const endpoint = [baseUrl, ...args].join('/');
-      return axios.get(endpoint); // Use axios.get
+      const endpoint = [baseUrl, ...pathSegments].join('/');
+      return axios.get(endpoint, config); // Use axios.get
     }
     throw new Error(
       "useDetailsModal requires a 'baseUrl' or a 'fetcher' function.",
