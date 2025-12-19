@@ -147,6 +147,7 @@ class DriverManagementController extends Controller
 
         $driver->franchises()->detach($ownerFranchises);
         $driver->status_id = 6;
+        $driver->is_verified = false;
         $driver->save();
 
         return back()->with('success', 'Driver removed from your franchise(s) successfully.');

@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\UserDriver;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Carbon\Carbon;
 
 class DriverApplicationController extends Controller
 {
@@ -139,16 +140,28 @@ class DriverApplicationController extends Controller
         $driver->save();
 
         if ($driver->status_id === 1) {
-            // Status is now active - attach to owner's franchises if not already attached
+            // attach to owner's franchises if not already attached
             $driver->franchises()->syncWithoutDetaching($ownerFranchises);
 
-            if ($driver->driverDetails) {
-                $driver->driverDetails->update([
+            // Only generate a new code if none exists
+            if (empty($driver->code_number)) {
+                $faker = \Faker\Factory::create();
+                do {
+                    $code = $faker->bothify('??-####');
+                } while (UserDriver::where('code_number', $code)->exists());
+
+                $driver->update([
+                    'code_number' => $code,
+                    'is_verified' => true,
+                ]);
+            } else {
+                // If code_number already exists, just mark verified
+                $driver->update([
                     'is_verified' => true,
                 ]);
             }
         } else {
-            // Status is now inactive - detach from owner's franchises only
+            // detach from owner's franchises only
             $driver->franchises()->detach($ownerFranchises);
         }
 
