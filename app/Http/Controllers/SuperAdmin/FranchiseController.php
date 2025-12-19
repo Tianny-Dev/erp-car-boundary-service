@@ -8,6 +8,7 @@ use App\Models\Status;
 use Illuminate\Support\Facades\DB;
 use App\Http\Resources\SuperAdmin\FranchiseResource;
 use Illuminate\Http\Request;
+use App\Notifications\AcceptFranchiseApplication;
 
 class FranchiseController extends Controller
 {
@@ -31,6 +32,7 @@ class FranchiseController extends Controller
             $franchise->owner->status_id = $activeStatus->id;
             $franchise->owner->save();
             
+            $franchise->owner->user->notify(new AcceptFranchiseApplication());
         });
         
         return back();
