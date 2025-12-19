@@ -65,12 +65,12 @@ const navConfig: Record<string, NavItem[]> = {
       icon: LayoutGrid,
       group: 'Overview',
     },
-    {
-      title: 'Driver Verification',
-      href: superAdmin.driver.verification(),
-      icon: UserCheck,
-      group: 'Fleet',
-    },
+    // {
+    //   title: 'Driver Verification',
+    //   href: superAdmin.driver.verification(),
+    //   icon: UserCheck,
+    //   group: 'Fleet',
+    // },
     {
       title: 'Driver Management',
       href: superAdmin.driver.index(),
