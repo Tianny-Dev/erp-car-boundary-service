@@ -4,6 +4,7 @@ namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\SuperAdmin\VehicleDatatableResource;
+use App\Http\Resources\SuperAdmin\MaintenanceHistoryResource;
 use App\Http\Resources\SuperAdmin\VehicleResource;
 use App\Http\Requests\SuperAdmin\StoreVehicleRequest;
 use App\Models\Vehicle;
@@ -124,4 +125,16 @@ class VehicleController extends Controller
 
         return redirect(route('super-admin.vehicle.index'));
     }
+
+    public function maintenanceHistory(Vehicle $vehicle)
+    {
+        // Eager load maintenance with its related inventory
+        $vehicle->loadMissing(['maintenances' => function($query) {
+            $query->orderBy('maintenance_date', 'desc')
+                ->with('inventory:id,name,category,specification'); // eager load inventory
+        }]);
+
+        return MaintenanceHistoryResource::collection($vehicle->maintenances);
+    }
+
 }

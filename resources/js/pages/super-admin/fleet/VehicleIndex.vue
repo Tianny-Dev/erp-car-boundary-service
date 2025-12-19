@@ -108,6 +108,7 @@ const contextOptions = computed(() => {
   return data.map((item) => ({ id: item.id, label: item.name }));
 });
 
+// for vehicle details
 interface VehicleModal {
   id: number;
   status: string;
@@ -132,9 +133,22 @@ const vehicleDetails = computed(() => {
     { label: 'Color', value: data.color, type: 'text' },
   ].filter((item) => item.value);
 });
-
 // --- Modal State ---
 const vehicleModal = useDetailsModal<VehicleModal>({
+  baseUrl: '/super-admin/vehicle',
+});
+
+// for maintenance history
+interface MaintenanceRow {
+  id: number;
+  description: string;
+  maintenance_date: string;
+  next_maintenance_date: string;
+  inventory_name: string;
+  category: string;
+  specification: string;
+}
+const maintenanceModal = useDetailsModal<MaintenanceRow[]>({
   baseUrl: '/super-admin/vehicle',
 });
 
@@ -233,6 +247,15 @@ const vehicleColumns = computed<ColumnDef<VehicleRow>[]>(() => {
                   onClick: () => vehicleModal.open(vehicle.id),
                 },
                 () => 'View Vehicle Details',
+              ),
+              h(
+                DropdownMenuItem,
+                {
+                  class: 'cursor-pointer',
+                  onClick: () =>
+                    maintenanceModal.open(vehicle.id, 'maintenances'),
+                },
+                () => 'View Maintenance History',
               ),
               h(DropdownMenuSeparator),
               [
@@ -470,6 +493,75 @@ watch(
         >
           {{ changeForm.processing ? 'Changing...' : 'Confirm Change' }}
         </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+
+  <Dialog v-model:open="maintenanceModal.isOpen.value">
+    <DialogContent class="flex max-w-4xl flex-col">
+      <DialogHeader>
+        <DialogTitle>Maintenance History</DialogTitle>
+        <DialogDescription>
+          Showing all maintenance records for this vehicle.
+        </DialogDescription>
+      </DialogHeader>
+
+      <div class="flex-1 overflow-y-auto py-4">
+        <div v-if="maintenanceModal.isLoading.value" class="space-y-4">
+          <Skeleton v-for="i in 3" :key="i" class="h-20 w-full" />
+        </div>
+
+        <Alert v-else-if="maintenanceModal.isError.value" variant="destructive">
+          <AlertCircleIcon class="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription
+            >Failed to load maintenance history.</AlertDescription
+          >
+        </Alert>
+
+        <div v-else-if="maintenanceModal.data.value?.length" class="space-y-4">
+          <div
+            v-for="item in maintenanceModal.data.value"
+            :key="item.id"
+            class="rounded-lg border p-4 transition-colors hover:bg-muted/50"
+          >
+            <div class="mb-2 flex items-start justify-between">
+              <div>
+                <h4 class="text-lg font-bold text-primary">
+                  {{ item.inventory_name }}
+                </h4>
+                <Badge variant="outline" class="mt-1">{{
+                  item.category
+                }}</Badge>
+              </div>
+              <div class="text-right text-sm">
+                <p class="font-medium">Date: {{ item.maintenance_date }}</p>
+                <p class="text-muted-foreground italic">
+                  Next: {{ item.next_maintenance_date }}
+                </p>
+              </div>
+            </div>
+
+            <div class="mt-3 grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
+              <div>
+                <span class="block font-semibold">Specification:</span>
+                <p class="text-muted-foreground">{{ item.specification }}</p>
+              </div>
+              <div>
+                <span class="block font-semibold">Work Done:</span>
+                <p class="text-muted-foreground">{{ item.description }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="py-10 text-center text-muted-foreground">
+          No maintenance records found for this vehicle.
+        </div>
+      </div>
+
+      <DialogFooter>
+        <Button variant="outline" @click="maintenanceModal.close">Close</Button>
       </DialogFooter>
     </DialogContent>
   </Dialog>
