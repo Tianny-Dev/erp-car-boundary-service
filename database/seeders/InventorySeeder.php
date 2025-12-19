@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Inventory;
+use App\Models\Franchise;
 
 class InventorySeeder extends Seeder
 {
@@ -23,6 +24,7 @@ class InventorySeeder extends Seeder
 
         foreach ($items as $index => $item) {
             Inventory::create([
+                'franchise_id' => Franchise::inRandomOrder()->value('id'),
                 'code_no'       => 'INV-000' . ($index + 1),
                 'name'          => $item['name'],
                 'category'      => $item['category'],
