@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('inventories', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('franchise_id')->constrained('franchises')->onDelete('restrict');
             $table->string('code_no', 100)->unique();
             $table->string('name')->unique();
             $table->enum('category', ['Electrical', 'Mechanical', 'Safety Equipment', 'Consumables', 'Other'])->default('Other');

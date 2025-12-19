@@ -97,6 +97,13 @@ class Franchise extends Model
         return $this->hasMany(Violation::class);
     }
 
+    // relationship to inventories, one to many
+    public function inventories(): HasMany
+    {
+        return $this->hasMany(Inventory::class);
+    }
+
+
     public function supportTickets()
     {
         return $this->hasMany(SupportTicket::class);
