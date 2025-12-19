@@ -21,6 +21,7 @@ import { Link, usePage } from '@inertiajs/vue3';
 import {
   Banknote,
   BanknoteArrowDown,
+  Box,
   CarTaxiFront,
   ChartNoAxesCombined,
   DollarSign,
@@ -33,7 +34,6 @@ import {
   Map,
   ReceiptText,
   Ticket,
-  UserCheck,
   Users,
   Wrench,
 } from 'lucide-vue-next';
@@ -81,6 +81,12 @@ const navConfig: Record<string, NavItem[]> = {
       title: 'Vehicle Management',
       href: superAdmin.vehicle.index(),
       icon: CarTaxiFront,
+      group: 'Fleet',
+    },
+    {
+      title: 'Inventory Management',
+      href: superAdmin.inventory.index(),
+      icon: Box,
       group: 'Fleet',
     },
     {
