@@ -14,7 +14,6 @@ use App\Http\Controllers\SuperAdmin\TransactionController;
 use App\Http\Controllers\SuperAdmin\EarningController;
 use App\Http\Controllers\SuperAdmin\BoundaryContractController;
 use App\Http\Controllers\SuperAdmin\ExpenseController;
-use App\Http\Controllers\SuperAdmin\RouteController;
 use App\Http\Controllers\SuperAdmin\GpsTrackerController;
 use App\Http\Controllers\SuperAdmin\InventoryController;
 
@@ -73,8 +72,6 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
 
     Route::get('/expense', [ExpenseController::class, 'index'])->name('expense.index');
     Route::get('/expense/export', [ExpenseController::class, 'export'])->name('expense.export');
-
-    // Route::get('/route', [RouteController::class, 'index'])->name('route.index');
 
     Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
     Route::get('/inventory/{inventory}', [InventoryController::class, 'show'])->name('inventory.show');
