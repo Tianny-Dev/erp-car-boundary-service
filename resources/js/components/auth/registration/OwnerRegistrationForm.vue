@@ -12,7 +12,6 @@ import Step5Uploads from './step/Step5Uploads.vue';
 import Step6Security from './step/Step6Security.vue';
 
 defineProps<{
-  genderOptions: { value: string; label: string }[];
   idTypes: { value: string; label: string }[];
   userType: {
     encrypted_id: string;
@@ -42,10 +41,10 @@ const prevStep = () => {
 };
 
 // --- Step 1 State & Config ---
-const selectedGender = ref('');
 const personalStep1Show = {
   birthday: false,
   franchiseName: false,
+  gender: false,
 };
 
 // --- Step 2 (Home Address) State & Config ---
@@ -148,7 +147,6 @@ const fieldStepMap: Record<string, number> = {
   name: 1,
   phone: 1,
   email: 1,
-  gender: 1,
   home_region: 2,
   home_province: 2,
   home_city: 2,
@@ -218,12 +216,7 @@ watch(
 
       <!-- Step 1: Personal Information -->
       <div v-show="currentStep === 1" class="space-y-4" data-step="1">
-        <Step1Personal
-          :errors="errors"
-          :gender-options="genderOptions"
-          :show-fields="personalStep1Show"
-          v-model:selectedGender="selectedGender"
-        />
+        <Step1Personal :errors="errors" :show-fields="personalStep1Show" />
       </div>
 
       <!-- Step 2: Home Address -->

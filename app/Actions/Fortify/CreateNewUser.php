@@ -333,7 +333,6 @@ class CreateNewUser implements CreatesNewUsers
                 Rule::unique('branches', 'phone')
             ],
             'password' => $this->passwordRules(),
-            'gender' => ['required', 'string', Rule::in(['Male', 'Female', 'Other', 'Prefer not to say'])],
             'home_region' => ['required', 'string', 'max:255'],
             'home_province' => ['nullable', 'string', 'max:255', 'required_unless:home_region,NCR'],
             'home_city' => ['required', 'string', 'max:255'],
@@ -384,7 +383,6 @@ class CreateNewUser implements CreatesNewUsers
                 'email' => $input['email'],
                 'phone' => $input['phone'],
                 'password' => Hash::make($input['password']),
-                'gender' => $input['gender'],
                 'address' => $input['home_address'],
                 'region' => $input['home_region'],
                 'province' => $input['home_province'] ?? null,
