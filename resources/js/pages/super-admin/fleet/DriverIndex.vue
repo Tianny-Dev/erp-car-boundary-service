@@ -17,10 +17,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -34,12 +32,11 @@ import { useDetailsModal } from '@/composables/useDetailsModal';
 import AppLayout from '@/layouts/AppLayout.vue';
 import superAdmin from '@/routes/super-admin';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router, useForm } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import { type ColumnDef } from '@tanstack/vue-table';
 import { debounce } from 'lodash-es';
 import { AlertCircleIcon, MoreHorizontal } from 'lucide-vue-next';
 import { computed, h, ref, watch } from 'vue';
-import { toast } from 'vue-sonner';
 
 // --- Define Props ---
 const props = defineProps<{
@@ -175,37 +172,6 @@ const driverModal = useDetailsModal<DriverModal>({
   baseUrl: '/super-admin/driver',
 });
 
-// --- Change Status Modal State ---
-const isChangeModalOpen = ref(false);
-const selectedDriver = ref<Partial<DriverRow>>({});
-
-const changeForm = useForm({
-  status: '' as string,
-});
-
-const openChangeModal = (driver: DriverRow) => {
-  selectedDriver.value = driver;
-  isChangeModalOpen.value = true;
-};
-
-const handleChangeDriver = () => {
-  if (!selectedDriver.value?.id) return;
-
-  changeForm.patch(superAdmin.driver.change(selectedDriver.value.id).url, {
-    onSuccess: () => {
-      changeForm.reset();
-      isChangeModalOpen.value = false;
-      toast.success('Driver change status successfully!');
-    },
-  });
-};
-
-const statuses = [
-  { value: 'active', label: 'Active' },
-  { value: 'retired', label: 'Retired' },
-  { value: 'suspended', label: 'Suspended' },
-];
-
 // Computed columns for the data table
 const driverColumns = computed<ColumnDef<DriverRow>[]>(() => {
   const baseColumns: ColumnDef<DriverRow>[] = [
@@ -271,17 +237,6 @@ const driverColumns = computed<ColumnDef<DriverRow>[]>(() => {
                 },
                 () => 'View Driver Details',
               ),
-              h(DropdownMenuSeparator),
-              [
-                h(
-                  DropdownMenuItem,
-                  {
-                    class: 'cursor-pointer text-blue-500 focus:text-blue-600',
-                    onClick: () => openChangeModal(driver),
-                  },
-                  () => 'Change Status',
-                ),
-              ],
             ]),
           ]),
         ]);
@@ -458,53 +413,6 @@ watch(
 
       <DialogFooter class="mt-5">
         <Button variant="outline" @click="driverModal.close">Close</Button>
-      </DialogFooter>
-    </DialogContent>
-  </Dialog>
-
-  <Dialog v-model:open="isChangeModalOpen">
-    <DialogContent class="max-w-md font-mono">
-      <DialogHeader>
-        <DialogTitle class="text-xl">Change Driver Status</DialogTitle>
-        <DialogDescription>
-          Change the status of
-          <strong class="text-blue-500">{{ selectedDriver?.username }}</strong
-          >. From {{ selectedDriver?.status_name }} to
-          <em>"{{ changeForm.status }}"</em>.
-        </DialogDescription>
-      </DialogHeader>
-
-      <div class="grid gap-4 py-4">
-        <div class="grid gap-2">
-          <Label>Status</Label>
-          <Select v-model="changeForm.status">
-            <SelectTrigger>
-              <SelectValue placeholder="Select status" />
-            </SelectTrigger>
-            <SelectContent>
-              <template v-for="s in statuses" :key="s.value">
-                <SelectItem
-                  v-if="selectedDriver?.status_name !== s.value"
-                  :value="s.value"
-                >
-                  {{ s.label }}
-                </SelectItem>
-              </template>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <DialogFooter>
-        <Button variant="outline" @click="isChangeModalOpen = false"
-          >Cancel</Button
-        >
-        <Button
-          @click="handleChangeDriver"
-          :disabled="changeForm.processing || !changeForm.status"
-        >
-          {{ changeForm.processing ? 'Changing...' : 'Confirm Change' }}
-        </Button>
       </DialogFooter>
     </DialogContent>
   </Dialog>

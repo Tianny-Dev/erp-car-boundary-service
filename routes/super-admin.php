@@ -44,11 +44,7 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
     Route::put('/allocation/{allocation}', [AllocationController::class, 'update'])->name('allocation.update');
 
     Route::get('/driver', [DriverController::class, 'index'])->name('driver.index');
-    Route::get('/driver/verification', [DriverController::class, 'verification'])->name('driver.verification');
     Route::get('/driver/{driver}', [DriverController::class, 'show'])->name('driver.show');
-    Route::patch('/driver/{driver}/verify', [DriverController::class, 'verify'])->name('driver.verify');
-    Route::patch('/driver/{driver}/assign', [DriverController::class, 'assign'])->name('driver.assign');
-    Route::patch('/driver/{driver}/change', [DriverController::class, 'changeStatus'])->name('driver.change');
 
     Route::get('/vehicle', [VehicleController::class, 'index'])->name('vehicle.index');
     Route::post('/vehicle', [VehicleController::class, 'store'])->name('vehicle.store');
