@@ -12,6 +12,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -25,7 +32,8 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import { type ColumnDef } from '@tanstack/vue-table';
 import { debounce } from 'lodash-es';
-import { computed, ref, watch } from 'vue';
+import { MoreHorizontal } from 'lucide-vue-next';
+import { computed, h, ref, watch } from 'vue';
 
 // --- Define Props ---
 const props = defineProps<{
@@ -209,6 +217,53 @@ const revenueColumns = computed<ColumnDef<RevenueRow>[]>(() => {
       accessorKey: 'amount',
       header: isDaily ? 'Amount' : 'Total Amount',
       cell: (info) => formatCurrency(info.getValue() as number),
+    },
+    {
+      id: 'actions',
+      header: () => h('div', 'Actions'),
+      cell: ({ row }) => {
+        const rowData = row.original as any;
+
+        return h('div', { class: 'relative' }, [
+          h(DropdownMenu, null, () => [
+            h(
+              DropdownMenuTrigger,
+              { asChild: true, class: 'cursor-pointer' },
+              () =>
+                h(Button, { variant: 'ghost', class: 'h-8 w-8 p-0' }, () => [
+                  h('span', { class: 'sr-only' }, 'Open menu'),
+                  h(MoreHorizontal, { class: 'h-4 w-4' }),
+                ]),
+            ),
+            h(DropdownMenuContent, { align: 'end', class: 'border-2' }, () => [
+              h(DropdownMenuLabel, null, () => 'Actions'),
+              h(
+                DropdownMenuItem,
+                {
+                  class: 'cursor-pointer',
+                  onClick: () => {
+                    const queryParams: Record<string, string> = {
+                      start: rowData.query_params.start,
+                      end: rowData.query_params.end,
+                      label: rowData.payment_date,
+                      service: selectedService.value,
+                      tab: activeTab.value,
+                      franchise: rowData.franchise_id,
+                      branch: rowData.branch_id,
+                    };
+
+                    router.get(superAdmin.revenue.show().url, queryParams, {
+                      preserveScroll: true,
+                      replace: false,
+                    });
+                  },
+                },
+                () => 'View Revenue Details',
+              ),
+            ]),
+          ]),
+        ]);
+      },
     },
   ];
 

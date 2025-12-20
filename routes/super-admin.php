@@ -35,6 +35,7 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
 
     Route::get('/revenue', [RevenueController::class, 'index'])->name('revenue.index');
     Route::get('/revenue/export', [RevenueController::class, 'export'])->name('revenue.export');
+    Route::get('/revenue/show', [RevenueController::class, 'show'])->name('revenue.show');
 
     Route::get('/transaction', [TransactionController::class, 'index'])->name('transaction.index');
     Route::get('/transaction/{id}', [TransactionController::class, 'show'])->name('transaction.show');
