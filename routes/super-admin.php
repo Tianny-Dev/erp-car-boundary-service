@@ -43,7 +43,6 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
     Route::get('/allocation', [AllocationController::class, 'index'])->name('allocation.index');
     Route::post('/allocation', [AllocationController::class, 'store'])->name('allocation.store');
     Route::put('/allocation/{allocation}', [AllocationController::class, 'update'])->name('allocation.update');
-    Route::delete('/allocation/{allocation}', [AllocationController::class, 'destroy'])->name('allocation.destroy');
 
     Route::get('/driver', [DriverController::class, 'index'])->name('driver.index');
     Route::get('/driver/verification', [DriverController::class, 'verification'])->name('driver.verification');

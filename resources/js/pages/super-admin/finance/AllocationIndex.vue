@@ -1,14 +1,4 @@
 <script setup lang="ts">
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -37,8 +27,8 @@ import {
 import AppLayout from '@/layouts/AppLayout.vue';
 import superAdmin from '@/routes/super-admin';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router, useForm } from '@inertiajs/vue3';
-import { Pencil, Percent, PhilippinePeso, Plus, Trash2 } from 'lucide-vue-next';
+import { Head, useForm } from '@inertiajs/vue3';
+import { Pencil, Percent, PhilippinePeso, Plus } from 'lucide-vue-next';
 import { ref } from 'vue';
 import { toast } from 'vue-sonner';
 
@@ -63,9 +53,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 // --- State Management ---
 const isDialogOpen = ref(false);
-const isAlertOpen = ref(false);
 const editingItem = ref<PercentageType | null>(null);
-const itemToDelete = ref<PercentageType | null>(null);
 
 // --- Form Setup ---
 const form = useForm({
@@ -111,22 +99,6 @@ const submitForm = () => {
     });
   }
 };
-
-const confirmDelete = (item: PercentageType) => {
-  itemToDelete.value = item;
-  isAlertOpen.value = true;
-};
-
-const executeDelete = () => {
-  if (!itemToDelete.value) return;
-  router.delete(superAdmin.allocation.destroy(itemToDelete.value.id).url, {
-    onSuccess: () => {
-      isAlertOpen.value = false;
-      itemToDelete.value = null;
-      toast.success('Allocation deleted successfully!');
-    },
-  });
-};
 </script>
 
 <template>
@@ -141,7 +113,7 @@ const executeDelete = () => {
             Revenue Allocations
           </h2>
           <p class="font-mono text-muted-foreground">
-            Manage percentage splits and fixed fee allocations.
+            Current percentage splits and fixed fee allocations.
           </p>
         </div>
       </div>
@@ -186,14 +158,6 @@ const executeDelete = () => {
               @click="openEditModal(item)"
             >
               <Pencil class="h-6 w-6 text-blue-600" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              class="h-8 w-8 hover:text-destructive"
-              @click="confirmDelete(item)"
-            >
-              <Trash2 class="h-4 w-4 text-red-500" />
             </Button>
           </CardFooter>
         </Card>
@@ -298,32 +262,5 @@ const executeDelete = () => {
         </DialogFooter>
       </DialogContent>
     </Dialog>
-
-    <!-- Delete Confirmation Alert -->
-    <AlertDialog v-model:open="isAlertOpen">
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This will permanently delete the
-            <strong>{{ itemToDelete?.name }}</strong> allocation type.
-            <span class="text-red-500">
-              This new computation will be applied to the next earnings record,
-              previous records will stay in previous computation. </span
-            >This action cannot be undone.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel @click="itemToDelete = null"
-            >Cancel</AlertDialogCancel
-          >
-          <AlertDialogAction
-            @click="executeDelete"
-            class="bg-red-600 text-white hover:bg-red-700"
-            >Delete</AlertDialogAction
-          >
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
   </AppLayout>
 </template>

@@ -46,11 +46,4 @@ class AllocationController extends Controller
 
         return back();
     }
-
-    public function destroy(PercentageType $allocation)
-    {
-        $allocation->delete();
-
-        return back();
-    }
 }
