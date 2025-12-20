@@ -498,7 +498,7 @@ watch(
   </Dialog>
 
   <Dialog v-model:open="maintenanceModal.isOpen.value">
-    <DialogContent class="flex max-w-4xl flex-col">
+    <DialogContent class="flex max-h-[80vh] max-w-4xl flex-col">
       <DialogHeader>
         <DialogTitle>Maintenance History</DialogTitle>
         <DialogDescription>
@@ -506,7 +506,7 @@ watch(
         </DialogDescription>
       </DialogHeader>
 
-      <div class="flex-1 overflow-y-auto py-4">
+      <div class="flex-1 overflow-y-auto py-4 pe-1.5">
         <div v-if="maintenanceModal.isLoading.value" class="space-y-4">
           <Skeleton v-for="i in 3" :key="i" class="h-20 w-full" />
         </div>
