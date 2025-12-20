@@ -136,11 +136,11 @@ const filteredVehicles = computed(() => {
 
 // Status options
 const statuses = ref<Status[]>([
-  { id: 1, name: 'Active' },
+  { id: 15, name: 'Available' },
   // { id: 3, name: 'suspended' },
   // { id: 4, name: 'retired' },
   { id: 5, name: 'Maintenance' },
-  { id: 6, name: 'Pending' },
+  // { id: 6, name: 'Pending' },
 ]);
 
 // Dialogs
