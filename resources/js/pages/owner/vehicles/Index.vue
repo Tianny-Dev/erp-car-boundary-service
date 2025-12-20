@@ -136,11 +136,11 @@ const filteredVehicles = computed(() => {
 
 // Status options
 const statuses = ref<Status[]>([
-  { id: 1, name: 'Active' },
+  { id: 15, name: 'Available' },
   // { id: 3, name: 'suspended' },
   // { id: 4, name: 'retired' },
   { id: 5, name: 'Maintenance' },
-  { id: 6, name: 'Pending' },
+  // { id: 6, name: 'Pending' },
 ]);
 
 // Dialogs
@@ -290,10 +290,8 @@ const goToPage = (url: string | null) => {
           class="w-full rounded-md border px-3 py-2 md:w-48"
         >
           <option value="all">All Status</option>
-          <option value="active">Active</option>
-          <option value="pending">Pending</option>
-          <option value="suspended">Suspended</option>
-          <option value="retired">Retired</option>
+          <option value="available">Available</option>
+          <option value="maintenance">Maintenance</option>
         </select>
       </div>
 
