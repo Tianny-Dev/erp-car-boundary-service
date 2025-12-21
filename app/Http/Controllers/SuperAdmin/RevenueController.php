@@ -104,6 +104,7 @@ class RevenueController extends Controller
             'targetName'  => $targetName,
             'targetType'  => ucfirst($validated['tab']),
             'totalSum'    => $details->sum('amount'),
+            'filters'     => $filters,
         ]);
     }
 
@@ -181,7 +182,7 @@ class RevenueController extends Controller
     /**
      * Handles the export process.
      */
-    public function export(Request $request)
+    public function exportIndex(Request $request)
     {
         // 1. Validate all inputs
         $validated = $request->validate([
@@ -220,7 +221,8 @@ class RevenueController extends Controller
             return Pdf::loadView('exports.revenue', [
                 'rows' => $revenues,
                 'title' => $title,
-                'tab' => $filters['tab']
+                'tab' => $filters['tab'],
+                'source' => 'index',
             ])
             ->setPaper('a4', 'landscape')
             ->setOption('isHtml5ParserEnabled', true)
@@ -233,7 +235,82 @@ class RevenueController extends Controller
         return (new RevenueExport(
             $revenues,
             $title,
-            $filters['tab']
+            $filters['tab'],
+            'index'
+        ))->download($fileName . '.' . ($filters['export'] === 'excel' ? 'xlsx' : 'csv'));
+    }
+
+    public function exportShow(Request $request)
+    {
+        $validated = $request->validate([
+            'start'     => ['required', 'date'],
+            'end'       => ['required', 'date'],
+            'label'     => ['required', 'string'],
+            'service'   => ['required', 'string'],
+            'tab'       => ['required', 'string'],
+            'franchise' => ['nullable'],
+            'branch'    => ['nullable'],
+            'export'     => ['required', 'string', Rule::in(['pdf', 'excel', 'csv'])],
+        ]);
+
+        // 1. Determine which ID we are filtering for
+        $id = $validated['tab'] === 'franchise' ? $validated['franchise'] : $validated['branch'];
+        
+        // 2. Normalize filters for the buildBaseQuery
+        $filters = [
+            'tab'       => $validated['tab'],
+            'service'   => $validated['service'],
+            'franchise' => $validated['tab'] === 'franchise' ? [$id] : [],
+            'branch'    => $validated['tab'] === 'branch' ? [$id] : [],
+            'export' => $validated['export'],
+        ];
+
+        // 3. Fetch specific Target Name for header
+        $targetName = 'N/A';
+        if ($validated['tab'] === 'franchise' && $id) {
+            $targetName = Franchise::find($id)?->name;
+        } elseif ($validated['tab'] === 'branch' && $id) {
+            $targetName = Branch::find($id)?->name;
+        }
+
+        // 4. Build Query
+        $query = $this->buildBaseQuery($filters);
+
+        // Filter by the exact date range from the clicked row
+        $query->whereBetween(DB::raw('DATE(payment_date)'), [
+            $validated['start'], 
+            $validated['end']
+        ]);
+
+        $details = $query->with('driver.user:id,username')
+            ->orderBy('payment_date', 'desc')
+            ->get();
+
+        // 4. Generate Title
+        $title = $targetName . ' ' . $validated['service'] . ' Revenue for ' . $validated['label'];
+        $fileName = 'revenues_' . $targetName . '_' . $validated['service'] . '_' . now()->format('Y-m-d_His');
+
+        // 5. EXPORT (Let RevenueExport handle transformation)
+        if ($filters['export'] === 'pdf') {
+            return Pdf::loadView('exports.revenue', [
+                'rows' => $details,
+                'title' => $title,
+                'tab' => $filters['tab'],
+                'source' => 'show'
+            ])
+            ->setPaper('a4', 'landscape')
+            ->setOption('isHtml5ParserEnabled', true)
+            ->setOption('isPhpEnabled', true)
+            ->setOption('defaultFont', 'DejaVu Sans')
+            ->download($fileName . '.pdf');
+        }
+
+        // Excel/CSV
+        return (new RevenueExport(
+            $details,
+            $title,
+            $filters['tab'],
+            'show'
         ))->download($fileName . '.' . ($filters['export'] === 'excel' ? 'xlsx' : 'csv'));
     }
 

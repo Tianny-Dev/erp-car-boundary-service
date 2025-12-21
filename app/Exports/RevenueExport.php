@@ -31,7 +31,8 @@ class RevenueExport implements
     public function __construct(
         protected Collection $data,
         protected string $title,
-        protected string $tabName
+        protected string $tabName,
+        protected string $source
     ) {}
 
     /**
@@ -39,9 +40,9 @@ class RevenueExport implements
      */
     public function collection()
     {
-        // Calculate Grand Total
-        $this->totals['total_amount'] = $this->data->sum('total_amount');
-
+        // Handle different field names for totals
+        $field = $this->source === 'index' ? 'total_amount' : 'amount';
+        $this->totals['total_amount'] = $this->data->sum($field);
         return $this->data;
     }
 
@@ -50,6 +51,15 @@ class RevenueExport implements
      */
     public function headings(): array
     {
+        if ($this->source === 'show') {
+            return [
+                'Driver', 
+                'Invoice No.', 
+                'Date', 
+                'Amount'
+            ];
+        }
+
         return [
             $this->tabName === 'franchise' ? 'Franchise' : 'Branch',
             'Date',
@@ -62,11 +72,19 @@ class RevenueExport implements
      */
     public function map($row): array
     {
-        // 1. Resolve Name
+        if ($this->source === 'show') {
+            return [
+                $row->driver->user->username ?? 'N/A',
+                $row->invoice_no,
+                Carbon::parse($row->payment_date)->format('M j, Y h:i A'),
+                $row->amount,
+            ];
+        }
+
+        // Index Method Mapping
         $nameKey = $this->tabName . '_name';
         $name = $row->$nameKey ?? 'N/A';
-
-        // 2. Resolve Date Logic
+        // Resolve Date Logic
         $dateDisplay = 'N/A';
         if (isset($row->month_name)) {
             // Monthly
@@ -80,8 +98,6 @@ class RevenueExport implements
             // Daily (grouped by date)
             $dateDisplay = Carbon::parse($row->payment_date)->format('M j, Y');
         }
-
-        // 3. Build Row
         return [
             $name,
             $dateDisplay,
@@ -91,8 +107,10 @@ class RevenueExport implements
 
     public function columnFormats(): array
     {
+        // In 'show', amount is column D. In 'index', it's column C.
+        $col = $this->source === 'show' ? 'D' : 'C';
         return [
-            'C' => '"₱"#,##0.00',
+            $col => '"₱"#,##0.00'
         ];
     }
 
@@ -104,28 +122,23 @@ class RevenueExport implements
         return [
             AfterSheet::class => function (AfterSheet $event) {
                 $sheet = $event->sheet;
-                $lastColumn = $sheet->getHighestColumn();
+                $lastColIndex = $this->source === 'show' ? 4 : 3;
                 $lastRow = $sheet->getHighestRow();
+                $totalRow = $lastRow + 2;
 
-                // --- 1. Header Styling ---
+                // Title and Headers logic...
                 $sheet->insertNewRowBefore(1, 1);
-                $sheet->mergeCells("A1:{$lastColumn}1");
+                $lastColLetter = Coordinate::stringFromColumnIndex($lastColIndex);
+                $sheet->mergeCells("A1:{$lastColLetter}1");
                 $sheet->setCellValue('A1', $this->title);
-                $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
-                $sheet->getStyle('A1')->getAlignment()->setHorizontal('center');
-                $sheet->getStyle("A2:{$lastColumn}2")->getFont()->setBold(true);
-
-                // --- 2. Grand Total Row ---
-                $totalRowIndex = $lastRow + 2;
-
-                // Label "GRAND TOTAL" (Merge A-B)
-                $sheet->mergeCells("A{$totalRowIndex}:B{$totalRowIndex}");
-                $sheet->setCellValue("A{$totalRowIndex}", "GRAND TOTAL");
-                $sheet->getStyle("A{$totalRowIndex}")->getFont()->setBold(true);
-                $sheet->getStyle("A{$totalRowIndex}")->getAlignment()->setHorizontal('right');
-
-                // --- 3. Fill Grand Total Amount ---
-                $this->setTotalCell($sheet, 3, $totalRowIndex, $this->totals['total_amount']);
+                
+                // Grand Total Label
+                $labelColLetter = Coordinate::stringFromColumnIndex($lastColIndex - 1);
+                $sheet->mergeCells("A{$totalRow}:{$labelColLetter}{$totalRow}");
+                $sheet->setCellValue("A{$totalRow}", "GRAND TOTAL");
+                
+                // Grand Total Value
+                $this->setTotalCell($sheet, $lastColIndex, $totalRow, $this->totals['total_amount']);
             },
         ];
     }

@@ -34,8 +34,9 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
     Route::post('/manager', [ManagerController::class, 'store'])->name('manager.store');
 
     Route::get('/revenue', [RevenueController::class, 'index'])->name('revenue.index');
-    Route::get('/revenue/export', [RevenueController::class, 'export'])->name('revenue.export');
     Route::get('/revenue/show', [RevenueController::class, 'show'])->name('revenue.show');
+    Route::get('/revenue/export/index', [RevenueController::class, 'exportIndex'])->name('revenue.export.index');
+    Route::get('/revenue/export/show', [RevenueController::class, 'exportShow'])->name('revenue.export.show');
 
     Route::get('/transaction', [TransactionController::class, 'index'])->name('transaction.index');
     Route::get('/transaction/{id}', [TransactionController::class, 'show'])->name('transaction.show');
@@ -56,8 +57,8 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
 
     Route::get('/earning', [EarningController::class, 'index'])->name('earning.index');
     Route::get('/earning/show', [EarningController::class, 'show'])->name('earning.show');
-    Route::get('/revenue/export/index', [EarningController::class, 'exportIndex'])->name('earning.export.index');
-    Route::get('/revenue/export/show', [EarningController::class, 'exportShow'])->name('earning.export.show');
+    Route::get('/earning/export/index', [EarningController::class, 'exportIndex'])->name('earning.export.index');
+    Route::get('/earning/export/show', [EarningController::class, 'exportShow'])->name('earning.export.show');
 
     Route::get('/boundary-contract', [BoundaryContractController::class, 'index'])->name('boundaryContract.index');
     Route::post('/boundary-contract', [BoundaryContractController::class, 'store'])->name('boundaryContract.store');
