@@ -1,3 +1,6 @@
+@php
+    use Carbon\Carbon;
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -52,38 +55,59 @@
 <table>
     <thead>
         <tr>
-            <th>{{ $tab === 'franchise' ? 'Franchise' : 'Branch' }}</th>
-            <th>Date</th>
-            <th>Amount</th>
+            @if($source === 'show')
+                <th>Invoice No.</th>
+                <th>Description</th>
+                <th>Inventory</th>
+                <th>Plate Number</th>
+                <th>Date</th>
+                <th>Amount</th>
+             @else
+                <th>{{ $tab === 'franchise' ? 'Franchise' : 'Branch' }}</th>
+                <th>Date</th>
+                <th>Amount</th>
+            @endif
         </tr>
     </thead>
 
     <tbody>
         @foreach($rows as $row)
             <tr>
-                <td>{{ $row->{$tab . '_name'} ?? 'N/A' }}</td>
-                <td>
-                    @if(isset($row->month_name))
-                        {{ $row->month_name }}
-                    @elseif(isset($row->week_start))
-                        {{ date('M j', strtotime($row->week_start)) }} - {{ date('M j, Y', strtotime($row->week_end)) }}
-                    @elseif(isset($row->payment_date))
-                        {{ date('M j, Y', strtotime($row->payment_date)) }}
-                    @else
-                        N/A
-                    @endif
-                </td>
-                <td class="amount">
-                    ₱{{ number_format((float)$row->total_amount, 2) }}
-                </td>
+                @if($source === 'show')
+                    <td>{{ $row->invoice_no }}</td>
+                    <td>{{ $row->maintenance->description ?? 'N/A' }}</td>
+                    <td>{{ $row->maintenance->inventory->name ?? 'N/A' }}</td>
+                    <td>{{ $row->maintenance->vehicle->plate_number ?? 'N/A' }}</td>
+                    <td>{{ Carbon::parse($row->payment_date)->format('M j, Y h:i A') }}</td>
+                    <td class="amount">
+                        ₱{{ number_format((float)$row->amount, 2) }}
+                    </td>
+
+                @else
+                    <td>{{ $row->{$tab . '_name'} ?? 'N/A' }}</td>
+                    <td>
+                        @if(isset($row->month_name))
+                            {{ $row->month_name }}
+                        @elseif(isset($row->week_start))
+                            {{ date('M j', strtotime($row->week_start)) }} - {{ date('M j, Y', strtotime($row->week_end)) }}
+                        @elseif(isset($row->payment_date))
+                            {{ date('M j, Y', strtotime($row->payment_date)) }}
+                        @else
+                            N/A
+                        @endif
+                    </td>
+                    <td class="amount">
+                        ₱{{ number_format((float)$row->total_amount, 2) }}
+                    </td>
+                @endif
             </tr>
         @endforeach
 
         {{-- Grand Total Row --}}
         <tr class="grand-total">
-            <td colspan="2" style="text-align: right;">GRAND TOTAL</td>
+            <td colspan="{{ $source === 'show' ? 5 : 2 }}" style="text-align: right;">GRAND TOTAL</td>
             <td class="amount">
-                ₱{{ number_format($rows->sum('total_amount'), 2) }}
+                ₱{{ number_format($rows->sum($source === 'show' ? 'amount' : 'total_amount'), 2) }}
             </td>
         </tr>
     </tbody>

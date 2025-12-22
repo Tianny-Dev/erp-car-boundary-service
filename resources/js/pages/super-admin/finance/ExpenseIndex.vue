@@ -174,7 +174,7 @@ function handleExport() {
   });
 
   // 4. Build URL and open in new tab (triggers download)
-  const url = `${superAdmin.expense.export().url}?${params.toString()}`;
+  const url = `${superAdmin.expense.export.index().url}?${params.toString()}`;
   window.open(url, '_blank');
 
   // 5. Close modal and reset
@@ -294,33 +294,24 @@ watch(
 </script>
 
 <template>
+
   <Head title="Expense Report" />
 
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div
-      class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
-    >
+    <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
       <Tabs v-model="activeTab" class="w-full">
         <TabsList class="w-full justify-start p-1.5">
-          <TabsTrigger
-            value="franchise"
-            class="cursor-pointer font-semibold"
-            :class="{ 'pointer-events-none': activeTab === 'franchise' }"
-          >
+          <TabsTrigger value="franchise" class="cursor-pointer font-semibold"
+            :class="{ 'pointer-events-none': activeTab === 'franchise' }">
             Franchise
           </TabsTrigger>
-          <TabsTrigger
-            value="branch"
-            class="cursor-pointer font-semibold"
-            :class="{ 'pointer-events-none': activeTab === 'branch' }"
-          >
+          <TabsTrigger value="branch" class="cursor-pointer font-semibold"
+            :class="{ 'pointer-events-none': activeTab === 'branch' }">
             Branch
           </TabsTrigger>
         </TabsList>
       </Tabs>
-      <div
-        class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border"
-      >
+      <div class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border">
         <div class="mb-4 flex items-center justify-between">
           <h2 class="font-mono text-xl font-semibold">
             {{ title }}
@@ -337,33 +328,21 @@ watch(
               </SelectContent>
             </Select>
 
-            <MultiSelect
-              v-model="selectedContext"
-              :options="contextOptions"
-              :placeholder="
-                activeTab === 'franchise'
-                  ? 'Select Franchises'
-                  : 'Select Branches'
-              "
-              :all-label="
-                activeTab === 'franchise' ? 'All Franchises' : 'All Branches'
-              "
-              @change="
+            <MultiSelect v-model="selectedContext" :options="contextOptions" :placeholder="activeTab === 'franchise'
+                ? 'Select Franchises'
+                : 'Select Branches'
+              " :all-label="activeTab === 'franchise' ? 'All Franchises' : 'All Branches'
+                " @change="
                 (val) => {
                   if (activeTab === 'franchise') selectedFranchise = val;
                   else selectedBranch = val;
                   updateFilters();
                 }
-              "
-            />
+              " />
           </div>
         </div>
 
-        <DataTable
-          :columns="expenseColumns"
-          :data="expenses.data"
-          search-placeholder="Search expenses..."
-        >
+        <DataTable :columns="expenseColumns" :data="expenses.data" search-placeholder="Search expenses...">
           <template #custom-actions>
             <Button @click="openExportModal('pdf')"> Export PDF </Button>
             <Button @click="openExportModal('excel')"> Export Excel </Button>
@@ -388,11 +367,7 @@ watch(
                   <SelectValue placeholder="Select year" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem
-                    v-for="year in yearOptions"
-                    :key="year"
-                    :value="year"
-                  >
+                  <SelectItem v-for="year in yearOptions" :key="year" :value="year">
                     {{ year }}
                   </SelectItem>
                 </SelectContent>
@@ -401,16 +376,9 @@ watch(
             <div class="grid grid-cols-4 items-start gap-4">
               <label class="pt-2 text-right">Months</label>
               <div class="col-span-3 grid grid-cols-2 gap-2">
-                <div
-                  v-for="month in monthOptions"
-                  :key="month.id"
-                  class="flex items-center gap-2"
-                >
-                  <Checkbox
-                    :id="`month-${month.id}`"
-                    :model-value="exportMonths.includes(month.id)"
-                    @update:model-value="() => toggleMonth(month.id)"
-                  />
+                <div v-for="month in monthOptions" :key="month.id" class="flex items-center gap-2">
+                  <Checkbox :id="`month-${month.id}`" :model-value="exportMonths.includes(month.id)"
+                    @update:model-value="() => toggleMonth(month.id)" />
 
                   <label :for="`month-${month.id}`" class="cursor-pointer">
                     {{ month.label }}

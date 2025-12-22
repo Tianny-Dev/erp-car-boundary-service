@@ -70,7 +70,8 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
 
     Route::get('/expense', [ExpenseController::class, 'index'])->name('expense.index');
     Route::get('/expense/show', [ExpenseController::class, 'show'])->name('expense.show');
-    Route::get('/expense/export', [ExpenseController::class, 'export'])->name('expense.export');
+    Route::get('/expense/export/index', [ExpenseController::class, 'exportIndex'])->name('expense.export.index');
+    Route::get('/expense/export/show', [ExpenseController::class, 'exportShow'])->name('expense.export.show');
 
     Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
     Route::get('/inventory/{inventory}', [InventoryController::class, 'show'])->name('inventory.show');
