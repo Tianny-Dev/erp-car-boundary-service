@@ -75,7 +75,10 @@ class MaintenanceSeeder extends Seeder
         foreach ($activeVehicles as $vehicle) {
             $inventory = $inventories->random();
             $cost = $inventory->unit_price + rand(500, 2000);
-            $pastDate = Carbon::now()->subDays(rand(5, 30));
+            $pastDate = Carbon::now()->subDays(rand(5, 30))
+                ->setHour(rand(0, 23))
+                ->setMinute(rand(0, 59))
+                ->setSecond(rand(0, 59));
 
             // DATA INTEGRITY: Find a technician assigned to THIS vehicle's Franchise or Branch
             $technicianId = $this->findTechnicianForVehicle($vehicle);

@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('invoice_no', 100)->unique();
             $table->decimal('amount', 10, 2);
             $table->string('currency', 10)->default('PHP');
-            $table->date('payment_date')->nullable();
+            $table->dateTime('payment_date')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
         });

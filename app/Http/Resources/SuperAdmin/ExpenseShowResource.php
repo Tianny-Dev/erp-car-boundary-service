@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Carbon\Carbon;
 
-class RevenueShowResource extends JsonResource
+class ExpenseShowResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -15,13 +15,14 @@ class RevenueShowResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        // 1. Basic Fields
         $data = [
             'id'             => $this->id,
             'invoice_no'     => $this->invoice_no,
             'amount'          => (float) $this->amount,
             'payment_date' => Carbon::parse($this->payment_date)->format('M d, Y h:i A'),
-            'driver_username' => optional($this->driver?->user)->username ?? 'N/A',
+            'plate_number' => optional($this->maintenance?->vehicle)->plate_number ?? 'N/A',
+            'description' => optional($this->maintenance)->description ?? 'N/A',
+            'inventory_name' => optional($this->maintenance)->inventory->name ?? 'N/A',
         ];
 
         return $data;

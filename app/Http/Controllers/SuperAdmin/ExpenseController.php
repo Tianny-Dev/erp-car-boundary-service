@@ -4,6 +4,7 @@ namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\SuperAdmin\ExpenseDatatableResource;
+use App\Http\Resources\SuperAdmin\ExpenseShowResource;
 use App\Models\Branch;
 use App\Models\Franchise;
 use App\Models\Expense;
@@ -49,6 +50,60 @@ class ExpenseController extends Controller
             'filters' => $filters,
         ]);
         
+    }
+
+    public function show(Request $request): Response
+    {
+        $validated = $request->validate([
+            'start'     => ['required', 'date'],
+            'end'       => ['required', 'date'],
+            'label'     => ['required', 'string'],
+            'tab'       => ['required', 'string'],
+            'franchise' => ['nullable'],
+            'branch'    => ['nullable'],
+        ]);
+
+        // 1. Determine which ID we are filtering for
+        $id = $validated['tab'] === 'franchise' ? $validated['franchise'] : $validated['branch'];
+        
+        // 2. Normalize filters for the buildBaseQuery
+        $filters = [
+            'tab'       => $validated['tab'],
+            'franchise' => $validated['tab'] === 'franchise' ? [$id] : [],
+            'branch'    => $validated['tab'] === 'branch' ? [$id] : [],
+        ];
+
+        // 3. Fetch specific Target Name for header
+        $targetName = 'N/A';
+        if ($validated['tab'] === 'franchise' && $id) {
+            $targetName = Franchise::find($id)?->name;
+        } elseif ($validated['tab'] === 'branch' && $id) {
+            $targetName = Branch::find($id)?->name;
+        }
+
+        // 4. Build Query
+        $query = $this->buildBaseQuery($filters);
+
+        // Filter by the exact date range from the clicked row
+        $query->whereBetween(DB::raw('DATE(payment_date)'), [
+            $validated['start'], 
+            $validated['end']
+        ]);
+
+        $details = $query->with([
+                'maintenance.vehicle:id,plate_number', 
+                'maintenance.inventory:id,name'])
+            ->orderBy('payment_date', 'desc')
+            ->get();
+
+        return Inertia::render('super-admin/finance/ExpenseShow', [
+            'details'     => ExpenseShowResource::collection($details),
+            'periodLabel' => $validated['label'],
+            'targetName'  => $targetName,
+            'targetType'  => ucfirst($validated['tab']),
+            'totalSum'    => $details->sum('amount'),
+            'filters'     => $filters,
+        ]);
     }
 
     /**
