@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 Route::get('/', function () {
     $userTypes = UserType::whereNotIn('name', ['super_admin', 'manager'])
@@ -41,6 +42,30 @@ Route::get('dashboard', function (Request $request) {
     return redirect($route);
 
 })->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::get('/test-contract', function () {
+
+    $data = [
+        'day' => now()->format('d'),
+        'month' => now()->format('F'),
+        'year' => now()->format('Y'),
+
+        'corporation_name' => 'DDGNS (DEVICE DESIGN GREEN AND SMART CORPORATION)',
+        'corporation_short' => 'DDGNS',
+
+        'franchise_owner_name' => 'JUAN DELA CRUZ',
+        'franchise_name' => 'Franchise Name Sample',
+        'operator_address' => 'Baguio City, Philippines',
+
+        'vehicle_count' => 20,
+        'security_days' => 60,
+        'daily_boundary' => 1600,
+    ];
+
+    return Pdf::loadView('contracts.master', $data)
+        ->setPaper('a4')
+        ->stream('electric-taxi-agreement.pdf');
+});
 
 require __DIR__ . '/settings.php';
 require __DIR__ . '/driver.php';
