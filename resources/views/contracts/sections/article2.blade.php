@@ -31,3 +31,27 @@
   and any ensuing or subsequent agreements with these drivers must be aligned with 
   and consistent with this AGREEMENT.
 </p>
+
+<p>
+  <strong>2.3. Restrictions on Use:</strong> __________ and its drivers shall use the Leased
+  Vehicles solely for the taxi transportation business activities specified particularly in
+  this AGREEMENT and shall not use them for any illegal or unauthorized activities or
+  purposes. Furthermore, __________ may not assign or provide as collateral any rights
+  or any vehicle under this AGREEMENT to a Third Party (except its authorized
+  operator/driver) without the prior written consent of DDGNS. However, DDGNS may
+  transfer ownership or rights to the Leased Vehicles if the same units are proposed for
+  acquisition via financing through a lending institution for purposes of serving or
+  providing as loan collateral. In such cases, __________ will cooperate with the
+  financing or lending institution in availing financing opportunity, with the written consent
+  of DDGNS.
+</p>
+
+<p>
+  <strong>2.4. Delivery and Return:</strong> DDGNS will deliver the leased vehicles to
+  __________ according to the agreed-upon schedule. Upon receipt, __________ will
+  inspect the vehicles and promptly notify any abnormalities. Upon expiration or early
+  termination of this AGREEMENT, __________ shall immediately return all Leased
+  Vehicles in good operating condition and into a location designated by DDGNS. Upon
+  return of the vehicles, __________ shall be responsible for any repair costs or
+  compensation for any damage or omissions other than normal wear and tear.
+</p>

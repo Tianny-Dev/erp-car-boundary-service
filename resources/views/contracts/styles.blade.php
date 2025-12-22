@@ -44,4 +44,15 @@ table {
   border-collapse: collapse;
   page-break-inside: avoid;
 }
+
+.clause {
+  margin-left: 30px;
+  {{-- text-indent: -28px; --}}
+  margin-bottom: 10px;
+}
+
+.clause-letter {
+  margin-left: 50px;
+  {{-- line-height: 1.4; --}}
+}
 </style>

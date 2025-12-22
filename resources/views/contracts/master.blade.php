@@ -13,6 +13,22 @@
 
 @include('contracts.sections.article2')
 
+@include('contracts.sections.article3')
+
+@include('contracts.sections.article4')
+
+@include('contracts.sections.article5')
+
+@include('contracts.sections.article6')
+
+@include('contracts.sections.article7')
+
+@include('contracts.sections.article8')
+
+@include('contracts.sections.article9')
+
+@include('contracts.sections.article10')
+
 @include('contracts.sections.signatures')
 
 </body>
