@@ -20,26 +20,16 @@ class RevenueFactory extends Factory
     public function definition(): array
     {
         // Only focus on random "Trips" here, or fallback data
-        $assignFranchise = $this->faker->boolean;
         $franchiseId = null;
-        $branchId = null;
         $driverId = null;
 
         // Logic to find a valid driver assignment to avoid foreign key errors
-        if ($assignFranchise) {
-            $record = DB::table('franchise_user_driver')->inRandomOrder()->first();
-            if($record) {
-                $franchiseId = $record->franchise_id;
-                $driverId = $record->user_driver_id;
-            }
-        } else {
-            $record = DB::table('branch_user_driver')->inRandomOrder()->first();
-            if($record) {
-                $branchId = $record->branch_id;
-                $driverId = $record->user_driver_id;
-            }
+        $record = DB::table('franchise_user_driver')->inRandomOrder()->first();
+        if($record) {
+            $franchiseId = $record->franchise_id;
+            $driverId = $record->user_driver_id;
         }
-
+      
         // Fallback if DB is empty (during testing)
         if (!$driverId) return []; 
 
@@ -49,7 +39,6 @@ class RevenueFactory extends Factory
         return [
             'status_id' => $statusId,
             'franchise_id' => $franchiseId,
-            'branch_id'    => $branchId,
             'driver_id'    => $driverId,
             'payment_option_id' => $this->faker->numberBetween(1, 4),
             'invoice_no' => 'TRP-' . Str::upper(Str::random(6)),

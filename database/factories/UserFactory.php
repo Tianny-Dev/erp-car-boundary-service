@@ -9,7 +9,6 @@ use App\Models\UserOwner;
 use App\Models\UserPassenger;
 use App\Models\UserTechnician;
 use App\Models\Franchise;
-use App\Models\Branch;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
@@ -92,7 +91,6 @@ class UserFactory extends Factory
                     break;
                 case 3: // manager
                     UserManager::factory()->create(['id' => $user->id]);
-                    Branch::factory()->create(['manager_id' => $user->id]);
                     break;
                 case 4: // driver
                     UserDriver::factory()->create(['id' => $user->id]);
