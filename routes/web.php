@@ -3,9 +3,10 @@ use App\Models\UserType;
 use App\Models\Franchise;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SuperAdmin\FranchiseContractController;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
-use Barryvdh\DomPDF\Facade\Pdf;
+
 
 Route::get('/', function () {
     $userTypes = UserType::whereNotIn('name', ['super_admin', 'manager'])
@@ -43,28 +44,9 @@ Route::get('dashboard', function (Request $request) {
 
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::get('/test-contract', function () {
 
-    $data = [
-        'day' => now()->format('d'),
-        'month' => now()->format('F'),
-        'year' => now()->format('Y'),
-
-        'corporation_name' => 'DDGNS (DEVICE DESIGN GREEN AND SMART CORPORATION)',
-        'corporation_short' => 'DDGNS',
-
-        'franchise_owner_name' => 'JUAN DELA CRUZ',
-        'franchise_name' => 'Franchise Name Sample',
-        'operator_address' => 'Baguio City, Philippines',
-
-        'vehicle_count' => 20,
-        'security_days' => 60,
-        'daily_boundary' => 1600,
-    ];
-
-    return Pdf::loadView('contracts.master', $data)
-        ->setPaper('a4')
-        ->stream('electric-taxi-agreement.pdf');
+Route::middleware(['auth', 'verified', 'check.active'])->group(function () {
+    Route::get('/franchise/contract', [FranchiseContractController::class, 'index'])->name('contract');
 });
 
 require __DIR__ . '/settings.php';
