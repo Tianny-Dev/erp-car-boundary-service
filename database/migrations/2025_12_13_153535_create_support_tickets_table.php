@@ -17,7 +17,6 @@ return new class extends Migration
             $table->foreignId('status_id')->constrained('statuses')->onDelete('restrict');
             $table->foreignId('user_id')->constrained()->onDelete('restrict');
             $table->foreignId('franchise_id')->nullable()->constrained('franchises')->onDelete('restrict');
-            $table->foreignId('branch_id')->nullable()->constrained('branches')->onDelete('restrict');
             $table->enum('type', ['Payment Dispute', 'Adjustment Request']);
             $table->text('description');
             $table->date('date');

@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('status_id')->constrained('statuses')->onDelete('restrict');
             $table->foreignId('franchise_id')->nullable()->constrained('franchises')->onDelete('restrict');
-            $table->foreignId('branch_id')->nullable()->constrained('branches')->onDelete('restrict');
             $table->foreignId('driver_id')->constrained('user_drivers')->onDelete('restrict');
             $table->enum('violation_type', ['Speeding', 'Reckless Driving', 'No Seatbelt', 'Expired License', 'Illegal Parking', 'Other'])->default('Other');
             $table->text('description');
