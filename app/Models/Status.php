@@ -48,12 +48,6 @@ class Status extends Model
         return $this->hasMany(Franchise::class);
     }
 
-    // relationship to branches, one to many
-    public function branches(): HasMany
-    {
-        return $this->hasMany(Branch::class);
-    }
-
     // relationship to expenses, one to many
     public function expenses(): HasMany
     {

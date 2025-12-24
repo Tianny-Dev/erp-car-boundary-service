@@ -29,10 +29,4 @@ class Violation extends Model
     {
         return $this->belongsTo(Franchise::class);
     }
-
-    // relationship to branch, one to many
-    public function branch(): BelongsTo
-    {
-        return $this->belongsTo(Branch::class);
-    }
 }

@@ -14,7 +14,6 @@ class SupportTicket extends Model
         'ticket_code',
         'user_id',
         'franchise_id',
-        'branch_id',
         'type',
         'description',
         'date',
@@ -29,11 +28,6 @@ class SupportTicket extends Model
     public function franchise(): BelongsTo
     {
         return $this->belongsTo(Franchise::class);
-    }
-
-    public function branch(): BelongsTo
-    {
-        return $this->belongsTo(Branch::class);
     }
 
     public function status(): BelongsTo

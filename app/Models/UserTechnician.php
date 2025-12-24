@@ -59,12 +59,6 @@ class UserTechnician extends Model
         return $this->belongsToMany(Franchise::class);
     }
 
-    // relationship to branches, many to many (pivot table)
-    public function branches(): BelongsToMany
-    {
-        return $this->belongsToMany(Branch::class);
-    }
-
     // relationship to maintenances, one to many
     public function maintenances(): HasMany
     {

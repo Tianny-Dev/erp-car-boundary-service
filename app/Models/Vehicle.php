@@ -14,7 +14,6 @@ class Vehicle extends Model
     protected $fillable = [
         'status_id',
         'franchise_id',
-        'branch_id',
         'driver_id',
         'plate_number',
         'vin',
@@ -40,12 +39,6 @@ class Vehicle extends Model
     public function franchise(): BelongsTo
     {
         return $this->belongsTo(Franchise::class);
-    }
-
-    // relationship to branch, one to many
-    public function branch(): BelongsTo
-    {
-        return $this->belongsTo(Branch::class);
     }
 
     // relationship to routes, one to many
