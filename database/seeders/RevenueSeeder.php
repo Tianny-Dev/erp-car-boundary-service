@@ -49,7 +49,6 @@ class RevenueSeeder extends Seeder
                 Revenue::create([
                     'status_id' => $statusId,
                     'franchise_id' => $contract->franchise_id,
-                    'branch_id' => $contract->branch_id,
                     'driver_id' => $contract->driver_id,
                     'boundary_contract_id' => $contract->id,
                     'payment_option_id' => fake()->numberBetween(1, 4), // Cash, Gcash, etc
@@ -128,7 +127,6 @@ class RevenueSeeder extends Seeder
                 $revenue = Revenue::create([
                     'status_id'          => $statusId,
                     'franchise_id'       => $contract->franchise_id, // Inherit from contract
-                    'branch_id'          => $contract->branch_id,    // Inherit from contract
                     'driver_id'          => $contract->driver_id,
                     'boundary_contract_id' => null, // Trips don't link to boundary contracts ID directly
                     'payment_option_id'  => fake()->numberBetween(1, 4),

@@ -17,16 +17,8 @@ class BoundaryContractSeeder extends Seeder
     {
         // Find drivers who have been assigned to a franchise
         $franchiseDrivers = DB::table('franchise_user_driver')->get();
-        
-        // Find drivers who have been assigned to a branch
-        $branchDrivers = DB::table('branch_user_driver')->get();
 
-        $allAssignments = $franchiseDrivers->map(fn($item) => ['type' => 'franchise', 'data' => $item])
-            ->merge($branchDrivers->map(fn($item) => ['type' => 'branch', 'data' => $item]));
-
-        foreach ($allAssignments as $assignment) {
-            $isFranchise = $assignment['type'] === 'franchise';
-            $data = $assignment['data'];
+        foreach ($franchiseDrivers as $data) {
             $driverId = $data->user_driver_id;
 
             $vehicle = DB::table('vehicles')
@@ -46,11 +38,10 @@ class BoundaryContractSeeder extends Seeder
 
             BoundaryContract::create([
                 'status_id' => 1, // Active
-                'franchise_id' => $isFranchise ? $data->franchise_id : null,
-                'branch_id' => !$isFranchise ? $data->branch_id : null,
+                'franchise_id' => $data->franchise_id,
                 'driver_id'       => $driverId,
                 'vehicle_id'      => $vehicle->id,
-                'name' => 'Boundary Contract - ' . ($isFranchise ? 'Franchise' : 'Branch'),
+                'name' => 'Boundary Contract - ' . 'Franchise',
                 'amount' => $boundaryAmount,
                 'currency' => 'PHP',
                 'coverage_area' => fake()->city(),

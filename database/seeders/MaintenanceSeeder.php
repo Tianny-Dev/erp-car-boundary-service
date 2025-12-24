@@ -31,7 +31,7 @@ class MaintenanceSeeder extends Seeder
             $inventory = $inventories->random();
             $cost = $inventory->unit_price + rand(500, 2000); // Parts + Labor
 
-            // DATA INTEGRITY: Find a technician assigned to THIS vehicle's Franchise or Branch
+            // DATA INTEGRITY: Find a technician assigned to THIS vehicle's Franchise
             $technicianId = $this->findTechnicianForVehicle($vehicle);
 
             if (!$technicianId) continue; // Skip if no tech found (shouldn't happen with correct seeding)
@@ -51,7 +51,6 @@ class MaintenanceSeeder extends Seeder
             Expense::create([
                 'status_id'         => 6, // Pending
                 'franchise_id'      => $vehicle->franchise_id,
-                'branch_id'         => $vehicle->branch_id,
                 'maintenance_id'    => $maintenance->id,
                 'payment_option_id' => 1,
                 'invoice_no'        => 'MNT-' . strtoupper(Str::random(8)),
@@ -80,7 +79,7 @@ class MaintenanceSeeder extends Seeder
                 ->setMinute(rand(0, 59))
                 ->setSecond(rand(0, 59));
 
-            // DATA INTEGRITY: Find a technician assigned to THIS vehicle's Franchise or Branch
+            // DATA INTEGRITY: Find a technician assigned to THIS vehicle's Franchise or
             $technicianId = $this->findTechnicianForVehicle($vehicle);
 
             if (!$technicianId) continue;
@@ -100,7 +99,6 @@ class MaintenanceSeeder extends Seeder
             Expense::create([
                 'status_id'         => 8, // Paid
                 'franchise_id'      => $vehicle->franchise_id,
-                'branch_id'         => $vehicle->branch_id,
                 'maintenance_id'    => $maintenance->id,
                 'payment_option_id' => rand(1, 4),
                 'invoice_no'        => 'MNT-PAID-' . strtoupper(Str::random(8)),
@@ -122,11 +120,6 @@ class MaintenanceSeeder extends Seeder
         if ($vehicle->franchise_id) {
             return DB::table('franchise_user_technician')
                 ->where('franchise_id', $vehicle->franchise_id)
-                ->inRandomOrder()
-                ->value('user_technician_id');
-        } elseif ($vehicle->branch_id) {
-            return DB::table('branch_user_technician')
-                ->where('branch_id', $vehicle->branch_id)
                 ->inRandomOrder()
                 ->value('user_technician_id');
         }
