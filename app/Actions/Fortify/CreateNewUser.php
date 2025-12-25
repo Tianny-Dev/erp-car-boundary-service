@@ -66,14 +66,12 @@ class CreateNewUser implements CreatesNewUsers
             'email' => [
                 'required', 'string', 'email', 'max:255',
                 Rule::unique(User::class),
-                Rule::unique('franchises', 'email'),
-                Rule::unique('branches', 'email')
+                Rule::unique('franchises', 'email')
             ],
             'phone' => [
                 'required', 'string', 'max:20',
                 Rule::unique(User::class),
-                Rule::unique('franchises', 'phone'),
-                Rule::unique('branches', 'phone')
+                Rule::unique('franchises', 'phone')
             ],
             'password' => $this->passwordRules(),
             'gender' => ['required', new Enum(Gender::class)],
@@ -157,14 +155,12 @@ class CreateNewUser implements CreatesNewUsers
             'email' => [
                 'required', 'string', 'email', 'max:255',
                 Rule::unique(User::class),
-                Rule::unique('franchises', 'email'),
-                Rule::unique('branches', 'email')
+                Rule::unique('franchises', 'email')
             ],
             'phone' => [
                 'required', 'string', 'max:20',
                 Rule::unique(User::class),
-                Rule::unique('franchises', 'phone'),
-                Rule::unique('branches', 'phone')
+                Rule::unique('franchises', 'phone')
             ],
             'password' => $this->passwordRules(),
             'gender' => ['required', new Enum(Gender::class)],
@@ -227,14 +223,12 @@ class CreateNewUser implements CreatesNewUsers
             'email' => [
                 'required', 'string', 'email', 'max:255',
                 Rule::unique(User::class),
-                Rule::unique('franchises', 'email'),
-                Rule::unique('branches', 'email')
+                Rule::unique('franchises', 'email')
             ],
             'phone' => [
                 'required', 'string', 'max:20',
                 Rule::unique(User::class),
-                Rule::unique('franchises', 'phone'),
-                Rule::unique('branches', 'phone')
+                Rule::unique('franchises', 'phone')
             ],
             'password' => $this->passwordRules(),
             'gender' => ['required', new Enum(Gender::class)],
@@ -323,14 +317,12 @@ class CreateNewUser implements CreatesNewUsers
             'email' => [
                 'required', 'string', 'email', 'max:255',
                 Rule::unique(User::class),
-                Rule::unique('franchises', 'email'),
-                Rule::unique('branches', 'email')
+                Rule::unique('franchises', 'email')
             ],
             'phone' => [
                 'required', 'string', 'max:20',
                 Rule::unique(User::class),
-                Rule::unique('franchises', 'phone'),
-                Rule::unique('branches', 'phone')
+                Rule::unique('franchises', 'phone')
             ],
             'password' => $this->passwordRules(),
             'home_region' => ['required', 'string', 'max:255'],

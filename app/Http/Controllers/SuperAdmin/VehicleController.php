@@ -41,7 +41,6 @@ class VehicleController extends Controller
             'vehicles' => VehicleDatatableResource::collection($vehicles),
             'franchises' => fn () => Franchise::select('id', 'name')->get(),
             'filters' => [
-                'tab' => $filters['tab'],
                 'franchise' => $filters['franchise'],
                 'status' => $filters['status'],
             ],

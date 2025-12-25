@@ -35,20 +35,11 @@ class StoreBoundaryContractRequest extends FormRequest
             'contract_terms' => ['required', 'string', 'max:1000'],
             'renewal_terms' => ['required', 'string', 'max:1000'],
             
-            // LOGIC: Ensure exactly one is present (Franchise XOR Branch)
+            // LOGIC: Ensure exactly one is present Franchise
             'franchise_id' => [
-                'nullable',
+                'required',
                 'integer',
-                'required_without:branch_id', // Required if branch is empty
-                'prohibited_unless:branch_id,null', // Forbidden if branch has value
                 'exists:franchises,id'
-            ],
-            'branch_id' => [
-                'nullable',
-                'integer',
-                'required_without:franchise_id', // Required if franchise is empty
-                'prohibited_unless:franchise_id,null', // Forbidden if franchise has value
-                'exists:branches,id'
             ],
 
             // LOGIC: Driver validation
@@ -77,22 +68,17 @@ class StoreBoundaryContractRequest extends FormRequest
                         $fail('The selected driver is not active.');
                     }
                     
-                    // 2. Optional: Verify Driver belongs to the selected Franchise/Branch
+                    // 2. Optional: Verify Driver belongs to the selected Franchise
                     $existsInEntity = false;
                     if ($this->franchise_id) {
                          $existsInEntity = DB::table('franchise_user_driver')
                             ->where('franchise_id', $this->franchise_id)
                             ->where('user_driver_id', $value)
                             ->exists();
-                    } elseif ($this->branch_id) {
-                        $existsInEntity = DB::table('branch_user_driver')
-                            ->where('branch_id', $this->branch_id)
-                            ->where('user_driver_id', $value)
-                            ->exists();
                     }
 
                     if (!$existsInEntity) {
-                        $fail('The selected driver does not belong to the selected franchise or branch.');
+                        $fail('The selected driver does not belong to the selected franchise.');
                     }
                 },
             ],
@@ -111,10 +97,6 @@ class StoreBoundaryContractRequest extends FormRequest
                     $vehicle = Vehicle::find($value);
                     if ($this->franchise_id && $vehicle->franchise_id != $this->franchise_id) {
                         $fail('The selected vehicle does not belong to this franchise.');
-                        return;
-                    }
-                    if ($this->branch_id && $vehicle->branch_id != $this->branch_id) {
-                        $fail('The selected vehicle does not belong to this branch.');
                         return;
                     }
 
@@ -136,14 +118,6 @@ class StoreBoundaryContractRequest extends FormRequest
                     }
                 },
             ],
-        ];
-    }
-
-    public function messages()
-    {
-        return [
-            'franchise_id.prohibited_unless' => 'You cannot select both a Franchise and a Branch.',
-            'branch_id.prohibited_unless' => 'You cannot select both a Franchise and a Branch.',
         ];
     }
 }

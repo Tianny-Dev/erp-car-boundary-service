@@ -29,29 +29,12 @@ class StoreVehicleRequest extends FormRequest
             'color' => ['required', 'string', 'max:255'],
             'year' => ['required', 'integer', 'min:1900', 'max:' . date('Y')],
 
-            // LOGIC: Ensure exactly one is present (Franchise XOR Branch)
+            // LOGIC: Ensure exactly one is present Franchise
             'franchise_id' => [
-                'nullable',
+                'required',
                 'integer',
-                'required_without:branch_id', // Required if branch is empty
-                'prohibited_unless:branch_id,null', // Forbidden if branch has value
                 'exists:franchises,id'
             ],
-            'branch_id' => [
-                'nullable',
-                'integer',
-                'required_without:franchise_id', // Required if franchise is empty
-                'prohibited_unless:franchise_id,null', // Forbidden if franchise has value
-                'exists:branches,id'
-            ],
-        ];
-    }
-
-    public function messages()
-    {
-        return [
-            'franchise_id.prohibited_unless' => 'You cannot select both a Franchise and a Branch.',
-            'branch_id.prohibited_unless' => 'You cannot select both a Franchise and a Branch.',
         ];
     }
 }
