@@ -31,9 +31,6 @@ class BoundaryContractResource extends JsonResource
             'franchise_name' => $this->whenLoaded('franchise', fn () => $this->franchise?->name),
             'franchise_email' => $this->whenLoaded('franchise', fn () => $this->franchise?->email),
             'franchise_phone' => $this->whenLoaded('franchise', fn () => $this->franchise?->phone),
-            'branch_name' => $this->whenLoaded('branch', fn () => $this->branch?->name),
-            'branch_email' => $this->whenLoaded('branch', fn () => $this->branch?->email),
-            'branch_phone' => $this->whenLoaded('branch', fn () => $this->branch?->phone),
         ];
 
         return $data;

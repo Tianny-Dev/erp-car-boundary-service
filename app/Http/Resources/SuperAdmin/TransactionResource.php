@@ -28,7 +28,6 @@ class TransactionResource extends JsonResource
             'created_at' => $this->created_at ? date('M d, Y h:i A', strtotime($this->created_at)) : null,
             'payment_date' => $this->payment_date ? date('M d, Y h:i A', strtotime($this->payment_date)) : null,
             'franchise_name' => $this->whenLoaded('franchise', fn () => $this->franchise?->name),
-            'branch_name' => $this->whenLoaded('branch', fn () => $this->branch?->name),
             'payment_option' => $this->whenLoaded('paymentOption', $this->paymentOption->name),
             'notes' => $this->notes ?? null,
             // revenue data

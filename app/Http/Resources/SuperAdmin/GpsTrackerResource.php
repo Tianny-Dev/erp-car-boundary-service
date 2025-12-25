@@ -29,11 +29,6 @@ class GpsTrackerResource extends JsonResource
             $data['franchise_name'] = $this->franchises->first()->name;
         }
 
-        // Conditionally add branch_name if the relation is loaded and not empty
-        if ($this->relationLoaded('branches') && $this->branches->isNotEmpty()) {
-            $data['branch_name'] = $this->branches->first()->name;
-        }
-
         return $data;
     }
 }
