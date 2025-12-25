@@ -11,7 +11,6 @@ use App\Http\Resources\SuperAdmin\BoundaryContractResource;
 use App\Http\Requests\SuperAdmin\StoreBoundaryContractRequest;
 use App\Models\Vehicle;
 use App\Models\BoundaryContract;
-use App\Models\Branch;
 use App\Models\Franchise;
 use App\Models\UserDriver;
 use Illuminate\Validation\Rule;
@@ -26,17 +25,13 @@ class BoundaryContractController extends Controller
     {
         // 1. Validate all filters
         $validated = $request->validate([
-            'tab' => ['sometimes', 'string', Rule::in(['franchise', 'branch'])],
             'franchise' => ['sometimes', 'nullable', 'array'], 
-            'branch' => ['sometimes', 'nullable', 'array'],
             'status' => ['sometimes', 'string', Rule::in(['active', 'pending', 'terminated', 'expired'])],
         ]);
 
         // 2. Set defaults
         $filters = [
-            'tab' => $validated['tab'] ?? 'franchise',
             'franchise' => $validated['franchise'] ?? [],
-            'branch' => $validated['branch'] ?? [],
             'status' => $validated['status'] ?? 'active',
         ];
 
@@ -48,11 +43,8 @@ class BoundaryContractController extends Controller
         return Inertia::render('super-admin/fleet/BoundaryContractIndex', [
             'contracts' => BoundaryContractDatatableResource::collection($contracts),
             'franchises' => fn () => Franchise::select('id', 'name')->get(),
-            'branches' => fn () => Branch::select('id', 'name')->get(),
             'filters' => [
-                'tab' => $filters['tab'],
                 'franchise' => $filters['franchise'],
-                'branch' => $filters['branch'],
                 'status' => $filters['status'],
             ],
         ]);
@@ -68,17 +60,9 @@ class BoundaryContractController extends Controller
             'status:id,name',
         ])->whereHas('status', fn ($q) => $q->where('name', $filters['status']));
 
-        // Apply tab-specific filtering
-        if ($filters['tab'] === 'franchise') {
-            $query->whereNotNull('franchise_id')
-                ->when(!empty($filters['franchise']), fn ($q) => $q->whereIn('franchise_id', $filters['franchise']))
-                ->with('franchise:id,name');
-
-        } elseif ($filters['tab'] === 'branch') {
-            $query->whereNotNull('branch_id')
-                ->when(!empty($filters['branch']), fn ($q) => $q->whereIn('branch_id', $filters['branch']))
-                ->with('branch:id,name');
-        }
+        $query->whereNotNull('franchise_id')
+            ->when(!empty($filters['franchise']), fn ($q) => $q->whereIn('franchise_id', $filters['franchise']))
+            ->with('franchise:id,name');
 
         return $query;
     }
@@ -89,7 +73,6 @@ class BoundaryContractController extends Controller
         $contract->loadMissing([
             'driver.user:id,username,name,email,phone',
             'franchise:id,name,email,phone',
-            'branch:id,name,email,phone', 
             'status:id,name'
         ]);
 
@@ -100,18 +83,14 @@ class BoundaryContractController extends Controller
     {
         return Inertia::render('super-admin/fleet/BoundaryContractCreate', [
             'franchises' => fn () => Franchise::select('id', 'name')->get(),
-            'branches' => fn () => Branch::select('id', 'name')->get(),
         ]);
     }
 
     public function getContractResources(Request $request)
     {
         $request->validate([
-            'type' => ['required', Rule::in(['franchise', 'branch'])],
             'id'   => ['required', 'integer'],
         ]);
-
-        $type = $request->type ?? 'franchise'; // Default to 'franchise'
         $entityId = $request->id;
 
         // 1. Get ID of 'active' and 'available' status
@@ -125,9 +104,9 @@ class BoundaryContractController extends Controller
         // 2. Query Drivers
         $drivers = UserDriver::with('user:id,name')
             ->where('status_id', $activeStatusId) // Driver must be active
-            // Check pivot/relationship for franchise/branch ownership
-            ->whereHas($type === 'franchise' ? 'franchises' : 'branches', function ($q) use ($entityId, $type) {
-                $q->where($type === 'franchise' ? 'franchises.id' : 'branches.id', $entityId);
+            // Check pivot/relationship for franchise ownership
+            ->whereHas('franchises', function ($q) use ($entityId) {
+                $q->where('franchises.id', $entityId);
             })
             // Check availability (No active contract)
             ->whereDoesntHave('boundaryContracts', function ($q) use ($activeStatusId) {
@@ -141,7 +120,7 @@ class BoundaryContractController extends Controller
             ->select('id', 'plate_number', 'brand', 'model')
             ->where('status_id', $availableStatusId) // Vehicle itself must be available
             // Check ownership
-            ->where($type === 'franchise' ? 'franchise_id' : 'branch_id', $entityId)
+            ->where('franchise_id', $entityId)
             // Check availability (No active contract)
             ->whereDoesntHave('boundaryContracts', function ($q) use ($activeStatusId) {
                 $q->where('status_id', $activeStatusId);
@@ -167,7 +146,6 @@ class BoundaryContractController extends Controller
             BoundaryContract::create([
                 'status_id' => $pendingStatusId,
                 'franchise_id' => $request->franchise_id,
-                'branch_id' => $request->branch_id,
                 'driver_id' => $request->driver_id,
                 'vehicle_id' => $request->vehicle_id,
                 'name' => $request->name,

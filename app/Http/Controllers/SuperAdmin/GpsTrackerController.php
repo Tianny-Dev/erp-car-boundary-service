@@ -4,7 +4,6 @@ namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\SuperAdmin\GpsTrackerResource;
-use App\Models\Branch;
 use App\Models\Franchise;
 use App\Models\UserDriver;
 use Illuminate\Http\Request;
@@ -17,16 +16,12 @@ class GpsTrackerController extends Controller
     public function index(Request $request): Response
     {
         $validated = $request->validate([
-            'tab' => ['sometimes', 'string', Rule::in(['franchise', 'branch'])],
             'franchise' => ['sometimes', 'nullable', 'array'], 
-            'branch' => ['sometimes', 'nullable', 'array'],
             'driver' => ['sometimes', 'nullable', 'array'],
         ]);
 
         $filters = [
-            'tab' => $validated['tab'] ?? 'franchise',
             'franchise' => $validated['franchise'] ?? [],
-            'branch' => $validated['branch'] ?? [],
             'driver' => $validated['driver'] ?? [],
         ];
 
@@ -37,7 +32,6 @@ class GpsTrackerController extends Controller
         return Inertia::render('super-admin/fleet/GpsTracker', [
             'mapMarkers' => GpsTrackerResource::collection($mapRoutes),
             'franchises' => fn () => Franchise::select('id', 'name')->get(),
-            'branches' => fn () => Branch::select('id', 'name')->get(),
             'drivers' => fn () => $driversList,
             'filters' => $filters,
         ]);
@@ -62,27 +56,12 @@ class GpsTrackerController extends Controller
             $q->whereIn('id', $filters['driver']);
         });
 
-        // Apply tab-specific filtering
-        if ($filters['tab'] === 'franchise') {
-            $query->whereHas('franchises', function ($q) use ($filters) {
-                $q->when($filters['franchise'], fn ($subQ) =>
-                    $subQ->whereIn('franchises.id', $filters['franchise'])
-                );
-            });
-
-            // Eager load franchises to make name available in the resource
-            $query->with('franchises:id,name');
-
-        } elseif ($filters['tab'] === 'branch') {
-            $query->whereHas('branches', function ($q) use ($filters) {
-                $q->when($filters['branch'], fn ($subQ) =>
-                    $subQ->whereIn('branches.id', $filters['branch'])
-                );
-            });
-
-            // Eager load branches to make name available in the resource
-            $query->with('branches:id,name');
-        }
+        // Filter by specific franchise if selected
+        $query->whereHas('franchises', function ($q) use ($filters) {
+            $q->when($filters['franchise'], fn ($subQ) =>
+                $subQ->whereIn('franchises.id', $filters['franchise'])
+            );
+        })->with('franchises:id,name');
 
         return $query->get();
     }
@@ -97,26 +76,14 @@ class GpsTrackerController extends Controller
             ->join('users', 'user_drivers.id', '=', 'users.id')
             ->select('user_drivers.id', 'users.username');
 
-        if ($filters['tab'] === 'franchise') {
-            if (!empty($filters['franchise'])) {
-                // Get drivers strictly belonging to this franchise
-                $query->whereHas('franchises', function ($q) use ($filters) {
-                    $q->whereIn('franchises.id', $filters['franchise']);
-                });
-            } else {
-                // Get ALL drivers that belong to ANY franchise
-                $query->has('franchises');
-            }
-        } elseif ($filters['tab'] === 'branch') {
-            if (!empty($filters['branch'])) {
-                // Get drivers strictly belonging to this branch
-                $query->whereHas('branches', function ($q) use ($filters) {
-                    $q->whereIn('branches.id', $filters['branch']);
-                });
-            } else {
-                // Get ALL drivers that belong to ANY branch
-                $query->has('branches');
-            }
+        if (!empty($filters['franchise'])) {
+            // Get drivers strictly belonging to this franchise
+            $query->whereHas('franchises', function ($q) use ($filters) {
+                $q->whereIn('franchises.id', $filters['franchise']);
+            });
+        } else {
+            // Get ALL drivers that belong to ANY franchise
+            $query->has('franchises');
         }
 
         return $query->orderBy('users.username')->get();

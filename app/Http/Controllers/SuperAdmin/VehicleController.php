@@ -8,7 +8,6 @@ use App\Http\Resources\SuperAdmin\MaintenanceHistoryResource;
 use App\Http\Resources\SuperAdmin\VehicleResource;
 use App\Http\Requests\SuperAdmin\StoreVehicleRequest;
 use App\Models\Vehicle;
-use App\Models\Branch;
 use App\Models\Franchise;
 use App\Models\Status;
 use Inertia\Inertia;
@@ -23,17 +22,13 @@ class VehicleController extends Controller
     {
         // 1. Validate all filters
         $validated = $request->validate([
-            'tab' => ['sometimes', 'string', Rule::in(['franchise', 'branch'])],
             'franchise' => ['sometimes', 'nullable', 'array'], 
-            'branch' => ['sometimes', 'nullable', 'array'],
             'status' => ['sometimes', 'string', Rule::in(['active', 'available', 'maintenance'])],
         ]);
 
         // 2. Set defaults
         $filters = [
-            'tab' => $validated['tab'] ?? 'franchise',
             'franchise' => $validated['franchise'] ?? [],
-            'branch' => $validated['branch'] ?? [],
             'status' => $validated['status'] ?? 'active',
         ];
 
@@ -45,11 +40,9 @@ class VehicleController extends Controller
         return Inertia::render('super-admin/fleet/VehicleIndex', [
             'vehicles' => VehicleDatatableResource::collection($vehicles),
             'franchises' => fn () => Franchise::select('id', 'name')->get(),
-            'branches' => fn () => Branch::select('id', 'name')->get(),
             'filters' => [
                 'tab' => $filters['tab'],
                 'franchise' => $filters['franchise'],
-                'branch' => $filters['branch'],
                 'status' => $filters['status'],
             ],
         ]);
@@ -64,17 +57,10 @@ class VehicleController extends Controller
             'status:id,name',
         ])->whereHas('status', fn ($q) => $q->where('name', $filters['status']));
 
-        if ($filters['tab'] === 'franchise') {
-            $query->whereNotNull('franchise_id')
-                ->when(!empty($filters['franchise']), fn ($q) => $q->whereIn('franchise_id', $filters['franchise']))
-                ->with('franchise:id,name');
+        $query->whereNotNull('franchise_id')
+            ->when(!empty($filters['franchise']), fn ($q) => $q->whereIn('franchise_id', $filters['franchise']))
+            ->with('franchise:id,name');
 
-        } elseif ($filters['tab'] === 'branch') {
-            $query->whereNotNull('branch_id')
-                ->when(!empty($filters['branch']), fn ($q) => $q->whereIn('branch_id', $filters['branch']))
-                ->with('branch:id,name');
-        }
-        
         return $query;
     }
 
@@ -90,7 +76,6 @@ class VehicleController extends Controller
     {
         return Inertia::render('super-admin/fleet/VehicleCreate', [
             'franchises' => fn () => Franchise::select('id', 'name')->get(),
-            'branches' => fn () => Branch::select('id', 'name')->get(),
         ]);
     }
 
@@ -114,7 +99,6 @@ class VehicleController extends Controller
         Vehicle::create([
             'status_id' => $availableStatusId,
             'franchise_id' => $request->franchise_id,
-            'branch_id' => $request->branch_id,
             'plate_number' => $request->plate_number,
             'vin' => $request->vin,
             'brand' => $request->brand,

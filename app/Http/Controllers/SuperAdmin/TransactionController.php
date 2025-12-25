@@ -5,7 +5,6 @@ namespace App\Http\Controllers\SuperAdmin;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\SuperAdmin\TransactionDatatableResource;
 use App\Http\Resources\SuperAdmin\TransactionResource;
-use App\Models\Branch;
 use App\Models\Franchise;
 use App\Models\Revenue;
 use App\Models\Expense;
@@ -23,9 +22,7 @@ class TransactionController extends Controller
         // 1. Validate all filters
         $validated = $request->validate([
             'type' => ['sometimes', 'string', Rule::in(['revenue', 'expense'])],
-            'tab' => ['sometimes', 'string', Rule::in(['franchise', 'branch'])],
             'franchise' => ['sometimes', 'nullable', 'array'], 
-            'branch' => ['sometimes', 'nullable', 'array'],
             'driver' => ['sometimes', 'nullable', 'array'],
             'service' => ['sometimes', 'string', Rule::in(['Trips', 'Boundary'])],
         ]);
@@ -33,9 +30,7 @@ class TransactionController extends Controller
         // 2. Set defaults
         $filters = [
             'type' => $validated['type'] ?? 'revenue',
-            'tab' => $validated['tab'] ?? 'franchise',
             'franchise' => $validated['franchise'] ?? [],
-            'branch' => $validated['branch'] ?? [],
             'driver' => $validated['driver'] ?? [],
             'service' => $validated['service'] ?? 'Trips',
         ];
@@ -50,7 +45,6 @@ class TransactionController extends Controller
         return Inertia::render('super-admin/finance/TransactionIndex', [
             'transactions' => TransactionDatatableResource::collection($query),
             'franchises' => fn () => Franchise::select('id', 'name')->get(),
-            'branches' => fn () => Branch::select('id', 'name')->get(),
             'drivers' => fn () => $driversList,
             'filters' => $filters,
         ]);
@@ -71,7 +65,6 @@ class TransactionController extends Controller
             $relations[] = 'driver.user:id,username';
             $query->where('service_type', $filters['service']); // Only for revenue
         }
-
         $query->with($relations);
 
         // Filter by specific driver if selected
@@ -79,16 +72,10 @@ class TransactionController extends Controller
             $q->whereIn('driver_id', $filters['driver']);
         });
 
-        // Apply tab-specific filtering
-        if ($filters['tab'] === 'franchise') {
-            $query->whereNotNull('franchise_id')
-                ->when(!empty($filters['franchise']), fn ($q) => $q->whereIn('franchise_id', $filters['franchise']));
-            $query->with('franchise:id,name');
-        } else {
-            $query->whereNotNull('branch_id')
-                ->when(!empty($filters['branch']), fn ($q) => $q->whereIn('branch_id', $filters['branch']));
-            $query->with('branch:id,name');
-        }
+        // Filter by specific franchise if selected
+        $query->whereNotNull('franchise_id')
+            ->when(!empty($filters['franchise']), fn ($q) => $q->whereIn('franchise_id', $filters['franchise']));
+        $query->with('franchise:id,name');
 
         return $query;
     }
@@ -103,26 +90,14 @@ class TransactionController extends Controller
             ->join('users', 'user_drivers.id', '=', 'users.id')
             ->select('user_drivers.id', 'users.username');
 
-        if ($filters['tab'] === 'franchise') {
-            if (!empty($filters['franchise'])) {
-                // Get drivers strictly belonging to this franchise
-                $query->whereHas('franchises', function ($q) use ($filters) {
-                    $q->whereIn('franchises.id', $filters['franchise']);
-                });
-            } else {
-                // Get ALL drivers that belong to ANY franchise
-                $query->has('franchises');
-            }
-        } elseif ($filters['tab'] === 'branch') {
-            if (!empty($filters['branch'])) {
-                // Get drivers strictly belonging to this branch
-                $query->whereHas('branches', function ($q) use ($filters) {
-                    $q->whereIn('branches.id', $filters['branch']);
-                });
-            } else {
-                // Get ALL drivers that belong to ANY branch
-                $query->has('branches');
-            }
+        if (!empty($filters['franchise'])) {
+            // Get drivers strictly belonging to this franchise
+            $query->whereHas('franchises', function ($q) use ($filters) {
+                $q->whereIn('franchises.id', $filters['franchise']);
+            });
+        } else {
+            // Get ALL drivers that belong to ANY franchise
+            $query->has('franchises');
         }
 
         return $query->orderBy('users.username')->get();
@@ -133,8 +108,8 @@ class TransactionController extends Controller
         $type = $request->query('type', 'revenue');
 
         $model = $type === 'expense' 
-        ? Expense::with(['status', 'franchise:id,name', 'branch:id,name', 'paymentOption', 'maintenance.inventory', 'maintenance.vehicle'])
-        : Revenue::with(['status', 'driver.user:id,username', 'franchise:id,name', 'branch:id,name', 'paymentOption:id,name']);
+        ? Expense::with(['status', 'franchise:id,name', 'paymentOption', 'maintenance.inventory', 'maintenance.vehicle'])
+        : Revenue::with(['status', 'driver.user:id,username', 'franchise:id,name', 'paymentOption:id,name']);
 
         $transaction = $model->findOrFail($id);
 

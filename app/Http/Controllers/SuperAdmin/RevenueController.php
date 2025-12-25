@@ -5,7 +5,6 @@ namespace App\Http\Controllers\SuperAdmin;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\SuperAdmin\RevenueDatatableResource;
 use App\Http\Resources\SuperAdmin\RevenueShowResource;
-use App\Models\Branch;
 use App\Models\Franchise;
 use App\Models\Revenue;
 use Illuminate\Http\Request;
@@ -24,31 +23,26 @@ class RevenueController extends Controller
     {
         // 1. Validate all filters
         $validated = $request->validate([
-            'tab' => ['sometimes', 'string', Rule::in(['franchise', 'branch'])],
             'franchise' => ['sometimes', 'nullable', 'array'], 
-            'branch' => ['sometimes', 'nullable', 'array'],
             'service' => ['sometimes', 'string', Rule::in(['Trips', 'Boundary'])],
             'period' => ['sometimes', 'string', Rule::in(['daily', 'weekly', 'monthly'])],
         ]);
 
         // 2. Set defaults
         $filters = [
-            'tab' => $validated['tab'] ?? 'franchise',
             'franchise' => $validated['franchise'] ?? [],
-            'branch' => $validated['branch'] ?? [],
             'service' => $validated['service'] ?? 'Trips',
             'period' => $validated['period'] ?? 'daily',
         ];
 
         // 3. Build and execute query
         $query = $this->buildBaseQuery($filters);
-        $revenues = $this->applyPeriodGrouping($query, $filters['period'], $filters['tab']);
+        $revenues = $this->applyPeriodGrouping($query, $filters['period']);
 
         // 4. Return all data to Inertia
         return Inertia::render('super-admin/finance/RevenueIndex', [
             'revenues' => RevenueDatatableResource::collection($revenues),
             'franchises' => fn () => Franchise::select('id', 'name')->get(),
-            'branches' => fn () => Branch::select('id', 'name')->get(),
             'filters' => $filters,
         ]);
         
@@ -61,29 +55,20 @@ class RevenueController extends Controller
             'end'       => ['required', 'date'],
             'label'     => ['required', 'string'],
             'service'   => ['required', 'string'],
-            'tab'       => ['required', 'string'],
             'franchise' => ['nullable'],
-            'branch'    => ['nullable'],
         ]);
 
         // 1. Determine which ID we are filtering for
-        $id = $validated['tab'] === 'franchise' ? $validated['franchise'] : $validated['branch'];
+        $id = $validated['franchise'];
         
         // 2. Normalize filters for the buildBaseQuery
         $filters = [
-            'tab'       => $validated['tab'],
             'service'   => $validated['service'],
-            'franchise' => $validated['tab'] === 'franchise' ? [$id] : [],
-            'branch'    => $validated['tab'] === 'branch' ? [$id] : [],
+            'franchise' => [$id] ?? [],
         ];
 
         // 3. Fetch specific Target Name for header
-        $targetName = 'N/A';
-        if ($validated['tab'] === 'franchise' && $id) {
-            $targetName = Franchise::find($id)?->name;
-        } elseif ($validated['tab'] === 'branch' && $id) {
-            $targetName = Branch::find($id)?->name;
-        }
+        $targetName = Franchise::find($id)?->name ?: 'N/A';
 
         // 4. Build Query
         $query = $this->buildBaseQuery($filters);
@@ -102,7 +87,6 @@ class RevenueController extends Controller
             'details'     => RevenueShowResource::collection($details),
             'periodLabel' => $validated['label'],
             'targetName'  => $targetName,
-            'targetType'  => ucfirst($validated['tab']),
             'totalSum'    => $details->sum('amount'),
             'filters'     => $filters,
         ]);
@@ -127,14 +111,9 @@ class RevenueController extends Controller
                 $query->whereIn(DB::raw('MONTH(payment_date)'), $months);
             }
 
-        // Apply tab-specific filtering
-        if ($filters['tab'] === 'franchise') {
-            $query->whereNotNull('franchise_id')
-                ->when(!empty($filters['franchise']), fn ($q) => $q->whereIn('franchise_id', $filters['franchise']));
-        } elseif ($filters['tab'] === 'branch') {
-            $query->whereNotNull('branch_id')
-                ->when(!empty($filters['branch']), fn ($q) => $q->whereIn('branch_id', $filters['branch']));
-        }
+        // Filter by specific franchise if selected
+        $query->whereNotNull('franchise_id')
+            ->when(!empty($filters['franchise']), fn ($q) => $q->whereIn('franchise_id', $filters['franchise']));
 
         return $query;
     }
@@ -142,7 +121,7 @@ class RevenueController extends Controller
     /**
      * Applies the SELECT and GROUP BY logic based on the period.
      */
-    private function applyPeriodGrouping(Builder $query, string $period, string $tab)
+    private function applyPeriodGrouping(Builder $query, string $period)
     {
         // Base selections for ALL periods (now including daily)
         $query->selectRaw('
@@ -150,16 +129,11 @@ class RevenueController extends Controller
             revenues.service_type
         ');
 
-        // Add JOINs and group by franchise/branch
-        if ($tab === 'franchise') {
-            $query->join('franchises', 'revenues.franchise_id', '=', 'franchises.id')
-                ->addSelect('franchises.id as franchise_id', 'franchises.name as franchise_name')
-                ->groupBy('franchises.id', 'franchises.name');
-        } elseif ($tab === 'branch') {
-            $query->join('branches', 'revenues.branch_id', '=', 'branches.id')
-                ->addSelect('branches.id as branch_id', 'branches.name as branch_name')
-                ->groupBy('branches.id', 'branches.name');
-        }
+        // Add JOINs and group by franchise
+        $query->join('franchises', 'revenues.franchise_id', '=', 'franchises.id')
+            ->addSelect('franchises.id as franchise_id', 'franchises.name as franchise_name')
+            ->groupBy('franchises.id', 'franchises.name');
+        
 
         // Apply period-specific grouping
         if ($period === 'daily') {
@@ -186,9 +160,7 @@ class RevenueController extends Controller
     {
         // 1. Validate all inputs
         $validated = $request->validate([
-            'tab' => ['required', 'string', Rule::in(['franchise', 'branch'])],
             'franchise' => ['sometimes', 'nullable', 'array'], 
-            'branch' => ['sometimes', 'nullable', 'array'],
             'service' => ['required', 'string', Rule::in(['Trips', 'Boundary'])],
             'period' => ['required', 'string', Rule::in(['daily', 'weekly', 'monthly'])],
             'export' => ['required', 'string', Rule::in(['pdf', 'excel', 'csv'])],
@@ -198,9 +170,7 @@ class RevenueController extends Controller
         ]);
 
         $filters = [
-            'tab' => $validated['tab'],
             'franchise' => $validated['franchise'] ?? [],
-            'branch' => $validated['branch'] ?? [],
             'service' => $validated['service'],
             'period' => $validated['period'],
             'export' => $validated['export'],
@@ -210,7 +180,7 @@ class RevenueController extends Controller
         $query = $this->buildBaseQuery($filters, $validated['year'], $validated['months']);
 
         // 3. Get and group data
-        $revenues = $this->applyPeriodGrouping($query, $filters['period'], $filters['tab']);
+        $revenues = $this->applyPeriodGrouping($query, $filters['period']);
 
         // 4. Generate Title
         $title = $this->buildExportTitle($filters, $validated['year'], $validated['months']);
@@ -221,7 +191,7 @@ class RevenueController extends Controller
             return Pdf::loadView('exports.revenue', [
                 'rows' => $revenues,
                 'title' => $title,
-                'tab' => $filters['tab'],
+                'tab' => 'franchise',
                 'source' => 'index',
             ])
             ->setPaper('a4', 'landscape')
@@ -235,7 +205,7 @@ class RevenueController extends Controller
         return (new RevenueExport(
             $revenues,
             $title,
-            $filters['tab'],
+            'franchise',
             'index'
         ))->download($fileName . '.' . ($filters['export'] === 'excel' ? 'xlsx' : 'csv'));
     }
@@ -247,31 +217,22 @@ class RevenueController extends Controller
             'end'       => ['required', 'date'],
             'label'     => ['required', 'string'],
             'service'   => ['required', 'string'],
-            'tab'       => ['required', 'string'],
             'franchise' => ['nullable'],
-            'branch'    => ['nullable'],
             'export'     => ['required', 'string', Rule::in(['pdf', 'excel', 'csv'])],
         ]);
 
         // 1. Determine which ID we are filtering for
-        $id = $validated['tab'] === 'franchise' ? $validated['franchise'] : $validated['branch'];
+        $id = $validated['franchise'];
         
         // 2. Normalize filters for the buildBaseQuery
         $filters = [
-            'tab'       => $validated['tab'],
             'service'   => $validated['service'],
-            'franchise' => $validated['tab'] === 'franchise' ? [$id] : [],
-            'branch'    => $validated['tab'] === 'branch' ? [$id] : [],
+            'franchise' => [$id] ?? [],
             'export' => $validated['export'],
         ];
 
         // 3. Fetch specific Target Name for header
-        $targetName = 'N/A';
-        if ($validated['tab'] === 'franchise' && $id) {
-            $targetName = Franchise::find($id)?->name;
-        } elseif ($validated['tab'] === 'branch' && $id) {
-            $targetName = Branch::find($id)?->name;
-        }
+        $targetName = Franchise::find($id)?->name ?: 'N/A';
 
         // 4. Build Query
         $query = $this->buildBaseQuery($filters);
@@ -295,7 +256,7 @@ class RevenueController extends Controller
             return Pdf::loadView('exports.revenue', [
                 'rows' => $details,
                 'title' => $title,
-                'tab' => $filters['tab'],
+                'tab' => 'franchise',
                 'source' => 'show'
             ])
             ->setPaper('a4', 'landscape')
@@ -309,7 +270,7 @@ class RevenueController extends Controller
         return (new RevenueExport(
             $details,
             $title,
-            $filters['tab'],
+            'franchise',
             'show'
         ))->download($fileName . '.' . ($filters['export'] === 'excel' ? 'xlsx' : 'csv'));
     }
@@ -321,7 +282,7 @@ class RevenueController extends Controller
     {
         $period = ucfirst($filters['period']);
         $service = $filters['service'];
-        $tabName = $filters['tab'] === 'franchise' ? 'Franchise' : 'Branch';
+        $tabName = 'Franchise';
 
         // Get specific name if filtered
         $targetName = "All {$tabName}s";
@@ -330,11 +291,6 @@ class RevenueController extends Controller
                 ->pluck('name')
                 ->join(', ');
             $targetName = $names ?: 'Franchise';
-        } elseif (!empty($filters['branch'])) {
-            $names = Branch::whereIn('id', $filters['branch'])
-                ->pluck('name')
-                ->join(', ');
-            $targetName = $names ?: 'Branch';
         }
 
         // Format months
