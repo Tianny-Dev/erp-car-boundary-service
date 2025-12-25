@@ -62,7 +62,7 @@
                 <th>Date</th>
                 <th>Amount</th>
             @else
-                <th>{{ $tab === 'franchise' ? 'Franchise' : 'Branch' }}</th>
+                <th>Franchise</th>
                 <th>Date</th>
                 <th>Amount</th>
             @endif

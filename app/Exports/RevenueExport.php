@@ -61,7 +61,7 @@ class RevenueExport implements
         }
 
         return [
-            $this->tabName === 'franchise' ? 'Franchise' : 'Branch',
+            'Franchise',
             'Date',
             'Amount'
         ];

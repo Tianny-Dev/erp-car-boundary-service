@@ -91,7 +91,7 @@
                         <td>{{ Carbon::parse($row->payment_date)->format('M d, Y h:i A') }}</td>
                         <td class="money">&#8369;{{ number_format($row->total_amount, 2) }}</td>
                     @else
-                        <td>{{ $tab === 'franchise' ? ($row->franchise_name ?? '-') : ($row->branch_name ?? '-') }}</td>
+                        <td>{{ $row->franchise_name ?? '-' }}</td>
                         <td>{{ $row->driver_username }}</td>
                         <td>{{ $dateDisplay }}</td>
                         <td class="money">&#8369;{{ number_format($row->total_amount, 2) }}</td>

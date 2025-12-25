@@ -24,11 +24,6 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
     Route::get('/franchise/{franchise}', [FranchiseController::class, 'show'])->name('franchise.show');
     Route::get('/owner/{owner}', [OwnerController::class, 'show'])->name('owner.show');
 
-    Route::patch('/branch/{branch}', [BranchController::class, 'assign'])->name('branch.assign');
-    Route::get('/branch/create', [BranchController::class, 'create'])->name('branch.create');
-    Route::post('/branch', [BranchController::class, 'store'])->name('branch.store');
-    Route::get('/branch/{branch}', [BranchController::class, 'show'])->name('branch.show');
-
     Route::get('/manager/create', [ManagerController::class, 'create'])->name('manager.create');
     Route::get('/manager/{manager}', [ManagerController::class, 'show'])->name('manager.show');
     Route::post('/manager', [ManagerController::class, 'store'])->name('manager.store');
