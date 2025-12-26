@@ -27,7 +27,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDetailsModal } from '@/composables/useDetailsModal';
 import AppLayout from '@/layouts/AppLayout.vue';
 import superAdmin from '@/routes/super-admin';
@@ -44,13 +43,10 @@ const props = defineProps<{
     data: TransactionRow[];
   };
   franchises: { id: number; name: string }[];
-  branches: { id: number; name: string }[];
   drivers: { id: number; username: string }[];
   filters: {
     type: 'revenue' | 'expense';
-    tab: 'franchise' | 'branch';
     franchise: string[];
-    branch: string[];
     driver: string[];
     service: 'Trips' | 'Boundary';
   };
@@ -60,7 +56,6 @@ const props = defineProps<{
 interface TransactionRow {
   id: number;
   franchise_name?: string;
-  branch_name?: string;
   type: string;
   invoice_no: string;
   amount: number;
@@ -79,31 +74,15 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 // --- 4. Setup Reactive State for Filters ---
-const activeTab = ref(props.filters.tab);
 const selectedType = ref(props.filters.type);
 const selectedFranchise = ref<string[]>(props.filters.franchise || []);
-const selectedBranch = ref<string[]>(props.filters.branch || []);
 const selectedDriver = ref<string[]>(props.filters.driver || []);
 const selectedService = ref(props.filters.service);
 
-// --- 5. Computed Properties for UI ---
-const title = computed(() => {
-  return activeTab.value === 'franchise'
-    ? 'Franchise Transactions'
-    : 'Branch Transactions';
-});
-
 const selectedContext = computed({
-  get: () =>
-    activeTab.value === 'franchise'
-      ? selectedFranchise.value
-      : selectedBranch.value,
+  get: () => selectedFranchise.value,
   set: (val: string[]) => {
-    if (activeTab.value === 'franchise') {
-      selectedFranchise.value = val;
-    } else {
-      selectedBranch.value = val;
-    }
+    selectedFranchise.value = val;
     selectedDriver.value = [];
   },
 });
@@ -113,15 +92,13 @@ const driverOptions = computed(() =>
   props.drivers.map((d) => ({ id: d.id, label: d.username })),
 );
 const contextOptions = computed(() => {
-  const data =
-    activeTab.value === 'franchise' ? props.franchises : props.branches;
+  const data = props.franchises;
   return data.map((item) => ({ id: item.id, label: item.name }));
 });
 
 interface TransactionModal {
   id: number;
   franchise_name?: string;
-  branch_name?: string;
   service_type: string;
   payment_option: string;
   invoice_no: string;
@@ -142,14 +119,13 @@ const transactionDetails = computed(() => {
   if (!data) return [];
 
   const amount = formatCurrency(data.amount);
-  const nameValue = data.franchise_name || data.branch_name;
-  const nameLabel = data.franchise_name ? 'Franchise' : 'Branch';
+  const nameValue = data.franchise_name;
+  const nameLabel = 'Franchise';
 
   const details = [
     { label: nameLabel, value: nameValue, type: 'text' },
     { label: 'Service Type', value: data.service_type, type: 'text' },
     { label: 'Invoice #', value: data.invoice_no, type: 'text' },
-
     { label: 'Amount', value: amount, type: 'text' },
     { label: 'Payment Option', value: data.payment_option, type: 'text' },
     { label: 'Status', value: data.status_name, type: 'text' },
@@ -211,7 +187,6 @@ const formatCurrency = (amount: number): string => {
 
 // Computed columns for the data table
 const transactionColumns = computed<ColumnDef<TransactionRow>[]>(() => {
-  const isFranchiseTab = activeTab.value === 'franchise';
   const isRevenue = selectedType.value === 'revenue';
 
   const columns: ColumnDef<TransactionRow>[] = [
@@ -220,8 +195,8 @@ const transactionColumns = computed<ColumnDef<TransactionRow>[]>(() => {
       header: 'Invoice #',
     },
     {
-      accessorKey: isFranchiseTab ? 'franchise_name' : 'branch_name',
-      header: isFranchiseTab ? 'Franchise' : 'Branch',
+      accessorKey: 'franchise_name',
+      header: 'Franchise',
     },
     ...(isRevenue
       ? [
@@ -306,13 +281,11 @@ const updateFilters = () => {
   router.get(
     superAdmin.transaction.index().url,
     {
-      tab: activeTab.value,
       type: selectedType.value,
       service:
         selectedType.value === 'revenue' ? selectedService.value : undefined,
       driver: selectedType.value === 'revenue' ? selectedDriver.value : [],
-      franchise: activeTab.value === 'franchise' ? selectedFranchise.value : [],
-      branch: activeTab.value === 'branch' ? selectedBranch.value : [],
+      franchise: selectedFranchise.value || [],
     },
     {
       preserveScroll: true,
@@ -320,14 +293,6 @@ const updateFilters = () => {
     },
   );
 };
-
-// Watch for tab changes
-watch(activeTab, () => {
-  selectedFranchise.value = [];
-  selectedBranch.value = [];
-  selectedDriver.value = [];
-  updateFilters(); // Trigger reload
-});
 
 // Watch all filters for changes (debounced)
 watch(
@@ -345,30 +310,12 @@ watch(
     <div
       class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
     >
-      <Tabs v-model="activeTab" class="w-full">
-        <TabsList class="w-full justify-start p-1.5">
-          <TabsTrigger
-            value="franchise"
-            class="cursor-pointer font-semibold"
-            :class="{ 'pointer-events-none': activeTab === 'franchise' }"
-          >
-            Franchise
-          </TabsTrigger>
-          <TabsTrigger
-            value="branch"
-            class="cursor-pointer font-semibold"
-            :class="{ 'pointer-events-none': activeTab === 'branch' }"
-          >
-            Branch
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
       <div
         class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border"
       >
         <div class="mb-4 flex items-center justify-between">
           <h2 class="font-mono text-xl font-semibold">
-            {{ title }}
+            Franchise Transactions
           </h2>
           <div class="flex gap-4">
             <Select v-model="selectedType">
@@ -402,18 +349,11 @@ watch(
             <MultiSelect
               v-model="selectedContext"
               :options="contextOptions"
-              :placeholder="
-                activeTab === 'franchise'
-                  ? 'Select Franchises'
-                  : 'Select Branches'
-              "
-              :all-label="
-                activeTab === 'franchise' ? 'All Franchises' : 'All Branches'
-              "
+              placeholder="Select Franchises"
+              all-label="All Franchises"
               @change="
                 (val) => {
-                  if (activeTab === 'franchise') selectedFranchise = val;
-                  else selectedBranch = val;
+                  selectedFranchise = val;
                   updateFilters();
                 }
               "
