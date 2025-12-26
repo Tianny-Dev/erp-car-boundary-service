@@ -4,9 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SuperAdmin\DashboardController;
 use App\Http\Controllers\SuperAdmin\OwnerController;
 use App\Http\Controllers\SuperAdmin\FranchiseController;
-use App\Http\Controllers\SuperAdmin\BranchController;
 use App\Http\Controllers\SuperAdmin\DriverController;
-use App\Http\Controllers\SuperAdmin\ManagerController;
 use App\Http\Controllers\SuperAdmin\AllocationController;
 use App\Http\Controllers\SuperAdmin\VehicleController;
 use App\Http\Controllers\SuperAdmin\RevenueController;
@@ -23,10 +21,6 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
     Route::patch('/franchise/{franchise}', [FranchiseController::class, 'accept'])->name('franchise.accept');
     Route::get('/franchise/{franchise}', [FranchiseController::class, 'show'])->name('franchise.show');
     Route::get('/owner/{owner}', [OwnerController::class, 'show'])->name('owner.show');
-
-    Route::get('/manager/create', [ManagerController::class, 'create'])->name('manager.create');
-    Route::get('/manager/{manager}', [ManagerController::class, 'show'])->name('manager.show');
-    Route::post('/manager', [ManagerController::class, 'store'])->name('manager.store');
 
     Route::get('/revenue', [RevenueController::class, 'index'])->name('revenue.index');
     Route::get('/revenue/show', [RevenueController::class, 'show'])->name('revenue.show');
