@@ -15,12 +15,9 @@ const props = defineProps<{
     data: MarkerData[];
   };
   franchises: { id: number; name: string }[];
-  branches: { id: number; name: string }[];
   drivers: { id: number; username: string }[];
   filters: {
-    tab: 'franchise' | 'branch';
     franchise: string[];
-    branch: string[];
     driver: string[];
   };
 }>();
@@ -34,29 +31,14 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 // --- 4. Setup Reactive State for Filters ---
-const activeTab = ref(props.filters.tab || 'franchise');
 const selectedFranchise = ref<string[]>(props.filters.franchise || []);
-const selectedBranch = ref<string[]>(props.filters.branch || []);
 const selectedDriver = ref<string[]>(props.filters.driver || []);
-
-// --- 5. Computed Properties for UI ---
-const title = computed(() => {
-  return activeTab.value === 'franchise'
-    ? 'Franchise Monitoring'
-    : 'Branch Monitoring';
-});
 
 const selectedContext = computed({
   get: () =>
-    activeTab.value === 'franchise'
-      ? selectedFranchise.value
-      : selectedBranch.value,
+    selectedFranchise.value,
   set: (val: string[]) => {
-    if (activeTab.value === 'franchise') {
-      selectedFranchise.value = val;
-    } else {
-      selectedBranch.value = val;
-    }
+    selectedFranchise.value = val;
     selectedDriver.value = [];
   },
 });
@@ -66,8 +48,7 @@ const driverOptions = computed(() =>
   props.drivers.map((d) => ({ id: d.id, label: d.username })),
 );
 const contextOptions = computed(() => {
-  const data =
-    activeTab.value === 'franchise' ? props.franchises : props.branches;
+  const data = props.franchises;
   return data.map((item) => ({ id: item.id, label: item.name }));
 });
 
@@ -83,9 +64,7 @@ const handleUserActivity = () => {
     // Optional: Trigger an immediate refresh when waking up from inactivity
     refreshMapMarkers();
   }
-
   if (activityTimeout) clearTimeout(activityTimeout);
-
   // Set user to inactive after 3 minutes of no movement
   activityTimeout = setTimeout(
     () => {
@@ -104,9 +83,7 @@ const refreshMapMarkers = () => {
     only: ['mapMarkers'], // Only fetch the markers, ignore dropdown lists
     // Explicitly pass current filters to ensure the backend query is accurate
     data: {
-      tab: activeTab.value,
-      franchise: activeTab.value === 'franchise' ? selectedFranchise.value : [],
-      branch: activeTab.value === 'branch' ? selectedBranch.value : [],
+      franchise: selectedFranchise.value || [],
       driver: selectedDriver.value,
     },
     onSuccess: () => {
@@ -143,10 +120,8 @@ const updateFilters = () => {
   router.get(
     superAdmin.gpsTracker.index().url,
     {
-      tab: activeTab.value,
       driver: selectedDriver.value,
-      franchise: activeTab.value === 'franchise' ? selectedFranchise.value : [],
-      branch: activeTab.value === 'branch' ? selectedBranch.value : [],
+      franchise: selectedFranchise.value || [],
     },
     {
       preserveScroll: true,
@@ -154,117 +129,63 @@ const updateFilters = () => {
     },
   );
 };
-
-// Watch for tab changes (instant update)
-watch(activeTab, () => {
-  selectedFranchise.value = [];
-  selectedBranch.value = [];
-  selectedDriver.value = [];
-  updateFilters(); // Trigger reload
-});
 </script>
 
 <template>
+
   <Head title="Gps Monitoring" />
 
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div
-      class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
-    >
-      <Tabs v-model="activeTab" class="w-full">
-        <TabsList class="w-full justify-start p-1.5">
-          <TabsTrigger
-            value="franchise"
-            class="cursor-pointer font-semibold"
-            :class="{ 'pointer-events-none': activeTab === 'franchise' }"
-          >
-            Franchise
-          </TabsTrigger>
-          <TabsTrigger
-            value="branch"
-            class="cursor-pointer font-semibold"
-            :class="{ 'pointer-events-none': activeTab === 'branch' }"
-          >
-            Branch
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
-
-      <div
-        class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border"
-      >
+    <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+      <div class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border">
         <div class="mb-4 flex items-center justify-between">
           <h2 class="font-mono text-xl font-semibold">
-            {{ title }}
+            Franchise Monitoring
           </h2>
 
           <div class="flex gap-4">
-            <MultiSelect
-              v-model="selectedDriver"
-              :options="driverOptions"
-              placeholder="Select Drivers"
-              all-label="All Drivers"
-              @change="updateFilters"
-            />
+            <MultiSelect v-model="selectedDriver" :options="driverOptions" placeholder="Select Drivers"
+              all-label="All Drivers" @change="updateFilters" />
 
-            <MultiSelect
-              v-model="selectedContext"
-              :options="contextOptions"
-              :placeholder="
-                activeTab === 'franchise'
-                  ? 'Select Franchises'
-                  : 'Select Branches'
-              "
-              :all-label="
-                activeTab === 'franchise' ? 'All Franchises' : 'All Branches'
-              "
-              @change="
+            <MultiSelect v-model="selectedContext" :options="contextOptions" placeholder="Select Franchises" all-label="
+                All Franchises
+              " @change="
                 (val) => {
-                  if (activeTab === 'franchise') selectedFranchise = val;
-                  else selectedBranch = val;
+                  selectedFranchise = val;
                   updateFilters();
                 }
-              "
-            />
+              " />
           </div>
         </div>
 
         <div class="w-full rounded-lg border shadow-sm">
-          <LeafletMap
-            :locations="props.mapMarkers.data"
-            :fit-bounds="props.mapMarkers.data.length > 0"
-          >
+          <LeafletMap :locations="props.mapMarkers.data" :fit-bounds="props.mapMarkers.data.length > 0">
             <template #popup="{ item }">
               <div class="min-w-[150px] space-y-2 p-1">
                 <div class="border-b pb-1">
                   <h3 class="text-sm text-gray-500">
-                    {{ item.franchise_name ?? item.branch_name }}
+                    {{ item.franchise_name }}
                   </h3>
                 </div>
                 <div class="flex items-center justify-between gap-2">
                   <h3 class="font-bold text-gray-900">
                     {{ item.username }}
                   </h3>
-                  <Badge
-                    :class="[
-                      item.isOnline
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-red-100 text-red-700',
-                    ]"
-                  >
+                  <Badge :class="[
+                    item.isOnline
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-red-100 text-red-700',
+                  ]">
                     {{ item.isOnline ? 'Online' : 'Offline' }}
                   </Badge>
                 </div>
                 <div v-if="!item.isOnline">
-                  <span class="font-mono text-xs text-rose-600"
-                    >driver last seen is here</span
-                  >
+                  <span class="font-mono text-xs text-rose-600">driver last seen is here</span>
                 </div>
                 <div class="flex items-center gap-2">
                   <span class="font-semibold text-gray-600">Plate No:</span>
                   <span
-                    class="inline-block rounded bg-blue-100 px-1.5 py-0.5 font-mono text-sm font-semibold text-blue-700"
-                  >
+                    class="inline-block rounded bg-blue-100 px-1.5 py-0.5 font-mono text-sm font-semibold text-blue-700">
                     {{ item.plate_number }}
                   </span>
                 </div>

@@ -44,11 +44,8 @@ const props = defineProps<{
     data: DriverRow[];
   };
   franchises: { id: number; name: string }[];
-  branches: { id: number; name: string }[];
   filters: {
-    tab: 'franchise' | 'branch';
     franchise: string[];
-    branch: string[];
     status: 'active' | 'retired' | 'suspended';
   };
 }>();
@@ -57,7 +54,6 @@ const props = defineProps<{
 interface DriverRow {
   id: number;
   franchise_name?: string;
-  branch_name?: string;
   username: string;
   email: string;
   phone: string;
@@ -73,36 +69,23 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 // --- 4. Setup Reactive State for Filters ---
-const activeTab = ref(props.filters.tab || 'franchise');
 const selectedFranchise = ref<string[]>(props.filters.franchise || []);
-const selectedBranch = ref<string[]>(props.filters.branch || []);
 const selectedStatus = ref(props.filters.status || 'active');
-
-// --- 5. Computed Properties for UI ---
-const title = computed(() => {
-  return activeTab.value === 'franchise'
-    ? 'Franchise Drivers'
-    : 'Branch Drivers';
-});
 
 const selectedContext = computed({
   get: () =>
-    activeTab.value === 'franchise'
-      ? selectedFranchise.value
-      : selectedBranch.value,
+    selectedFranchise.value,
   set: (val: string[]) => {
-    if (activeTab.value === 'franchise') {
-      selectedFranchise.value = val;
-    } else {
-      selectedBranch.value = val;
-    }
+
+    selectedFranchise.value = val;
+
   },
 });
 
 // Mapping options for the MultiSelect
 const contextOptions = computed(() => {
   const data =
-    activeTab.value === 'franchise' ? props.franchises : props.branches;
+    props.franchises;
   return data.map((item) => ({ id: item.id, label: item.name }));
 });
 
@@ -179,10 +162,10 @@ const driverColumns = computed<ColumnDef<DriverRow>[]>(() => {
       accessorKey: 'username',
       header: 'Driver',
     },
-    // Conditionally add the correct column
-    activeTab.value === 'franchise'
-      ? { accessorKey: 'franchise_name', header: 'Franchise' }
-      : { accessorKey: 'branch_name', header: 'Branch' },
+    {
+      accessorKey: 'franchise_name',
+      header: 'Franchise'
+    },
     {
       accessorKey: 'email',
       header: 'Email',
@@ -251,10 +234,8 @@ const updateFilters = () => {
   router.get(
     superAdmin.driver.index().url,
     {
-      tab: activeTab.value,
       status: selectedStatus.value,
-      franchise: activeTab.value === 'franchise' ? selectedFranchise.value : [],
-      branch: activeTab.value === 'branch' ? selectedBranch.value : [],
+      franchise: selectedFranchise.value || [],
     },
     {
       preserveScroll: true,
@@ -262,13 +243,6 @@ const updateFilters = () => {
     },
   );
 };
-
-// Watch for tab changes (instant update)
-watch(activeTab, () => {
-  selectedFranchise.value = [];
-  selectedBranch.value = [];
-  updateFilters(); // Trigger reload
-});
 
 // Watch for select filter changes (debounced)
 watch(
@@ -280,37 +254,16 @@ watch(
 </script>
 
 <template>
+
   <Head title="Driver Management" />
 
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div
-      class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
-    >
-      <Tabs v-model="activeTab" class="w-full">
-        <TabsList class="w-full justify-start p-1.5">
-          <TabsTrigger
-            value="franchise"
-            class="cursor-pointer font-semibold"
-            :class="{ 'pointer-events-none': activeTab === 'franchise' }"
-          >
-            Franchise
-          </TabsTrigger>
-          <TabsTrigger
-            value="branch"
-            class="cursor-pointer font-semibold"
-            :class="{ 'pointer-events-none': activeTab === 'branch' }"
-          >
-            Branch
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
+    <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
 
-      <div
-        class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border"
-      >
+      <div class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border">
         <div class="mb-4 flex items-center justify-between">
           <h2 class="font-mono text-xl font-semibold">
-            {{ title }}
+            Franchise Drivers
           </h2>
 
           <div class="flex gap-4">
@@ -331,33 +284,18 @@ watch(
               </SelectContent>
             </Select>
 
-            <MultiSelect
-              v-model="selectedContext"
-              :options="contextOptions"
-              :placeholder="
-                activeTab === 'franchise'
-                  ? 'Select Franchises'
-                  : 'Select Branches'
-              "
-              :all-label="
-                activeTab === 'franchise' ? 'All Franchises' : 'All Branches'
-              "
-              @change="
+            <MultiSelect v-model="selectedContext" :options="contextOptions" placeholder="Select Franchises"
+              all-label="All Franchises" @change="
                 (val) => {
-                  if (activeTab === 'franchise') selectedFranchise = val;
-                  else selectedBranch = val;
+                  selectedFranchise = val;
+
                   updateFilters();
                 }
-              "
-            />
+              " />
           </div>
         </div>
 
-        <DataTable
-          :columns="driverColumns"
-          :data="drivers.data"
-          search-placeholder="Search drivers..."
-        />
+        <DataTable :columns="driverColumns" :data="drivers.data" search-placeholder="Search drivers..." />
       </div>
     </div>
   </AppLayout>
@@ -375,20 +313,12 @@ watch(
           </template>
         </div>
 
-        <div
-          v-else-if="driverDetails.length > 0"
-          class="grid grid-cols-2 gap-4"
-        >
+        <div v-else-if="driverDetails.length > 0" class="grid grid-cols-2 gap-4">
           <template v-for="item in driverDetails" :key="item.label">
             <div class="font-medium">{{ item.label }}:</div>
 
             <div v-if="item.type === 'link'">
-              <a
-                :href="item.value"
-                target="_blank"
-                class="text-blue-500 hover:underline"
-                >View</a
-              >
+              <a :href="item.value" target="_blank" class="text-blue-500 hover:underline">View</a>
             </div>
 
             <div v-else>
@@ -398,10 +328,7 @@ watch(
         </div>
 
         <div v-else-if="driverModal.isError.value">
-          <Alert
-            variant="destructive"
-            class="border-2 border-red-500 shadow-lg"
-          >
+          <Alert variant="destructive" class="border-2 border-red-500 shadow-lg">
             <AlertCircleIcon class="h-4 w-4" />
             <AlertTitle class="font-bold">Error</AlertTitle>
             <AlertDescription class="font-semibold">

@@ -22,10 +22,8 @@ import { toast } from 'vue-sonner';
 // Props passed from Controller
 defineProps<{
   franchises: { id: number; name: string }[];
-  branches: { id: number; name: string }[];
 }>();
 
-const contextType = ref<'franchise' | 'branch' | ''>('');
 const selectedEntityId = ref<string>('');
 // drivers
 const availableDrivers = ref<{ id: number; name: string }[]>([]);
@@ -34,35 +32,17 @@ const isLoadingDrivers = ref(false);
 const availableVehicles = ref<{ id: number; name: string }[]>([]);
 const isLoadingVehicles = ref(false);
 
-// Watcher: When Context Type changes (Franchise vs Branch)
-watch(contextType, () => {
-  // Reset dependent fields
-  form.franchise_id = null;
-  form.branch_id = null;
-  form.driver_id = null;
-  form.vehicle_id = null;
-  selectedEntityId.value = '';
-  availableDrivers.value = [];
-});
-
 // Watcher: When the specific ID changes, fetch drivers
 const handleEntityChange = async (newId: any) => {
-  if (!newId || !contextType.value) return;
+  if (!newId) return;
 
   // Clear errors
   form.errors.franchise_id = '';
-  form.errors.branch_id = '';
 
   selectedEntityId.value = newId;
 
   // Set IDs
-  if (contextType.value === 'franchise') {
-    form.franchise_id = parseInt(newId);
-    form.branch_id = null;
-  } else {
-    form.branch_id = parseInt(newId);
-    form.franchise_id = null;
-  }
+  form.franchise_id = parseInt(newId);
 
   // Reset Selections
   form.driver_id = null;
@@ -81,7 +61,6 @@ const handleEntityChange = async (newId: any) => {
       superAdmin.boundaryContract.resources().url,
       {
         params: {
-          type: contextType.value,
           id: newId,
         },
       },
@@ -101,7 +80,6 @@ const handleEntityChange = async (newId: any) => {
 
 const form = useForm({
   franchise_id: null as number | null,
-  branch_id: null as number | null,
   driver_id: null as string | null,
   vehicle_id: null as string | null,
   name: '',
@@ -114,15 +92,10 @@ const form = useForm({
 });
 
 const disableSubmit = computed(() => {
-  // 1. Convert IDs to strict booleans
-  const hasFranchise = !!form.franchise_id;
-  const hasBranch = !!form.branch_id;
-
-  // 2. Logic: Valid only if (Franchise exists AND Branch doesn't) OR (Branch exists AND Franchise doesn't)
-  const isEntitySelectionValid = hasFranchise !== hasBranch;
-
-  // 3. Check other required fields
+  // Check other required fields
   const areDetailsComplete =
+    !!form.franchise_id &&
+    !!form.vehicle_id &&
     !!form.driver_id &&
     !!form.name &&
     !!form.amount &&
@@ -133,7 +106,7 @@ const disableSubmit = computed(() => {
     !!form.renewal_terms;
 
   // 4. Return TRUE to DISABLE if selection is invalid OR details are incomplete
-  return !isEntitySelectionValid || !areDetailsComplete;
+  return !areDetailsComplete;
 });
 
 const submit = () => {
@@ -163,109 +136,56 @@ const breadcrumbs = [
 
       <form @submit.prevent="submit" class="space-y-8">
         <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <div class="space-y-2">
-            <Label>Contract Type</Label>
-            <Select v-model="contextType">
-              <SelectTrigger>
-                <SelectValue placeholder="Select type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="franchise">Franchise</SelectItem>
-                <SelectItem value="branch">Branch</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
 
           <div class="space-y-2">
-            <Label v-if="contextType === 'franchise'">Select Franchise</Label>
-            <Label v-else-if="contextType === 'branch'">Select Branch</Label>
-            <Label v-else class="text-gray-400">Select Entity</Label>
+            <Label>Select Franchise</Label>
 
-            <Select
-              v-model="selectedEntityId"
-              :disabled="!contextType"
-              @update:model-value="handleEntityChange"
-            >
-              <SelectTrigger
-                :class="{
-                  'border-red-500':
-                    form.errors.franchise_id || form.errors.branch_id,
-                }"
-              >
+            <Select v-model="selectedEntityId" @update:model-value="handleEntityChange">
+              <SelectTrigger :class="{
+                'border-red-500':
+                  form.errors.franchise_id,
+              }">
                 <SelectValue placeholder="Select..." />
               </SelectTrigger>
               <SelectContent>
-                <template v-if="contextType === 'franchise'">
-                  <SelectItem
-                    v-for="item in franchises"
-                    :key="item.id"
-                    :value="String(item.id)"
-                  >
-                    {{ item.name }}
-                  </SelectItem>
-                </template>
-                <template v-if="contextType === 'branch'">
-                  <SelectItem
-                    v-for="item in branches"
-                    :key="item.id"
-                    :value="String(item.id)"
-                  >
-                    {{ item.name }}
-                  </SelectItem>
-                </template>
+
+                <SelectItem v-for="item in franchises" :key="item.id" :value="String(item.id)">
+                  {{ item.name }}
+                </SelectItem>
+
               </SelectContent>
             </Select>
-            <InputError
-              :message="form.errors.franchise_id || form.errors.branch_id"
-            />
+            <InputError :message="form.errors.franchise_id" />
           </div>
         </div>
         <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div class="space-y-2">
             <Label>Assign Driver</Label>
-            <Select
-              v-model="form.driver_id"
-              :disabled="!form.franchise_id && !form.branch_id"
-              @update:model-value="form.errors.driver_id = ''"
-            >
-              <SelectTrigger
-                :class="{
-                  'border-red-500': form.errors.driver_id,
-                }"
-              >
-                <SelectValue
-                  :placeholder="
-                    isLoadingDrivers ? 'Loading...' : 'Select Driver'
-                  "
-                />
+            <Select v-model="form.driver_id" :disabled="!form.franchise_id"
+              @update:model-value="form.errors.driver_id = ''">
+              <SelectTrigger :class="{
+                'border-red-500': form.errors.driver_id,
+              }">
+                <SelectValue :placeholder="isLoadingDrivers ? 'Loading...' : 'Select Driver'
+                  " />
               </SelectTrigger>
               <SelectContent>
-                <div
-                  v-if="availableDrivers.length === 0"
-                  class="p-2 text-sm text-gray-500"
-                >
+                <div v-if="availableDrivers.length === 0" class="p-2 text-sm text-gray-500">
                   {{
                     isLoadingDrivers
                       ? 'Loading...'
                       : 'No available active drivers found'
                   }}
                 </div>
-                <SelectItem
-                  v-for="driver in availableDrivers"
-                  :key="driver.id"
-                  :value="String(driver.id)"
-                >
+                <SelectItem v-for="driver in availableDrivers" :key="driver.id" :value="String(driver.id)">
                   {{ driver.name }}
                 </SelectItem>
               </SelectContent>
             </Select>
-            <p
-              class="text-xs text-rose-500"
-              v-if="
-                availableDrivers.length === 0 &&
-                (form.franchise_id || form.branch_id)
-              "
-            >
+            <p class="text-xs text-rose-500" v-if="
+              availableDrivers.length === 0 &&
+              form.franchise_id
+            ">
               * Only "active" drivers without current contracts are shown.
             </p>
             <InputError :message="form.errors.driver_id" />
@@ -273,49 +193,31 @@ const breadcrumbs = [
 
           <div class="space-y-2">
             <Label>Assign Vehicle</Label>
-            <Select
-              v-model="form.vehicle_id"
-              :disabled="!form.franchise_id && !form.branch_id"
-              @update:model-value="form.errors.vehicle_id = ''"
-            >
-              <SelectTrigger
-                :class="{
-                  'border-red-500': form.errors.vehicle_id,
-                }"
-              >
-                <SelectValue
-                  :placeholder="
-                    isLoadingVehicles ? 'Loading...' : 'Select Vehicle'
-                  "
-                />
+            <Select v-model="form.vehicle_id" :disabled="!form.franchise_id"
+              @update:model-value="form.errors.vehicle_id = ''">
+              <SelectTrigger :class="{
+                'border-red-500': form.errors.vehicle_id,
+              }">
+                <SelectValue :placeholder="isLoadingVehicles ? 'Loading...' : 'Select Vehicle'
+                  " />
               </SelectTrigger>
               <SelectContent>
-                <div
-                  v-if="availableVehicles.length === 0"
-                  class="p-2 text-sm text-gray-500"
-                >
+                <div v-if="availableVehicles.length === 0" class="p-2 text-sm text-gray-500">
                   {{
                     isLoadingVehicles
                       ? 'Loading...'
                       : 'No available available vehicles found'
                   }}
                 </div>
-                <SelectItem
-                  v-for="vehicle in availableVehicles"
-                  :key="vehicle.id"
-                  :value="String(vehicle.id)"
-                >
+                <SelectItem v-for="vehicle in availableVehicles" :key="vehicle.id" :value="String(vehicle.id)">
                   {{ vehicle.name }}
                 </SelectItem>
               </SelectContent>
             </Select>
-            <p
-              class="text-xs text-rose-500"
-              v-if="
-                availableVehicles.length === 0 &&
-                (form.franchise_id || form.branch_id)
-              "
-            >
+            <p class="text-xs text-rose-500" v-if="
+              availableVehicles.length === 0 &&
+              form.franchise_id
+            ">
               * Only "available" vehicles without assign drivers are shown.
             </p>
             <InputError :message="form.errors.vehicle_id" />
@@ -327,25 +229,14 @@ const breadcrumbs = [
           <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div class="space-y-2">
               <Label>Contract Name</Label>
-              <Input
-                v-model="form.name"
-                placeholder="e.g. Standard Boundary Agreement 2024"
-                :class="{ 'border-red-500': form.errors.name }"
-                @change="form.errors.name = ''"
-              />
+              <Input v-model="form.name" placeholder="e.g. Standard Boundary Agreement 2024"
+                :class="{ 'border-red-500': form.errors.name }" @change="form.errors.name = ''" />
               <InputError :message="form.errors.name" />
             </div>
             <div class="space-y-2">
               <Label>Amount</Label>
-              <Input
-                id="amount"
-                type="number"
-                step="0.01"
-                placeholder="e.g., 1.00"
-                v-model="form.amount"
-                :class="{ 'border-red-500': form.errors.amount }"
-                @change="form.errors.amount = ''"
-              />
+              <Input id="amount" type="number" step="0.01" placeholder="e.g., 1.00" v-model="form.amount"
+                :class="{ 'border-red-500': form.errors.amount }" @change="form.errors.amount = ''" />
               <InputError :message="form.errors.amount" />
             </div>
           </div>
@@ -353,70 +244,44 @@ const breadcrumbs = [
           <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div class="flex flex-col space-y-2">
               <Label>Start Date</Label>
-              <DatePicker
-                v-model="form.start_date"
-                placeholder="Pick start date"
+              <DatePicker v-model="form.start_date" placeholder="Pick start date"
                 :class="{ 'border-red-500': form.errors.start_date }"
-                @update:model-value="form.errors.start_date = ''"
-              />
+                @update:model-value="form.errors.start_date = ''" />
               <InputError :message="form.errors.start_date" />
             </div>
 
             <div class="flex flex-col space-y-2">
               <Label>End Date</Label>
-              <DatePicker
-                v-model="form.end_date"
-                :min-date="form.start_date"
-                placeholder="Pick end date"
-                :class="{ 'border-red-500': form.errors.end_date }"
-                @update:model-value="form.errors.end_date = ''"
-              />
+              <DatePicker v-model="form.end_date" :min-date="form.start_date" placeholder="Pick end date"
+                :class="{ 'border-red-500': form.errors.end_date }" @update:model-value="form.errors.end_date = ''" />
               <InputError :message="form.errors.end_date" />
             </div>
           </div>
 
           <div class="space-y-2">
             <Label>Coverage Area</Label>
-            <Textarea
-              v-model="form.coverage_area"
-              placeholder="Define the operational area..."
-              :class="{ 'border-red-500': form.errors.coverage_area }"
-              @change="form.errors.coverage_area = ''"
-            />
+            <Textarea v-model="form.coverage_area" placeholder="Define the operational area..."
+              :class="{ 'border-red-500': form.errors.coverage_area }" @change="form.errors.coverage_area = ''" />
             <InputError :message="form.errors.coverage_area" />
           </div>
 
           <div class="space-y-2">
             <Label>Contract Terms</Label>
-            <Textarea
-              v-model="form.contract_terms"
-              class="h-24"
-              placeholder="Terms and conditions..."
-              :class="{ 'border-red-500': form.errors.contract_terms }"
-              @change="form.errors.contract_terms = ''"
-            />
+            <Textarea v-model="form.contract_terms" class="h-24" placeholder="Terms and conditions..."
+              :class="{ 'border-red-500': form.errors.contract_terms }" @change="form.errors.contract_terms = ''" />
             <InputError :message="form.errors.contract_terms" />
           </div>
 
           <div class="space-y-2">
             <Label>Renewal Terms</Label>
-            <Textarea
-              v-model="form.renewal_terms"
-              placeholder="Conditions for renewal..."
-              :class="{ 'border-red-500': form.errors.renewal_terms }"
-              @change="form.errors.renewal_terms = ''"
-            />
+            <Textarea v-model="form.renewal_terms" placeholder="Conditions for renewal..."
+              :class="{ 'border-red-500': form.errors.renewal_terms }" @change="form.errors.renewal_terms = ''" />
             <InputError :message="form.errors.renewal_terms" />
           </div>
         </div>
 
         <div class="flex justify-end gap-4">
-          <Button
-            type="button"
-            variant="outline"
-            @click="(form.reset(), (selectedEntityId = ''), (contextType = ''))"
-            >Reset</Button
-          >
+          <Button type="button" variant="outline" @click="(form.reset(), (selectedEntityId = ''))">Reset</Button>
           <Button type="submit" :disabled="form.processing || disableSubmit">
             {{ form.processing ? 'Saving...' : 'Create Boundary Contract' }}
           </Button>

@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,11 +45,8 @@ const props = defineProps<{
     data: ContractRow[];
   };
   franchises: { id: number; name: string }[];
-  branches: { id: number; name: string }[];
   filters: {
-    tab: 'franchise' | 'branch';
     franchise: string[];
-    branch: string[];
     status: 'active' | 'retired' | 'suspended';
   };
 }>();
@@ -62,7 +60,6 @@ interface ContractRow {
   start_date: string;
   end_date: string;
   franchise_name?: string;
-  branch_name?: string;
   driver_username: string;
   status_name: string;
 }
@@ -76,36 +73,21 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 // --- 4. Setup Reactive State for Filters ---
-const activeTab = ref(props.filters.tab || 'franchise');
 const selectedFranchise = ref<string[]>(props.filters.franchise || []);
-const selectedBranch = ref<string[]>(props.filters.branch || []);
 const selectedStatus = ref(props.filters.status || 'active');
-
-// --- 5. Computed Properties for UI ---
-const title = computed(() => {
-  return activeTab.value === 'franchise'
-    ? 'Franchise Contracts'
-    : 'Branch Contracts';
-});
 
 const selectedContext = computed({
   get: () =>
-    activeTab.value === 'franchise'
-      ? selectedFranchise.value
-      : selectedBranch.value,
+    selectedFranchise.value,
   set: (val: string[]) => {
-    if (activeTab.value === 'franchise') {
-      selectedFranchise.value = val;
-    } else {
-      selectedBranch.value = val;
-    }
+    selectedFranchise.value = val;
   },
 });
 
 // Mapping options for the MultiSelect
 const contextOptions = computed(() => {
   const data =
-    activeTab.value === 'franchise' ? props.franchises : props.branches;
+    props.franchises;
   return data.map((item) => ({ id: item.id, label: item.name }));
 });
 
@@ -126,9 +108,6 @@ interface ContractModal {
   franchise_name?: string;
   franchise_email?: string;
   franchise_phone?: string;
-  branch_name?: string;
-  branch_email?: string;
-  branch_phone?: string;
 }
 const contractDetails = computed(() => {
   const data = contractModal.data.value;
@@ -150,9 +129,6 @@ const contractDetails = computed(() => {
     { label: 'Franchise Name', value: data.franchise_name, type: 'text' },
     { label: 'Franchise Email', value: data.franchise_email, type: 'text' },
     { label: 'Franchise Phone', value: data.franchise_phone, type: 'text' },
-    { label: 'Branch Name', value: data.branch_name, type: 'text' },
-    { label: 'Branch Email', value: data.branch_email, type: 'text' },
-    { label: 'Branch Phone', value: data.branch_phone, type: 'text' },
   ].filter((item) => item.value);
 });
 
@@ -184,10 +160,10 @@ const contractColumns = computed<ColumnDef<ContractRow>[]>(() => {
       accessorKey: 'driver_username',
       header: 'Driver',
     },
-    // Conditionally add the correct column
-    activeTab.value === 'franchise'
-      ? { accessorKey: 'franchise_name', header: 'Franchise' }
-      : { accessorKey: 'branch_name', header: 'Branch' },
+    {
+      accessorKey: 'franchise_name',
+      header: 'Franchise'
+    },
     {
       accessorKey: 'amount',
       header: 'Amount',
@@ -266,10 +242,8 @@ const updateFilters = () => {
   router.get(
     superAdmin.boundaryContract.index().url,
     {
-      tab: activeTab.value,
       status: selectedStatus.value,
-      franchise: activeTab.value === 'franchise' ? selectedFranchise.value : [],
-      branch: activeTab.value === 'branch' ? selectedBranch.value : [],
+      franchise: selectedFranchise.value || [],
     },
     {
       preserveScroll: true,
@@ -277,13 +251,6 @@ const updateFilters = () => {
     },
   );
 };
-
-// Watch for tab changes (instant update)
-watch(activeTab, () => {
-  selectedFranchise.value = [];
-  selectedBranch.value = [];
-  updateFilters(); // Trigger reload
-});
 
 // Watch for select filter changes (debounced)
 watch(
@@ -295,37 +262,15 @@ watch(
 </script>
 
 <template>
+
   <Head title="Boundary Contract" />
 
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div
-      class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
-    >
-      <Tabs v-model="activeTab" class="w-full">
-        <TabsList class="w-full justify-start p-1.5">
-          <TabsTrigger
-            value="franchise"
-            class="cursor-pointer font-semibold"
-            :class="{ 'pointer-events-none': activeTab === 'franchise' }"
-          >
-            Franchise
-          </TabsTrigger>
-          <TabsTrigger
-            value="branch"
-            class="cursor-pointer font-semibold"
-            :class="{ 'pointer-events-none': activeTab === 'branch' }"
-          >
-            Branch
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
-
-      <div
-        class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border"
-      >
+    <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+      <div class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border">
         <div class="mb-4 flex items-center justify-between">
           <h2 class="font-mono text-xl font-semibold">
-            {{ title }}
+            Franchise Contracts
           </h2>
 
           <div class="flex gap-4">
@@ -341,37 +286,22 @@ watch(
               </SelectContent>
             </Select>
 
-            <MultiSelect
-              v-model="selectedContext"
-              :options="contextOptions"
-              :placeholder="
-                activeTab === 'franchise'
-                  ? 'Select Franchises'
-                  : 'Select Branches'
-              "
-              :all-label="
-                activeTab === 'franchise' ? 'All Franchises' : 'All Branches'
-              "
-              @change="
+            <MultiSelect v-model="selectedContext" :options="contextOptions" placeholder="
+                Select Franchises
+              " all-label="All Franchises" @change="
                 (val) => {
-                  if (activeTab === 'franchise') selectedFranchise = val;
-                  else selectedBranch = val;
+                  selectedFranchise = val;
                   updateFilters();
                 }
-              "
-            />
+              " />
           </div>
         </div>
 
-        <DataTable
-          :columns="contractColumns"
-          :data="contracts.data"
-          search-placeholder="Search contracts..."
-        >
+        <DataTable :columns="contractColumns" :data="contracts.data" search-placeholder="Search contracts...">
           <template #custom-actions>
-            <Button class="me-5" @click="createContract"
-              ><PlusIcon />Add Contract</Button
-            >
+            <Button class="me-5" @click="createContract">
+              <PlusIcon />Add Contract
+            </Button>
           </template>
         </DataTable>
       </div>
@@ -383,20 +313,14 @@ watch(
           <DialogTitle>Contract Details</DialogTitle>
         </DialogHeader>
         <DialogDescription>
-          <div
-            v-if="contractModal.isLoading.value"
-            class="grid grid-cols-2 gap-4"
-          >
+          <div v-if="contractModal.isLoading.value" class="grid grid-cols-2 gap-4">
             <template v-for="item in 10" :key="item">
               <Skeleton class="h-5 w-24" />
               <Skeleton class="h-5 w-3/4" />
             </template>
           </div>
 
-          <div
-            v-else-if="contractDetails.length > 0"
-            class="grid grid-cols-2 gap-4"
-          >
+          <div v-else-if="contractDetails.length > 0" class="grid grid-cols-2 gap-4">
             <template v-for="item in contractDetails" :key="item.label">
               <div class="font-medium">{{ item.label }}:</div>
               <div>
@@ -406,10 +330,7 @@ watch(
           </div>
 
           <div v-else-if="contractModal.isError.value">
-            <Alert
-              variant="destructive"
-              class="border-2 border-red-500 shadow-lg"
-            >
+            <Alert variant="destructive" class="border-2 border-red-500 shadow-lg">
               <AlertCircleIcon class="h-4 w-4" />
               <AlertTitle class="font-bold">Error</AlertTitle>
               <AlertDescription class="font-semibold">

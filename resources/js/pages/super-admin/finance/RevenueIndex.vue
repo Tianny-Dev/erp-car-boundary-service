@@ -41,11 +41,8 @@ const props = defineProps<{
     data: RevenueRow[];
   };
   franchises: { id: number; name: string }[];
-  branches: { id: number; name: string }[];
   filters: {
-    tab: 'franchise' | 'branch';
     franchise: string[];
-    branch: string[];
     service: 'Trips' | 'Boundary';
     period: 'daily' | 'weekly' | 'monthly';
   };
@@ -55,7 +52,6 @@ const props = defineProps<{
 interface RevenueRow {
   id: number | null;
   franchise_name?: string;
-  branch_name?: string;
   amount: number;
   payment_date: string;
   service_type: string;
@@ -70,37 +66,22 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 // --- 4. Setup Reactive State for Filters ---
-const activeTab = ref(props.filters.tab);
 const selectedFranchise = ref<string[]>(props.filters.franchise || []);
-const selectedBranch = ref<string[]>(props.filters.branch || []);
 const selectedService = ref(props.filters.service);
 const selectedPeriod = ref(props.filters.period);
 
-// --- 5. Computed Properties for UI ---
-const title = computed(() => {
-  return activeTab.value === 'franchise'
-    ? 'Franchise Revenues'
-    : 'Branch Revenues';
-});
-
 const selectedContext = computed({
   get: () =>
-    activeTab.value === 'franchise'
-      ? selectedFranchise.value
-      : selectedBranch.value,
+    selectedFranchise.value,
   set: (val: string[]) => {
-    if (activeTab.value === 'franchise') {
-      selectedFranchise.value = val;
-    } else {
-      selectedBranch.value = val;
-    }
+    selectedFranchise.value = val;
   },
 });
 
 // Mapping options for the MultiSelect
 const contextOptions = computed(() => {
   const data =
-    activeTab.value === 'franchise' ? props.franchises : props.branches;
+    props.franchises;
   return data.map((item) => ({ id: item.id, label: item.name }));
 });
 
@@ -159,18 +140,15 @@ function handleExport() {
 
   // 1. Get all *current* page filters
   const params = new URLSearchParams({
-    tab: activeTab.value,
     service: selectedService.value,
     period: selectedPeriod.value,
     export: exportType.value,
     year: exportYear.value,
   });
 
-  // 2. Add branch/franchise filter if not 'all'
-  if (activeTab.value === 'franchise' && selectedFranchise.value.length > 0) {
+  // 2. Add franchise filter if not 'all'
+  if (selectedFranchise.value.length > 0) {
     selectedFranchise.value.forEach((f) => params.append('franchise[]', f));
-  } else if (activeTab.value === 'branch' && selectedBranch.value.length > 0) {
-    selectedBranch.value.forEach((b) => params.append('branch[]', b));
   }
 
   // 3. Add months
@@ -198,12 +176,11 @@ const formatCurrency = (amount: number): string => {
 // Computed columns for the data table
 const revenueColumns = computed<ColumnDef<RevenueRow>[]>(() => {
   const isDaily = selectedPeriod.value === 'daily';
-  const isFranchiseTab = activeTab.value === 'franchise';
 
   const columns: ColumnDef<RevenueRow>[] = [
     {
-      accessorKey: isFranchiseTab ? 'franchise_name' : 'branch_name',
-      header: isFranchiseTab ? 'Franchise' : 'Branch',
+      accessorKey: 'franchise_name',
+      header: 'Franchise',
     },
     {
       accessorKey: 'payment_date',
@@ -247,9 +224,7 @@ const revenueColumns = computed<ColumnDef<RevenueRow>[]>(() => {
                       end: rowData.query_params.end,
                       label: rowData.payment_date,
                       service: selectedService.value,
-                      tab: activeTab.value,
                       franchise: rowData.franchise_id,
-                      branch: rowData.branch_id,
                     };
 
                     router.get(superAdmin.revenue.show().url, queryParams, {
@@ -275,11 +250,9 @@ const updateFilters = () => {
   router.get(
     superAdmin.revenue.index().url,
     {
-      tab: activeTab.value,
       service: selectedService.value,
       period: selectedPeriod.value,
-      franchise: activeTab.value === 'franchise' ? selectedFranchise.value : [],
-      branch: activeTab.value === 'branch' ? selectedBranch.value : [],
+      franchise: selectedFranchise.value || [],
     },
     {
       preserveScroll: true,
@@ -287,13 +260,6 @@ const updateFilters = () => {
     },
   );
 };
-
-// Watch for tab changes
-watch(activeTab, () => {
-  selectedFranchise.value = [];
-  selectedBranch.value = [];
-  updateFilters(); // Trigger reload
-});
 
 // Watch all filters for changes (debounced)
 watch(
@@ -310,22 +276,11 @@ watch(
 
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-      <Tabs v-model="activeTab" class="w-full">
-        <TabsList class="w-full justify-start p-1.5">
-          <TabsTrigger value="franchise" class="cursor-pointer font-semibold"
-            :class="{ 'pointer-events-none': activeTab === 'franchise' }">
-            Franchise
-          </TabsTrigger>
-          <TabsTrigger value="branch" class="cursor-pointer font-semibold"
-            :class="{ 'pointer-events-none': activeTab === 'branch' }">
-            Branch
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
+
       <div class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border">
         <div class="mb-4 flex items-center justify-between">
           <h2 class="font-mono text-xl font-semibold">
-            {{ title }}
+            Franchise Revenues
           </h2>
           <div class="flex gap-4">
             <Select v-model="selectedService">
@@ -349,17 +304,13 @@ watch(
               </SelectContent>
             </Select>
 
-            <MultiSelect v-model="selectedContext" :options="contextOptions" :placeholder="activeTab === 'franchise'
-              ? 'Select Franchises'
-              : 'Select Branches'
-              " :all-label="activeTab === 'franchise' ? 'All Franchises' : 'All Branches'
-                " @change="
-                  (val) => {
-                    if (activeTab === 'franchise') selectedFranchise = val;
-                    else selectedBranch = val;
-                    updateFilters();
-                  }
-                " />
+            <MultiSelect v-model="selectedContext" :options="contextOptions" placeholder="Select Franchises"
+              all-label="All Franchises" @change="
+                (val) => {
+                  selectedFranchise = val;
+                  updateFilters();
+                }
+              " />
           </div>
         </div>
 

@@ -57,32 +57,17 @@ interface FranchiseRow {
   owner_id: number;
 }
 
-interface BranchRow {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  status_name: string;
-  manager_username: string;
-  manager_id: number;
-}
-
 interface Stats {
   total_revenue: number;
   total_expenses: number;
   total_franchises: number;
-  total_branches: number;
 }
 
 defineProps<{
   franchises: {
     data: FranchiseRow[];
   };
-  branches: {
-    data: BranchRow[];
-  };
   stats: Stats;
-  pendingManagers: any[];
 }>();
 
 const formatCurrency = (amount: number): string => {
@@ -99,14 +84,6 @@ const breadcrumbs: BreadcrumbItem[] = [
     href: superAdmin.dashboard().url,
   },
 ];
-
-const createBranch = () => {
-  router.get(superAdmin.branch.create().url);
-};
-
-const createManager = () => {
-  router.get(superAdmin.manager.create().url);
-};
 
 interface FranchiseModal {
   id: number;
@@ -210,92 +187,6 @@ const ownerDetails = computed(() => {
   ].filter((item) => item.value);
 });
 
-interface BranchModal {
-  id: number;
-  status: string;
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  region: string;
-  city: string;
-  barangay: string;
-  province?: string;
-  postal_code: string;
-  created_at: string;
-  dti_registration_attachment?: string;
-  mayor_permit_attachment?: string;
-  proof_agreement_attachment?: string;
-}
-const branchDetails = computed(() => {
-  const data = branchModal.data.value;
-  if (!data) return [];
-
-  return [
-    { label: 'Name', value: data.name, type: 'text' },
-    { label: 'Email', value: data.email, type: 'text' },
-    { label: 'Phone', value: data.phone, type: 'text' },
-    { label: 'Status', value: data.status, type: 'text' },
-    { label: 'Region', value: data.region, type: 'text' },
-    { label: 'Province', value: data.province, type: 'text' },
-    { label: 'City', value: data.city, type: 'text' },
-    { label: 'Barangay', value: data.barangay, type: 'text' },
-    { label: 'Postal Code', value: data.postal_code, type: 'text' },
-    { label: 'Address', value: data.address, type: 'text' },
-    { label: 'Registered At', value: data.created_at, type: 'text' },
-    {
-      label: 'DTI Registration',
-      value: data.dti_registration_attachment,
-      type: 'link',
-    },
-    {
-      label: "Mayor's Permit",
-      value: data.mayor_permit_attachment,
-      type: 'link',
-    },
-    {
-      label: 'Proof of Agreement',
-      value: data.proof_agreement_attachment,
-      type: 'link',
-    },
-  ].filter((item) => item.value);
-});
-
-interface ManagerModal {
-  id: number;
-  status: string;
-  username: string;
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  region: string;
-  city: string;
-  barangay: string;
-  province?: string;
-  postal_code: string;
-  created_at?: string;
-}
-const managerDetails = computed(() => {
-  const data = managerModal.data.value;
-  if (!data) return [];
-
-  return [
-    { label: 'Username', value: data.username, type: 'text' },
-    { label: 'Name', value: data.name, type: 'text' },
-    { label: 'Email', value: data.email, type: 'text' },
-    { label: 'Phone', value: data.phone, type: 'text' },
-    { label: 'Status', value: data.status, type: 'text' },
-    { label: 'Region', value: data.region, type: 'text' },
-    { label: 'Province', value: data.province, type: 'text' },
-    { label: 'City', value: data.city, type: 'text' },
-    { label: 'Barangay', value: data.barangay, type: 'text' },
-    { label: 'Postal Code', value: data.postal_code, type: 'text' },
-    { label: 'Address', value: data.address, type: 'text' },
-    { label: 'Registered At', value: data.created_at, type: 'text' },
-  ].filter((item) => item.value);
-});
-
 // --- Modal State ---
 const franchiseModal = useDetailsModal<FranchiseModal>({
   baseUrl: '/super-admin/franchise',
@@ -303,14 +194,6 @@ const franchiseModal = useDetailsModal<FranchiseModal>({
 
 const ownerModal = useDetailsModal<OwnerModal>({
   baseUrl: '/super-admin/owner',
-});
-
-const branchModal = useDetailsModal<BranchModal>({
-  baseUrl: '/super-admin/branch',
-});
-
-const managerModal = useDetailsModal<ManagerModal>({
-  baseUrl: '/super-admin/manager',
 });
 
 // --- Accept Modal State ---
@@ -341,38 +224,6 @@ const handleAcceptFranchise = () => {
       },
     },
   );
-};
-
-// --- Assign Modal State ---
-const isAssignModalOpen = ref(false);
-const selectedBranch = ref<Partial<BranchRow>>({});
-const isAssigningManager = ref(false);
-
-const assignForm = useForm({
-  assign_id: '' as string | number,
-});
-
-const openAssignModal = (branch: BranchRow) => {
-  selectedBranch.value = branch;
-  assignForm.reset();
-  isAssignModalOpen.value = true;
-};
-
-const handleAssignManager = () => {
-  if (!selectedBranch.value?.id) return;
-  isAssigningManager.value = true;
-  assignForm.patch(superAdmin.branch.assign(selectedBranch.value.id).url, {
-    onSuccess: () => {
-      isAssignModalOpen.value = false;
-      toast.success('Manager assigned successfully!');
-    },
-    onFinish: () => {
-      setTimeout(() => {
-        isAssigningManager.value = false;
-        assignForm.reset();
-      }, 500);
-    },
-  });
 };
 
 const franchiseColumns: ColumnDef<FranchiseRow>[] = [
@@ -454,16 +305,16 @@ const franchiseColumns: ColumnDef<FranchiseRow>[] = [
             ),
             franchise.status_name === 'pending'
               ? [
-                  h(DropdownMenuSeparator),
-                  h(
-                    DropdownMenuItem,
-                    {
-                      class: 'cursor-pointer text-blue-500 focus:text-blue-600',
-                      onClick: () => openAcceptModal(franchise),
-                    },
-                    () => 'Accept Franchise',
-                  ),
-                ]
+                h(DropdownMenuSeparator),
+                h(
+                  DropdownMenuItem,
+                  {
+                    class: 'cursor-pointer text-blue-500 focus:text-blue-600',
+                    onClick: () => openAcceptModal(franchise),
+                  },
+                  () => 'Accept Franchise',
+                ),
+              ]
               : null,
           ]),
         ]),
@@ -472,127 +323,20 @@ const franchiseColumns: ColumnDef<FranchiseRow>[] = [
   },
 ];
 
-const branchColumns: ColumnDef<BranchRow>[] = [
-  {
-    accessorKey: 'name',
-    header: () => h('div', { class: 'text-center' }, 'Branch'),
-    cell: ({ row }) => h('div', { class: 'text-center' }, row.getValue('name')),
-  },
-  {
-    accessorKey: 'manager_username',
-    header: () => h('div', { class: 'text-center' }, 'Manager'),
-    cell: ({ row }) =>
-      h(
-        'div',
-        { class: 'text-center' },
-        row.getValue('manager_username') || 'N/A',
-      ),
-  },
-  {
-    accessorKey: 'email',
-    header: () => h('div', { class: 'text-center' }, 'Email'),
-    cell: ({ row }) =>
-      h('div', { class: 'text-center' }, row.getValue('email')),
-  },
-  {
-    accessorKey: 'phone',
-    header: () => h('div', { class: 'text-center' }, 'Phone'),
-    cell: ({ row }) =>
-      h('div', { class: 'text-center' }, row.getValue('phone')),
-  },
-  {
-    accessorKey: 'status_name',
-    header: () => h('div', { class: 'text-center' }, 'Status'),
-    cell: ({ row }) => {
-      const status = row.getValue('status_name') as string;
-      return h('div', { class: 'text-center' }, [
-        h(
-          Badge,
-          { class: ['bg-blue-500 hover:bg-blue-600', 'text-white'] },
-          () => status || 'N/A',
-        ),
-      ]);
-    },
-  },
-  {
-    id: 'actions',
-    header: () => h('div', { class: 'text-center' }, 'Actions'),
-    cell: ({ row }) => {
-      const branch = row.original;
-
-      return h('div', { class: 'relative text-center' }, [
-        h(DropdownMenu, null, () => [
-          h(
-            DropdownMenuTrigger,
-            { asChild: true, class: 'cursor-pointer' },
-            () =>
-              h(Button, { variant: 'ghost', class: 'h-8 w-8 p-0' }, () => [
-                h('span', { class: 'sr-only' }, 'Open menu'),
-                h(MoreHorizontal, { class: 'h-4 w-4' }),
-              ]),
-          ),
-          h(DropdownMenuContent, { align: 'end', class: 'border-2' }, () => [
-            h(DropdownMenuLabel, null, () => 'Actions'),
-            h(
-              DropdownMenuItem,
-              {
-                class: 'cursor-pointer',
-                onClick: () => branchModal.open(branch.id),
-              },
-              () => 'View Branch Details',
-            ),
-            branch.manager_username !== null
-              ? [
-                  h(
-                    DropdownMenuItem,
-                    {
-                      class: 'cursor-pointer',
-                      onClick: () => managerModal.open(branch.manager_id),
-                    },
-                    () => 'View Manager Details',
-                  ),
-                ]
-              : null,
-
-            branch.manager_username === null
-              ? [
-                  h(DropdownMenuSeparator),
-                  h(
-                    DropdownMenuItem,
-                    {
-                      class: 'cursor-pointer text-blue-500 focus:text-blue-600',
-                      onClick: () => openAssignModal(branch),
-                    },
-                    () => 'Assign Manager',
-                  ),
-                ]
-              : null,
-          ]),
-        ]),
-      ]);
-    },
-  },
-];
 </script>
 
 <template>
+
   <Head title="Super Admin Dashboard" />
 
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div
-      class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
-    >
+    <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
       <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardHeader
-            class="flex flex-row items-center justify-between space-y-0 pb-2"
-          >
-            <CardTitle class="font-mono text-lg"
-              >Total Revenue
-              <span class="font-mono text-sm text-muted-foreground"
-                >(Today)</span
-              ></CardTitle
-            >
+          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle class="font-mono text-lg">Total Revenue
+              <span class="font-mono text-sm text-muted-foreground">(Today)</span>
+            </CardTitle>
             <BanknoteArrowUpIcon class="h-6 w-6 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -602,15 +346,10 @@ const branchColumns: ColumnDef<BranchRow>[] = [
           </CardContent>
         </Card>
         <Card>
-          <CardHeader
-            class="flex flex-row items-center justify-between space-y-0 pb-2"
-          >
-            <CardTitle class="font-mono text-lg"
-              >Total Expenses
-              <span class="font-mono text-sm text-muted-foreground"
-                >(Today)</span
-              ></CardTitle
-            >
+          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle class="font-mono text-lg">Total Expenses
+              <span class="font-mono text-sm text-muted-foreground">(Today)</span>
+            </CardTitle>
             <BanknoteArrowDownIcon class="h-6 w-6 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -620,9 +359,7 @@ const branchColumns: ColumnDef<BranchRow>[] = [
           </CardContent>
         </Card>
         <Card>
-          <CardHeader
-            class="flex flex-row items-center justify-between space-y-0 pb-2"
-          >
+          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle class="font-mono text-lg">Total Franchise </CardTitle>
             <LandmarkIcon class="h-6 w-6 text-muted-foreground" />
           </CardHeader>
@@ -632,51 +369,13 @@ const branchColumns: ColumnDef<BranchRow>[] = [
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader
-            class="flex flex-row items-center justify-between space-y-0 pb-2"
-          >
-            <CardTitle class="font-mono text-lg">Total Branch </CardTitle>
-            <WarehouseIcon class="h-6 w-6 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div class="font-mono text-2xl font-semibold">
-              {{ stats.total_branches }}
-            </div>
-          </CardContent>
-        </Card>
+
       </div>
-      <div
-        class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border"
-      >
+      <div class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border">
         <h2 class="mb-4 font-mono text-xl font-semibold">
           Franchise Management
         </h2>
-        <DataTable
-          :columns="franchiseColumns"
-          :data="franchises.data"
-          search-placeholder="Search franchises..."
-        />
-      </div>
-
-      <div
-        class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border"
-      >
-        <h2 class="mb-4 font-mono text-xl font-semibold">Branch Management</h2>
-        <DataTable
-          :columns="branchColumns"
-          :data="branches.data"
-          search-placeholder="Search branches..."
-        >
-          <template #custom-actions>
-            <Button class="me-1" @click="createManager"
-              ><PlusIcon />Add Manager</Button
-            >
-            <Button class="me-5" @click="createBranch"
-              ><PlusIcon />Add Branch</Button
-            >
-          </template>
-        </DataTable>
+        <DataTable :columns="franchiseColumns" :data="franchises.data" search-placeholder="Search franchises..." />
       </div>
     </div>
   </AppLayout>
@@ -687,19 +386,13 @@ const branchColumns: ColumnDef<BranchRow>[] = [
         <DialogTitle class="text-2xl">Accept Franchise?</DialogTitle>
         <DialogDescription class="text-md font-semibold">
           Are you sure you want to accept the franchise
-          <strong class="text-blue-500">{{ selectedFranchise.name }}</strong
-          >? This will also activate the owner's account.
+          <strong class="text-blue-500">{{ selectedFranchise.name }}</strong>? This will also activate the owner's
+          account.
         </DialogDescription>
       </DialogHeader>
       <DialogFooter>
-        <Button variant="outline" @click="isAcceptModalOpen = false"
-          >Cancel</Button
-        >
-        <Button
-          variant="default"
-          @click="handleAcceptFranchise"
-          :disabled="isAcceptingFranchise"
-        >
+        <Button variant="outline" @click="isAcceptModalOpen = false">Cancel</Button>
+        <Button variant="default" @click="handleAcceptFranchise" :disabled="isAcceptingFranchise">
           {{ isAcceptingFranchise ? 'Accepting...' : 'Yes, Accept' }}
         </Button>
       </DialogFooter>
@@ -712,30 +405,19 @@ const branchColumns: ColumnDef<BranchRow>[] = [
         <DialogTitle>Franchise Details</DialogTitle>
       </DialogHeader>
       <DialogDescription>
-        <div
-          v-if="franchiseModal.isLoading.value"
-          class="grid grid-cols-2 gap-4"
-        >
+        <div v-if="franchiseModal.isLoading.value" class="grid grid-cols-2 gap-4">
           <template v-for="item in 10" :key="item">
             <Skeleton class="h-5 w-24" />
             <Skeleton class="h-5 w-3/4" />
           </template>
         </div>
 
-        <div
-          v-else-if="franchiseDetails.length > 0"
-          class="grid grid-cols-2 gap-4"
-        >
+        <div v-else-if="franchiseDetails.length > 0" class="grid grid-cols-2 gap-4">
           <template v-for="item in franchiseDetails" :key="item.label">
             <div class="font-medium">{{ item.label }}:</div>
 
             <div v-if="item.type === 'link'">
-              <a
-                :href="item.value"
-                target="_blank"
-                class="text-blue-500 hover:underline"
-                >View</a
-              >
+              <a :href="item.value" target="_blank" class="text-blue-500 hover:underline">View</a>
             </div>
 
             <div v-else>
@@ -745,10 +427,7 @@ const branchColumns: ColumnDef<BranchRow>[] = [
         </div>
 
         <div v-else-if="franchiseModal.isError.value">
-          <Alert
-            variant="destructive"
-            class="border-2 border-red-500 shadow-lg"
-          >
+          <Alert variant="destructive" class="border-2 border-red-500 shadow-lg">
             <AlertCircleIcon class="h-4 w-4" />
             <AlertTitle class="font-bold">Error</AlertTitle>
             <AlertDescription class="font-semibold">
@@ -781,12 +460,7 @@ const branchColumns: ColumnDef<BranchRow>[] = [
             <div class="font-medium">{{ item.label }}:</div>
 
             <div v-if="item.type === 'link'">
-              <a
-                :href="item.value"
-                target="_blank"
-                class="text-blue-500 hover:underline"
-                >View</a
-              >
+              <a :href="item.value" target="_blank" class="text-blue-500 hover:underline">View</a>
             </div>
 
             <div v-else>
@@ -796,10 +470,7 @@ const branchColumns: ColumnDef<BranchRow>[] = [
         </div>
 
         <div v-else-if="ownerModal.isError.value">
-          <Alert
-            variant="destructive"
-            class="border-2 border-red-500 shadow-lg"
-          >
+          <Alert variant="destructive" class="border-2 border-red-500 shadow-lg">
             <AlertCircleIcon class="h-4 w-4" />
             <AlertTitle class="font-bold">Error</AlertTitle>
             <AlertDescription class="font-semibold">
@@ -811,163 +482,6 @@ const branchColumns: ColumnDef<BranchRow>[] = [
 
       <DialogFooter class="mt-5">
         <Button variant="outline" @click="ownerModal.close">Close</Button>
-      </DialogFooter>
-    </DialogContent>
-  </Dialog>
-
-  <Dialog v-model:open="branchModal.isOpen.value">
-    <DialogContent class="max-w-2xl overflow-y-auto">
-      <DialogHeader>
-        <DialogTitle>Branch Details</DialogTitle>
-      </DialogHeader>
-      <DialogDescription>
-        <div v-if="branchModal.isLoading.value" class="grid grid-cols-2 gap-4">
-          <template v-for="item in 10" :key="item">
-            <Skeleton class="h-5 w-24" />
-            <Skeleton class="h-5 w-3/4" />
-          </template>
-        </div>
-
-        <div
-          v-else-if="branchDetails.length > 0"
-          class="grid grid-cols-2 gap-4"
-        >
-          <template v-for="item in branchDetails" :key="item.label">
-            <div class="font-medium">{{ item.label }}:</div>
-
-            <div v-if="item.type === 'link'">
-              <a
-                :href="item.value"
-                target="_blank"
-                class="text-blue-500 hover:underline"
-                >View</a
-              >
-            </div>
-
-            <div v-else>
-              {{ item.value }}
-            </div>
-          </template>
-        </div>
-
-        <div v-else-if="branchModal.isError.value">
-          <Alert
-            variant="destructive"
-            class="border-2 border-red-500 shadow-lg"
-          >
-            <AlertCircleIcon class="h-4 w-4" />
-            <AlertTitle class="font-bold">Error</AlertTitle>
-            <AlertDescription class="font-semibold">
-              Failed to load branch details.
-            </AlertDescription>
-          </Alert>
-        </div>
-      </DialogDescription>
-      <DialogFooter class="mt-5">
-        <Button variant="outline" @click="branchModal.close">Close</Button>
-      </DialogFooter>
-    </DialogContent>
-  </Dialog>
-
-  <Dialog v-model:open="managerModal.isOpen.value">
-    <DialogContent class="max-w-3xl overflow-y-auto">
-      <DialogHeader>
-        <DialogTitle>Manager Details</DialogTitle>
-      </DialogHeader>
-      <DialogDescription>
-        <div v-if="managerModal.isLoading.value" class="grid grid-cols-2 gap-4">
-          <template v-for="item in 10" :key="item">
-            <Skeleton class="h-5 w-24" />
-            <Skeleton class="h-5 w-3/4" />
-          </template>
-        </div>
-
-        <div
-          v-else-if="managerDetails.length > 0"
-          class="grid grid-cols-2 gap-4"
-        >
-          <template v-for="item in managerDetails" :key="item.label">
-            <div class="font-medium">{{ item.label }}:</div>
-
-            <div v-if="item.type === 'link'">
-              <a
-                :href="item.value"
-                target="_blank"
-                class="text-blue-500 hover:underline"
-                >View</a
-              >
-            </div>
-
-            <div v-else>
-              {{ item.value }}
-            </div>
-          </template>
-        </div>
-
-        <div v-else-if="managerModal.isError.value">
-          <Alert
-            variant="destructive"
-            class="border-2 border-red-500 shadow-lg"
-          >
-            <AlertCircleIcon class="h-4 w-4" />
-            <AlertTitle class="font-bold">Error</AlertTitle>
-            <AlertDescription class="font-semibold">
-              Failed to load manager details.
-            </AlertDescription>
-          </Alert>
-        </div>
-      </DialogDescription>
-
-      <DialogFooter class="mt-5">
-        <Button variant="outline" @click="managerModal.close">Close</Button>
-      </DialogFooter>
-    </DialogContent>
-  </Dialog>
-
-  <Dialog v-model:open="isAssignModalOpen">
-    <DialogContent class="max-w-md font-mono">
-      <DialogHeader>
-        <DialogTitle class="text-xl">Assign Manager</DialogTitle>
-        <DialogDescription>
-          Assign a manager to this branch
-          <strong>{{ selectedBranch.name }}</strong
-          >. This will set the status of the manager to active.
-        </DialogDescription>
-      </DialogHeader>
-
-      <div class="grid gap-4 py-4">
-        <div class="grid gap-2">
-          <Label>Available Managers</Label>
-          <Select v-model="assignForm.assign_id">
-            <SelectTrigger>
-              <SelectValue placeholder="Select manager" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem
-                v-for="item in pendingManagers"
-                :key="item.id"
-                :value="String(item.id)"
-              >
-                {{ item.name }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-          <p v-if="assignForm.errors.assign_id" class="text-sm text-red-500">
-            {{ assignForm.errors.assign_id }}
-          </p>
-        </div>
-      </div>
-
-      <DialogFooter>
-        <Button variant="outline" @click="isAssignModalOpen = false"
-          >Cancel</Button
-        >
-        <Button
-          @click="handleAssignManager"
-          :disabled="assignForm.processing || !assignForm.assign_id"
-        >
-          {{ assignForm.processing ? 'Assigning...' : 'Confirm Assignment' }}
-        </Button>
       </DialogFooter>
     </DialogContent>
   </Dialog>

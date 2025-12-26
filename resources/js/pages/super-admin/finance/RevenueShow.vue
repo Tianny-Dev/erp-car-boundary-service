@@ -17,9 +17,7 @@ const props = defineProps<{
   targetName: string;
   totalSum: number;
   filters: {
-    tab: 'franchise' | 'branch';
     franchise?: string[] | string;
-    branch?: string[] | string;
     service: 'Trips' | 'Boundary';
     period: 'daily' | 'weekly' | 'monthly';
   }
@@ -55,11 +53,9 @@ const handleExport = (type: 'pdf' | 'excel' | 'csv') => {
     end: endDate || '',
     label: props.periodLabel,
     export: type,
-    tab: props.filters.tab,
     service: props.filters.service,
     period: props.filters.period,
     franchise: getFirstValue(props.filters.franchise),
-    branch: getFirstValue(props.filters.branch),
   });
 
   // 2. Open URL

@@ -41,12 +41,9 @@ const props = defineProps<{
     data: any[];
   };
   franchises: { id: number; name: string }[];
-  branches: { id: number; name: string }[];
   drivers: { id: number; username: string }[];
   filters: {
-    tab: 'franchise' | 'branch';
     franchise: string[];
-    branch: string[];
     driver: string[];
     period: 'daily' | 'weekly' | 'monthly';
   };
@@ -67,30 +64,15 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 // --- 4. Setup Reactive State for Filters ---
-const activeTab = ref(props.filters.tab);
 const selectedFranchise = ref<string[]>(props.filters.franchise || []);
-const selectedBranch = ref<string[]>(props.filters.branch || []);
 const selectedDriver = ref<string[]>(props.filters.driver || []);
 const selectedPeriod = ref(props.filters.period);
 
-// --- 5. Computed Properties for UI ---
-const title = computed(() => {
-  return activeTab.value === 'franchise'
-    ? 'Franchise Earnings'
-    : 'Branch Earnings';
-});
-
 const selectedContext = computed({
   get: () =>
-    activeTab.value === 'franchise'
-      ? selectedFranchise.value
-      : selectedBranch.value,
+    selectedFranchise.value,
   set: (val: string[]) => {
-    if (activeTab.value === 'franchise') {
-      selectedFranchise.value = val;
-    } else {
-      selectedBranch.value = val;
-    }
+    selectedFranchise.value = val;
     selectedDriver.value = [];
   },
 });
@@ -101,7 +83,7 @@ const driverOptions = computed(() =>
 );
 const contextOptions = computed(() => {
   const data =
-    activeTab.value === 'franchise' ? props.franchises : props.branches;
+    props.franchises;
   return data.map((item) => ({ id: item.id, label: item.name }));
 });
 
@@ -159,17 +141,14 @@ function handleExport() {
 
   // 1. Get all *current* page filters
   const params = new URLSearchParams({
-    tab: activeTab.value,
     period: selectedPeriod.value,
     export: exportType.value,
     year: exportYear.value,
   });
 
-  // 2. Add branch/franchise
-  if (activeTab.value === 'franchise' && selectedFranchise.value.length > 0) {
+  // 2. Add franchise filter
+  if (selectedFranchise.value.length > 0) {
     selectedFranchise.value.forEach((f) => params.append('franchise[]', f));
-  } else if (activeTab.value === 'branch' && selectedBranch.value.length > 0) {
-    selectedBranch.value.forEach((b) => params.append('branch[]', b));
   }
 
   // 3. Add drivers
@@ -201,12 +180,11 @@ const formatCurrency = (amount: number): string => {
 
 // Computed columns for the data table
 const earningColumns = computed<ColumnDef<any>[]>(() => {
-  const isFranchiseTab = activeTab.value === 'franchise';
 
   const columns: ColumnDef<any>[] = [
     {
-      accessorKey: isFranchiseTab ? 'franchise_name' : 'branch_name',
-      header: isFranchiseTab ? 'Franchise' : 'Branch',
+      accessorKey: 'franchise_name',
+      header: 'Franchise',
     },
     {
       accessorKey: 'driver_username',
@@ -274,7 +252,6 @@ const earningColumns = computed<ColumnDef<any>[]>(() => {
                     start: rowData.query_params.start,
                     end: rowData.query_params.end,
                     label: rowData.payment_date,
-                    tab: activeTab.value,
                   };
 
                   router.get(superAdmin.earning.show().url, queryParams, {
@@ -299,11 +276,9 @@ const updateFilters = () => {
   router.get(
     superAdmin.earning.index().url,
     {
-      tab: activeTab.value,
       period: selectedPeriod.value,
       driver: selectedDriver.value,
-      franchise: activeTab.value === 'franchise' ? selectedFranchise.value : [],
-      branch: activeTab.value === 'branch' ? selectedBranch.value : [],
+      franchise: selectedFranchise.value || [],
     },
     {
       preserveScroll: true,
@@ -311,14 +286,6 @@ const updateFilters = () => {
     },
   );
 };
-
-// Watch for tab changes
-watch(activeTab, () => {
-  selectedFranchise.value = [];
-  selectedBranch.value = [];
-  selectedDriver.value = [];
-  updateFilters(); // Trigger reload
-});
 
 // Watch all filters for changes (debounced)
 watch(
@@ -330,35 +297,14 @@ watch(
 </script>
 
 <template>
+
   <Head title="Earning Report" />
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div
-      class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
-    >
-      <Tabs v-model="activeTab" class="w-full">
-        <TabsList class="w-full justify-start p-1.5">
-          <TabsTrigger
-            value="franchise"
-            class="cursor-pointer font-semibold"
-            :class="{ 'pointer-events-none': activeTab === 'franchise' }"
-          >
-            Franchise
-          </TabsTrigger>
-          <TabsTrigger
-            value="branch"
-            class="cursor-pointer font-semibold"
-            :class="{ 'pointer-events-none': activeTab === 'branch' }"
-          >
-            Branch
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
-      <div
-        class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border"
-      >
+    <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+      <div class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border">
         <div class="mb-4 flex items-center justify-between">
           <h2 class="font-mono text-xl font-semibold">
-            {{ title }}
+            Franchise Earnings
           </h2>
           <div class="flex gap-4">
             <Select v-model="selectedPeriod">
@@ -372,41 +318,20 @@ watch(
               </SelectContent>
             </Select>
 
-            <MultiSelect
-              v-model="selectedDriver"
-              :options="driverOptions"
-              placeholder="Select Drivers"
-              all-label="All Drivers"
-              @change="updateFilters"
-            />
+            <MultiSelect v-model="selectedDriver" :options="driverOptions" placeholder="Select Drivers"
+              all-label="All Drivers" @change="updateFilters" />
 
-            <MultiSelect
-              v-model="selectedContext"
-              :options="contextOptions"
-              :placeholder="
-                activeTab === 'franchise'
-                  ? 'Select Franchises'
-                  : 'Select Branches'
-              "
-              :all-label="
-                activeTab === 'franchise' ? 'All Franchises' : 'All Branches'
-              "
-              @change="
+            <MultiSelect v-model="selectedContext" :options="contextOptions" placeholder="Select Franchises"
+              all-label="All Franchises" @change="
                 (val) => {
-                  if (activeTab === 'franchise') selectedFranchise = val;
-                  else selectedBranch = val;
+                  selectedFranchise = val;
                   updateFilters();
                 }
-              "
-            />
+              " />
           </div>
         </div>
 
-        <DataTable
-          :columns="earningColumns"
-          :data="earnings.data"
-          search-placeholder="Search earnings..."
-        >
+        <DataTable :columns="earningColumns" :data="earnings.data" search-placeholder="Search earnings...">
           <template #custom-actions>
             <Button @click="openExportModal('pdf')"> Export PDF </Button>
             <Button @click="openExportModal('excel')"> Export Excel </Button>
@@ -432,11 +357,7 @@ watch(
                   <SelectValue placeholder="Select year" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem
-                    v-for="year in yearOptions"
-                    :key="year"
-                    :value="year"
-                  >
+                  <SelectItem v-for="year in yearOptions" :key="year" :value="year">
                     {{ year }}
                   </SelectItem>
                 </SelectContent>
@@ -445,16 +366,9 @@ watch(
             <div class="grid grid-cols-4 items-start gap-4">
               <label class="pt-2 text-right">Months</label>
               <div class="col-span-3 grid grid-cols-2 gap-2">
-                <div
-                  v-for="month in monthOptions"
-                  :key="month.id"
-                  class="flex items-center gap-2"
-                >
-                  <Checkbox
-                    :id="`month-${month.id}`"
-                    :model-value="exportMonths.includes(month.id)"
-                    @update:model-value="() => toggleMonth(month.id)"
-                  />
+                <div v-for="month in monthOptions" :key="month.id" class="flex items-center gap-2">
+                  <Checkbox :id="`month-${month.id}`" :model-value="exportMonths.includes(month.id)"
+                    @update:model-value="() => toggleMonth(month.id)" />
 
                   <label :for="`month-${month.id}`" class="cursor-pointer">
                     {{ month.label }}
