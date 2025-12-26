@@ -43,6 +43,7 @@ import {
   MoreHorizontal,
   PlusIcon,
   WarehouseIcon,
+  UsersRoundIcon,
 } from 'lucide-vue-next';
 import { computed, h, ref } from 'vue';
 import { toast } from 'vue-sonner';
@@ -61,6 +62,7 @@ interface Stats {
   total_revenue: number;
   total_expenses: number;
   total_franchises: number;
+  total_drivers: number;
 }
 
 defineProps<{
@@ -347,7 +349,7 @@ const franchiseColumns: ColumnDef<FranchiseRow>[] = [
         </Card>
         <Card>
           <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle class="font-mono text-lg">Total Expenses
+            <CardTitle class="font-mono text-lg">Total Expense
               <span class="font-mono text-sm text-muted-foreground">(Today)</span>
             </CardTitle>
             <BanknoteArrowDownIcon class="h-6 w-6 text-muted-foreground" />
@@ -366,6 +368,17 @@ const franchiseColumns: ColumnDef<FranchiseRow>[] = [
           <CardContent>
             <div class="font-mono text-2xl font-semibold">
               {{ stats.total_franchises }}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle class="font-mono text-lg">Total Driver </CardTitle>
+            <UsersRoundIcon class="h-6 w-6 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div class="font-mono text-2xl font-semibold">
+              {{ stats.total_drivers }}
             </div>
           </CardContent>
         </Card>

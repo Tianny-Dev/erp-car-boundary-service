@@ -7,6 +7,7 @@ use App\Models\Franchise;
 use App\Models\Revenue;
 use App\Models\Expense;
 use App\Models\UserManager;
+use App\Models\UserDriver;
 use App\Http\Resources\SuperAdmin\FranchiseDatatableResource;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -28,6 +29,10 @@ class DashboardController extends Controller
             ->sum('amount');
         // Get total active franchises
         $totalFranchises = Franchise::whereHas('status', function ($query) {
+            $query->where('name', 'active');
+        })->count();
+
+        $totalDrivers = UserDriver::whereHas('status', function ($query) {
             $query->where('name', 'active');
         })->count();
 
@@ -54,6 +59,7 @@ class DashboardController extends Controller
                 'total_revenue' => $totalRevenue,
                 'total_expenses' => $totalExpenses,
                 'total_franchises' => $totalFranchises,
+                'total_drivers' => $totalDrivers
             ],
             'pendingManagers' => $pendingManagers
         ]);
