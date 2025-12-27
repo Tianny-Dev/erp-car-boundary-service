@@ -21,7 +21,7 @@ class BoundaryContractController extends Controller
         $franchise = auth()->user()->ownerDetails?->franchises()->first();
         $franchiseId = $franchise?->id;
 
-        $query = BoundaryContract::with(['driver.user', 'status', 'franchise', 'branch'])
+        $query = BoundaryContract::with(['driver.user', 'status', 'franchise'])
             ->when($franchiseId, fn ($q) => $q->where('franchise_id', $franchiseId))
             ->orderByDesc('created_at');
 

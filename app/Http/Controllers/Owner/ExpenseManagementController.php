@@ -128,7 +128,7 @@ class ExpenseManagementController extends Controller
                 ]);
         }
 
-        $query = Expense::with(['status', 'franchise', 'branch', 'paymentOption'])
+        $query = Expense::with(['status', 'franchise', 'paymentOption'])
             ->when($franchiseId, fn($q) => $q->where('franchise_id', $franchiseId))
             ->orderByDesc('payment_date');
 
@@ -166,7 +166,6 @@ class ExpenseManagementController extends Controller
                 'notes' => $expense->notes,
                 'status' => $expense->status?->name,
                 'franchise' => $expense->franchise?->name,
-                'branch' => $expense->branch?->name,
                 'payment_option' => $expense->paymentOption?->name,
             ]);
     }

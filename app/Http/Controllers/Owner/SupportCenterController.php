@@ -16,7 +16,7 @@ class SupportCenterController extends Controller
         $franchise = $this->getFranchiseOrDefault();
         $franchiseId = $franchise?->id;
 
-        $query = SupportTicket::with(['status', 'franchise', 'branch', 'user'])
+        $query = SupportTicket::with(['status', 'franchise', 'user'])
             ->when($franchiseId, function ($q) use ($franchiseId) {
                 $q->where('franchise_id', $franchiseId);
             })
@@ -55,11 +55,6 @@ class SupportCenterController extends Controller
                     'franchise' => $tickets->franchise ? [
                         'id' => $tickets->franchise->id,
                         'name' => $tickets->franchise->name,
-                    ] : null,
-
-                    'branch' => $tickets->branch ? [
-                        'id' => $tickets->branch->id,
-                        'name' => $tickets->branch->name,
                     ] : null,
 
                     'user' => $tickets->user ? [

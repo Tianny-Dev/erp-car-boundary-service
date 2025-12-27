@@ -133,7 +133,7 @@ class RevenueManagementController extends Controller
         }
 
 
-        $query = Revenue::with(['status', 'franchise', 'branch', 'paymentOption'])
+        $query = Revenue::with(['status', 'franchise', 'paymentOption'])
             ->when($franchiseId, fn($q) => $q->where('franchise_id', $franchiseId))
             ->where('service_type', 'Trips')
             ->orderByDesc('payment_date');
@@ -172,7 +172,6 @@ class RevenueManagementController extends Controller
                 'notes' => $revenue->notes,
                 'status' => $revenue->status?->name,
                 'franchise' => $revenue->franchise?->name,
-                'branch' => $revenue->branch?->name,
                 'payment_option' => $revenue->paymentOption?->name,
             ]);
     }
