@@ -64,4 +64,7 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
 
     Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
     Route::get('/inventory/{inventory}', [InventoryController::class, 'show'])->name('inventory.show');
+
+    Route::post('/franchise/{franchise}/upload-contract', [FranchiseController::class, 'uploadContract'])
+        ->name('franchise.upload-contract');
 });
