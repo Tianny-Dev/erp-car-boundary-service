@@ -27,6 +27,7 @@ class FranchiseResource extends JsonResource
             'barangay' => $this->barangay, 
             'province' => $this->province ? $this->province : null,
             'postal_code' => $this->postal_code, 
+            'contract_attachment' => $this->contract_attachment ? Storage::url($this->contract_attachment) : null,
             'dti_registration_attachment' => $this->dti_registration_attachment ? Storage::url($this->dti_registration_attachment) : null,
             'mayor_permit_attachment' => $this->mayor_permit_attachment ? Storage::url($this->mayor_permit_attachment) : null,
             'proof_agreement_attachment' => $this->proof_agreement_attachment ? Storage::url($this->proof_agreement_attachment) : null,

@@ -4,6 +4,7 @@ namespace App\Http\Resources\SuperAdmin;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class FranchiseDatatableResource extends JsonResource
 {
@@ -19,6 +20,7 @@ class FranchiseDatatableResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'phone' => $this->phone,
+            'contract_attachment' => $this->contract_attachment ? Storage::url($this->contract_attachment) : null,
             'status_name' => $this->status->name ?? null,
             'owner_id' => $this->owner_id,
             'owner_username' => $this->owner->user->username ?? null,
