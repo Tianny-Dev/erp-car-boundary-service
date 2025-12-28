@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Owner\BoundaryContractController;
+use App\Http\Controllers\Owner\FranchiseController;
 use App\Http\Controllers\Owner\DashboardController;
 use App\Http\Controllers\Owner\DetailsDriverController;
 use App\Http\Controllers\Owner\DetailsPayrollController;
@@ -54,4 +55,7 @@ Route::middleware(['auth', 'verified', 'user_type:owner', 'check.active'])->pref
 
     Route::put('/support-tickets/{ticket}/complete', [SupportCenterController::class, 'markAsCompleted'])
     ->name('supportTickets.complete');
+
+    Route::get('/franchise/my-contract', [FranchiseController::class, 'myContract'])
+        ->name('franchise.my-contract');
 });
