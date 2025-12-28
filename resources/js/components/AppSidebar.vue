@@ -43,6 +43,7 @@ import NavMain from './NavMain.vue';
 // 🧠 1. Get the logged-in user
 const page = usePage();
 const user = page.props.auth.user;
+const userFranchise = user.owner?.franchises?.[0];
 
 // 🧭 2. Map user_type_id to role name
 const typeMap: Record<number, string> = {
@@ -333,6 +334,13 @@ const navConfig: Record<string, NavItem[]> = {
       href: owner.maintenanceRequests.index(),
       icon: Wrench,
       group: 'Support',
+    },
+
+    {
+      title: 'My Contract',
+      href: owner.franchise.myContract(),
+      icon: ReceiptText,
+      group: 'Others',
     },
   ],
 

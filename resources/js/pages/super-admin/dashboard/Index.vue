@@ -21,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -53,6 +54,7 @@ interface FranchiseRow {
   name: string;
   email: string;
   phone: string;
+  contract_attachment: string;
   status_name: string;
   owner_username: string;
   owner_id: number;
@@ -228,6 +230,50 @@ const handleAcceptFranchise = () => {
   );
 };
 
+// Upload Contract Modal State
+const uploadContractModal = ref(false)
+const selectedFranchiseId = ref<number | null>(null)
+const contractFile = ref<File | null>(null)
+
+function openUploadContractModal(franchise: { id: number }) {
+  selectedFranchiseId.value = franchise.id
+  uploadContractModal.value = true
+}
+
+function handleContractFileChange(event: Event) {
+  const target = event.target as HTMLInputElement
+  contractFile.value = target.files?.[0] || null
+}
+
+const isUploadingContract = ref(false)
+
+function submitContract() {
+  if (!selectedFranchiseId.value || !contractFile.value) return
+
+  isUploadingContract.value = true
+
+  const formData = new FormData()
+  formData.append('contract_attachment', contractFile.value)
+
+  router.post(
+    superAdmin.franchise.uploadContract(selectedFranchiseId.value).url,
+    formData,
+    {
+      forceFormData: true,
+      onSuccess: () => {
+        uploadContractModal.value = false
+        contractFile.value = null
+        toast.success('Contract uploaded successfully!')
+      },
+      onFinish: () => {
+        setTimeout(() => {
+          isUploadingContract.value = false
+        }, 500)
+      },
+    },
+  )
+}
+
 const franchiseColumns: ColumnDef<FranchiseRow>[] = [
   {
     accessorKey: 'name',
@@ -255,6 +301,36 @@ const franchiseColumns: ColumnDef<FranchiseRow>[] = [
     header: () => h('div', { class: 'text-center' }, 'Phone'),
     cell: ({ row }) =>
       h('div', { class: 'text-center' }, row.getValue('phone')),
+  },
+  {
+    accessorKey: 'contract_attachment',
+    header: () => h('div', { class: 'text-center' }, 'Contract'),
+    cell: ({ row }) => {
+      const contract = row.original.contract_attachment
+
+      if (!contract) {
+        return h(
+          'div',
+          { class: 'text-center text-gray-400 italic' },
+          'Not yet available',
+        )
+      }
+
+      return h(
+        'div',
+        { class: 'flex justify-center' },
+        h(
+          'a',
+          {
+            href: contract,
+            target: '_blank',
+            rel: 'noopener',
+            class: 'text-blue-500 hover:underline',
+          },
+          'View Contract',
+        ),
+      )
+    },
   },
   {
     accessorKey: 'status_name',
@@ -318,13 +394,26 @@ const franchiseColumns: ColumnDef<FranchiseRow>[] = [
                 ),
               ]
               : null,
+
+            franchise.contract_attachment === null
+              ? [
+                  h(DropdownMenuSeparator),
+                  h(
+                    DropdownMenuItem,
+                    {
+                      class: 'cursor-pointer text-blue-500 focus:text-blue-600',
+                      onClick: () => openUploadContractModal(franchise),
+                    },
+                    () => 'Upload Contract',
+                  ),
+                ]
+              : null
           ]),
         ]),
       ]);
     },
   },
 ];
-
 </script>
 
 <template>
@@ -496,6 +585,29 @@ const franchiseColumns: ColumnDef<FranchiseRow>[] = [
       <DialogFooter class="mt-5">
         <Button variant="outline" @click="ownerModal.close">Close</Button>
       </DialogFooter>
+    </DialogContent>
+  </Dialog>
+
+  <Dialog v-model:open="uploadContractModal">
+    <DialogContent class="max-w-md">
+      <DialogHeader>
+        <DialogTitle>Upload Contract</DialogTitle>
+        <DialogDescription>
+          Upload the signed contract for this franchise
+        </DialogDescription>
+      </DialogHeader>
+
+      <div class="grid w-full gap-4 mt-4">
+        <div class="grid w-full items-center gap-1.5">
+          <Label for="contract">Contract File</Label>
+          <Input id="contract" type="file" @change="handleContractFileChange" />
+        </div>
+
+        <div class="flex justify-end gap-2 mt-4">
+          <Button variant="outline" @click="isOpen = false">Cancel</Button>
+          <Button @click="submitContract" :disabled="!contractFile">Upload</Button>
+        </div>
+      </div>
     </DialogContent>
   </Dialog>
 </template>
