@@ -28,6 +28,7 @@ return new class extends Migration
             $table->decimal('average_speed_kmh', 6, 2)->nullable();
             $table->decimal('max_speed_kmh', 6, 2)->nullable();
             $table->text('route_path')->nullable();
+            $table->boolean('is_favorite')->default(false);
             $table->timestamps();
         });
     }
