@@ -23,8 +23,62 @@ class DatabaseSeeder extends Seeder
 
         User::factory()->create([
             'user_type_id' => 1,
+            'username' => 'testexample',
             'name' => 'Test User',
             'email' => 'test@example.com',
+        ]);
+
+        User::factory()->create([
+            'user_type_id' => 1,
+            'username' => 'juandelacruz',
+            'name' => 'Juan Delacruz',
+            'email' => 'juandelacruz@gmail.com',
+        ]);
+
+        User::factory()->create([
+            'user_type_id' => 2,
+            'username' => 'pedrodelacruz',
+            'name' => 'Pedro Delacruz',
+            'email' => 'pedrodelacruz@gmail.com',
+        ]);
+
+        User::factory()->create([
+            'user_type_id' => 4,
+            'username' => 'dibbertmeda',
+            'name' => 'Prof Cordell Kerluke',
+            'email' => 'nnienow@example.org',
+            'phone' => '09264728199',
+        ]);
+
+        User::factory()->create([
+            'user_type_id' => 4,
+            'username' => 'verdagorczany',
+            'name' => 'Westley Thiel',
+            'phone' => '09914288276',
+        ]);
+
+        User::factory()->create([
+            'user_type_id' => 6,
+            'username' => 'Alexis D Boy',
+            'name' => 'Alexis D Boy',
+            'email' => 'potjud30@gmail.com',
+            'phone' => '09304206320',
+        ]);
+
+        User::factory()->create([
+            'user_type_id' => 6,
+            'username' => 'Iverson',
+            'name' => 'Iverson M Mamangun',
+            'email' => 'mamanguniverson@gmail.com',
+            'phone' => '09761772917',
+        ]);
+
+        User::factory()->create([
+            'user_type_id' => 6,
+            'username' => 'Joshua F Payumo',
+            'name' => 'Joshua F Payumo',
+            'email' => 'joshuapayumo2001@gmail.com',
+            'phone' => '09101301920',
         ]);
 
         User::factory(30)->create();
