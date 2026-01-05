@@ -34,7 +34,7 @@ import { useDetailsModal } from '@/composables/useDetailsModal';
 import AppLayout from '@/layouts/AppLayout.vue';
 import superAdmin from '@/routes/super-admin';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import { type ColumnDef } from '@tanstack/vue-table';
 import {
   AlertCircleIcon,
@@ -46,8 +46,25 @@ import {
   WarehouseIcon,
   UsersRoundIcon,
 } from 'lucide-vue-next';
-import { computed, h, ref } from 'vue';
+import { computed, h, ref, onMounted } from 'vue';
 import { toast } from 'vue-sonner';
+
+const page = usePage<{
+  flash?: {
+    success?: string;
+    error?: string;
+  };
+}>();
+
+onMounted(() => {
+  if (page.props.flash?.success) {
+    toast.success(page.props.flash.success);
+  }
+
+  if (page.props.flash?.error) {
+    toast.error(page.props.flash.error);
+  }
+});
 
 interface FranchiseRow {
   id: number;
@@ -274,6 +291,10 @@ function submitContract() {
   )
 }
 
+const createFranchise = () => {
+  router.get(superAdmin.franchise.create().url);
+};
+
 const franchiseColumns: ColumnDef<FranchiseRow>[] = [
   {
     accessorKey: 'name',
@@ -477,7 +498,13 @@ const franchiseColumns: ColumnDef<FranchiseRow>[] = [
         <h2 class="mb-4 font-mono text-xl font-semibold">
           Franchise Management
         </h2>
-        <DataTable :columns="franchiseColumns" :data="franchises.data" search-placeholder="Search franchises..." />
+        <DataTable :columns="franchiseColumns" :data="franchises.data" search-placeholder="Search franchises..." >
+          <template #custom-actions>
+            <Button class="me-5" @click="createFranchise">
+              <PlusIcon />Add Franchise
+            </Button>
+          </template>
+        </DataTable>
       </div>
     </div>
   </AppLayout>
