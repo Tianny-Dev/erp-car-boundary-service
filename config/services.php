@@ -41,4 +41,6 @@ return [
         'sender' => env('MOVIDER_SENDER'),
     ],
 
+    'support_email' => env('SUPPORT_EMAIL', 'itdept.bb88@gmail.com'),
+
 ];

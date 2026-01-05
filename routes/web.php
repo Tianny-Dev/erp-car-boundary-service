@@ -4,11 +4,14 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SuperAdmin\FranchiseContractController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\FeedbackController;
+use App\Http\Controllers\LandingPage\ContactUsController; 
 use Inertia\Inertia;
 
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.store');
+
+Route::post('/contact', [ContactUsController::class, 'store'])->name('contact.store');
 
 Route::get('/inactive', function () {
     return Inertia::render('InactiveAccount');
