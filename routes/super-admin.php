@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SuperAdmin\DashboardController;
+use App\Http\Controllers\SuperAdmin\FeedbackManagementController;
 use App\Http\Controllers\SuperAdmin\OwnerController;
 use App\Http\Controllers\SuperAdmin\FranchiseController;
 use App\Http\Controllers\SuperAdmin\DriverController;
@@ -67,4 +68,7 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
 
     Route::post('/franchise/{franchise}/upload-contract', [FranchiseController::class, 'uploadContract'])
         ->name('franchise.upload-contract');
+
+    Route::resource('feedbacks', FeedbackManagementController::class);
+    Route::patch('/feedback/{id}/toggle', [FeedbackManagementController::class, 'toggleActive']);
 });

@@ -36,6 +36,7 @@ import {
   Ticket,
   Users,
   Wrench,
+  FileUser,
 } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import NavMain from './NavMain.vue';
@@ -131,6 +132,12 @@ const navConfig: Record<string, NavItem[]> = {
       href: superAdmin.allocation.index(),
       icon: HandCoins,
       group: 'Finance',
+    },
+    {
+      title: 'Feedback Management',
+      href: superAdmin.feedbacks.index(),
+      icon: FileUser,
+      group: 'Others',
     },
   ],
 
