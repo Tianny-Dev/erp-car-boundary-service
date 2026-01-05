@@ -19,6 +19,7 @@
             <label for="" class="text-white">Full Name</label>
             <input
               type="text"
+              required
               placeholder="Name"
               class="mb-3 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
             />
@@ -26,6 +27,7 @@
             <label for="" class="text-white">Email</label>
             <input
               type="email"
+              required
               placeholder="Email"
               class="mb-3 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
             />
@@ -33,6 +35,7 @@
             <label for="" class="text-white">Subject</label>
             <input
               type="text"
+              required
               placeholder="Subject"
               class="w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
             />
@@ -42,6 +45,7 @@
             <label for="" class="text-white">Message</label>
             <textarea
               placeholder="Message.."
+              required
               rows="5"
               class="w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
             ></textarea>

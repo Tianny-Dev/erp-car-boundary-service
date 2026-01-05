@@ -60,11 +60,11 @@ usePageTheme('light');
     <!-- Franchise End -->
 
     <!-- Driver Start -->
-    <Driver />
+    <Driver :userTypes="userTypes" />
     <!-- Driver End -->
 
     <!-- Technician Start -->
-    <Technician />
+    <Technician :userTypes="userTypes" />
     <!-- Technician End -->
 
     <!-- Passenger Start -->

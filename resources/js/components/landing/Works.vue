@@ -6,7 +6,7 @@
     <div class="mx-auto w-full max-w-[1320px]">
       <div class="flex items-center gap-2 sm:gap-5">
         <h1 class="text-3xl font-bold whitespace-nowrap text-white">
-          HOW IT WORK?
+          HOW IT WORKS?
         </h1>
         <div class="h-1 w-full bg-white"></div>
       </div>

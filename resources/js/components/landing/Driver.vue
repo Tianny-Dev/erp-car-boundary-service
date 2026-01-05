@@ -1,3 +1,15 @@
+<script setup lang="ts">
+import { Link } from '@inertiajs/vue3';
+
+interface Props {
+  userTypes: { name: string; encrypted_id: string }[];
+}
+
+const { userTypes } = defineProps<Props>();
+
+const driver = userTypes.find((t) => t.name === 'driver');
+</script>
+
 <template>
   <div id="driver" class="scroll-mt-14 bg-white py-10">
     <div class="bg-brand-blue py-2 text-center text-3xl font-bold text-white">
@@ -86,11 +98,13 @@
       </div>
 
       <div class="pt-7 text-center sm:pt-10">
-        <button
-          class="mt-6 rounded-xl bg-brand-blue px-5 py-2 text-xl text-white sm:px-12 sm:text-3xl"
+        <Link
+          v-if="driver"
+          :href="`/register/${driver.encrypted_id}`"
+          class="mt-6 rounded-xl bg-brand-blue px-5 py-2 text-xl text-white sm:px-12 sm:text-3xl hover:opacity-80 transition-all"
         >
           Apply as a Driver
-        </button>
+        </Link>
       </div>
     </div>
   </div>
