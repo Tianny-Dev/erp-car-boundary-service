@@ -26,14 +26,35 @@ interface FranchiseData {
   city: string;
 }
 
+interface UserTypes {
+  name: string;
+  encrypted_id: string;
+}
+
+interface UserTypeFeedback {
+  id: number;
+  name: string;
+}
+
+interface Feedback {
+  id: number;
+  name: string;
+  avatar?: string | null;
+  rating: number;
+  description: string;
+  user_type: UserTypeFeedback | null;
+  created_at: string;
+}
+
 // 2. Define a SINGLE Props interface
 interface Props {
-  userTypes: { name: string; encrypted_id: string }[];
+  userTypes: UserTypes[];
   franchises: FranchiseData[];
+  feedbacks: Feedback[];
 }
 
 // 3. Destructure BOTH variables so they are available to your template
-const { userTypes, franchises } = defineProps<Props>();
+const { userTypes, franchises, feedbacks } = defineProps<Props>();
 
 // Force light mode
 usePageTheme('light');
@@ -72,7 +93,7 @@ usePageTheme('light');
     <!-- Passenger End -->
 
     <!-- Testimonials Start -->
-    <Testimonials />
+    <Testimonials :feedbacks="feedbacks" :userTypes="userTypes" />
     <!-- Testimonials End -->
 
     <!-- Join Start -->
