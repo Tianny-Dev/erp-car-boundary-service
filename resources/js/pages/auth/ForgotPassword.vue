@@ -10,7 +10,7 @@ import AuthLayout from '@/layouts/AuthLayout.vue';
 import { login } from '@/routes';
 import { email } from '@/routes/password';
 import { Form, Head } from '@inertiajs/vue3';
-import { Phone } from 'lucide-vue-next';
+import { User } from 'lucide-vue-next';
 
 defineProps<{
   status?: string;
@@ -43,7 +43,7 @@ usePageTheme('light');
             class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
           >
             <div class="flex items-center justify-center bg-auth-blue px-3">
-              <Phone class="h-5 w-5 text-white" />
+              <User class="h-5 w-5 text-white" />
             </div>
             <Input
               id="email"
