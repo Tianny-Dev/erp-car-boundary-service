@@ -231,7 +231,10 @@ const submitFeedback = async () => {
               </button>
             </div>
 
-            <div class="owl-carousel owl-1">
+            <div
+              class="owl-carousel owl-1"
+              v-if="props.feedbacks && props.feedbacks.length"
+            >
               <!-- Dynamic Feedback Loop -->
               <div
                 v-for="fb in props.feedbacks"
@@ -280,6 +283,9 @@ const submitFeedback = async () => {
                 <p class="pt-4 text-lg/[22px]">{{ fb.description }}</p>
               </div>
               <!-- End Dynamic Feedback Loop -->
+            </div>
+            <div v-else class="py-10 text-center text-gray-500">
+              No feedbacks available yet.
             </div>
           </div>
         </div>

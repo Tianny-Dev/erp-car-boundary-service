@@ -23,6 +23,7 @@ class HomeController extends Controller
 
         // Feedbacks with user type
         $feedbacks = Feedback::with('userType:id,name')
+            ->where('is_active', true)
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(fn($fb) => [

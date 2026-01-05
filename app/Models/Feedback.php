@@ -15,10 +15,12 @@ class Feedback extends Model
         'avatar',
         'rating',
         'description',
+        'is_active',
     ];
 
     protected $casts = [
         'rating' => 'decimal:1',
+        'is_active' => 'boolean',
     ];
 
     public function userType()

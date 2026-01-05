@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('avatar')->nullable();
             $table->decimal('rating', 2, 1)->comment('Star rating from 1.0 to 5.0 (0.5 increments)');
             $table->text('description');
+            $table->boolean('is_active')->default(false);
             $table->timestamps();
         });
     }
