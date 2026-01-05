@@ -142,6 +142,9 @@ const submitFeedback = async () => {
     };
     showModal.value = false;
     successMessage.value = data.message || 'Feedback submitted successfully!';
+    setTimeout(() => {
+      successMessage.value = '';
+    }, 3000);
   } catch (err: any) {
     if (err.response?.status === 422) {
       errors.value = err.response.data.errors || {};
@@ -194,6 +197,19 @@ const submitFeedback = async () => {
             >
               FEEDBACK
             </button>
+            <div
+              v-if="successMessage"
+              class="my-2 rounded bg-green-100 p-2 text-green-800"
+            >
+              {{ successMessage }}
+            </div>
+
+            <div
+              v-if="errorMessage"
+              class="my-2 rounded bg-red-100 p-2 text-red-800"
+            >
+              {{ errorMessage }}
+            </div>
           </div>
         </div>
 
@@ -286,20 +302,6 @@ const submitFeedback = async () => {
           >
             ✕
           </button>
-
-          <div
-            v-if="successMessage"
-            class="mb-2 rounded bg-green-100 p-2 text-green-800"
-          >
-            {{ successMessage }}
-          </div>
-
-          <div
-            v-if="errorMessage"
-            class="mb-2 rounded bg-red-100 p-2 text-red-800"
-          >
-            {{ errorMessage }}
-          </div>
 
           <form @submit.prevent="submitFeedback" class="space-y-4">
             <div>
