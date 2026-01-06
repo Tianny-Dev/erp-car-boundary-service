@@ -1,27 +1,17 @@
 <?php
-use App\Models\UserType;
-use App\Models\Franchise;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SuperAdmin\FranchiseContractController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\FeedbackController;
+use App\Http\Controllers\LandingPage\ContactUsController; 
 use Inertia\Inertia;
-use Laravel\Fortify\Features;
 
 
-Route::get('/', function () {
-    $userTypes = UserType::whereNotIn('name', ['super_admin', 'manager'])
-        ->get()
-        ->map(fn($type) => [
-            'name' => $type->name,
-            'encrypted_id' => Crypt::encryptString($type->id),
-        ]);
+Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.store');
 
-    return Inertia::render('Home', [
-        'canRegister' => Features::enabled(Features::registration()),
-        'userTypes' => $userTypes,
-        'franchises' => Franchise::select(['id', 'name', 'region', 'province', 'city', 'latitude', 'longitude'])->get(),
-    ]);
-})->name('home');
+Route::post('/contact', [ContactUsController::class, 'store'])->name('contact.store');
 
 Route::get('/inactive', function () {
     return Inertia::render('InactiveAccount');

@@ -44,17 +44,19 @@ const driver = userTypes.find((t) => t.name === 'driver');
       </p>
 
       <div class="grid justify-center gap-5 pt-7 md:flex xl:gap-7">
-        <button
-          class="flex items-center gap-4 rounded-md bg-white px-7 py-2 text-xl text-brand-blue sm:text-2xl xl:px-12"
+        <a
+          href="https://bb88group.com/erpfranchisingmgmt/APK/ERP.apk"
+          target="_blank"
+          class="flex items-center gap-4 rounded-md bg-white px-7 py-2 text-xl text-brand-blue transition-all hover:opacity-85 sm:text-2xl xl:px-12"
         >
           <img src="@/assets/book.png" class="h-8" alt="" />
           Book a Ride
-        </button>
+        </a>
 
         <Link
           v-if="franchisee"
           :href="`/register/${franchisee.encrypted_id}`"
-          class="flex items-center gap-4 rounded-md bg-white px-7 py-2 text-xl text-brand-blue transition-colors hover:bg-auth-blue hover:text-white sm:text-2xl xl:px-12"
+          class="flex items-center gap-4 rounded-md bg-white px-7 py-2 text-xl text-brand-blue transition-all hover:opacity-85 sm:text-2xl xl:px-12"
         >
           <img src="@/assets/join.png" class="h-8" alt="" />
           Join as a Franchised
@@ -63,7 +65,7 @@ const driver = userTypes.find((t) => t.name === 'driver');
         <Link
           v-if="driver"
           :href="`/register/${driver.encrypted_id}`"
-          class="flex items-center gap-4 rounded-md bg-white px-7 py-2 text-xl text-brand-blue transition-colors hover:bg-auth-blue hover:text-white sm:text-2xl xl:px-12"
+          class="flex items-center gap-4 rounded-md bg-white px-7 py-2 text-xl text-brand-blue transition-all hover:opacity-85 sm:text-2xl xl:px-12"
         >
           <img src="@/assets/become.png" class="h-8" alt="" />
           Become a Driver

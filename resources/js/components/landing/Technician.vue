@@ -1,3 +1,16 @@
+<script setup lang="ts">
+import { Link } from '@inertiajs/vue3';
+
+interface Props {
+  userTypes: { name: string; encrypted_id: string }[];
+}
+
+const { userTypes } = defineProps<Props>();
+
+const technician = userTypes.find((t) => t.name === 'technician');
+</script>
+
+
 <template>
   <div
     id="technician"
@@ -94,11 +107,13 @@
     </div>
 
     <div class="pt-7 text-center sm:pt-10">
-      <button
-        class="mt-6 rounded-xl bg-brand-blue px-5 py-2 text-xl text-white sm:px-12 sm:text-3xl"
-      >
-        Join as a Technician
-      </button>
+      <Link
+          v-if="technician"
+          :href="`/register/${technician.encrypted_id}`"
+          class="mt-6 rounded-xl bg-brand-blue px-5 py-2 text-xl text-white sm:px-12 sm:text-3xl hover:opacity-80 transition-all"
+        >
+          Join as a Technician
+        </Link>
     </div>
   </div>
 </template>

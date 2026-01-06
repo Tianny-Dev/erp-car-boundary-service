@@ -44,11 +44,13 @@
           </div>
 
           <div class="pt-7 text-center sm:pt-10 xl:text-start">
-            <button
-              class="mt-6 rounded-xl bg-white px-5 py-2 text-xl text-brand-blue sm:px-12 sm:text-3xl"
+            <a
+              href="https://bb88group.com/erpfranchisingmgmt/APK/ERP.apk"
+              target="_blank"
+              class="mt-6 rounded-xl bg-white px-5 py-2 text-xl text-brand-blue sm:px-12 sm:text-3xl transition-all hover:opacity-85"
             >
               Book a Ride Now
-            </button>
+            </a>
           </div>
         </div>
       </div>

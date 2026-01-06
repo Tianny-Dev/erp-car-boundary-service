@@ -6,7 +6,7 @@
     <div class="mx-auto w-full max-w-[1320px]">
       <div class="flex items-center gap-2 sm:gap-5">
         <h1 class="text-3xl font-bold whitespace-nowrap text-white">
-          HOW IT WORK?
+          HOW IT WORKS?
         </h1>
         <div class="h-1 w-full bg-white"></div>
       </div>
@@ -70,12 +70,57 @@
           </p>
         </div>
 
-        <div
+        <!-- <div
           class="col-span-12 grid place-items-center rounded-xl border-3 border-white p-6 sm:col-span-6 lg:col-span-4"
         >
           <p class="pt-3 text-2xl font-bold text-white">LEARN MORE</p>
+        </div> -->
+        <div
+          class="perspective col-span-12 h-full cursor-pointer sm:col-span-6 lg:col-span-4"
+          @click="scrollToContact"
+        >
+          <div
+            class="preserve-3d group relative h-full transition-transform duration-700 hover:rotate-y-180"
+          >
+            <!-- Front side -->
+            <div
+              class="absolute inset-0 grid h-full place-items-center rounded-xl border-3 border-white bg-brand-blue p-6 backface-hidden"
+            >
+              <p class="pt-3 text-2xl font-bold text-white">LEARN MORE</p>
+            </div>
+            <!-- Back side -->
+            <div
+              class="absolute inset-0 grid h-full rotate-y-180 place-items-center rounded-xl border-3 border-brand-blue bg-white p-6 backface-hidden"
+            >
+              <p class="pt-3 text-2xl font-bold text-brand-blue">CONTACT US</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+const scrollToContact = () => {
+  const section = document.getElementById('contact');
+  if (section) {
+    section.scrollIntoView({ behavior: 'smooth' });
+  }
+};
+</script>
+
+<style scoped>
+.perspective {
+  perspective: 1000px;
+}
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+.backface-hidden {
+  backface-visibility: hidden;
+}
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+</style>
