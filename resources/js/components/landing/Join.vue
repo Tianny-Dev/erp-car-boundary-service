@@ -25,11 +25,16 @@
         </div>
 
         <div class="flex flex-wrap items-center justify-center gap-4">
-          <img
-            src="@/assets/play store.png"
-            class="h-[50px] w-auto sm:h-[60px]"
-            alt="Play Store"
-          />
+          <a
+            href="https://bb88group.com/erpfranchisingmgmt/APK/ERP.apk"
+            target="_blank"
+          >
+            <img
+              src="@/assets/play store.png"
+              class="h-[50px] w-auto sm:h-[60px]"
+              alt="Play Store"
+            />
+          </a>
           <img
             src="@/assets/app store.png"
             class="h-[50px] w-auto sm:h-[60px]"
@@ -38,7 +43,7 @@
         </div>
       </div>
 
-      <div
+      <!-- <div
         class="grid items-center justify-center gap-4 pt-5 md:flex md:justify-between md:gap-0"
       >
         <div>
@@ -59,7 +64,7 @@
             alt="App Store"
           />
         </div>
-      </div>
+      </div> -->
     </div>
   </div>
 </template>
