@@ -323,6 +323,10 @@ const createFranchise = () => {
   router.get(superAdmin.franchise.create().url);
 };
 
+const editFranchise = (franchiseId: number) => {
+  router.get(superAdmin.franchise.edit(franchiseId).url);
+};
+
 const franchiseColumns: ColumnDef<FranchiseRow>[] = [
   {
     accessorKey: 'name',
@@ -474,13 +478,15 @@ const franchiseColumns: ColumnDef<FranchiseRow>[] = [
   },
 ];
 
-const selectedStatus = ref<'all' | 'active' | 'pending' | 'available' | 'maintenance'>('all');
+const selectedStatus = ref<
+  'all' | 'active' | 'pending' | 'available' | 'maintenance'
+>('all');
 
 const filteredFranchises = computed(() => {
   if (selectedStatus.value === 'all') return props.franchises.data;
 
   return props.franchises.data.filter(
-    (franchise) => franchise.status_name === selectedStatus.value
+    (franchise) => franchise.status_name === selectedStatus.value,
   );
 });
 </script>
@@ -692,8 +698,18 @@ const filteredFranchises = computed(() => {
           </Alert>
         </div>
       </DialogDescription>
-      <DialogFooter class="mt-5">
-        <Button variant="outline" @click="franchiseModal.close">Close</Button>
+      <DialogFooter class="mt-5 flex justify-between">
+        <!-- Edit button -->
+        <Button
+          variant="default"
+          v-if="franchiseModal.data.value"
+          @click="editFranchise(franchiseModal.data.value.id)"
+        >
+          Edit Franchise
+        </Button>
+        
+        <!-- Close button -->
+        <Button variant="outline" @click="franchiseModal.close"> Close </Button>
       </DialogFooter>
     </DialogContent>
   </Dialog>

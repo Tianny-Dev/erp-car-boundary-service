@@ -211,6 +211,66 @@ class FranchiseController extends Controller
             ->with('success', 'Franchise created successfully');
     }
 
+    public function edit(Franchise $franchise)
+    {
+        return Inertia::render('super-admin/franchise/Edit', [
+            'franchise' => $franchise->only([
+                'id',
+                'name',
+                'email',
+                'phone',
+                'address',
+                'region',
+                'province',
+                'city',
+                'barangay',
+                'postal_code',
+                'dti_registration_attachment',
+                'mayor_permit_attachment',
+                'proof_agreement_attachment',
+            ]),
+        ]);
+    }
+
+   public function update(Request $request, Franchise $franchise)
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', Rule::unique('franchises')->ignore($franchise->id)],
+            'phone' => ['required', 'string', 'max:20', Rule::unique('franchises')->ignore($franchise->id)],
+            'region' => ['required', 'string', 'max:255'],
+            'province' => ['nullable', 'string', 'max:255', 'required_unless:region,NCR'],
+            'city' => ['required', 'string', 'max:255'],
+            'barangay' => ['required', 'string', 'max:255'],
+            'postal_code' => ['required', 'string', 'max:20'],
+            'address' => ['required', 'string', 'max:255'],
+            'dti_registration_attachment' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf,docx,doc', 'max:5120'],
+            'mayor_permit_attachment' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf,docx,doc', 'max:5120'],
+            'proof_agreement_attachment' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf,docx,doc', 'max:5120'],
+        ]);
+        
+        $updateData = $validated;
+        
+        foreach (['dti_registration_attachment', 'mayor_permit_attachment', 'proof_agreement_attachment'] as $field) {
+            if ($request->hasFile($field)) {
+                // Delete old file if exists
+                if ($franchise->$field) {
+                    Storage::delete($franchise->$field);
+                }
+                
+                $updateData[$field] = $request->file($field)->store('franchise_documents', 'public');
+            } else {
+                unset($updateData[$field]); 
+            }
+        }
+        
+        $franchise->update($updateData);
+        
+        return redirect()
+            ->route('super-admin.dashboard')
+            ->with('success', 'Franchise updated successfully');
+    }
+
     public function destroy(string $id)
     {
         DB::transaction(function () use ($id) {
