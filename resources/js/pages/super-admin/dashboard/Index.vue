@@ -327,6 +327,10 @@ const editFranchise = (franchiseId: number) => {
   router.get(superAdmin.franchise.edit(franchiseId).url);
 };
 
+const editOwner = (franchiseId: number) => {
+  router.get(superAdmin.owner.edit(franchiseId).url);
+};
+
 const franchiseColumns: ColumnDef<FranchiseRow>[] = [
   {
     accessorKey: 'name',
@@ -707,7 +711,7 @@ const filteredFranchises = computed(() => {
         >
           Edit Franchise
         </Button>
-        
+
         <!-- Close button -->
         <Button variant="outline" @click="franchiseModal.close"> Close </Button>
       </DialogFooter>
@@ -760,7 +764,16 @@ const filteredFranchises = computed(() => {
         </div>
       </DialogDescription>
 
-      <DialogFooter class="mt-5">
+      <DialogFooter class="mt-5 flex justify-between">
+        <!-- Edit button -->
+        <Button
+          variant="default"
+          v-if="ownerModal.data.value"
+          @click="editOwner(ownerModal.data.value.id)"
+        >
+          Edit Owner
+        </Button>
+
         <Button variant="outline" @click="ownerModal.close">Close</Button>
       </DialogFooter>
     </DialogContent>

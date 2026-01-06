@@ -5,6 +5,7 @@ use App\Http\Controllers\SuperAdmin\DashboardController;
 use App\Http\Controllers\SuperAdmin\FeedbackManagementController;
 use App\Http\Controllers\SuperAdmin\OwnerController;
 use App\Http\Controllers\SuperAdmin\FranchiseController;
+use App\Http\Controllers\SuperAdmin\FranchiseOwnerController;
 use App\Http\Controllers\SuperAdmin\DriverController;
 use App\Http\Controllers\SuperAdmin\AllocationController;
 use App\Http\Controllers\SuperAdmin\VehicleController;
@@ -21,8 +22,13 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
 
     Route::get('/franchise/create', [FranchiseController::class, 'create'])->name('franchise.create');
     Route::post('/franchise', [FranchiseController::class, 'store'])->name('franchise.store');
+
     Route::get('/franchise/{franchise}/edit', [FranchiseController::class, 'edit'])->name('franchise.edit');
     Route::post('/franchise/{franchise}', [FranchiseController::class, 'update'])->name('franchise.update');
+
+    Route::get('/owner/{userOwner}/edit', [FranchiseOwnerController::class, 'edit'])->name('owner.edit');
+    Route::post('/owner/{userOwner}', [FranchiseOwnerController::class, 'update'])->name('owner.update');
+
     Route::delete('/franchise/{franchise}', [FranchiseController::class, 'destroy'])->name('franchise.destroy');
     Route::patch('/franchise/{franchise}', [FranchiseController::class, 'accept'])->name('franchise.accept');
     Route::get('/franchise/{franchise}', [FranchiseController::class, 'show'])->name('franchise.show');
