@@ -484,8 +484,13 @@ const goToPage = (url: string | null) => {
           <div class="grid gap-4">
             <div class="grid gap-2">
               <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                  <label class="ps-1 text-sm font-bold">OR-CR</label>
+                <div class="flex w-full items-center justify-between gap-2">
+                  <label class="ps-1 text-sm font-bold"
+                    >OR-CR
+                    <span class="text-[11px]"
+                      >(Leave empty to keep current)</span
+                    ></label
+                  >
                   <div v-if="editingVehicle?.or_cr && !or_cr_file">
                     <a
                       :href="editingVehicle.or_cr"

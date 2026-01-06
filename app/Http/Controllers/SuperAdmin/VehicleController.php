@@ -15,6 +15,7 @@ use Inertia\Response;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\Rule;
 use Illuminate\Http\Request;
+use Storage;
 
 class VehicleController extends Controller
 {
@@ -22,7 +23,7 @@ class VehicleController extends Controller
     {
         // 1. Validate all filters
         $validated = $request->validate([
-            'franchise' => ['sometimes', 'nullable', 'array'], 
+            'franchise' => ['sometimes', 'nullable', 'array'],
             'status' => ['sometimes', 'string', Rule::in(['active', 'available', 'maintenance'])],
         ]);
 
@@ -91,23 +92,82 @@ class VehicleController extends Controller
         return back();
     }
 
-    public function store(StoreVehicleRequest $request)
-    {
-        $availableStatusId = Status::where('name', 'available')->firstOrFail()->id;
+    public function update(Request $request, Vehicle $vehicle)
+{
+    $validated = $request->validate([
+        'franchise_id' => ['required', 'exists:franchises,id'],
+        'plate_number' => ['required', 'string', 'max:20', Rule::unique('vehicles')->ignore($vehicle->id)],
+        'vin'          => ['required', 'string', 'max:50', Rule::unique('vehicles')->ignore($vehicle->id)],
+        'brand'        => ['required', 'string', 'max:100'],
+        'model'        => ['required', 'string', 'max:100'],
+        'year'         => ['required', 'integer'],
+        'color'        => ['required', 'string', 'max:50'],
+        'or_cr'        => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
+    ]);
 
-        Vehicle::create([
-            'status_id' => $availableStatusId,
-            'franchise_id' => $request->franchise_id,
-            'plate_number' => $request->plate_number,
-            'vin' => $request->vin,
-            'brand' => $request->brand,
-            'model' => $request->model,
-            'color' => $request->color,
-            'year' => $request->year
-        ]);
+    // Update text fields (this excludes the file from the array automatically if not provided)
+    $vehicle->fill($request->except('or_cr'));
 
-        return redirect(route('super-admin.vehicle.index'));
+    if ($request->hasFile('or_cr')) {
+        // 1. Delete old file from storage if it exists
+        if ($vehicle->or_cr) {
+            Storage::disk('public')->delete('vehicle_documents/' . $vehicle->or_cr);
+        }
+
+        // 2. Handle New File Upload
+        $file = $request->file('or_cr');
+
+        // Consistent naming: timestamp + cleaned plate number
+        $filename = time() . '_or_cr_' . str_replace(' ', '_', $request->plate_number) . '.' . $file->getClientOriginalExtension();
+
+        $file->storeAs('vehicle_documents', $filename, 'public');
+
+        // 3. Update the database column
+        $vehicle->or_cr = $filename;
     }
+
+    $vehicle->save();
+
+    // Use 'back' so the Inertia modal refreshes its data automatically
+    return back()->with('success', 'Vehicle updated successfully');
+}
+
+    public function store(StoreVehicleRequest $request)
+{
+    $availableStatusId = Status::where('name', 'available')->firstOrFail()->id;
+
+    // 1. Create the vehicle instance first
+    $vehicle = new Vehicle([
+        'status_id' => $availableStatusId,
+        'franchise_id' => $request->franchise_id,
+        'plate_number' => $request->plate_number,
+        'vin' => $request->vin,
+        'brand' => $request->brand,
+        'model' => $request->model,
+        'color' => $request->color,
+        'year' => $request->year,
+        'or_cr' => $request->or_cr,
+    ]);
+
+    // 2. Handle File Upload using your specific naming logic
+    if ($request->hasFile('or_cr')) {
+        $file = $request->file('or_cr');
+
+        // Naming: time() + plate_number for uniqueness
+        $filename = time() . '_or_cr_' . str_replace(' ', '_', $request->plate_number) . '.' . $file->getClientOriginalExtension();
+
+        // Store in storage/app/public/vehicle_documents
+        $file->storeAs('vehicle_documents', $filename, 'public');
+
+        // Save filename to database column
+        $vehicle->or_cr = $filename;
+    }
+
+    $vehicle->save();
+
+    return redirect(route('super-admin.vehicle.index'));
+}
+
 
     public function maintenanceHistory(Vehicle $vehicle)
     {

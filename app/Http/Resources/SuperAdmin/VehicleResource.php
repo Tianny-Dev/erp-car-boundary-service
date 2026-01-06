@@ -16,13 +16,17 @@ class VehicleResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'franchise_id' => $this->franchise_id,
             'plate_number' => $this->plate_number,
             'vin' => $this->vin,
             'brand' => $this->brand,
             'model'=> $this->model,
             'year' => $this->year,
             'color' => $this->color,
-            'status' => $this->status->name
+            'status' => $this->status->name,
+            'or_cr' => $this->or_cr
+            ? asset('storage/vehicle_documents/' . $this->or_cr)
+            : null,
         ];
     }
 }
