@@ -213,22 +213,35 @@ class FranchiseController extends Controller
 
     public function edit(Franchise $franchise)
     {
+        $franchise->load('owner.user');
+
         return Inertia::render('super-admin/franchise/Edit', [
-            'franchise' => $franchise->only([
-                'id',
-                'name',
-                'email',
-                'phone',
-                'address',
-                'region',
-                'province',
-                'city',
-                'barangay',
-                'postal_code',
-                'dti_registration_attachment',
-                'mayor_permit_attachment',
-                'proof_agreement_attachment',
-            ]),
+            'franchise' => [
+                ...$franchise->only([
+                    'id',
+                    'name',
+                    'email',
+                    'phone',
+                    'address',
+                    'region',
+                    'province',
+                    'city',
+                    'barangay',
+                    'postal_code',
+                    'dti_registration_attachment',
+                    'mayor_permit_attachment',
+                    'proof_agreement_attachment',
+                ]),
+                'owner' => $franchise->owner ? [
+                    'id' => $franchise->owner->id,
+                    'user' => $franchise->owner->user ? $franchise->owner->user->only([
+                        'id',
+                        'name',
+                        'email',
+                        'phone',
+                    ]) : null,
+                ] : null,
+            ],
         ]);
     }
 

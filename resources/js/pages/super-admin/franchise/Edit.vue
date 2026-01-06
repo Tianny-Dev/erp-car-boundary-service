@@ -186,7 +186,18 @@ const reset = () => {
 <template>
 	<AppLayout :breadcrumbs="breadcrumbs">
 		<div class="max-w-full px-6 py-3">
-			<h2 class="font-mono text-2xl font-bold">Edit Franchise</h2>
+			<h2 class="font-mono text-2xl font-bold">
+				Edit Franchise —
+				<span class="font-normal">
+					{{ props.franchise.name }}
+					<span v-if="props.franchise.owner?.user">
+						— Owned by {{ props.franchise.owner.user.name }}
+						<span class="text-sm text-gray-500">
+							({{ props.franchise.owner.user.email }})
+						</span>
+					</span>
+				</span>
+			</h2>
 		</div>
 
 		<div class="mx-6 mb-6 max-w-full rounded-xl border p-6 shadow-sm">
