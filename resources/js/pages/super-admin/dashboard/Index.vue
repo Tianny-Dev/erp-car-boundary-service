@@ -20,8 +20,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -34,7 +34,7 @@ import { useDetailsModal } from '@/composables/useDetailsModal';
 import AppLayout from '@/layouts/AppLayout.vue';
 import superAdmin from '@/routes/super-admin';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router, useForm, usePage } from '@inertiajs/vue3';
+import { Head, router, usePage } from '@inertiajs/vue3';
 import { type ColumnDef } from '@tanstack/vue-table';
 import {
   AlertCircleIcon,
@@ -43,10 +43,9 @@ import {
   LandmarkIcon,
   MoreHorizontal,
   PlusIcon,
-  WarehouseIcon,
   UsersRoundIcon,
 } from 'lucide-vue-next';
-import { computed, h, ref, onMounted } from 'vue';
+import { computed, h, onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
 
 const page = usePage<{
@@ -84,7 +83,7 @@ interface Stats {
   total_drivers: number;
 }
 
-defineProps<{
+const props = defineProps<{
   franchises: {
     data: FranchiseRow[];
   };
@@ -261,49 +260,45 @@ const handleDeleteFranchise = () => {
 
   isDeletingFranchise.value = true;
 
-  router.delete(
-    superAdmin.franchise.destroy(selectedFranchise.value.id).url,
-    {
-      preserveScroll: true,
+  router.delete(superAdmin.franchise.destroy(selectedFranchise.value.id).url, {
+    preserveScroll: true,
 
-      onSuccess: () => {
-        isDeleteModalOpen.value = false;
-        selectedFranchise.value = {};
-        toast.success('Franchise deleted successfully!');
-      },
-
-      onFinish: () => {
-        isDeletingFranchise.value = false;
-      },
+    onSuccess: () => {
+      isDeleteModalOpen.value = false;
+      selectedFranchise.value = {};
+      toast.success('Franchise deleted successfully!');
     },
-  );
+
+    onFinish: () => {
+      isDeletingFranchise.value = false;
+    },
+  });
 };
 
-
 // Upload Contract Modal State
-const uploadContractModal = ref(false)
-const selectedFranchiseId = ref<number | null>(null)
-const contractFile = ref<File | null>(null)
+const uploadContractModal = ref(false);
+const selectedFranchiseId = ref<number | null>(null);
+const contractFile = ref<File | null>(null);
 
 function openUploadContractModal(franchise: { id: number }) {
-  selectedFranchiseId.value = franchise.id
-  uploadContractModal.value = true
+  selectedFranchiseId.value = franchise.id;
+  uploadContractModal.value = true;
 }
 
 function handleContractFileChange(event: Event) {
-  const target = event.target as HTMLInputElement
-  contractFile.value = target.files?.[0] || null
+  const target = event.target as HTMLInputElement;
+  contractFile.value = target.files?.[0] || null;
 }
 
-const isUploadingContract = ref(false)
+const isUploadingContract = ref(false);
 
 function submitContract() {
-  if (!selectedFranchiseId.value || !contractFile.value) return
+  if (!selectedFranchiseId.value || !contractFile.value) return;
 
-  isUploadingContract.value = true
+  isUploadingContract.value = true;
 
-  const formData = new FormData()
-  formData.append('contract_attachment', contractFile.value)
+  const formData = new FormData();
+  formData.append('contract_attachment', contractFile.value);
 
   router.post(
     superAdmin.franchise.uploadContract(selectedFranchiseId.value).url,
@@ -311,17 +306,17 @@ function submitContract() {
     {
       forceFormData: true,
       onSuccess: () => {
-        uploadContractModal.value = false
-        contractFile.value = null
-        toast.success('Contract uploaded successfully!')
+        uploadContractModal.value = false;
+        contractFile.value = null;
+        toast.success('Contract uploaded successfully!');
       },
       onFinish: () => {
         setTimeout(() => {
-          isUploadingContract.value = false
-        }, 500)
+          isUploadingContract.value = false;
+        }, 500);
       },
     },
-  )
+  );
 }
 
 const createFranchise = () => {
@@ -360,14 +355,14 @@ const franchiseColumns: ColumnDef<FranchiseRow>[] = [
     accessorKey: 'contract_attachment',
     header: () => h('div', { class: 'text-center' }, 'Contract'),
     cell: ({ row }) => {
-      const contract = row.original.contract_attachment
+      const contract = row.original.contract_attachment;
 
       if (!contract) {
         return h(
           'div',
           { class: 'text-center text-gray-400 italic' },
           'Not yet available',
-        )
+        );
       }
 
       return h(
@@ -383,7 +378,7 @@ const franchiseColumns: ColumnDef<FranchiseRow>[] = [
           },
           'View Contract',
         ),
-      )
+      );
     },
   },
   {
@@ -437,16 +432,16 @@ const franchiseColumns: ColumnDef<FranchiseRow>[] = [
             ),
             franchise.status_name === 'pending'
               ? [
-                h(DropdownMenuSeparator),
-                h(
-                  DropdownMenuItem,
-                  {
-                    class: 'cursor-pointer text-blue-500 focus:text-blue-600',
-                    onClick: () => openAcceptModal(franchise),
-                  },
-                  () => 'Accept Franchise',
-                ),
-              ]
+                  h(DropdownMenuSeparator),
+                  h(
+                    DropdownMenuItem,
+                    {
+                      class: 'cursor-pointer text-blue-500 focus:text-blue-600',
+                      onClick: () => openAcceptModal(franchise),
+                    },
+                    () => 'Accept Franchise',
+                  ),
+                ]
               : null,
 
             franchise.contract_attachment === null
@@ -478,19 +473,35 @@ const franchiseColumns: ColumnDef<FranchiseRow>[] = [
     },
   },
 ];
+
+const selectedStatus = ref<'all' | 'active' | 'pending' | 'available' | 'maintenance'>('all');
+
+const filteredFranchises = computed(() => {
+  if (selectedStatus.value === 'all') return props.franchises.data;
+
+  return props.franchises.data.filter(
+    (franchise) => franchise.status_name === selectedStatus.value
+  );
+});
 </script>
 
 <template>
-
   <Head title="Super Admin Dashboard" />
 
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+    <div
+      class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
+    >
       <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle class="font-mono text-lg">Total Revenue
-              <span class="font-mono text-sm text-muted-foreground">(Today)</span>
+          <CardHeader
+            class="flex flex-row items-center justify-between space-y-0 pb-2"
+          >
+            <CardTitle class="font-mono text-lg"
+              >Total Revenue
+              <span class="font-mono text-sm text-muted-foreground"
+                >(Today)</span
+              >
             </CardTitle>
             <BanknoteArrowUpIcon class="h-6 w-6 text-muted-foreground" />
           </CardHeader>
@@ -501,9 +512,14 @@ const franchiseColumns: ColumnDef<FranchiseRow>[] = [
           </CardContent>
         </Card>
         <Card>
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle class="font-mono text-lg">Total Expense
-              <span class="font-mono text-sm text-muted-foreground">(Today)</span>
+          <CardHeader
+            class="flex flex-row items-center justify-between space-y-0 pb-2"
+          >
+            <CardTitle class="font-mono text-lg"
+              >Total Expense
+              <span class="font-mono text-sm text-muted-foreground"
+                >(Today)</span
+              >
             </CardTitle>
             <BanknoteArrowDownIcon class="h-6 w-6 text-muted-foreground" />
           </CardHeader>
@@ -514,7 +530,9 @@ const franchiseColumns: ColumnDef<FranchiseRow>[] = [
           </CardContent>
         </Card>
         <Card>
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader
+            class="flex flex-row items-center justify-between space-y-0 pb-2"
+          >
             <CardTitle class="font-mono text-lg">Total Franchise </CardTitle>
             <LandmarkIcon class="h-6 w-6 text-muted-foreground" />
           </CardHeader>
@@ -525,7 +543,9 @@ const franchiseColumns: ColumnDef<FranchiseRow>[] = [
           </CardContent>
         </Card>
         <Card>
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader
+            class="flex flex-row items-center justify-between space-y-0 pb-2"
+          >
             <CardTitle class="font-mono text-lg">Total Driver </CardTitle>
             <UsersRoundIcon class="h-6 w-6 text-muted-foreground" />
           </CardHeader>
@@ -535,17 +555,36 @@ const franchiseColumns: ColumnDef<FranchiseRow>[] = [
             </div>
           </CardContent>
         </Card>
-
       </div>
-      <div class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border">
+      <div
+        class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border"
+      >
         <h2 class="mb-4 font-mono text-xl font-semibold">
           Franchise Management
         </h2>
-        <DataTable :columns="franchiseColumns" :data="franchises.data" search-placeholder="Search franchises..." >
+        <DataTable
+          :columns="franchiseColumns"
+          :data="filteredFranchises"
+          search-placeholder="Search franchises..."
+        >
           <template #custom-actions>
-            <Button class="me-5" @click="createFranchise">
-              <PlusIcon />Add Franchise
-            </Button>
+            <div class="mb-4 flex items-center gap-4">
+              <Select v-model="selectedStatus">
+                <SelectTrigger class="w-48">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <!-- You can keep Add Franchise button here -->
+              <Button class="ms-auto" @click="createFranchise">
+                <PlusIcon /> Add Franchise
+              </Button>
+            </div>
           </template>
         </DataTable>
       </div>
@@ -558,13 +597,19 @@ const franchiseColumns: ColumnDef<FranchiseRow>[] = [
         <DialogTitle class="text-2xl">Accept Franchise?</DialogTitle>
         <DialogDescription class="text-md font-semibold">
           Are you sure you want to accept the franchise
-          <strong class="text-blue-500">{{ selectedFranchise.name }}</strong>? This will also activate the owner's
-          account.
+          <strong class="text-blue-500">{{ selectedFranchise.name }}</strong
+          >? This will also activate the owner's account.
         </DialogDescription>
       </DialogHeader>
       <DialogFooter>
-        <Button variant="outline" @click="isAcceptModalOpen = false">Cancel</Button>
-        <Button variant="default" @click="handleAcceptFranchise" :disabled="isAcceptingFranchise">
+        <Button variant="outline" @click="isAcceptModalOpen = false"
+          >Cancel</Button
+        >
+        <Button
+          variant="default"
+          @click="handleAcceptFranchise"
+          :disabled="isAcceptingFranchise"
+        >
           {{ isAcceptingFranchise ? 'Accepting...' : 'Yes, Accept' }}
         </Button>
       </DialogFooter>
@@ -577,13 +622,19 @@ const franchiseColumns: ColumnDef<FranchiseRow>[] = [
         <DialogTitle class="text-2xl">Delete Franchise?</DialogTitle>
         <DialogDescription class="text-md font-semibold">
           Are you sure you want to delete the franchise
-          <strong class="text-red-500">{{ selectedFranchise.name }}</strong>? This will also delete the owner's
-          account.
+          <strong class="text-red-500">{{ selectedFranchise.name }}</strong
+          >? This will also delete the owner's account.
         </DialogDescription>
       </DialogHeader>
       <DialogFooter>
-        <Button variant="outline" @click="isDeleteModalOpen = false">Cancel</Button>
-        <Button variant="destructive" @click="handleDeleteFranchise" :disabled="isDeletingFranchise">
+        <Button variant="outline" @click="isDeleteModalOpen = false"
+          >Cancel</Button
+        >
+        <Button
+          variant="destructive"
+          @click="handleDeleteFranchise"
+          :disabled="isDeletingFranchise"
+        >
           {{ isDeletingFranchise ? 'Deleting...' : 'Yes, Delete' }}
         </Button>
       </DialogFooter>
@@ -596,19 +647,30 @@ const franchiseColumns: ColumnDef<FranchiseRow>[] = [
         <DialogTitle>Franchise Details</DialogTitle>
       </DialogHeader>
       <DialogDescription>
-        <div v-if="franchiseModal.isLoading.value" class="grid grid-cols-2 gap-4">
+        <div
+          v-if="franchiseModal.isLoading.value"
+          class="grid grid-cols-2 gap-4"
+        >
           <template v-for="item in 10" :key="item">
             <Skeleton class="h-5 w-24" />
             <Skeleton class="h-5 w-3/4" />
           </template>
         </div>
 
-        <div v-else-if="franchiseDetails.length > 0" class="grid grid-cols-2 gap-4">
+        <div
+          v-else-if="franchiseDetails.length > 0"
+          class="grid grid-cols-2 gap-4"
+        >
           <template v-for="item in franchiseDetails" :key="item.label">
             <div class="font-medium">{{ item.label }}:</div>
 
             <div v-if="item.type === 'link'">
-              <a :href="item.value" target="_blank" class="text-blue-500 hover:underline">View</a>
+              <a
+                :href="item.value"
+                target="_blank"
+                class="text-blue-500 hover:underline"
+                >View</a
+              >
             </div>
 
             <div v-else>
@@ -618,7 +680,10 @@ const franchiseColumns: ColumnDef<FranchiseRow>[] = [
         </div>
 
         <div v-else-if="franchiseModal.isError.value">
-          <Alert variant="destructive" class="border-2 border-red-500 shadow-lg">
+          <Alert
+            variant="destructive"
+            class="border-2 border-red-500 shadow-lg"
+          >
             <AlertCircleIcon class="h-4 w-4" />
             <AlertTitle class="font-bold">Error</AlertTitle>
             <AlertDescription class="font-semibold">
@@ -651,7 +716,12 @@ const franchiseColumns: ColumnDef<FranchiseRow>[] = [
             <div class="font-medium">{{ item.label }}:</div>
 
             <div v-if="item.type === 'link'">
-              <a :href="item.value" target="_blank" class="text-blue-500 hover:underline">View</a>
+              <a
+                :href="item.value"
+                target="_blank"
+                class="text-blue-500 hover:underline"
+                >View</a
+              >
             </div>
 
             <div v-else>
@@ -661,7 +731,10 @@ const franchiseColumns: ColumnDef<FranchiseRow>[] = [
         </div>
 
         <div v-else-if="ownerModal.isError.value">
-          <Alert variant="destructive" class="border-2 border-red-500 shadow-lg">
+          <Alert
+            variant="destructive"
+            class="border-2 border-red-500 shadow-lg"
+          >
             <AlertCircleIcon class="h-4 w-4" />
             <AlertTitle class="font-bold">Error</AlertTitle>
             <AlertDescription class="font-semibold">
@@ -686,15 +759,17 @@ const franchiseColumns: ColumnDef<FranchiseRow>[] = [
         </DialogDescription>
       </DialogHeader>
 
-      <div class="grid w-full gap-4 mt-4">
+      <div class="mt-4 grid w-full gap-4">
         <div class="grid w-full items-center gap-1.5">
           <Label for="contract">Contract File</Label>
           <Input id="contract" type="file" @change="handleContractFileChange" />
         </div>
 
-        <div class="flex justify-end gap-2 mt-4">
+        <div class="mt-4 flex justify-end gap-2">
           <Button variant="outline" @click="isOpen = false">Cancel</Button>
-          <Button @click="submitContract" :disabled="!contractFile">Upload</Button>
+          <Button @click="submitContract" :disabled="!contractFile"
+            >Upload</Button
+          >
         </div>
       </div>
     </DialogContent>
