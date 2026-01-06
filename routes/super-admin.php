@@ -21,6 +21,7 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
 
     Route::get('/franchise/create', [FranchiseController::class, 'create'])->name('franchise.create');
     Route::post('/franchise', [FranchiseController::class, 'store'])->name('franchise.store');
+    Route::delete('/franchise/{franchise}', [FranchiseController::class, 'destroy'])->name('franchise.destroy');
     Route::patch('/franchise/{franchise}', [FranchiseController::class, 'accept'])->name('franchise.accept');
     Route::get('/franchise/{franchise}', [FranchiseController::class, 'show'])->name('franchise.show');
     Route::get('/owner/{owner}', [OwnerController::class, 'show'])->name('owner.show');

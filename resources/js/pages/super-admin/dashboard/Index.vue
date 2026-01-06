@@ -247,6 +247,39 @@ const handleAcceptFranchise = () => {
   );
 };
 
+// --- Delete Modal State ---
+const isDeleteModalOpen = ref(false);
+const isDeletingFranchise = ref(false);
+
+const openDeleteModal = (franchise: FranchiseRow) => {
+  selectedFranchise.value = franchise;
+  isDeleteModalOpen.value = true;
+};
+
+const handleDeleteFranchise = () => {
+  if (!selectedFranchise.value?.id) return;
+
+  isDeletingFranchise.value = true;
+
+  router.delete(
+    superAdmin.franchise.destroy(selectedFranchise.value.id).url,
+    {
+      preserveScroll: true,
+
+      onSuccess: () => {
+        isDeleteModalOpen.value = false;
+        selectedFranchise.value = {};
+        toast.success('Franchise deleted successfully!');
+      },
+
+      onFinish: () => {
+        isDeletingFranchise.value = false;
+      },
+    },
+  );
+};
+
+
 // Upload Contract Modal State
 const uploadContractModal = ref(false)
 const selectedFranchiseId = ref<number | null>(null)
@@ -418,7 +451,7 @@ const franchiseColumns: ColumnDef<FranchiseRow>[] = [
 
             franchise.contract_attachment === null
               ? [
-                  h(DropdownMenuSeparator),
+                  // h(DropdownMenuSeparator),
                   h(
                     DropdownMenuItem,
                     {
@@ -428,7 +461,17 @@ const franchiseColumns: ColumnDef<FranchiseRow>[] = [
                     () => 'Upload Contract',
                   ),
                 ]
-              : null
+              : null,
+
+            h(DropdownMenuSeparator),
+            h(
+              DropdownMenuItem,
+              {
+                class: 'cursor-pointer text-red-500 focus:text-red-600',
+                onClick: () => openDeleteModal(franchise),
+              },
+              () => 'Delete Franchise',
+            ),
           ]),
         ]),
       ]);
@@ -523,6 +566,25 @@ const franchiseColumns: ColumnDef<FranchiseRow>[] = [
         <Button variant="outline" @click="isAcceptModalOpen = false">Cancel</Button>
         <Button variant="default" @click="handleAcceptFranchise" :disabled="isAcceptingFranchise">
           {{ isAcceptingFranchise ? 'Accepting...' : 'Yes, Accept' }}
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+
+  <Dialog v-model:open="isDeleteModalOpen">
+    <DialogContent class="max-w-md font-mono">
+      <DialogHeader>
+        <DialogTitle class="text-2xl">Delete Franchise?</DialogTitle>
+        <DialogDescription class="text-md font-semibold">
+          Are you sure you want to delete the franchise
+          <strong class="text-red-500">{{ selectedFranchise.name }}</strong>? This will also delete the owner's
+          account.
+        </DialogDescription>
+      </DialogHeader>
+      <DialogFooter>
+        <Button variant="outline" @click="isDeleteModalOpen = false">Cancel</Button>
+        <Button variant="destructive" @click="handleDeleteFranchise" :disabled="isDeletingFranchise">
+          {{ isDeletingFranchise ? 'Deleting...' : 'Yes, Delete' }}
         </Button>
       </DialogFooter>
     </DialogContent>

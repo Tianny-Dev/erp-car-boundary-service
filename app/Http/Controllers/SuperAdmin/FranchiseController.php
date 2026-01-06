@@ -211,6 +211,32 @@ class FranchiseController extends Controller
             ->with('success', 'Franchise created successfully');
     }
 
+    public function destroy(string $id)
+    {
+        DB::transaction(function () use ($id) {
+
+            $franchise = Franchise::with('owner.user')->findOrFail($id);
+
+            $owner = $franchise->owner;
+            $user  = $owner?->user;
+
+            // Delete franchise
+            $franchise->delete();
+
+            // Delete owner
+            if ($owner) {
+                $owner->delete();
+            }
+
+            // Delete user
+            if ($user) {
+                $user->delete();
+            }
+        });
+
+        return back();
+    }
+
     protected function passwordRules(): array
     {
         return [
