@@ -24,31 +24,41 @@
 
           <div class="pt-4">
             <div class="dm:gap-4 flex gap-3">
-              <img
-                src="@/assets/fb.png"
-                class="h-[48px] rounded-full border-2 border-white"
-                alt=""
-              />
-              <img
-                src="@/assets/yt.png"
-                class="h-[48px] rounded-full border-2 border-white"
-                alt=""
-              />
-              <img
-                src="@/assets/instagram.png"
-                class="h-[48px] rounded-full border-2 border-white"
-                alt=""
-              />
-              <img
-                src="@/assets/x.png"
-                class="h-[48px] rounded-full border-2 border-white"
-                alt=""
-              />
-              <img
-                src="@/assets/tiktok.png"
-                class="h-[48px] rounded-full border-2 border-white"
-                alt=""
-              />
+              <a href="https://www.facebook.com/profile.php?id=61585798276831" target="_blank">
+                <img
+                  src="@/assets/fb.png"
+                  class="h-[48px] rounded-full border-2 border-white"
+                  alt=""
+                />
+              </a>
+              <a href="https://www.youtube.com/@erpsystemph" target="_blank">
+                <img
+                  src="@/assets/yt.png"
+                  class="h-[48px] rounded-full border-2 border-white"
+                  alt=""
+                />
+              </a>
+              <a href="https://www.instagram.com/erpsystemph/?hl=en" target="_blank">
+                <img
+                  src="@/assets/instagram.png"
+                  class="h-[48px] rounded-full border-2 border-white"
+                  alt=""
+                />
+              </a>
+              <a href="https://x.com/erpsystemph" target="_blank">
+                <img
+                  src="@/assets/x.png"
+                  class="h-[48px] rounded-full border-2 border-white"
+                  alt=""
+                />
+              </a>
+              <a href="https://www.tiktok.com/@erpsystemph" target="_blank">
+                <img
+                  src="@/assets/tiktok.png"
+                  class="h-[48px] rounded-full border-2 border-white"
+                  alt=""
+                />
+              </a>
             </div>
           </div>
         </div>
