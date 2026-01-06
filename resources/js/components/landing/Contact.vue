@@ -139,7 +139,8 @@ function submit() {
 
           <div class="font-bold text-white">
             <h1 class="text-xl">MOBILE NUMBER</h1>
-            <h1 class="text-2xl">(+63) 999-999-9999</h1>
+            <!-- <h1 class="text-2xl">(+63) 999-999-9999</h1> -->
+            <h1 class="text-2xl">0949-745-4067</h1>
           </div>
         </div>
       </div>
@@ -177,7 +178,8 @@ function submit() {
 
           <div class="text-white">
             <h1 class="text-xl font-bold">EMAIL</h1>
-            <h1 class="text-lg">support@carboundary.ph</h1>
+            <!-- <h1 class="text-lg">support@carboundary.ph</h1> -->
+            <h1 class="text-lg">erpsystemph@gmail.com</h1>
           </div>
         </div>
       </div>
