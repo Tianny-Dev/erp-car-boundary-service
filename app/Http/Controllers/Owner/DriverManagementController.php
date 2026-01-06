@@ -6,13 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Status;
 use App\Models\UserDriver;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class DriverManagementController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         $franchise = auth()->user()->ownerDetails?->franchises()->first();
@@ -43,27 +42,27 @@ class DriverManagementController extends Controller
                 'status' => $driver->status?->name,
 
                 'details' => [
-                    'code_number'  => $driver?->code_number,
-                    'license_number'  => $driver?->license_number,
-                    'license_expiry'  => $driver?->license_expiry,
-                    'is_verified'     => $driver?->is_verified,
-                    'shift'           => $driver?->shift,
-                    'hire_date'       => $driver?->hire_date,
+                    'code_number'     => $driver->code_number,
+                    'license_number'  => $driver->license_number,
+                    'license_expiry'  => $driver->license_expiry,
+                    'is_verified'     => $driver->is_verified,
+                    'shift'           => $driver->shift,
+                    'hire_date'       => $driver->hire_date,
 
-                    'front_license_picture' => $driver?->front_license_picture
-                        ? asset('storage/' . $driver->front_license_picture)
+                    'front_license_picture' => $driver->front_license_picture
+                        ? asset('storage/driver_documents/' . $driver->front_license_picture)
                         : null,
 
-                    'back_license_picture' => $driver?->back_license_picture
-                        ? asset('storage/' . $driver->back_license_picture)
+                    'back_license_picture' => $driver->back_license_picture
+                        ? asset('storage/driver_documents/' . $driver->back_license_picture)
                         : null,
 
-                    'nbi_clearance' => $driver?->nbi_clearance
-                        ? asset('storage/' . $driver->nbi_clearance)
+                    'nbi_clearance' => $driver->nbi_clearance
+                        ? asset('storage/driver_documents/' . $driver->nbi_clearance)
                         : null,
 
-                    'selfie_picture' => $driver?->selfie_picture
-                        ? asset('storage/' . $driver->selfie_picture)
+                    'selfie_picture' => $driver->selfie_picture
+                        ? asset('storage/driver_documents/' . $driver->selfie_picture)
                         : null,
                 ],
             ]);
@@ -77,79 +76,104 @@ class DriverManagementController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, string $id)
     {
         $franchise = auth()->user()->ownerDetails?->franchises()->first();
 
         if (!$franchise) {
-            return response()->json(['message' => 'Franchise not found'], 404);
+            return redirect()->back()->withErrors(['message' => 'Franchise not found']);
         }
 
-        $driver = $franchise->drivers()->find($id);
-        if (!$driver) {
-            return response()->json(['message' => 'Driver not found'], 404);
+        // We use $id because in your DB, Driver ID and User ID are identical.
+        $driver = UserDriver::with('user')->findOrFail($id);
+
+        // Security check
+        if (!$driver->franchises()->where('franchise_id', $franchise->id)->exists()) {
+            abort(403, 'Unauthorized action.');
         }
 
-        $request->validate([
-            'status_id' => 'required|exists:statuses,id',
-        ]);
+        // 1. Handle Document File Updates
+        $fileFields = ['front_license_picture', 'back_license_picture', 'nbi_clearance', 'selfie_picture'];
+        foreach ($fileFields as $field) {
+            if ($request->hasFile($field)) {
+                if ($driver->$field) {
+                    Storage::disk('public')->delete('driver_documents/' . $driver->$field);
+                }
+                $file = $request->file($field);
+                $filename = time() . '_' . $field . '_' . $driver->id . '.' . $file->getClientOriginalExtension();
+                $file->storeAs('driver_documents', $filename, 'public');
+                $driver->$field = $filename;
+                $driver->save();
+                return redirect()->back()->with('success', 'Document updated!');
+            }
+        }
 
-        $driver->update([
-            'status_id' => $request->status_id
-        ]);
+        // 2. Handle Profile & Unique Field Updates
+        if ($request->hasAny(['email', 'phone', 'license_number', 'code_number', 'region'])) {
 
-        return redirect()->back()->with('success', 'Driver status updated!');
+            // KEY CHANGE: Since you use Shared Primary Keys, $driver->id IS the User's ID.
+            $userId = $driver->id;
+
+            $request->validate([
+                'email' => [
+                    'sometimes',
+                    'email',
+                    Rule::unique('users', 'email')->ignore($userId),
+                ],
+                'phone' => [
+                    'sometimes',
+                    Rule::unique('users', 'phone')->ignore($userId),
+                ],
+                'code_number' => [
+                    'sometimes',
+                    Rule::unique('user_drivers', 'code_number')->ignore($driver->id),
+                ],
+                'license_number' => [
+                    'sometimes',
+                    Rule::unique('user_drivers', 'license_number')->ignore($driver->id),
+                ],
+                'license_expiry' => 'sometimes|date|nullable',
+                'region'         => 'sometimes|string',
+                'province'       => 'sometimes|string|nullable',
+                'city'           => 'sometimes|string',
+                'barangay'       => 'sometimes|string',
+                'shift'          => 'sometimes|string|nullable',
+            ]);
+
+            // Update User record
+            if ($driver->user) {
+                $driver->user->update($request->only([
+                    'email', 'phone', 'region', 'province', 'city', 'barangay'
+                ]));
+            }
+
+            // Update Driver record
+            $driver->update($request->only([
+                'license_number', 'license_expiry', 'code_number', 'shift'
+            ]));
+
+            return redirect()->back()->with('success', 'Driver profile updated!');
+        }
+
+        // 3. Handle Status Update
+        if ($request->has('status_id')) {
+            $request->validate(['status_id' => 'required|exists:statuses,id']);
+            $driver->update(['status_id' => $request->status_id]);
+            return redirect()->back()->with('success', 'Driver status updated!');
+        }
+
+        return redirect()->back();
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(string $id)
     {
         $driver = UserDriver::findOrFail($id);
-
         $ownerFranchises = auth()->user()->ownerDetails->franchises->pluck('id');
-
         $driver->franchises()->detach($ownerFranchises);
         $driver->status_id = 6;
         $driver->is_verified = false;
         $driver->save();
 
-        return back()->with('success', 'Driver removed from your franchise(s) successfully.');
+        return back()->with('success', 'Driver removed successfully.');
     }
 }

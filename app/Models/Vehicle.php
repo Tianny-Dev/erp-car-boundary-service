@@ -21,6 +21,7 @@ class Vehicle extends Model
         'model',
         'year',
         'color',
+        'or_cr',
     ];
 
     // relationship to status, one to many

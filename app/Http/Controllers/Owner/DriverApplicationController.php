@@ -72,19 +72,19 @@ class DriverApplicationController extends Controller
                 'hire_date'       => $user->driverDetails?->hire_date,
 
                 'front_license_picture' => $user->driverDetails?->front_license_picture
-                    ? asset('storage/' . $user->driverDetails->front_license_picture)
+                    ? asset('storage/driver_documents/' . $user->driverDetails->front_license_picture)
                     : null,
 
                 'back_license_picture' => $user->driverDetails?->back_license_picture
-                    ? asset('storage/' . $user->driverDetails->back_license_picture)
+                    ? asset('storage/driver_documents/' . $user->driverDetails->back_license_picture)
                     : null,
 
                 'nbi_clearance' => $user->driverDetails?->nbi_clearance
-                    ? asset('storage/' . $user->driverDetails->nbi_clearance)
+                    ? asset('storage/driver_documents/' . $user->driverDetails->nbi_clearance)
                     : null,
 
                 'selfie_picture' => $user->driverDetails?->selfie_picture
-                    ? asset('storage/' . $user->driverDetails->selfie_picture)
+                    ? asset('storage/driver_documents/' . $user->driverDetails->selfie_picture)
                     : null,
             ],
         ]);
@@ -132,40 +132,42 @@ class DriverApplicationController extends Controller
     public function update(Request $request, string $id)
     {
         $driver = UserDriver::findOrFail($id);
-
         $ownerFranchises = auth()->user()->ownerDetails->franchises->pluck('id');
 
-        // Toggle status
-        $driver->status_id = $driver->status_id === 1 ? 2 : 1;
-        $driver->save();
+        // Get the action from the request ('approve' or 'deny')
+        $action = $request->input('action');
 
-        if ($driver->status_id === 1) {
-            // attach to owner's franchises if not already attached
+        if ($action === 'approve') {
+            // Status 1 for active/approved
+            $driver->status_id = 1;
+
+            // Attach to owner's franchises if not already attached
             $driver->franchises()->syncWithoutDetaching($ownerFranchises);
 
-            // Only generate a new code if none exists
+            // Generate code if empty
             if (empty($driver->code_number)) {
                 $faker = \Faker\Factory::create();
                 do {
                     $code = $faker->bothify('??-####');
                 } while (UserDriver::where('code_number', $code)->exists());
 
-                $driver->update([
-                    'code_number' => $code,
-                    'is_verified' => true,
-                ]);
-            } else {
-                // If code_number already exists, just mark verified
-                $driver->update([
-                    'is_verified' => true,
-                ]);
+                $driver->code_number = $code;
             }
-        } else {
-            // detach from owner's franchises only
+            $driver->is_verified = true;
+
+        } elseif ($action === 'deny') {
+            // Status 18 for Deny
+            $driver->status_id = 18;
+            // Detach from franchises when denied
             $driver->franchises()->detach($ownerFranchises);
+        } else {
+            // Fallback for your original toggle logic if no action is provided
+            $driver->status_id = ($driver->status_id === 1) ? 2 : 1;
         }
 
-        return back()->with('success', 'Driver status updated successfully.');
+        $driver->save();
+
+        return back()->with('success', 'Driver application updated.');
     }
 
     /**

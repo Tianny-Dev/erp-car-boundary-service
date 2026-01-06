@@ -37,7 +37,6 @@ class DetailsPayrollController extends Controller
                 'revenueBreakdowns.percentageType',
                 'driver',
                 'franchise',
-                'branch',
                 // Load the 'route' relation, selecting only the necessary columns
                 'route' => function ($q) {
                     $q->select([
@@ -58,8 +57,6 @@ class DetailsPayrollController extends Controller
         // 3. Apply Contextual Filters... (same logic)
         if (isset($validated['tab']) && $validated['tab'] === 'franchise' && !empty($validated['franchise']) && $validated['franchise'] !== 'all') {
             $query->where('franchise_id', $validated['franchise']);
-        } elseif (isset($validated['tab']) && $validated['tab'] === 'branch' && !empty($validated['branch']) && $validated['branch'] !== 'all') {
-            $query->where('branch_id', $validated['branch']);
         }
 
         $revenues = $query->get();
@@ -122,9 +119,8 @@ class DetailsPayrollController extends Controller
             'driver_id' => ['required', 'string', 'exists:users,id'],
             'payment_date' => ['required', 'string'],
             'period' => ['required', 'string', 'in:daily,weekly,monthly'],
-            'tab' => ['sometimes', 'string', 'in:franchise,branch'],
+            'tab' => ['sometimes', 'string', 'in:franchise'],
             'franchise' => ['sometimes', 'nullable', 'string'],
-            'branch' => ['sometimes', 'nullable', 'string'],
         ]);
 
         $details = $this->fetchRevenueDetails($validated);
@@ -224,9 +220,8 @@ class DetailsPayrollController extends Controller
             'driver_id' => ['required', 'string', 'exists:users,id'],
             'payment_date' => ['required', 'string'],
             'period' => ['required', 'string', 'in:daily,weekly,monthly'],
-            'tab' => ['sometimes', 'string', 'in:franchise,branch'],
+            'tab' => ['sometimes', 'string', 'in:franchise'],
             'franchise' => ['sometimes', 'nullable', 'string'],
-            'branch' => ['sometimes', 'nullable', 'string'],
             'export_type' => ['required', 'string', Rule::in(['pdf', 'excel', 'csv'])],
         ]);
 

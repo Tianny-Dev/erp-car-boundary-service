@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('model', 100);
             $table->year('year');
             $table->string('color', 50);
+            $table->string('or_cr');
             $table->timestamps();
         });
     }

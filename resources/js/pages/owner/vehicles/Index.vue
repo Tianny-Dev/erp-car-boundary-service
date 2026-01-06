@@ -59,6 +59,7 @@ interface Vehicle {
   year: number;
   status_id: number;
   status_name: string;
+  or_cr: string;
 }
 
 interface VehiclesPaginator {
@@ -111,6 +112,7 @@ const statusFilter = ref('all');
 const isSaving = ref(false);
 const deletingId = ref<number | null>(null);
 const selectedVehicleToDelete = ref<Vehicle | null>(null);
+const or_cr_file = ref<File | null>(null);
 
 // Filtered Vehicles
 const filteredVehicles = computed(() => {
@@ -163,6 +165,7 @@ const openCreateDialog = () => {
   plate_number.value = vin.value = brand.value = model.value = color.value = '';
   year.value = undefined;
   statusId.value = null;
+  or_cr_file.value = null;
   showDialog.value = true;
 };
 
@@ -197,23 +200,33 @@ const getStatusVariant = (status: string) => {
 
 // Save vehicle (create or update)
 const saveVehicle = () => {
-  const payload = {
-    plate_number: plate_number.value,
-    vin: vin.value,
-    brand: brand.value,
-    model: model.value,
-    color: color.value,
-    year: year.value,
-    status_id: statusId.value,
-  };
+  const formData = new FormData();
 
-  router.visit(
+  // Use logical OR to ensure we don't append "undefined" as a string
+  formData.append('plate_number', plate_number.value || '');
+  formData.append('vin', vin.value || '');
+  formData.append('brand', brand.value || '');
+  formData.append('model', model.value || '');
+  formData.append('color', color.value || '');
+  formData.append('year', year.value ? String(year.value) : '');
+  formData.append('status_id', statusId.value ? String(statusId.value) : '');
+
+  // Only append the file if a new one was selected
+  if (or_cr_file.value) {
+    formData.append('or_cr', or_cr_file.value);
+  }
+
+  if (dialogMode.value === 'edit') {
+    formData.append('_method', 'PUT');
+  }
+
+  router.post(
     dialogMode.value === 'create'
       ? '/owner/vehicles'
       : `/owner/vehicles/${editingVehicle.value?.id}`,
+    formData,
     {
-      method: dialogMode.value === 'create' ? 'post' : 'put',
-      data: payload,
+      forceFormData: true, // This is important
       onStart: () => (isSaving.value = true),
       onFinish: () => (isSaving.value = false),
       onSuccess: () => {
@@ -223,10 +236,22 @@ const saveVehicle = () => {
             : 'Vehicle Updated!',
         );
         showDialog.value = false;
+        or_cr_file.value = null;
       },
-      onError: () => toast.error('Something went wrong'),
+      onError: (errors) => {
+        // Log errors to console to see exactly why Laravel is rejecting it
+        console.error(errors);
+        toast.error('Check the form for errors');
+      },
     },
   );
+};
+
+const handleFileUpload = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  if (target.files && target.files.length > 0) {
+    or_cr_file.value = target.files[0];
+  }
 };
 
 // Confirm delete (open AlertDialog)
@@ -455,6 +480,54 @@ const goToPage = (url: string | null) => {
               </SelectItem>
             </SelectContent>
           </Select>
+
+          <div class="grid gap-4">
+            <div class="grid gap-2">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <label class="ps-1 text-sm font-bold">OR-CR</label>
+                  <div v-if="editingVehicle?.or_cr && !or_cr_file">
+                    <a
+                      :href="editingVehicle.or_cr"
+                      target="_blank"
+                      class="flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline"
+                    >
+                      <span>(Current View)</span>
+                    </a>
+                  </div>
+                </div>
+
+                <button
+                  v-if="or_cr_file"
+                  type="button"
+                  @click="or_cr_file = null"
+                  class="text-xs font-medium text-red-500 hover:text-red-700"
+                >
+                  Clear Selection
+                </button>
+              </div>
+
+              <div class="relative">
+                <Input
+                  type="file"
+                  ref="fileInput"
+                  accept="image/*,.pdf"
+                  @change="handleFileUpload"
+                  class="cursor-pointer file:cursor-pointer file:text-primary"
+                />
+              </div>
+
+              <p
+                v-if="or_cr_file"
+                class="ps-1 text-[11px] font-medium text-green-600 italic"
+              >
+                Ready to upload: {{ or_cr_file.name }}
+              </p>
+              <p v-else class="ps-1 text-[11px] text-muted-foreground">
+                Accepted: JPG, PNG, or PDF (Max 2MB)
+              </p>
+            </div>
+          </div>
         </div>
 
         <DialogFooter class="flex justify-end gap-2">

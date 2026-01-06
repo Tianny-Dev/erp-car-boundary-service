@@ -213,7 +213,7 @@ const detailColumns = computed<ColumnDef<DetailedRevenueRow>[]>(() => {
     },
     {
       accessorKey: 'amount',
-      header: 'Total Trip Amount',
+      header: 'Trip Amount',
       minSize: 150,
       cell: (info) => formatCurrency(parseFloat(String(info.getValue()))),
     },
@@ -235,7 +235,7 @@ const detailColumns = computed<ColumnDef<DetailedRevenueRow>[]>(() => {
   // Add Driver Earning column
   columns.push({
     accessorKey: 'driver_earning',
-    header: 'Driver Earning',
+    header: 'Driver Net',
     minSize: 150,
     cell: ({ row }) => {
       const earning = calculateDriverEarning(row.original);
@@ -286,12 +286,14 @@ const goBack = () => {
               Transaction Breakdown
             </h2>
           </div>
-          <div class="text-right">
+          <div
+            class="rounded-lg border border-primary/10 bg-primary/5 p-4 text-right"
+          >
             <p class="text-lg font-semibold text-primary">
-              Driver Username: {{ props.driver.username }}
+              {{ props.driver.username }}
             </p>
-            <p class="text-sm text-muted-foreground">
-              Period: {{ props.periodLabel }}
+            <p class="font-mono text-sm text-muted-foreground">
+              {{ props.periodLabel }}
             </p>
           </div>
         </div>
@@ -300,10 +302,12 @@ const goBack = () => {
           class="mb-8 grid grid-cols-2 gap-4 rounded-lg bg-gray-50 p-4 shadow-inner sm:grid-cols-4 md:grid-cols-6 dark:bg-gray-900"
         >
           <div class="col-span-2 border-r pr-4 sm:col-span-1 sm:pr-2">
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-              Total Trips Amount
+            <p
+              class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400"
+            >
+              Total Trips
             </p>
-            <p class="text-xl font-bold text-green-600 dark:text-green-400">
+            <p class="text-xl font-bold text-gray-900 dark:text-gray-100">
               {{ grandTotals.totalAmount }}
             </p>
           </div>
@@ -317,8 +321,10 @@ const goBack = () => {
                 index < grandTotals.breakdowns.length - 1,
             }"
           >
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-              Total {{ item.name }}
+            <p
+              class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400"
+            >
+              {{ item.name }}
             </p>
             <p class="text-xl font-bold">
               {{ item.value }}
@@ -326,10 +332,12 @@ const goBack = () => {
           </div>
 
           <div class="col-span-2 sm:col-span-1">
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-              Total Driver Earning
+            <p
+              class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400"
+            >
+              Driver Earning
             </p>
-            <p class="text-xl font-bold text-indigo-600 dark:text-indigo-400">
+            <p class="text-lg font-semibold text-gray-700 dark:text-gray-300">
               {{ grandTotals.totalDriverEarning }}
             </p>
           </div>

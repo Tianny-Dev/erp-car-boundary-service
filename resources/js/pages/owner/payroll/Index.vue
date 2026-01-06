@@ -11,6 +11,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -24,6 +31,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import { type ColumnDef } from '@tanstack/vue-table';
 import { debounce } from 'lodash-es';
+import { MoreHorizontal } from 'lucide-vue-next';
 import { computed, h, ref, watch } from 'vue';
 
 // --- Define Props ---
@@ -218,31 +226,79 @@ const revenueColumns = computed<ColumnDef<RevenueRow>[]>(() => {
   // --- END: Deduction and Driver Earning columns logic ---
 
   // 3. Add the action button column
+  // columns.push({
+  //   accessorKey: 'action',
+  //   header: 'Action',
+  //   cell: (info) => {
+  //     const rowData = info.row.original as RevenueRow;
+
+  //     return h(
+  //       Button,
+  //       {
+  //         class: 'py-1 px-2 text-xs',
+  //         onClick: () => {
+  //           const queryParams: Record<string, string> = {
+  //             driver_id: String(rowData.driver_id),
+  //             payment_date: rowData.payment_date,
+  //             period: selectedPeriod.value,
+  //           };
+
+  //           router.get(owner.driverownerpayroll.details().url, queryParams, {
+  //             preserveScroll: true,
+  //             replace: false,
+  //           });
+  //         },
+  //       },
+  //       () => 'View Payroll',
+  //     );
+  //   },
+  // });
+
   columns.push({
-    accessorKey: 'action',
-    header: 'Action',
-    cell: (info) => {
-      const rowData = info.row.original as RevenueRow;
+    id: 'actions',
+    header: () => h('div', { class: 'text-center' }, 'Action'),
+    cell: ({ row }) => {
+      const rowData = row.original as RevenueRow;
 
-      return h(
-        Button,
-        {
-          class: 'py-1 px-2 text-xs',
-          onClick: () => {
-            const queryParams: Record<string, string> = {
-              driver_id: String(rowData.driver_id),
-              payment_date: rowData.payment_date,
-              period: selectedPeriod.value,
-            };
+      return h('div', { class: 'flex justify-center' }, [
+        h(DropdownMenu, null, () => [
+          // The Trigger (The 3-dots button)
+          h(DropdownMenuTrigger, { asChild: true }, () =>
+            h(Button, { variant: 'ghost', class: 'h-8 w-8 p-0' }, () => [
+              h(MoreHorizontal, { class: 'h-4 w-4' }),
+            ]),
+          ),
 
-            router.get(owner.driverownerpayroll.details().url, queryParams, {
-              preserveScroll: true,
-              replace: false,
-            });
-          },
-        },
-        () => 'View Payroll',
-      );
+          // The Content (The menu that pops up)
+          h(DropdownMenuContent, { align: 'end', class: 'w-48' }, () => [
+            h(DropdownMenuLabel, null, () => 'Actions'),
+            h(
+              DropdownMenuItem,
+              {
+                class: 'cursor-pointer',
+                // Use onSelect for DropdownMenuItem to ensure it triggers correctly
+                onSelect: () => {
+                  const queryParams: Record<string, string> = {
+                    driver_id: String(rowData.driver_id),
+                    payment_date: rowData.payment_date,
+                    period: selectedPeriod.value,
+                  };
+
+                  router.get(
+                    owner.driverownerpayroll.details().url,
+                    queryParams,
+                    {
+                      preserveScroll: true,
+                      replace: false,
+                    },
+                  );
+                },
+              },
+              () => 'View Payroll Details',
+            ),
+          ]),
+        ]),
+      ]);
     },
   });
 

@@ -54,6 +54,7 @@ class VehicleFactory extends Factory
             'model'        => $this->faker->word(),
             'year'         => $this->faker->year(),
             'color'        => $this->faker->safeColorName(),
+            'or_cr' => fake()->imageUrl(640, 480, 'id', true),
         ];
     }
 }

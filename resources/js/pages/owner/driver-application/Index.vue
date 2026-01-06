@@ -178,16 +178,20 @@ const getStatusVariant = (status: string) => {
 // -------------------------
 const updatingId = ref<number | null>(null);
 
-const toggleStatus = (id: number) => {
+const toggleStatus = (id: number, action: 'approve' | 'deny') => {
   updatingId.value = id;
-  const toastId = toast.loading('Updating driver status...');
+  const loadingMsg =
+    action === 'approve' ? 'Approving driver...' : 'Denying application...';
+  const toastId = toast.loading(loadingMsg);
+
   router.put(
     `/owner/drivers-application/${id}`,
-    {},
+    { action: action }, // We pass the action here
     {
-      onSuccess: () => toast.success('Driver status updated!', { id: toastId }),
+      onSuccess: () =>
+        toast.success(`Driver ${action}d successfully!`, { id: toastId }),
       onError: () =>
-        toast.error('Failed to update driver status.', { id: toastId }),
+        toast.error(`Failed to ${action} driver.`, { id: toastId }),
       onFinish: () => (updatingId.value = null),
     },
   );
@@ -399,7 +403,15 @@ const toggleStatus = (id: number) => {
 
           <div class="grid grid-cols-2 gap-4">
             <div v-if="selectedDriver.details.front_license_picture">
-              <p class="mb-1 text-xs text-gray-500">Front License</p>
+              <div class="gap mb-1 flex justify-between">
+                <p class="text-xs text-gray-500">Front License</p>
+                <a
+                  :href="selectedDriver.details.front_license_picture"
+                  class="text-xs text-blue-500"
+                  target="_blank"
+                  >View</a
+                >
+              </div>
               <img
                 :src="selectedDriver.details.front_license_picture"
                 class="h-28 w-full rounded border object-cover"
@@ -407,7 +419,15 @@ const toggleStatus = (id: number) => {
             </div>
 
             <div v-if="selectedDriver.details.back_license_picture">
-              <p class="mb-1 text-xs text-gray-500">Back License</p>
+              <div class="gap mb-1 flex justify-between">
+                <p class="text-xs text-gray-500">Back License</p>
+                <a
+                  :href="selectedDriver.details.back_license_picture"
+                  class="text-xs text-blue-500"
+                  target="_blank"
+                  >View</a
+                >
+              </div>
               <img
                 :src="selectedDriver.details.back_license_picture"
                 class="h-28 w-full rounded border object-cover"
@@ -415,7 +435,15 @@ const toggleStatus = (id: number) => {
             </div>
 
             <div v-if="selectedDriver.details.nbi_clearance">
-              <p class="mb-1 text-xs text-gray-500">NBI Clearance</p>
+              <div class="gap mb-1 flex justify-between">
+                <p class="text-xs text-gray-500">NBI Clearance</p>
+                <a
+                  :href="selectedDriver.details.nbi_clearance"
+                  class="text-xs text-blue-500"
+                  target="_blank"
+                  >View</a
+                >
+              </div>
               <img
                 :src="selectedDriver.details.nbi_clearance"
                 class="h-28 w-full rounded border object-cover"
@@ -423,7 +451,16 @@ const toggleStatus = (id: number) => {
             </div>
 
             <div v-if="selectedDriver.details.selfie_picture">
-              <p class="mb-1 text-xs text-gray-500">Selfie</p>
+              <div class="gap mb-1 flex justify-between">
+                <p class="text-xs text-gray-500">Selfie</p>
+                <a
+                  :href="selectedDriver.details.selfie_picture"
+                  class="text-xs text-blue-500"
+                  target="_blank"
+                  >View</a
+                >
+              </div>
+
               <img
                 :src="selectedDriver.details.selfie_picture"
                 class="h-28 w-full rounded border object-cover"
@@ -486,7 +523,16 @@ const toggleStatus = (id: number) => {
 
           <div class="grid grid-cols-2 gap-4">
             <div v-if="driverToToggle.details.front_license_picture">
-              <p class="mb-1 text-xs text-gray-500">Front License</p>
+              <div class="gap mb-1 flex justify-between">
+                <p class="text-xs text-gray-500">Front License</p>
+                <a
+                  :href="driverToToggle.details.front_license_picture"
+                  class="text-xs text-blue-500"
+                  target="_blank"
+                  >View</a
+                >
+              </div>
+
               <img
                 :src="driverToToggle.details.front_license_picture"
                 class="h-28 w-full rounded border object-cover"
@@ -494,7 +540,15 @@ const toggleStatus = (id: number) => {
             </div>
 
             <div v-if="driverToToggle.details.back_license_picture">
-              <p class="mb-1 text-xs text-gray-500">Back License</p>
+              <div class="gap mb-1 flex justify-between">
+                <p class="text-xs text-gray-500">Back License</p>
+                <a
+                  :href="driverToToggle.details.back_license_picture"
+                  class="text-xs text-blue-500"
+                  target="_blank"
+                  >View</a
+                >
+              </div>
               <img
                 :src="driverToToggle.details.back_license_picture"
                 class="h-28 w-full rounded border object-cover"
@@ -502,7 +556,16 @@ const toggleStatus = (id: number) => {
             </div>
 
             <div v-if="driverToToggle.details.nbi_clearance">
-              <p class="mb-1 text-xs text-gray-500">NBI Clearance</p>
+              <div class="gap mb-1 flex justify-between">
+                <p class="text-xs text-gray-500">NBI Clearance</p>
+                <a
+                  :href="driverToToggle.details.nbi_clearance"
+                  class="text-xs text-blue-500"
+                  target="_blank"
+                  >View</a
+                >
+              </div>
+
               <img
                 :src="driverToToggle.details.nbi_clearance"
                 class="h-28 w-full rounded border object-cover"
@@ -510,7 +573,15 @@ const toggleStatus = (id: number) => {
             </div>
 
             <div v-if="driverToToggle.details.selfie_picture">
-              <p class="mb-1 text-xs text-gray-500">Selfie</p>
+              <div class="gap mb-1 flex justify-between">
+                <p class="text-xs text-gray-500">Selfie</p>
+                <a
+                  :href="driverToToggle.details.selfie_picture"
+                  class="text-xs text-blue-500"
+                  target="_blank"
+                  >View</a
+                >
+              </div>
               <img
                 :src="driverToToggle.details.selfie_picture"
                 class="h-28 w-full rounded border object-cover"
@@ -519,25 +590,47 @@ const toggleStatus = (id: number) => {
           </div>
         </div>
 
-        <DialogFooter class="mt-6 flex justify-end gap-2">
-          <Button variant="outline" @click="confirmDialogOpen = false">
-            Cancel
-          </Button>
+        <DialogFooter class="mt-6">
+          <div class="flex w-full justify-between gap-2">
+            <div class="flex gap-2">
+              <Button
+                variant="default"
+                :disabled="updatingId === driverToToggle?.id"
+                @click="
+                  toggleStatus(driverToToggle!.id, 'approve');
+                  confirmDialogOpen = false;
+                "
+              >
+                <Spinner
+                  v-if="updatingId === driverToToggle?.id"
+                  class="mr-2 h-4 w-4"
+                />
+                <span v-else>Approve</span>
+              </Button>
 
-          <Button
-            variant="default"
-            :disabled="updatingId === driverToToggle?.id"
-            @click="
-              toggleStatus(driverToToggle!.id);
-              confirmDialogOpen = false;
-            "
-          >
-            <Spinner
-              v-if="updatingId === driverToToggle?.id"
-              class="mr-2 h-4 w-4"
-            />
-            <span v-else>Confirm</span>
-          </Button>
+              <Button
+                variant="outline"
+                class="border border-gray-300"
+                :disabled="updatingId === driverToToggle?.id"
+                @click="
+                  toggleStatus(driverToToggle!.id, 'deny');
+                  confirmDialogOpen = false;
+                "
+              >
+                <Spinner
+                  v-if="updatingId === driverToToggle?.id"
+                  class="mr-2 h-4 w-4"
+                />
+                <span v-else>Deny</span>
+              </Button>
+            </div>
+
+            <div>
+              <Button variant="outline" @click="confirmDialogOpen = false">
+                Close
+              </Button>
+            </div>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

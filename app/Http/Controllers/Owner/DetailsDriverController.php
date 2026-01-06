@@ -36,7 +36,7 @@ class DetailsDriverController extends Controller
 
         // 2. Build the Revenue Query
         $query = Revenue::query()
-            ->with(['revenueBreakdowns.percentageType', 'driver', 'franchise', 'branch'])
+            ->with(['revenueBreakdowns.percentageType', 'driver', 'franchise'])
             ->where('driver_id', $validated['driver_id'])
             ->whereHas('status', fn ($q) => $q->where('name', 'paid'))
             // Filter using the calculated start and end date
@@ -44,11 +44,9 @@ class DetailsDriverController extends Controller
             ->where('service_type', 'Trips')
             ->orderBy('payment_date', 'asc');
 
-        // 3. Apply Contextual Filters (Franchise/Branch)
+        // 3. Apply Contextual Filters (Franchise)
         if (isset($validated['tab']) && $validated['tab'] === 'franchise' && !empty($validated['franchise']) && $validated['franchise'] !== 'all') {
             $query->where('franchise_id', $validated['franchise']);
-        } elseif (isset($validated['tab']) && $validated['tab'] === 'branch' && !empty($validated['branch']) && $validated['branch'] !== 'all') {
-            $query->where('branch_id', $validated['branch']);
         }
 
         return $query->get();
@@ -65,9 +63,8 @@ class DetailsDriverController extends Controller
             'driver_id' => ['required', 'string', 'exists:users,id'],
             'payment_date' => ['required', 'string'],
             'period' => ['required', 'string', 'in:daily,weekly,monthly'],
-            'tab' => ['sometimes', 'string', 'in:franchise,branch'],
+            'tab' => ['sometimes', 'string', 'in:franchise'],
             'franchise' => ['sometimes', 'nullable', 'string'],
-            'branch' => ['sometimes', 'nullable', 'string'],
         ]);
 
         // Use the new reusable fetcher (No need to manually decode here, as Inertia passes a clean string)
@@ -206,9 +203,8 @@ class DetailsDriverController extends Controller
             'driver_id' => ['required', 'string', 'exists:users,id'],
             'payment_date' => ['required', 'string'],
             'period' => ['required', 'string', 'in:daily,weekly,monthly'],
-            'tab' => ['sometimes', 'string', 'in:franchise,branch'],
+            'tab' => ['sometimes', 'string', 'in:franchise'],
             'franchise' => ['sometimes', 'nullable', 'string'],
-            'branch' => ['sometimes', 'nullable', 'string'],
             'export_type' => ['required', 'string', Rule::in(['pdf', 'excel', 'csv'])],
         ]);
 

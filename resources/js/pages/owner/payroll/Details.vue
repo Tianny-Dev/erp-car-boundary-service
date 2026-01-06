@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import Button from '@/components/ui/button/Button.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import owner from '@/routes/owner';
+import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import { type ColumnDef } from '@tanstack/vue-table';
 import { computed, h, ref } from 'vue';
@@ -78,6 +79,17 @@ const selectedRouteData = ref<{
 
 const initializedDetails = computed(() => props.details);
 const isExporting = ref<null | 'pdf' | 'excel' | 'csv'>(null);
+
+const breadcrumbs: BreadcrumbItem[] = [
+  {
+    title: 'Driver Payroll Summary',
+    href: owner.driverownerreport().url,
+  },
+  {
+    title: 'Details',
+    href: '#',
+  },
+];
 
 // --- Helper Functions ---
 
@@ -299,7 +311,7 @@ const goBack = () => {
 </script>
 
 <template>
-  <Head title="Driver Transaction Details" />
+  <Head title="Driver Payroll Report" />
   <AppLayout :breadcrumbs="breadcrumbs">
     <div
       class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
@@ -312,18 +324,20 @@ const goBack = () => {
         >
           <div>
             <Button variant="outline" class="mb-4 sm:mb-0" @click="goBack">
-              ← Back to Report
+              ← Back
             </Button>
             <h2 class="mt-2 font-mono text-2xl font-bold">
-              Driver Transaction Details
+              Driver Payroll Report
             </h2>
           </div>
-          <div class="text-right">
+          <div
+            class="rounded-lg border border-primary/10 bg-primary/5 p-4 text-right"
+          >
             <p class="text-lg font-semibold text-primary">
-              Driver Username: {{ props.driver.username }}
+              {{ props.driver.username }}
             </p>
-            <p class="text-sm text-muted-foreground">
-              Period: {{ props.periodLabel }}
+            <p class="font-mono text-sm text-muted-foreground">
+              {{ props.periodLabel }}
             </p>
           </div>
         </div>
@@ -332,35 +346,41 @@ const goBack = () => {
           class="mb-8 grid grid-cols-4 gap-4 rounded-lg bg-gray-50 p-4 shadow-inner sm:grid-cols-4 md:grid-cols-8 dark:bg-gray-900"
         >
           <div class="col-span-4 border-r pr-4 sm:col-span-2 sm:pr-2">
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-              Total Trips Amount
+            <p
+              class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400"
+            >
+              Total Trips
             </p>
-            <p class="text-xl font-bold text-green-600 dark:text-green-400">
+            <p class="text-xl font-bold text-gray-900 dark:text-gray-100">
               {{ grandTotals.totalAmount }}
             </p>
           </div>
 
           <div class="col-span-4 border-r pr-4 sm:col-span-2 sm:pr-2">
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-              Total Deduction
+            <p
+              class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400"
+            >
+              Deduction
             </p>
-            <p class="text-xl font-bold text-red-600 dark:text-red-400">
+            <p class="text-xl font-bold text-gray-900 dark:text-gray-100">
               {{ grandTotals.totalDeduction }}
             </p>
           </div>
 
           <div class="col-span-4 border-r sm:col-span-2">
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-              Total Driver Earning
+            <p
+              class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400"
+            >
+              Driver Earning
             </p>
-            <p class="text-xl font-bold text-indigo-600 dark:text-indigo-400">
+            <p class="text-xl font-bold text-gray-900 dark:text-gray-100">
               {{ grandTotals.totalDriverEarning }}
             </p>
           </div>
 
           <div class="col-span-4 sm:col-span-2">
             <p
-              class="mb-1 text-sm font-medium text-gray-500 dark:text-gray-400"
+              class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400"
             >
               Export Payroll Driver
             </p>
