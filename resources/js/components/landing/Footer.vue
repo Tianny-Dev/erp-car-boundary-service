@@ -24,7 +24,10 @@
 
           <div class="pt-4">
             <div class="dm:gap-4 flex gap-3">
-              <a href="https://www.facebook.com/profile.php?id=61585798276831" target="_blank">
+              <a
+                href="https://www.facebook.com/profile.php?id=61585798276831"
+                target="_blank"
+              >
                 <img
                   src="@/assets/fb.png"
                   class="h-[48px] rounded-full border-2 border-white"
@@ -38,7 +41,10 @@
                   alt=""
                 />
               </a>
-              <a href="https://www.instagram.com/erpsystemph/?hl=en" target="_blank">
+              <a
+                href="https://www.instagram.com/erpsystemph/?hl=en"
+                target="_blank"
+              >
                 <img
                   src="@/assets/instagram.png"
                   class="h-[48px] rounded-full border-2 border-white"
@@ -163,7 +169,7 @@
   <!-- Start All Rights Reserved -->
   <div class="bg-white px-5 py-3 text-center text-lg/[25px] text-brand-blue">
     <p>
-      © 2025 ERP System for Car Boundary Service - Philippines <br />
+      © 2026 ERP System for Car Boundary Service - Philippines <br />
       "Smart Mobility for Every Filipino."
     </p>
   </div>
