@@ -1,21 +1,21 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SuperAdmin\AllocationController;
+use App\Http\Controllers\SuperAdmin\BoundaryContractController;
 use App\Http\Controllers\SuperAdmin\DashboardController;
+use App\Http\Controllers\SuperAdmin\DriverController;
+use App\Http\Controllers\SuperAdmin\EarningController;
+use App\Http\Controllers\SuperAdmin\ExpenseController;
 use App\Http\Controllers\SuperAdmin\FeedbackManagementController;
-use App\Http\Controllers\SuperAdmin\OwnerController;
 use App\Http\Controllers\SuperAdmin\FranchiseController;
 use App\Http\Controllers\SuperAdmin\FranchiseOwnerController;
-use App\Http\Controllers\SuperAdmin\DriverController;
-use App\Http\Controllers\SuperAdmin\AllocationController;
-use App\Http\Controllers\SuperAdmin\VehicleController;
-use App\Http\Controllers\SuperAdmin\RevenueController;
-use App\Http\Controllers\SuperAdmin\TransactionController;
-use App\Http\Controllers\SuperAdmin\EarningController;
-use App\Http\Controllers\SuperAdmin\BoundaryContractController;
-use App\Http\Controllers\SuperAdmin\ExpenseController;
 use App\Http\Controllers\SuperAdmin\GpsTrackerController;
 use App\Http\Controllers\SuperAdmin\InventoryController;
+use App\Http\Controllers\SuperAdmin\OwnerController;
+use App\Http\Controllers\SuperAdmin\RevenueController;
+use App\Http\Controllers\SuperAdmin\TransactionController;
+use App\Http\Controllers\SuperAdmin\VehicleController;
+use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-admin')->name('super-admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -54,6 +54,7 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
     Route::get('/vehicle/create', [VehicleController::class, 'create'])->name('vehicle.create');
     Route::get('/vehicle/{vehicle}', [VehicleController::class, 'show'])->name('vehicle.show');
     Route::patch('/vehicle/{vehicle}', [VehicleController::class, 'update'])->name('vehicle.update');
+    Route::delete('/vehicle/{vehicle}', [VehicleController::class, 'destroy'])->name('vehicle.destroy');
     Route::patch('/vehicle/{vehicle}/change', [VehicleController::class, 'changeStatus'])->name('vehicle.change');
     Route::get('/vehicle/{vehicle}/maintenances', [VehicleController::class, 'maintenanceHistory'])->name('vehicle.maintenances');
 

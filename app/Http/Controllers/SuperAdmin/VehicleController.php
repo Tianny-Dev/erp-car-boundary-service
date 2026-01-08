@@ -3,18 +3,19 @@
 namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\SuperAdmin\VehicleDatatableResource;
-use App\Http\Resources\SuperAdmin\MaintenanceHistoryResource;
-use App\Http\Resources\SuperAdmin\VehicleResource;
 use App\Http\Requests\SuperAdmin\StoreVehicleRequest;
-use App\Models\Vehicle;
+use App\Http\Resources\SuperAdmin\MaintenanceHistoryResource;
+use App\Http\Resources\SuperAdmin\VehicleDatatableResource;
+use App\Http\Resources\SuperAdmin\VehicleResource;
 use App\Models\Franchise;
 use App\Models\Status;
+use App\Models\Vehicle;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Validation\Rule;
-use Illuminate\Http\Request;
 use Storage;
 
 class VehicleController extends Controller
@@ -58,7 +59,7 @@ class VehicleController extends Controller
         ])->whereHas('status', fn ($q) => $q->where('name', $filters['status']));
 
         $query->whereNotNull('franchise_id')
-            ->when(!empty($filters['franchise']), fn ($q) => $q->whereIn('franchise_id', $filters['franchise']))
+            ->when(! empty($filters['franchise']), fn ($q) => $q->whereIn('franchise_id', $filters['franchise']))
             ->with('franchise:id,name');
 
         return $query;
@@ -93,91 +94,108 @@ class VehicleController extends Controller
     }
 
     public function update(Request $request, Vehicle $vehicle)
-{
-    $validated = $request->validate([
-        'franchise_id' => ['required', 'exists:franchises,id'],
-        'plate_number' => ['required', 'string', 'max:20', Rule::unique('vehicles')->ignore($vehicle->id)],
-        'vin'          => ['required', 'string', 'max:50', Rule::unique('vehicles')->ignore($vehicle->id)],
-        'brand'        => ['required', 'string', 'max:100'],
-        'model'        => ['required', 'string', 'max:100'],
-        'year'         => ['required', 'integer'],
-        'color'        => ['required', 'string', 'max:50'],
-        'or_cr'        => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
-    ]);
+    {
+        $validated = $request->validate([
+            'franchise_id' => ['required', 'exists:franchises,id'],
+            'plate_number' => ['required', 'string', 'max:20', Rule::unique('vehicles')->ignore($vehicle->id)],
+            'vin' => ['required', 'string', 'max:50', Rule::unique('vehicles')->ignore($vehicle->id)],
+            'brand' => ['required', 'string', 'max:100'],
+            'model' => ['required', 'string', 'max:100'],
+            'year' => ['required', 'integer'],
+            'color' => ['required', 'string', 'max:50'],
+            'or_cr' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
+        ]);
 
-    // Update text fields (this excludes the file from the array automatically if not provided)
-    $vehicle->fill($request->except('or_cr'));
+        // Update text fields (this excludes the file from the array automatically if not provided)
+        $vehicle->fill($request->except('or_cr'));
 
-    if ($request->hasFile('or_cr')) {
-        // 1. Delete old file from storage if it exists
-        if ($vehicle->or_cr) {
-            Storage::disk('public')->delete('vehicle_documents/' . $vehicle->or_cr);
+        if ($request->hasFile('or_cr')) {
+            // 1. Delete old file from storage if it exists
+            if ($vehicle->or_cr) {
+                Storage::disk('public')->delete('vehicle_documents/'.$vehicle->or_cr);
+            }
+
+            // 2. Handle New File Upload
+            $file = $request->file('or_cr');
+
+            // Consistent naming: timestamp + cleaned plate number
+            $filename = time().'_or_cr_'.str_replace(' ', '_', $request->plate_number).'.'.$file->getClientOriginalExtension();
+
+            $file->storeAs('vehicle_documents', $filename, 'public');
+
+            // 3. Update the database column
+            $vehicle->or_cr = $filename;
         }
 
-        // 2. Handle New File Upload
-        $file = $request->file('or_cr');
+        $vehicle->save();
 
-        // Consistent naming: timestamp + cleaned plate number
-        $filename = time() . '_or_cr_' . str_replace(' ', '_', $request->plate_number) . '.' . $file->getClientOriginalExtension();
-
-        $file->storeAs('vehicle_documents', $filename, 'public');
-
-        // 3. Update the database column
-        $vehicle->or_cr = $filename;
+        // Use 'back' so the Inertia modal refreshes its data automatically
+        return back()->with('success', 'Vehicle updated successfully');
     }
-
-    $vehicle->save();
-
-    // Use 'back' so the Inertia modal refreshes its data automatically
-    return back()->with('success', 'Vehicle updated successfully');
-}
 
     public function store(StoreVehicleRequest $request)
-{
-    $availableStatusId = Status::where('name', 'available')->firstOrFail()->id;
+    {
+        $availableStatusId = Status::where('name', 'available')->firstOrFail()->id;
 
-    // 1. Create the vehicle instance first
-    $vehicle = new Vehicle([
-        'status_id' => $availableStatusId,
-        'franchise_id' => $request->franchise_id,
-        'plate_number' => $request->plate_number,
-        'vin' => $request->vin,
-        'brand' => $request->brand,
-        'model' => $request->model,
-        'color' => $request->color,
-        'year' => $request->year,
-        'or_cr' => $request->or_cr,
-    ]);
+        // 1. Create the vehicle instance first
+        $vehicle = new Vehicle([
+            'status_id' => $availableStatusId,
+            'franchise_id' => $request->franchise_id,
+            'plate_number' => $request->plate_number,
+            'vin' => $request->vin,
+            'brand' => $request->brand,
+            'model' => $request->model,
+            'color' => $request->color,
+            'year' => $request->year,
+            'or_cr' => $request->or_cr,
+        ]);
 
-    // 2. Handle File Upload using your specific naming logic
-    if ($request->hasFile('or_cr')) {
-        $file = $request->file('or_cr');
+        // 2. Handle File Upload using your specific naming logic
+        if ($request->hasFile('or_cr')) {
+            $file = $request->file('or_cr');
 
-        // Naming: time() + plate_number for uniqueness
-        $filename = time() . '_or_cr_' . str_replace(' ', '_', $request->plate_number) . '.' . $file->getClientOriginalExtension();
+            // Naming: time() + plate_number for uniqueness
+            $filename = time().'_or_cr_'.str_replace(' ', '_', $request->plate_number).'.'.$file->getClientOriginalExtension();
 
-        // Store in storage/app/public/vehicle_documents
-        $file->storeAs('vehicle_documents', $filename, 'public');
+            // Store in storage/app/public/vehicle_documents
+            $file->storeAs('vehicle_documents', $filename, 'public');
 
-        // Save filename to database column
-        $vehicle->or_cr = $filename;
+            // Save filename to database column
+            $vehicle->or_cr = $filename;
+        }
+
+        $vehicle->save();
+
+        return redirect(route('super-admin.vehicle.index'));
     }
 
-    $vehicle->save();
+    public function destroy(string $id)
+    {
+        DB::transaction(function () use ($id) {
 
-    return redirect(route('super-admin.vehicle.index'));
-}
+            $vehicle = Vehicle::findOrFail($id);
 
+            $vehicle->maintenances()->each(function ($maintenance) {
+                $maintenance->expenses()->delete();
+            });
+
+            $vehicle->maintenances()->delete();
+            $vehicle->boundaryContracts()->delete();
+
+            $vehicle->delete();
+        });
+
+        return back()->with('success', 'Vehicle deleted successfully.');
+    }
 
     public function maintenanceHistory(Vehicle $vehicle)
     {
         // Eager load maintenance with its related inventory
-        $vehicle->loadMissing(['maintenances' => function($query) {
+        $vehicle->loadMissing(['maintenances' => function ($query) {
             $query->orderBy('maintenance_date', 'desc')
                 ->with('inventory:id,name,category,specification'); // eager load inventory
         }]);
 
         return MaintenanceHistoryResource::collection($vehicle->maintenances);
     }
-
 }
