@@ -3,14 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\ActionVerification;
-use App\Notifications\Channels\MoviderSmsChannel;
+use App\Notifications\VerificationActionOtp;
 use Illuminate\Http\Request;
-use Illuminate\Notifications\Notification;
 
 class ActionVerificationController extends Controller
 {
     public function sendActionCode(Request $request)
     {
+        $request->validate([
+            'action' => 'required|string',
+        ]);
+
         $user = $request->user();
         $action = $request->action;
 
@@ -26,26 +29,11 @@ class ActionVerificationController extends Controller
         ]);
 
         // Send SMS
-        $user->notify(new class($code) extends Notification
-        {
-            public $code;
+        $user->notify(new VerificationActionOtp($code));
 
-            public function __construct($code)
-            {
-                $this->code = $code;
-            }
-
-            public function via($notifiable)
-            {
-                return [MoviderSmsChannel::class];
-            }
-
-            public function toMovider($notifiable)
-            {
-                return "Your verification code is {$this->code}";
-            }
-        });
-
-        return response()->json(['message' => '2FA code sent via SMS']);
+        return response()->json([
+            'message' => '2FA code sent via SMS',
+            'expires_at' => now()->addMinutes(5)->toDateTimeString(),
+        ]);
     }
 }

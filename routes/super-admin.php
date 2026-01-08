@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ActionVerificationController;
 use App\Http\Controllers\SuperAdmin\AllocationController;
 use App\Http\Controllers\SuperAdmin\BoundaryContractController;
 use App\Http\Controllers\SuperAdmin\DashboardController;
@@ -29,7 +30,9 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
     Route::get('/owner/{userOwner}/edit', [FranchiseOwnerController::class, 'edit'])->name('owner.edit');
     Route::post('/owner/{userOwner}', [FranchiseOwnerController::class, 'update'])->name('owner.update');
 
+    Route::post('/franchises/send-action-code', [ActionVerificationController::class, 'sendActionCode'])->name('owner.sendCode');
     Route::delete('/franchise/{franchise}', [FranchiseController::class, 'destroy'])->name('franchise.destroy');
+
     Route::patch('/franchise/{franchise}', [FranchiseController::class, 'accept'])->name('franchise.accept');
     Route::get('/franchise/{franchise}', [FranchiseController::class, 'show'])->name('franchise.show');
     Route::get('/owner/{owner}', [OwnerController::class, 'show'])->name('owner.show');

@@ -2,29 +2,29 @@
 
 namespace App\Http\Controllers\SuperAdmin;
 
+use App\Enums\IdType;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\SuperAdmin\FranchiseResource;
+use App\Models\ActionVerification;
 use App\Models\Franchise;
-use App\Models\UserOwner;
-use App\Models\User;
 use App\Models\Status;
+use App\Models\User;
+use App\Models\UserOwner;
+use App\Notifications\AcceptFranchiseApplication;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use App\Http\Resources\SuperAdmin\FranchiseResource;
-use Illuminate\Http\Request;
-use App\Notifications\AcceptFranchiseApplication;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
-use Inertia\Inertia;
-use App\Enums\IdType;
 use Illuminate\Validation\Rule;
+use Inertia\Inertia;
 
 class FranchiseController extends Controller
-{    
+{
     public function show(Franchise $franchise)
     {
         $franchise->loadMissing(['status:id,name']);
 
-       return new FranchiseResource($franchise);
+        return new FranchiseResource($franchise);
     }
 
     public function accept(Franchise $franchise)
@@ -39,17 +39,17 @@ class FranchiseController extends Controller
             // Update the owner's status
             $franchise->owner->status_id = $activeStatus->id;
             $franchise->owner->save();
-            
-            $franchise->owner->user->notify(new AcceptFranchiseApplication());
+
+            $franchise->owner->user->notify(new AcceptFranchiseApplication);
         });
-        
+
         return back();
     }
 
     public function uploadContract(Request $request, Franchise $franchise)
     {
         $request->validate([
-            'contract_attachment' => 'required|file|mimes:pdf,doc,docx,odt,rtf,txt,xls,xlsx|max:10240', 
+            'contract_attachment' => 'required|file|mimes:pdf,doc,docx,odt,rtf,txt,xls,xlsx|max:10240',
         ]);
 
         $file = $request->file('contract_attachment');
@@ -151,10 +151,10 @@ class FranchiseController extends Controller
 
             // Store files
             $frontIdPath = $validated['front_valid_id_picture']->store('owner_ids', 'public');
-            $backIdPath  = $validated['back_valid_id_picture']->store('owner_ids', 'public');
-            $dtiPath     = $validated['dti_certificate']->store('franchise_documents', 'public');
-            $mayorPath   = $validated['mayor_permit']->store('franchise_documents', 'public');
-            $proofPath   = $validated['proof_capital']->store('franchise_documents', 'public');
+            $backIdPath = $validated['back_valid_id_picture']->store('owner_ids', 'public');
+            $dtiPath = $validated['dti_certificate']->store('franchise_documents', 'public');
+            $mayorPath = $validated['mayor_permit']->store('franchise_documents', 'public');
+            $proofPath = $validated['proof_capital']->store('franchise_documents', 'public');
 
             // Create User
             $user = User::create([
@@ -245,7 +245,7 @@ class FranchiseController extends Controller
         ]);
     }
 
-   public function update(Request $request, Franchise $franchise)
+    public function update(Request $request, Franchise $franchise)
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -261,53 +261,63 @@ class FranchiseController extends Controller
             'mayor_permit_attachment' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf,docx,doc', 'max:5120'],
             'proof_agreement_attachment' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf,docx,doc', 'max:5120'],
         ]);
-        
+
         $updateData = $validated;
-        
+
         foreach (['dti_registration_attachment', 'mayor_permit_attachment', 'proof_agreement_attachment'] as $field) {
             if ($request->hasFile($field)) {
                 // Delete old file if exists
                 if ($franchise->$field) {
                     Storage::delete($franchise->$field);
                 }
-                
+
                 $updateData[$field] = $request->file($field)->store('franchise_documents', 'public');
             } else {
-                unset($updateData[$field]); 
+                unset($updateData[$field]);
             }
         }
-        
+
         $franchise->update($updateData);
-        
+
         return redirect()
             ->route('super-admin.dashboard')
             ->with('success', 'Franchise updated successfully');
     }
 
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
-        DB::transaction(function () use ($id) {
+        $request->validate([
+            'code' => 'required|digits:6',
+        ]);
 
+        $verification = ActionVerification::where([
+            'user_id' => $request->user()->id,
+            'action' => 'delete_franchise',
+            'code' => $request->code,
+        ])->where('expires_at', '>', now())->first();
+
+        if (! $verification) {
+            return response()->json(['message' => 'Invalid or expired verification code.'], 422);
+        }
+
+        DB::transaction(function () use ($id) {
             $franchise = Franchise::with('owner.user')->findOrFail($id);
 
-            $owner = $franchise->owner;
-            $user  = $owner?->user;
+            // $owner = $franchise->owner;
+            // $user = $owner?->user;
+
+            // // Delete children first
+            // if ($user) $user->delete();
+            // if ($owner) $owner->delete();
 
             // Delete franchise
             $franchise->delete();
-
-            // Delete owner
-            if ($owner) {
-                $owner->delete();
-            }
-
-            // Delete user
-            if ($user) {
-                $user->delete();
-            }
         });
 
-        return back();
+        // Delete verification after successful deletion
+        $verification->delete();
+
+        return redirect()->route('super-admin.dashboard');
     }
 
     protected function passwordRules(): array
