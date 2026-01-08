@@ -180,7 +180,16 @@ class VehicleController extends Controller
             });
 
             $vehicle->maintenances()->delete();
+
+            $vehicle->load('boundaryContracts.revenues');
+
+            foreach ($vehicle->boundaryContracts as $contract) {
+                $contract->revenues()->delete();
+            }
+
             $vehicle->boundaryContracts()->delete();
+
+            $vehicle->routes()->delete();
 
             $vehicle->delete();
         });

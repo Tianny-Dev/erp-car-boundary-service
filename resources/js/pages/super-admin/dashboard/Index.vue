@@ -3,6 +3,7 @@ import DataTable from '@/components/DataTable.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { axios } from 'axios';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
@@ -255,24 +256,52 @@ const openDeleteModal = (franchise: FranchiseRow) => {
   isDeleteModalOpen.value = true;
 };
 
-const handleDeleteFranchise = () => {
+// const handleDeleteFranchise = () => {
+//   if (!selectedFranchise.value?.id) return;
+
+//   isDeletingFranchise.value = true;
+
+//   router.delete(superAdmin.franchise.destroy(selectedFranchise.value.id).url, {
+//     preserveScroll: true,
+
+//     onSuccess: () => {
+//       isDeleteModalOpen.value = false;
+//       selectedFranchise.value = {};
+//       toast.success('Franchise deleted successfully!');
+//     },
+
+//     onFinish: () => {
+//       isDeletingFranchise.value = false;
+//     },
+//   });
+// };
+
+const isOtpModalOpen = ref(false);
+const otpCode = ref('');
+const isVerifyingOtp = ref(false);
+
+const handleDeleteFranchise = async () => {
   if (!selectedFranchise.value?.id) return;
 
   isDeletingFranchise.value = true;
 
-  router.delete(superAdmin.franchise.destroy(selectedFranchise.value.id).url, {
-    preserveScroll: true,
+  try {
+    // Request OTP to be sent
+    // await axios.post('/super-admin/franchises/send-action-code', { franchise_id: selectedFranchise.value.id, action: 'delete_franchise', });
 
-    onSuccess: () => {
-      isDeleteModalOpen.value = false;
-      selectedFranchise.value = {};
-      toast.success('Franchise deleted successfully!');
-    },
+    // Open OTP modal
+    isOtpModalOpen.value = true;
+    otpCode.value = '';
+    isDeleteModalOpen.value = false;
 
-    onFinish: () => {
-      isDeletingFranchise.value = false;
-    },
-  });
+  } catch (e) {
+    toast.error('Failed to send verification code.');
+    isDeleteModalOpen.value = false;
+    selectedFranchise.value = {};
+  } finally {
+    isDeletingFranchise.value = false;
+    isDeleteModalOpen.value = false; // close original confirm modal
+  }
 };
 
 // Upload Contract Modal State
@@ -650,6 +679,39 @@ const filteredFranchises = computed(() => {
       </DialogFooter>
     </DialogContent>
   </Dialog>
+
+  <Dialog v-model:open="isOtpModalOpen">
+    <DialogContent class="max-w-md font-mono">
+      <DialogHeader>
+        <DialogTitle class="text-2xl">Enter Verification Code</DialogTitle>
+        <DialogDescription class="text-md font-semibold">
+          A 6-digit verification code has been sent to the franchise owner's phone.
+          Enter the code below to confirm deleting
+          <strong class="text-red-500">{{ selectedFranchise.name }}</strong>.
+        </DialogDescription>
+      </DialogHeader>
+      <div class="mt-4">
+        <input
+          type="text"
+          v-model="otpCode"
+          maxlength="6"
+          placeholder="Enter 6-digit code"
+          class="w-full border rounded p-2 text-center"
+        />
+      </div>
+      <DialogFooter class="mt-4">
+        <Button variant="outline" @click="isOtpModalOpen = false">Cancel</Button>
+        <Button
+          variant="destructive"
+          @click="handleVerifyOtp"
+          :disabled="isVerifyingOtp"
+        >
+          {{ isVerifyingOtp ? 'Verifying...' : 'Confirm Delete' }}
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+
 
   <Dialog v-model:open="franchiseModal.isOpen.value">
     <DialogContent class="max-w-2xl overflow-y-auto">
