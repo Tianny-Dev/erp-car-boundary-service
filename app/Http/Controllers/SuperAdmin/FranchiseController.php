@@ -286,19 +286,19 @@ class FranchiseController extends Controller
 
     public function destroy(Request $request, string $id)
     {
-        $request->validate([
-            'code' => 'required|digits:6',
-        ]);
+        // $request->validate([
+        //     'code' => 'required|digits:6',
+        // ]);
 
-        $verification = ActionVerification::where([
-            'user_id' => $request->user()->id,
-            'action' => 'delete_franchise',
-            'code' => $request->code,
-        ])->where('expires_at', '>', now())->first();
+        // $verification = ActionVerification::where([
+        //     'user_id' => $request->user()->id,
+        //     'action' => 'delete_franchise',
+        //     'code' => $request->code,
+        // ])->where('expires_at', '>', now())->first();
 
-        if (! $verification) {
-            return response()->json(['message' => 'Invalid or expired verification code.'], 422);
-        }
+        // if (! $verification) {
+        //     return response()->json(['message' => 'Invalid or expired verification code.'], 422);
+        // }
 
         DB::transaction(function () use ($id) {
             $franchise = Franchise::with('owner.user')->findOrFail($id);
@@ -315,9 +315,10 @@ class FranchiseController extends Controller
         });
 
         // Delete verification after successful deletion
-        $verification->delete();
+        // $verification->delete();
 
-        return redirect()->route('super-admin.dashboard');
+        // return redirect()->route('super-admin.dashboard');
+        return back();
     }
 
     protected function passwordRules(): array
