@@ -227,6 +227,34 @@ const handleChangeVehicle = () => {
   });
 };
 
+// --- Delete Vehicle Modal State ---
+const isDeleteModalOpen = ref(false);
+const isDeletingVehicle = ref(false);
+
+const openDeleteModal = (vehicle: VehicleRow) => {
+  selectedVehicle.value = vehicle;
+  isDeleteModalOpen.value = true;
+};
+
+const confirmDelete = () => {
+  if (!selectedVehicle.value) return
+  isDeletingVehicle.value = true;
+
+  router.delete(superAdmin.vehicle.destroy(selectedVehicle.value.id).url, {
+    preserveScroll: true,
+
+    onSuccess: () => {
+      isDeleteModalOpen.value = false;
+      selectedVehicle.value = {};
+      toast.success('Vehicle deleted successfully!');
+    },
+
+    onFinish: () => {
+      isDeletingVehicle.value = false;
+    },
+  });
+}
+
 const statuses = [
   { value: 'active', label: 'Active' },
   { value: 'available', label: 'Available' },
@@ -316,6 +344,17 @@ const vehicleColumns = computed<ColumnDef<VehicleRow>[]>(() => {
                     onClick: () => openChangeModal(vehicle),
                   },
                   () => 'Change Status',
+                ),
+              ],
+              h(DropdownMenuSeparator),
+              [
+                h(
+                  DropdownMenuItem,
+                  {
+                    class: 'cursor-pointer text-red-500 focus:text-red-600',
+                    onClick: () => openDeleteModal(vehicle),
+                  },
+                  () => 'Delete Vehicle',
                 ),
               ],
             ]),
@@ -635,6 +674,36 @@ watch(
           :disabled="changeForm.processing || !changeForm.status"
         >
           {{ changeForm.processing ? 'Changing...' : 'Confirm Change' }}
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+
+  <Dialog v-model:open="isDeleteModalOpen">
+    <DialogContent class="sm:max-w-md">
+      <DialogHeader>
+        <DialogTitle>Delete Vehicle</DialogTitle>
+        <DialogDescription>
+          Are you sure you want to delete vehicle with plate no.
+          <span class="font-semibold">
+            {{ selectedVehicle?.plate_number }}
+          </span>?
+          <br />
+          This action cannot be undone.
+        </DialogDescription>
+      </DialogHeader>
+
+      <DialogFooter class="gap-2">
+        <Button variant="outline" @click="isDeleteModalOpen = false"
+          >Cancel</Button
+        >
+
+        <Button
+          variant="destructive"
+          @click="confirmDelete"
+          :disabled="isDeletingVehicle"
+        >
+          {{ isDeletingVehicle ? 'Deleting...' : 'Yes, Delete' }}
         </Button>
       </DialogFooter>
     </DialogContent>

@@ -54,4 +54,9 @@ class UserPassenger extends Model
     {
         return $this->hasMany(Rating::class);
     }
+
+    public function tipsGiven()
+{
+    return $this->hasMany(Tip::class, 'passenger_id');
+}
 }

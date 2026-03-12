@@ -95,4 +95,9 @@ class UserDriver extends Model
     {
         return $this->hasMany(Revenue::class);
     }
+
+    public function tipsReceived()
+    {
+        return $this->hasMany(Tip::class, 'driver_id');
+    }
 }
