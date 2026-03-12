@@ -30,13 +30,13 @@ const { isScrolled, activeSection, isMenuOpen, sectionIds, handleClick } =
 
       <div class="flex w-full gap-2 lg:w-auto xl:gap-3">
         <a
-          href="https://bb88group.com/erpfranchisingmgmt/APK/ERP.apk"
+          href="https://bb88group.com/erpfranchisingmgmt/APK/DDGNS-ERP.apk"
           target="_blank"
-          class="flex-1 rounded-md bg-brand-blue px-2 py-2 whitespace-nowrap text-white lg:px-4 xl:px-7 transition-all hover:opacity-85"
+          class="flex-1 rounded-md bg-brand-blue px-2 py-2 whitespace-nowrap text-white transition-all hover:opacity-85 lg:px-4 xl:px-7"
         >
           Download App
         </a>
-        
+
         <DropdownMenu v-if="$page.props.auth.user">
           <DropdownMenuTrigger as-child>
             <button
