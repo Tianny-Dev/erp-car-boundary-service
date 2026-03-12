@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('driver_id')->nullable()->constrained('user_drivers')->onDelete('restrict');
             $table->foreignId('boundary_contract_id')->nullable()->constrained('boundary_contracts')->onDelete('restrict');
             $table->foreignId('payment_option_id')->nullable()->constrained('payment_options')->onDelete('restrict');
-            $table->string('invoice_no', 100)->unique();
+            $table->string('invoice_no', 100)->nullable()->unique();
             $table->decimal('amount', 10, 2);
             $table->string('currency', 10)->default('PHP');
             $table->enum('service_type', ['Trips','Boundary'])->default('Trips');
