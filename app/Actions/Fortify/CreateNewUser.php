@@ -75,7 +75,7 @@ class CreateNewUser implements CreatesNewUsers
             ],
             'password' => $this->passwordRules(),
             'gender' => ['required', new Enum(Gender::class)],
-            'birth_date' => ['required','date','before_or_equal:' . now()->subYears(10)->toDateString(),'after_or_equal:' . now()->subYears(100)->toDateString(),],         
+            'birth_date' => ['required','date','before_or_equal:' . now()->subYears(10)->toDateString(),'after_or_equal:' . now()->subYears(100)->toDateString(),],
             'address' => ['required', 'string', 'max:255'],
             'region' => ['required', 'string', 'max:255'],
             'province' => ['nullable', 'string', 'max:255', 'required_unless:region,NCR'],
@@ -105,10 +105,11 @@ class CreateNewUser implements CreatesNewUsers
             $inActiveStatusId = 2;
 
             // 2a. Store all files
-            $frontIdPath = $input['front_license_picture']->store('driver_ids', 'public');
-            $backIdPath = $input['back_license_picture']->store('driver_ids', 'public');
+            $frontIdPath = $input['front_license_picture']->store('driver_documents', 'public');
+            $backIdPath = $input['back_license_picture']->store('driver_documents', 'public');
             $nbiClearancePath = $input['nbi_clearance']->store('driver_documents', 'public');
             $selfiePicturePath = $input['selfie_picture']->store('driver_documents', 'public');
+
 
             // 2b. Create User
             $newUser = User::create([
@@ -164,7 +165,7 @@ class CreateNewUser implements CreatesNewUsers
             ],
             'password' => $this->passwordRules(),
             'gender' => ['required', new Enum(Gender::class)],
-            'birth_date' => ['required','date','before_or_equal:' . now()->subYears(10)->toDateString(),'after_or_equal:' . now()->subYears(100)->toDateString(),],         
+            'birth_date' => ['required','date','before_or_equal:' . now()->subYears(10)->toDateString(),'after_or_equal:' . now()->subYears(100)->toDateString(),],
             'address' => ['required', 'string', 'max:255'],
             'region' => ['required', 'string', 'max:255'],
             'province' => ['nullable', 'string', 'max:255', 'required_unless:region,NCR'],
@@ -174,7 +175,7 @@ class CreateNewUser implements CreatesNewUsers
             'terms1' => ['required', 'accepted'],
             'terms2' => ['required', 'accepted'],
         ])->validate();
-        
+
         Validator::make(
             ['user_type_id' => $userTypeId],
             ['user_type_id' => ['required', 'integer', Rule::exists('user_types', 'id')]]
@@ -202,7 +203,7 @@ class CreateNewUser implements CreatesNewUsers
                 'barangay' => $input['barangay'],
                 'postal_code' => $input['postal_code'],
             ]);
-      
+
             UserPassenger::create([
                 'id' => $newUser->id,
                 'status_id' => $activeStatusId,
@@ -232,7 +233,7 @@ class CreateNewUser implements CreatesNewUsers
             ],
             'password' => $this->passwordRules(),
             'gender' => ['required', new Enum(Gender::class)],
-            'birth_date' => ['required','date','before_or_equal:' . now()->subYears(10)->toDateString(),'after_or_equal:' . now()->subYears(100)->toDateString(),],         
+            'birth_date' => ['required','date','before_or_equal:' . now()->subYears(10)->toDateString(),'after_or_equal:' . now()->subYears(100)->toDateString(),],
             'address' => ['required', 'string', 'max:255'],
             'region' => ['required', 'string', 'max:255'],
             'province' => ['nullable', 'string', 'max:255', 'required_unless:region,NCR'],
