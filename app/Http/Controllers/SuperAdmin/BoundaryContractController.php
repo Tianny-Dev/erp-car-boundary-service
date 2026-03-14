@@ -102,7 +102,7 @@ class BoundaryContractController extends Controller
         }
 
         // 2. Query Drivers
-        $drivers = UserDriver::with('user:id,name')
+        $drivers = UserDriver::with('user:id,username')
             ->where('status_id', $activeStatusId) // Driver must be active
             // Check pivot/relationship for franchise ownership
             ->whereHas('franchises', function ($q) use ($entityId) {
@@ -113,7 +113,7 @@ class BoundaryContractController extends Controller
                 $q->where('status_id', $activeStatusId);
             })
             ->get()
-            ->map(fn($d) => ['id' => $d->user->id, 'name' => $d->user->name]);
+            ->map(fn($d) => ['id' => $d->user->id, 'name' => $d->user->username]);
 
         // 3. Query Vehicles
         $vehicles = Vehicle::query()
