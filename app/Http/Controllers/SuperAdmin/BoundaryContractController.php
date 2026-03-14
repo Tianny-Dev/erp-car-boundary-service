@@ -164,4 +164,14 @@ class BoundaryContractController extends Controller
 
         return redirect(route('super-admin.boundaryContract.index'));
     }
+
+    public function approve(BoundaryContract $contract)
+    {
+        $activeStatusId = Status::where('name', 'active')->firstOrFail();
+
+        $contract->status_id = $activeStatusId->id;
+        $contract->save();
+
+        return back();
+    }
 }
