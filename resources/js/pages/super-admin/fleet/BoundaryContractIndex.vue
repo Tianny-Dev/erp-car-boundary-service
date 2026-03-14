@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import DataTable from '@/components/DataTable.vue';
+import MultiSelect from '@/components/MultiSelect.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import MultiSelect from '@/components/MultiSelect.vue';
 import {
   Dialog,
   DialogContent,
@@ -18,6 +18,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -28,7 +29,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDetailsModal } from '@/composables/useDetailsModal';
 import AppLayout from '@/layouts/AppLayout.vue';
 import superAdmin from '@/routes/super-admin';
@@ -38,6 +38,7 @@ import { type ColumnDef } from '@tanstack/vue-table';
 import { debounce } from 'lodash-es';
 import { AlertCircleIcon, MoreHorizontal, PlusIcon } from 'lucide-vue-next';
 import { computed, h, ref, watch } from 'vue';
+import { toast } from 'vue-sonner';
 
 // --- Define Props ---
 const props = defineProps<{
@@ -77,8 +78,7 @@ const selectedFranchise = ref<string[]>(props.filters.franchise || []);
 const selectedStatus = ref(props.filters.status || 'active');
 
 const selectedContext = computed({
-  get: () =>
-    selectedFranchise.value,
+  get: () => selectedFranchise.value,
   set: (val: string[]) => {
     selectedFranchise.value = val;
   },
@@ -86,8 +86,7 @@ const selectedContext = computed({
 
 // Mapping options for the MultiSelect
 const contextOptions = computed(() => {
-  const data =
-    props.franchises;
+  const data = props.franchises;
   return data.map((item) => ({ id: item.id, label: item.name }));
 });
 
@@ -149,6 +148,35 @@ const formatCurrency = (amount: number): string => {
   }).format(amount);
 };
 
+// --- Approve Modal State ---
+const isApproveModalOpen = ref(false);
+const isApprovingContract = ref(false);
+const selectedContract = ref<Partial<ContractRow>>({});
+
+const openApproveModal = (contract: ContractRow) => {
+  selectedContract.value = contract;
+  isApproveModalOpen.value = true;
+};
+
+const handleApproveContract = () => {
+  if (!selectedContract.value?.id) return;
+  isApprovingContract.value = true;
+
+  router.patch(
+    superAdmin.boundaryContract.approve(selectedContract.value.id).url,
+    {},
+    {
+      onSuccess: () => {
+        isApproveModalOpen.value = false;
+        toast.success('Contract approved successfully!');
+      },
+      onFinish: () => {
+        isApprovingContract.value = false;
+      },
+    },
+  );
+};
+
 // Computed columns for the data table
 const contractColumns = computed<ColumnDef<ContractRow>[]>(() => {
   const baseColumns: ColumnDef<ContractRow>[] = [
@@ -162,7 +190,7 @@ const contractColumns = computed<ColumnDef<ContractRow>[]>(() => {
     },
     {
       accessorKey: 'franchise_name',
-      header: 'Franchise'
+      header: 'Franchise',
     },
     {
       accessorKey: 'amount',
@@ -228,6 +256,20 @@ const contractColumns = computed<ColumnDef<ContractRow>[]>(() => {
                 },
                 () => 'View Contract Details',
               ),
+              contract.status_name === 'pending'
+                ? [
+                    h(DropdownMenuSeparator),
+                    h(
+                      DropdownMenuItem,
+                      {
+                        class:
+                          'cursor-pointer text-blue-500 focus:text-blue-600',
+                        onClick: () => openApproveModal(contract),
+                      },
+                      () => 'Approve Contract',
+                    ),
+                  ]
+                : null,
             ]),
           ]),
         ]);
@@ -262,16 +304,17 @@ watch(
 </script>
 
 <template>
-
   <Head title="Boundary Contract" />
 
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-      <div class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border">
+    <div
+      class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
+    >
+      <div
+        class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border"
+      >
         <div class="mb-4 flex items-center justify-between">
-          <h2 class="font-mono text-xl font-semibold">
-            Franchise Contracts
-          </h2>
+          <h2 class="font-mono text-xl font-semibold">Franchise Contracts</h2>
 
           <div class="flex gap-4">
             <Select v-model="selectedStatus">
@@ -286,18 +329,28 @@ watch(
               </SelectContent>
             </Select>
 
-            <MultiSelect v-model="selectedContext" :options="contextOptions" placeholder="
+            <MultiSelect
+              v-model="selectedContext"
+              :options="contextOptions"
+              placeholder="
                 Select Franchises
-              " all-label="All Franchises" @change="
+              "
+              all-label="All Franchises"
+              @change="
                 (val) => {
                   selectedFranchise = val;
                   updateFilters();
                 }
-              " />
+              "
+            />
           </div>
         </div>
 
-        <DataTable :columns="contractColumns" :data="contracts.data" search-placeholder="Search contracts...">
+        <DataTable
+          :columns="contractColumns"
+          :data="contracts.data"
+          search-placeholder="Search contracts..."
+        >
           <template #custom-actions>
             <Button class="me-5" @click="createContract">
               <PlusIcon />Add Contract
@@ -313,14 +366,20 @@ watch(
           <DialogTitle>Contract Details</DialogTitle>
         </DialogHeader>
         <DialogDescription>
-          <div v-if="contractModal.isLoading.value" class="grid grid-cols-2 gap-4">
+          <div
+            v-if="contractModal.isLoading.value"
+            class="grid grid-cols-2 gap-4"
+          >
             <template v-for="item in 10" :key="item">
               <Skeleton class="h-5 w-24" />
               <Skeleton class="h-5 w-3/4" />
             </template>
           </div>
 
-          <div v-else-if="contractDetails.length > 0" class="grid grid-cols-2 gap-4">
+          <div
+            v-else-if="contractDetails.length > 0"
+            class="grid grid-cols-2 gap-4"
+          >
             <template v-for="item in contractDetails" :key="item.label">
               <div class="font-medium">{{ item.label }}:</div>
               <div>
@@ -330,7 +389,10 @@ watch(
           </div>
 
           <div v-else-if="contractModal.isError.value">
-            <Alert variant="destructive" class="border-2 border-red-500 shadow-lg">
+            <Alert
+              variant="destructive"
+              class="border-2 border-red-500 shadow-lg"
+            >
               <AlertCircleIcon class="h-4 w-4" />
               <AlertTitle class="font-bold">Error</AlertTitle>
               <AlertDescription class="font-semibold">
@@ -342,6 +404,31 @@ watch(
 
         <DialogFooter class="mt-5">
           <Button variant="outline" @click="contractModal.close">Close</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    <Dialog v-model:open="isApproveModalOpen">
+      <DialogContent class="max-w-md font-mono">
+        <DialogHeader>
+          <DialogTitle class="text-2xl">Approve Driver?</DialogTitle>
+          <DialogDescription class="text-md font-semibold">
+            Are you sure you want to approve
+            <strong class="text-blue-500">{{ selectedContract.name }}</strong
+            >?
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" @click="isApproveModalOpen = false"
+            >Cancel</Button
+          >
+          <Button
+            variant="default"
+            @click="handleApproveContract"
+            :disabled="isApprovingContract"
+          >
+            {{ isApprovingContract ? 'Approving...' : 'Yes, Approve' }}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
