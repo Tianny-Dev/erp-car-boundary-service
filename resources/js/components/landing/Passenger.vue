@@ -45,9 +45,9 @@
 
           <div class="pt-7 text-center sm:pt-10 xl:text-start">
             <a
-              href="https://bb88group.com/erpfranchisingmgmt/APK/ERP.apk"
+              href="https://bb88group.com/erpfranchisingmgmt/APK/DDGNS-ERP.apk"
               target="_blank"
-              class="mt-6 rounded-xl bg-white px-5 py-2 text-xl text-brand-blue sm:px-12 sm:text-3xl transition-all hover:opacity-85"
+              class="mt-6 rounded-xl bg-white px-5 py-2 text-xl text-brand-blue transition-all hover:opacity-85 sm:px-12 sm:text-3xl"
             >
               Book a Ride Now
             </a>

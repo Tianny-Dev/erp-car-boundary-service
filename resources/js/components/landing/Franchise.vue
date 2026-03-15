@@ -172,18 +172,41 @@ const mapLocations = computed<MarkerData[]>(() => {
     class="bg-[url('@/assets/f1.jpg')] bg-cover bg-center bg-no-repeat px-5 py-16"
   >
     <div class="mx-auto w-full max-w-[1320px]">
-      <div class="grid grid-cols-12 gap-10 text-white">
-        <div class="col-span-12 md:col-span-6">
+      <div class="grid grid-cols-12 text-white md:gap-10">
+        <div class="col-span-12 mb-10 md:col-span-6 md:mb-0">
           <h2
             class="mb-6 border-l-4 border-brand-green pl-4 text-3xl font-bold"
           >
             BENEFITS
           </h2>
           <ul class="space-y-4 text-lg">
-            <li>✓ View all fleet data in one dashboard</li>
-            <li>✓ Automate boundary collection</li>
-            <li>✓ Track driver performance and vehicle health</li>
-            <li>✓ Access real-time GPS tracking</li>
+            <li>
+              <div class="flex gap-2">
+                <div>✓</div>
+                <div>View all fleet data in one dashboard</div>
+              </div>
+            </li>
+
+            <li>
+              <div class="flex gap-2">
+                <div>✓</div>
+                <div>Automate boundary collection</div>
+              </div>
+            </li>
+
+            <li>
+              <div class="flex gap-2">
+                <div>✓</div>
+                <div>Track driver performance and vehicle health</div>
+              </div>
+            </li>
+
+            <li>
+              <div class="flex gap-2">
+                <div>✓</div>
+                <div>Access real-time GPS tracking</div>
+              </div>
+            </li>
           </ul>
         </div>
         <div class="col-span-12 md:col-span-6">

@@ -70,13 +70,8 @@
           </p>
         </div>
 
-        <!-- <div
-          class="col-span-12 grid place-items-center rounded-xl border-3 border-white p-6 sm:col-span-6 lg:col-span-4"
-        >
-          <p class="pt-3 text-2xl font-bold text-white">LEARN MORE</p>
-        </div> -->
         <div
-          class="perspective col-span-12 h-full cursor-pointer sm:col-span-6 lg:col-span-4"
+          class="perspective col-span-12 h-full min-h-[180px] cursor-pointer sm:col-span-6 lg:col-span-4"
           @click="scrollToContact"
         >
           <div
@@ -86,13 +81,17 @@
             <div
               class="absolute inset-0 grid h-full place-items-center rounded-xl border-3 border-white bg-brand-blue p-6 backface-hidden"
             >
-              <p class="pt-3 text-2xl font-bold text-white">LEARN MORE</p>
+              <h1 class="text-center text-3xl font-bold text-white">
+                LEARN MORE
+              </h1>
             </div>
             <!-- Back side -->
             <div
               class="absolute inset-0 grid h-full rotate-y-180 place-items-center rounded-xl border-3 border-brand-blue bg-white p-6 backface-hidden"
             >
-              <p class="pt-3 text-2xl font-bold text-brand-blue">CONTACT US</p>
+              <h1 class="text-center text-3xl font-bold text-brand-blue">
+                CONTACT US
+              </h1>
             </div>
           </div>
         </div>
