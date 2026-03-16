@@ -336,7 +336,10 @@ const toggleStatus = (id: number, action: 'approve' | 'deny') => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  :class="{ 'bg-gray-100': link.active }"
+                  :class="{
+                    'bg-slate-200 text-black dark:bg-slate-800 dark:text-white':
+                      link.active,
+                  }"
                   :disabled="!link.url"
                   @click="goToPage(link.url)"
                 >
@@ -364,9 +367,7 @@ const toggleStatus = (id: number, action: 'approve' | 'deny') => {
 
           <DialogDescription class="text-gray-600">
             Detailed information for driver
-            <span class="font-semibold text-gray-900">
-              {{ selectedDriver?.username }} </span
-            >.
+            <span class="font-semibold"> {{ selectedDriver?.username }} </span>.
           </DialogDescription>
         </DialogHeader>
 

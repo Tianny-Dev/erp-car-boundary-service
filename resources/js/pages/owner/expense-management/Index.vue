@@ -492,7 +492,10 @@ watch(
                 <Button
                   variant="ghost"
                   size="sm"
-                  :class="{ 'bg-gray-100': link.active }"
+                  :class="{
+                    'bg-slate-200 text-black dark:bg-slate-800 dark:text-white':
+                      link.active,
+                  }"
                   :disabled="!link.url"
                   @click="goToPage(link.url)"
                 >

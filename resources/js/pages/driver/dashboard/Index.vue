@@ -1,47 +1,109 @@
 <script setup lang="ts">
-import PlaceholderPattern from '@/components/PlaceholderPattern.vue';
-import AppLayout from '@/layouts/AppLayout.vue';
-import driver from '@/routes/driver';
-import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/vue3';
+import { usePageTheme } from '@/composables/usePageTheme';
+import { home, logout } from '@/routes';
+import { Head, Link } from '@inertiajs/vue3';
 
-const breadcrumbs: BreadcrumbItem[] = [
-  {
-    title: 'Dashboard',
-    href: driver.dashboard().url,
-  },
-];
+// Maintain light mode consistency
+usePageTheme('light');
+
+const apkLink = 'https://bb88group.com/erpfranchisingmgmt/APK/DDGNS-ERP.apk';
 </script>
 
 <template>
-  <Head title="Driver Dashboard" />
+  <Head title="Account Verified!" />
 
-  <AppLayout :breadcrumbs="breadcrumbs">
-    <div
-      class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
-    >
-      <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-        <div
-          class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-        >
-          <PlaceholderPattern />
-        </div>
-        <div
-          class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-        >
-          <PlaceholderPattern />
-        </div>
-        <div
-          class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-        >
-          <PlaceholderPattern />
-        </div>
-      </div>
+  <div
+    class="flex h-screen w-full items-center justify-center bg-[#EFF8FF] p-2 sm:p-6"
+  >
+    <div class="relative z-0 w-full max-w-md">
       <div
-        class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border"
+        class="absolute top-[-60px] left-1/2 z-0 h-[125px] w-[125px] -translate-x-1/2 animate-ping rounded-full bg-white shadow-brand-shadow"
+      ></div>
+
+      <div>
+        <i
+          class="fa-solid fa-circle-check absolute top-[-45px] left-1/2 z-10 -translate-x-1/2 animate-bounce text-[90px] text-blue-600"
+        ></i>
+      </div>
+
+      <div
+        class="absolute left-1/2 z-0 h-full w-full -translate-x-1/2 rounded-2xl bg-white shadow-brand-shadow"
+      ></div>
+
+      <div
+        class="animate-fadeIn relative rounded-2xl bg-white p-3 text-center sm:p-8"
       >
-        <PlaceholderPattern />
+        <div class="h-14 sm:h-1"></div>
+
+        <h1
+          class="animate-slideDown mb-4 rounded-md bg-blue-600 px-1 py-2 text-xl text-white sm:mt-9 sm:px-2 sm:text-2xl"
+        >
+          Congratulations!
+        </h1>
+
+        <p class="text-md animate-fadeIn mb-2 font-semibold text-gray-800">
+          Your account is now verified.
+        </p>
+
+        <p class="text-md animate-fadeIn mb-6 px-2 text-gray-600">
+          You are now ready to start. Please download and install the official
+          driver app using the button below to access your account.
+        </p>
+
+        <div class="animate-fadeIn flex flex-col gap-3">
+          <a
+            :href="apkLink"
+            class="flex w-full items-center justify-center gap-2 rounded-lg bg-green-500 px-4 py-3 text-center font-bold text-white shadow-md transition hover:bg-green-600"
+          >
+            <i class="fa-solid fa-download"></i>
+            Download App
+          </a>
+
+          <div class="flex gap-3">
+            <Link
+              :href="logout()"
+              class="block w-full rounded-lg bg-gray-100 px-4 py-2 text-center font-semibold text-gray-700 transition hover:bg-gray-200"
+            >
+              Home
+            </Link>
+            <Link
+              :href="logout()"
+              class="block w-full rounded-lg bg-[#CE2D3C] px-4 py-2 text-center font-semibold text-white transition hover:bg-red-700"
+            >
+              Logout
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
-  </AppLayout>
+  </div>
 </template>
+
+<style scoped>
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes slideDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.8s ease forwards;
+}
+.animate-slideDown {
+  animation: slideDown 0.6s ease forwards;
+}
+</style>

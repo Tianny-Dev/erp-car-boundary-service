@@ -310,14 +310,19 @@ const goToPage = (url: string | null) => {
           placeholder="Search vehicles..."
           class="w-full rounded-md border px-4 py-2 md:flex-1"
         />
-        <select
-          v-model="statusFilter"
-          class="w-full rounded-md border px-3 py-2 md:w-48"
-        >
-          <option value="all">All Status</option>
-          <option value="available">Available</option>
-          <option value="maintenance">Maintenance</option>
-        </select>
+
+        <Select v-model="statusFilter">
+          <SelectTrigger class="w-full md:w-48">
+            <SelectValue>{{
+              statusFilter === 'all' ? 'Filter by status' : statusFilter
+            }}</SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="available">Available</SelectItem>
+            <SelectItem value="maintenance">Maintenance</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <!-- Vehicles Table -->
@@ -435,7 +440,10 @@ const goToPage = (url: string | null) => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  :class="{ 'bg-gray-100': link.active }"
+                  :class="{
+                    'bg-slate-200 text-black dark:bg-slate-800 dark:text-white':
+                      link.active,
+                  }"
                   :disabled="!link.url"
                   @click="goToPage(link.url)"
                 >
