@@ -247,7 +247,7 @@ const contractColumns = computed<ColumnDef<ContractRow>[]>(() => {
                 ]),
             ),
             h(DropdownMenuContent, { align: 'end', class: 'border-2' }, () => [
-              h(DropdownMenuLabel, null, () => 'Actions'),
+              h(DropdownMenuLabel, { class: 'text-gray-500' }, () => 'Actions'),
               h(
                 DropdownMenuItem,
                 {
@@ -361,11 +361,13 @@ watch(
     </div>
 
     <Dialog v-model:open="contractModal.isOpen.value">
-      <DialogContent class="max-w-3xl overflow-y-auto">
+      <DialogContent
+        class="flex max-h-[80vh] max-w-3xl flex-col overflow-hidden pe-3"
+      >
         <DialogHeader>
           <DialogTitle>Contract Details</DialogTitle>
         </DialogHeader>
-        <DialogDescription>
+        <DialogDescription class="flex-1 overflow-y-auto">
           <div
             v-if="contractModal.isLoading.value"
             class="grid grid-cols-2 gap-4"

@@ -25,7 +25,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/AppLayout.vue';
 import superAdmin from '@/routes/super-admin';
 import { type BreadcrumbItem } from '@/types';
@@ -69,8 +68,7 @@ const selectedDriver = ref<string[]>(props.filters.driver || []);
 const selectedPeriod = ref(props.filters.period);
 
 const selectedContext = computed({
-  get: () =>
-    selectedFranchise.value,
+  get: () => selectedFranchise.value,
   set: (val: string[]) => {
     selectedFranchise.value = val;
     selectedDriver.value = [];
@@ -82,8 +80,7 @@ const driverOptions = computed(() =>
   props.drivers.map((d) => ({ id: d.id, label: d.username })),
 );
 const contextOptions = computed(() => {
-  const data =
-    props.franchises;
+  const data = props.franchises;
   return data.map((item) => ({ id: item.id, label: item.name }));
 });
 
@@ -180,7 +177,6 @@ const formatCurrency = (amount: number): string => {
 
 // Computed columns for the data table
 const earningColumns = computed<ColumnDef<any>[]>(() => {
-
   const columns: ColumnDef<any>[] = [
     {
       accessorKey: 'franchise_name',
@@ -241,7 +237,7 @@ const earningColumns = computed<ColumnDef<any>[]>(() => {
               ]),
           ),
           h(DropdownMenuContent, { align: 'end', class: 'border-2' }, () => [
-            h(DropdownMenuLabel, null, () => 'Actions'),
+            h(DropdownMenuLabel, { class: 'text-gray-500' }, () => 'Actions'),
             h(
               DropdownMenuItem,
               {
@@ -297,15 +293,16 @@ watch(
 </script>
 
 <template>
-
   <Head title="Earning Report" />
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-      <div class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border">
+    <div
+      class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
+    >
+      <div
+        class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border"
+      >
         <div class="mb-4 flex items-center justify-between">
-          <h2 class="font-mono text-xl font-semibold">
-            Franchise Earnings
-          </h2>
+          <h2 class="font-mono text-xl font-semibold">Franchise Earnings</h2>
           <div class="flex gap-4">
             <Select v-model="selectedPeriod">
               <SelectTrigger class="w-[150px]">
@@ -318,20 +315,34 @@ watch(
               </SelectContent>
             </Select>
 
-            <MultiSelect v-model="selectedDriver" :options="driverOptions" placeholder="Select Drivers"
-              all-label="All Drivers" @change="updateFilters" />
+            <MultiSelect
+              v-model="selectedDriver"
+              :options="driverOptions"
+              placeholder="Select Drivers"
+              all-label="All Drivers"
+              @change="updateFilters"
+            />
 
-            <MultiSelect v-model="selectedContext" :options="contextOptions" placeholder="Select Franchises"
-              all-label="All Franchises" @change="
+            <MultiSelect
+              v-model="selectedContext"
+              :options="contextOptions"
+              placeholder="Select Franchises"
+              all-label="All Franchises"
+              @change="
                 (val) => {
                   selectedFranchise = val;
                   updateFilters();
                 }
-              " />
+              "
+            />
           </div>
         </div>
 
-        <DataTable :columns="earningColumns" :data="earnings.data" search-placeholder="Search earnings...">
+        <DataTable
+          :columns="earningColumns"
+          :data="earnings.data"
+          search-placeholder="Search earnings..."
+        >
           <template #custom-actions>
             <Button @click="openExportModal('pdf')"> Export PDF </Button>
             <Button @click="openExportModal('excel')"> Export Excel </Button>
@@ -357,7 +368,11 @@ watch(
                   <SelectValue placeholder="Select year" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem v-for="year in yearOptions" :key="year" :value="year">
+                  <SelectItem
+                    v-for="year in yearOptions"
+                    :key="year"
+                    :value="year"
+                  >
                     {{ year }}
                   </SelectItem>
                 </SelectContent>
@@ -366,9 +381,16 @@ watch(
             <div class="grid grid-cols-4 items-start gap-4">
               <label class="pt-2 text-right">Months</label>
               <div class="col-span-3 grid grid-cols-2 gap-2">
-                <div v-for="month in monthOptions" :key="month.id" class="flex items-center gap-2">
-                  <Checkbox :id="`month-${month.id}`" :model-value="exportMonths.includes(month.id)"
-                    @update:model-value="() => toggleMonth(month.id)" />
+                <div
+                  v-for="month in monthOptions"
+                  :key="month.id"
+                  class="flex items-center gap-2"
+                >
+                  <Checkbox
+                    :id="`month-${month.id}`"
+                    :model-value="exportMonths.includes(month.id)"
+                    @update:model-value="() => toggleMonth(month.id)"
+                  />
 
                   <label :for="`month-${month.id}`" class="cursor-pointer">
                     {{ month.label }}

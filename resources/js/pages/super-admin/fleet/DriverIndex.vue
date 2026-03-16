@@ -27,7 +27,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDetailsModal } from '@/composables/useDetailsModal';
 import AppLayout from '@/layouts/AppLayout.vue';
 import superAdmin from '@/routes/super-admin';
@@ -73,19 +72,15 @@ const selectedFranchise = ref<string[]>(props.filters.franchise || []);
 const selectedStatus = ref(props.filters.status || 'active');
 
 const selectedContext = computed({
-  get: () =>
-    selectedFranchise.value,
+  get: () => selectedFranchise.value,
   set: (val: string[]) => {
-
     selectedFranchise.value = val;
-
   },
 });
 
 // Mapping options for the MultiSelect
 const contextOptions = computed(() => {
-  const data =
-    props.franchises;
+  const data = props.franchises;
   return data.map((item) => ({ id: item.id, label: item.name }));
 });
 
@@ -164,7 +159,7 @@ const driverColumns = computed<ColumnDef<DriverRow>[]>(() => {
     },
     {
       accessorKey: 'franchise_name',
-      header: 'Franchise'
+      header: 'Franchise',
     },
     {
       accessorKey: 'email',
@@ -211,7 +206,7 @@ const driverColumns = computed<ColumnDef<DriverRow>[]>(() => {
                 ]),
             ),
             h(DropdownMenuContent, { align: 'end', class: 'border-2' }, () => [
-              h(DropdownMenuLabel, null, () => 'Actions'),
+              h(DropdownMenuLabel, { class: 'text-gray-500' }, () => 'Actions'),
               h(
                 DropdownMenuItem,
                 {
@@ -254,17 +249,17 @@ watch(
 </script>
 
 <template>
-
   <Head title="Driver Management" />
 
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-
-      <div class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border">
+    <div
+      class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
+    >
+      <div
+        class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border"
+      >
         <div class="mb-4 flex items-center justify-between">
-          <h2 class="font-mono text-xl font-semibold">
-            Franchise Drivers
-          </h2>
+          <h2 class="font-mono text-xl font-semibold">Franchise Drivers</h2>
 
           <div class="flex gap-4">
             <Select v-model="selectedStatus">
@@ -284,28 +279,39 @@ watch(
               </SelectContent>
             </Select>
 
-            <MultiSelect v-model="selectedContext" :options="contextOptions" placeholder="Select Franchises"
-              all-label="All Franchises" @change="
+            <MultiSelect
+              v-model="selectedContext"
+              :options="contextOptions"
+              placeholder="Select Franchises"
+              all-label="All Franchises"
+              @change="
                 (val) => {
                   selectedFranchise = val;
 
                   updateFilters();
                 }
-              " />
+              "
+            />
           </div>
         </div>
 
-        <DataTable :columns="driverColumns" :data="drivers.data" search-placeholder="Search drivers..." />
+        <DataTable
+          :columns="driverColumns"
+          :data="drivers.data"
+          search-placeholder="Search drivers..."
+        />
       </div>
     </div>
   </AppLayout>
 
   <Dialog v-model:open="driverModal.isOpen.value">
-    <DialogContent class="max-w-3xl overflow-y-auto">
+    <DialogContent
+      class="flex max-h-[80vh] max-w-3xl flex-col overflow-hidden pe-3"
+    >
       <DialogHeader>
         <DialogTitle>Driver Details</DialogTitle>
       </DialogHeader>
-      <DialogDescription>
+      <DialogDescription class="flex-1 overflow-y-auto">
         <div v-if="driverModal.isLoading.value" class="grid grid-cols-2 gap-4">
           <template v-for="item in 10" :key="item">
             <Skeleton class="h-5 w-24" />
@@ -313,12 +319,20 @@ watch(
           </template>
         </div>
 
-        <div v-else-if="driverDetails.length > 0" class="grid grid-cols-2 gap-4">
+        <div
+          v-else-if="driverDetails.length > 0"
+          class="grid grid-cols-2 gap-4"
+        >
           <template v-for="item in driverDetails" :key="item.label">
             <div class="font-medium">{{ item.label }}:</div>
 
             <div v-if="item.type === 'link'">
-              <a :href="item.value" target="_blank" class="text-blue-500 hover:underline">View</a>
+              <a
+                :href="item.value"
+                target="_blank"
+                class="text-blue-500 hover:underline"
+                >View</a
+              >
             </div>
 
             <div v-else>
@@ -328,7 +342,10 @@ watch(
         </div>
 
         <div v-else-if="driverModal.isError.value">
-          <Alert variant="destructive" class="border-2 border-red-500 shadow-lg">
+          <Alert
+            variant="destructive"
+            class="border-2 border-red-500 shadow-lg"
+          >
             <AlertCircleIcon class="h-4 w-4" />
             <AlertTitle class="font-bold">Error</AlertTitle>
             <AlertDescription class="font-semibold">
