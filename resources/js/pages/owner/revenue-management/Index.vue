@@ -412,6 +412,7 @@ watch(
               :disabled="!paginator.prev_page_url"
               @click="goToPage(paginator.prev_page_url)"
             />
+
             <template v-for="(link, index) in paginationLinks" :key="index">
               <PaginationItem
                 v-if="!isNaN(Number(link.label))"
@@ -420,7 +421,10 @@ watch(
                 <Button
                   variant="ghost"
                   size="sm"
-                  :class="{ 'bg-gray-100': link.active }"
+                  :class="{
+                    'bg-slate-200 text-black dark:bg-slate-800 dark:text-white':
+                      link.active,
+                  }"
                   :disabled="!link.url"
                   @click="goToPage(link.url)"
                 >
@@ -429,6 +433,7 @@ watch(
               </PaginationItem>
               <PaginationEllipsis v-else-if="link.label.includes('...')" />
             </template>
+
             <PaginationNext
               :disabled="!paginator.next_page_url"
               @click="goToPage(paginator.next_page_url)"
@@ -436,32 +441,6 @@ watch(
           </PaginationContent>
         </Pagination>
       </div>
-      <!-- <div class="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Revenue Breakdown by Type</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <RevenueBreakDownPieChart
-              :data="revenueServiceTypeBreakdownData"
-              category="total"
-              title="Revenue"
-            />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Revenue Breakdown by Payment Options</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <RevenuePaymentOptionsBreakDownPieChart
-              :data="revenueByPaymentOption"
-              category="total"
-              title="Revenue"
-            />
-          </CardContent>
-        </Card>
-      </div> -->
       <Card>
         <CardHeader>
           <CardTitle>Revenue Breakdown by Payment Options</CardTitle>
@@ -495,8 +474,8 @@ watch(
       </Card>
     </div>
     <Dialog v-model:open="dialogOpen">
-      <DialogContent class="flex max-h-[90vh] flex-col sm:max-w-lg">
-        <DialogHeader class="border-b pb-2">
+      <DialogContent class="sm:max-w-lg">
+        <DialogHeader>
           <DialogTitle>Revenue Details</DialogTitle>
           <DialogDescription>
             Detailed information for invoice
@@ -504,35 +483,31 @@ watch(
             >.
           </DialogDescription>
         </DialogHeader>
-
-        <div class="custom-scrollbar overflow-y-auto">
-          <div class="mt-2 space-y-2" v-if="selectedRevenue">
-            <p><strong>Invoice No:</strong> {{ selectedRevenue.invoice_no }}</p>
-            <p>
-              <strong>Service Type:</strong> {{ selectedRevenue.service_type }}
-            </p>
-            <p>
-              <strong>Amount:</strong> {{ selectedRevenue.currency }}
-              {{ selectedRevenue.amount.toLocaleString() }}
-            </p>
-            <p>
-              <strong>Payment Date:</strong>
-              {{ selectedRevenue.payment_date || '—' }}
-            </p>
-            <p><strong>Status:</strong> {{ selectedRevenue.status || '—' }}</p>
-            <p>
-              <strong>Franchise:</strong> {{ selectedRevenue.franchise || '—' }}
-            </p>
-            <p><strong>Branch:</strong> {{ selectedRevenue.branch || '—' }}</p>
-            <p>
-              <strong>Payment Option:</strong>
-              {{ selectedRevenue.payment_option || '—' }}
-            </p>
-            <p><strong>Notes:</strong> {{ selectedRevenue.notes || '—' }}</p>
-          </div>
+        <div class="mt-2 space-y-2" v-if="selectedRevenue">
+          <p><strong>Invoice No:</strong> {{ selectedRevenue.invoice_no }}</p>
+          <p>
+            <strong>Service Type:</strong> {{ selectedRevenue.service_type }}
+          </p>
+          <p>
+            <strong>Amount:</strong> {{ selectedRevenue.currency }}
+            {{ selectedRevenue.amount.toLocaleString() }}
+          </p>
+          <p>
+            <strong>Payment Date:</strong>
+            {{ selectedRevenue.payment_date || '—' }}
+          </p>
+          <p><strong>Status:</strong> {{ selectedRevenue.status || '—' }}</p>
+          <p>
+            <strong>Franchise:</strong> {{ selectedRevenue.franchise || '—' }}
+          </p>
+          <p><strong>Branch:</strong> {{ selectedRevenue.branch || '—' }}</p>
+          <p>
+            <strong>Payment Option:</strong>
+            {{ selectedRevenue.payment_option || '—' }}
+          </p>
+          <p><strong>Notes:</strong> {{ selectedRevenue.notes || '—' }}</p>
         </div>
-
-        <DialogFooter class="flex justify-end gap-2 border-t pt-6">
+        <DialogFooter>
           <Button @click="dialogOpen = false">Close</Button>
         </DialogFooter>
       </DialogContent>

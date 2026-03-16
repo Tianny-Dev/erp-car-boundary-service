@@ -364,7 +364,10 @@ const createRequest = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  :class="{ 'bg-gray-100': link.active }"
+                  :class="{
+                    'bg-slate-200 text-black dark:bg-slate-800 dark:text-white':
+                      link.active,
+                  }"
                   :disabled="!link.url"
                   @click="goToPage(link.url)"
                 >
@@ -384,8 +387,8 @@ const createRequest = () => {
     </div>
 
     <Dialog v-model:open="dialogOpen">
-      <DialogContent class="sm:max-w-lg">
-        <DialogHeader>
+      <DialogContent class="flex max-h-[90vh] flex-col sm:max-w-lg">
+        <DialogHeader class="border-b pb-2">
           <DialogTitle>Maintenance Request Information</DialogTitle>
           <DialogDescription>
             Detailed information for request
@@ -394,59 +397,61 @@ const createRequest = () => {
           </DialogDescription>
         </DialogHeader>
 
-        <!-- Request Information -->
-        <div class="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-          <p><strong>ID:</strong> {{ selectedRequest?.id }}</p>
-          <p><strong>Status:</strong> {{ selectedRequest?.status }}</p>
+        <div class="custom-scrollbar overflow-y-auto">
+          <!-- Request Information -->
+          <div class="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+            <p><strong>ID:</strong> {{ selectedRequest?.id }}</p>
+            <p><strong>Status:</strong> {{ selectedRequest?.status }}</p>
 
-          <p>
-            <strong>Description:</strong> {{ selectedRequest?.description }}
-          </p>
-          <p>
-            <strong>Maintenance Date:</strong>
-            {{ selectedRequest?.maintenance_date }}
-          </p>
-          <p>
-            <strong>Next Maintenance Date:</strong>
-            {{ selectedRequest?.next_maintenance_date }}
-          </p>
+            <p>
+              <strong>Description:</strong> {{ selectedRequest?.description }}
+            </p>
+            <p>
+              <strong>Maintenance Date:</strong>
+              {{ selectedRequest?.maintenance_date }}
+            </p>
+            <p>
+              <strong>Next Maintenance Date:</strong>
+              {{ selectedRequest?.next_maintenance_date }}
+            </p>
+          </div>
+
+          <!-- Vehicle Information -->
+          <div
+            v-if="selectedRequest?.vehicle"
+            class="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm"
+          >
+            <p>
+              <strong>Plate Number:</strong>
+              {{ selectedRequest.vehicle.plate_number }}
+            </p>
+            <p><strong>VIN:</strong> {{ selectedRequest.vehicle.vin }}</p>
+            <p><strong>Brand:</strong> {{ selectedRequest.vehicle.brand }}</p>
+            <p><strong>Model:</strong> {{ selectedRequest.vehicle.model }}</p>
+            <p><strong>Color:</strong> {{ selectedRequest.vehicle.color }}</p>
+            <p><strong>Year:</strong> {{ selectedRequest.vehicle.year }}</p>
+          </div>
+
+          <!-- Inventory Information -->
+          <div
+            v-if="selectedRequest?.inventory"
+            class="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm"
+          >
+            <p>
+              <strong>Code No:</strong> {{ selectedRequest.inventory.code_no }}
+            </p>
+            <p><strong>Name:</strong> {{ selectedRequest.inventory.name }}</p>
+            <p>
+              <strong>Category:</strong>
+              {{ selectedRequest.inventory.category }}
+            </p>
+            <p>
+              <strong>Specification:</strong>
+              {{ selectedRequest.inventory.specification }}
+            </p>
+          </div>
         </div>
-
-        <!-- Vehicle Information -->
-        <div
-          v-if="selectedRequest?.vehicle"
-          class="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm"
-        >
-          <p>
-            <strong>Plate Number:</strong>
-            {{ selectedRequest.vehicle.plate_number }}
-          </p>
-          <p><strong>VIN:</strong> {{ selectedRequest.vehicle.vin }}</p>
-          <p><strong>Brand:</strong> {{ selectedRequest.vehicle.brand }}</p>
-          <p><strong>Model:</strong> {{ selectedRequest.vehicle.model }}</p>
-          <p><strong>Color:</strong> {{ selectedRequest.vehicle.color }}</p>
-          <p><strong>Year:</strong> {{ selectedRequest.vehicle.year }}</p>
-        </div>
-
-        <!-- Inventory Information -->
-        <div
-          v-if="selectedRequest?.inventory"
-          class="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm"
-        >
-          <p>
-            <strong>Code No:</strong> {{ selectedRequest.inventory.code_no }}
-          </p>
-          <p><strong>Name:</strong> {{ selectedRequest.inventory.name }}</p>
-          <p>
-            <strong>Category:</strong> {{ selectedRequest.inventory.category }}
-          </p>
-          <p>
-            <strong>Specification:</strong>
-            {{ selectedRequest.inventory.specification }}
-          </p>
-        </div>
-
-        <DialogFooter>
+        <DialogFooter class="flex justify-end gap-2 border-t pt-6">
           <Button @click="dialogOpen = false">Close</Button>
         </DialogFooter>
       </DialogContent>

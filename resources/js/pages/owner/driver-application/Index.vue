@@ -336,7 +336,10 @@ const toggleStatus = (id: number, action: 'approve' | 'deny') => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  :class="{ 'bg-gray-100': link.active }"
+                  :class="{
+                    'bg-slate-200 text-black dark:bg-slate-800 dark:text-white':
+                      link.active,
+                  }"
                   :disabled="!link.url"
                   @click="goToPage(link.url)"
                 >
@@ -364,15 +367,15 @@ const toggleStatus = (id: number, action: 'approve' | 'deny') => {
 
           <DialogDescription class="text-gray-600">
             Detailed information for driver
-            <span class="font-semibold text-gray-900">
-              {{ selectedDriver?.username }} </span
-            >.
+            <span class="font-semibold"> {{ selectedDriver?.username }} </span>.
           </DialogDescription>
         </DialogHeader>
 
         <div class="custom-scrollbar overflow-y-auto">
           <!-- Driver Information -->
-          <div class="mt-1 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+          <div
+            class="mt-1 grid grid-cols-1 gap-x-6 gap-y-2 text-sm sm:grid-cols-2"
+          >
             <!-- <p><strong>ID:</strong> {{ selectedDriver?.details.code_number }}</p> -->
             <p><strong>Email:</strong> {{ selectedDriver?.email }}</p>
 
@@ -387,7 +390,9 @@ const toggleStatus = (id: number, action: 'approve' | 'deny') => {
           </div>
 
           <!-- Driver License Information -->
-          <div class="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+          <div
+            class="mt-4 grid grid-cols-1 gap-x-6 gap-y-2 text-sm sm:grid-cols-2"
+          >
             <p>
               <strong>License Number:</strong>
               {{ selectedDriver?.details.license_number }}
@@ -402,7 +407,7 @@ const toggleStatus = (id: number, action: 'approve' | 'deny') => {
           <div v-if="selectedDriver?.details" class="mt-4 pb-2">
             <h3 class="mb-2 text-sm font-semibold">Driver Documents</h3>
 
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div v-if="selectedDriver.details.front_license_picture">
                 <div class="gap mb-1 flex justify-between">
                   <p class="text-xs text-gray-500">Front License</p>
@@ -493,7 +498,9 @@ const toggleStatus = (id: number, action: 'approve' | 'deny') => {
 
         <!-- Driver Information -->
         <div class="custom-scrollbar overflow-y-auto">
-          <div class="mt-1 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+          <div
+            class="mt-1 grid grid-cols-1 gap-x-6 gap-y-2 text-sm sm:grid-cols-2"
+          >
             <!-- <p><strong>ID:</strong> {{ driverToToggle?.details.code_number }}</p> -->
             <p><strong>Email:</strong> {{ driverToToggle?.email }}</p>
 
@@ -508,7 +515,9 @@ const toggleStatus = (id: number, action: 'approve' | 'deny') => {
           </div>
 
           <!-- Driver License Information -->
-          <div class="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+          <div
+            class="mt-4 grid grid-cols-1 gap-x-6 gap-y-2 text-sm sm:grid-cols-2"
+          >
             <p>
               <strong>License Number:</strong>
               {{ driverToToggle?.details.license_number }}
@@ -523,7 +532,7 @@ const toggleStatus = (id: number, action: 'approve' | 'deny') => {
           <div v-if="driverToToggle?.details" class="mt-4">
             <h3 class="mb-2 text-sm font-semibold">Driver Documents</h3>
 
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div v-if="driverToToggle.details.front_license_picture">
                 <div class="gap mb-1 flex justify-between">
                   <p class="text-xs text-gray-500">Front License</p>
