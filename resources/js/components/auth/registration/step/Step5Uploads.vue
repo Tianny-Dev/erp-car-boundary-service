@@ -1,8 +1,12 @@
 <script setup lang="ts">
+import MapPicker from '@/components/MapPicker.vue';
 import { computed } from 'vue';
 import FileInput from './FileInput.vue';
 
-// --- TYPES ---
+interface Coords {
+  lat: number;
+  lng: number;
+}
 interface FieldNames {
   nbiClearance: string;
   selfiePicture: string;
@@ -32,12 +36,13 @@ interface ShowFields {
   dtiCertificate: boolean;
   mayorPermit: boolean;
   proofOfCapital: boolean;
+  mapPicker: boolean;
 }
 
 // --- PROPS ---
 const props = defineProps<{
   errors?: Record<string, string>;
-  // Customization props (all optional)
+  // Customisation props (all optional)
   fieldNames?: Partial<FieldNames>;
   labels?: Partial<Labels>;
   showFields?: Partial<ShowFields>;
@@ -45,6 +50,7 @@ const props = defineProps<{
   dtiCertificate?: File | null;
   mayorPermit?: File | null;
   proofOfCapital?: File | null;
+  franchiseLocation?: Coords | null;
 }>();
 
 // --- DEFAULTS ---
@@ -77,13 +83,15 @@ const defaultShowFields: ShowFields = {
   dtiCertificate: true,
   mayorPermit: true,
   proofOfCapital: true,
+  mapPicker: false,
 };
 
-// define emits
+// --- EMITS ---
 const emit = defineEmits([
   'update:dtiCertificate',
   'update:mayorPermit',
   'update:proofOfCapital',
+  'update:franchiseLocation',
 ]);
 
 // --- MERGED COMPUTEDS ---
@@ -93,6 +101,13 @@ const show = computed(() => ({ ...defaultShowFields, ...props.showFields }));
 </script>
 
 <template>
+  <MapPicker
+    v-if="show.mapPicker"
+    :model-value="franchiseLocation"
+    @update:model-value="emit('update:franchiseLocation', $event)"
+    :error-msg="errors?.['latitude'] || errors?.['longitude']"
+  />
+
   <!-- NBI or Police Clearance -->
   <FileInput
     v-if="show.nbiClearance"
@@ -132,7 +147,7 @@ const show = computed(() => ({ ...defaultShowFields, ...props.showFields }));
     :errorMsg="errors?.[fields.professionalLicense]"
   />
 
-  <!-- Photo or Resume -->
+  <!-- CV / Resume -->
   <FileInput
     v-if="show.cvAttachment"
     :id="fields.cvAttachment"

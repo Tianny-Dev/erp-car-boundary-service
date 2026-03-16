@@ -346,6 +346,8 @@ class CreateNewUser implements CreatesNewUsers
             'dti_certificate' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf,docx,doc', 'max:5120'],
             'mayor_permit' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf,docx,doc', 'max:5120'],
             'proof_capital' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf,docx,doc', 'max:5120'],
+            'latitude'  => ['required', 'numeric', 'between:-90,90'],
+            'longitude' => ['required', 'numeric', 'between:-180,180'],
             'terms1' => ['required', 'accepted'],
             'terms2' => ['required', 'accepted'],
         ])->validate();
@@ -407,6 +409,8 @@ class CreateNewUser implements CreatesNewUsers
                 'city' => $input['franchise_city'],
                 'barangay' => $input['franchise_barangay'],
                 'postal_code' => $input['franchise_postal_code'],
+                'latitude'  => $input['latitude'],
+                'longitude' => $input['longitude'],
                 'dti_registration_attachment' => $dtiPath,
                 'mayor_permit_attachment' => $mayorPermitPath,
                 'proof_agreement_attachment' => $proofAgreementPath,

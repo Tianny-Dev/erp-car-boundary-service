@@ -100,12 +100,14 @@ const identityStep4Show = {
 };
 
 // --- Step 5 (Documents to Upload) State & Config ---
+const franchiseLocation = ref<{ lat: number; lng: number } | null>(null);
 const documentsStep5Show = {
   nbiClearance: false,
   selfiePicture: false,
   prcCertificate: false,
   professionalLicense: false,
   cvAttachment: false,
+  mapPicker: true,
 };
 
 // --- Step 6 (Account Security) State & Config ---
@@ -162,6 +164,8 @@ const fieldStepMap: Record<string, number> = {
   dti_certificate: 5,
   mayor_permit: 5,
   proof_capital: 5,
+  latitude: 5,
+  longitude: 5,
 };
 
 watch(
@@ -242,7 +246,11 @@ watch(
 
     <!-- Step 5: Uploads -->
     <div v-show="currentStep === 5" class="space-y-4" data-step="6">
-      <Step5Uploads :errors="errors" :show-fields="documentsStep5Show" />
+      <Step5Uploads
+        :errors="errors"
+        :show-fields="documentsStep5Show"
+        v-model:franchiseLocation="franchiseLocation"
+      />
     </div>
 
     <!-- Step 6: Security -->
