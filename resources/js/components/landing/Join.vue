@@ -25,10 +25,7 @@
         </div>
 
         <div class="flex flex-wrap items-center justify-center gap-4">
-          <a
-            href="https://bb88group.com/erpfranchisingmgmt/APK/DDGNS-ERP.apk"
-            target="_blank"
-          >
+          <a href="https://ddgns.elisincph.com/APK/ERP.apk" target="_blank">
             <img
               src="@/assets/play store.png"
               class="h-[50px] w-auto sm:h-[60px]"
