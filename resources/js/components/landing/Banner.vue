@@ -45,7 +45,7 @@ const driver = userTypes.find((t) => t.name === 'driver');
 
       <div class="grid justify-center gap-5 pt-7 md:flex xl:gap-7">
         <a
-          href="https://ddgns.elisincph.com/APK/ERP.apk"
+          href="https://bb88group.com/erpfranchisingmgmt/APK/DDGNS-ERP.apk"
           target="_blank"
           class="flex items-center gap-4 rounded-md bg-white px-7 py-2 text-xl text-brand-blue transition-all hover:opacity-85 sm:text-2xl xl:px-12"
         >
