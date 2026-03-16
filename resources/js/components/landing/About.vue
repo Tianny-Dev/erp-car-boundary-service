@@ -21,7 +21,7 @@
       >
         <h1 class="text-2xl font-bold text-white">Our Vision</h1>
         <p class="text-md pt-3 text-white">
-          To be the leading smart mobility ERP in the Philippines. empowering
+          To be the leading smart mobility DDGNS in the Philippines. empowering
           transport operators through technology.
         </p>
 

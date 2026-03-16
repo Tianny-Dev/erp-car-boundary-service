@@ -7,7 +7,7 @@
 
       <div class="mt-7 bg-white px-3 py-6 text-center">
         <p>
-          <strong>ERP System for Car Boundary Service - Philippines</strong>
+          <strong>DDGNS System for Car Boundary Service - Philippines</strong>
           collects only the information necessary to provide transportation and
           account services
         </p>

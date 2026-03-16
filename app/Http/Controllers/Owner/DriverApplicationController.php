@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Owner;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\UserDriver;
+use Faker\Factory;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
@@ -146,7 +147,7 @@ class DriverApplicationController extends Controller
 
             // Generate code if empty
             if (empty($driver->code_number)) {
-                $faker = \Faker\Factory::create();
+                $faker = Factory::create();
                 do {
                     $code = $faker->bothify('??-####');
                 } while (UserDriver::where('code_number', $code)->exists());

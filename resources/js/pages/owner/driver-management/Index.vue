@@ -480,8 +480,8 @@ const removeDriverFromFranchise = () => {
     </div>
 
     <Dialog v-model:open="dialogOpen">
-      <DialogContent class="max-h-[90vh] overflow-y-auto sm:max-w-lg">
-        <DialogHeader>
+      <DialogContent class="flex max-h-[90vh] flex-col sm:max-w-lg">
+        <DialogHeader class="border-b pb-2">
           <div class="flex items-center justify-between pr-6">
             <div>
               <DialogTitle>Driver's Information</DialogTitle>
@@ -494,227 +494,242 @@ const removeDriverFromFranchise = () => {
           </div>
         </DialogHeader>
 
-        <div class="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
-          <div>
-            <p class="text-xs font-bold text-gray-500 uppercase">ID / Code:</p>
-            <input
-              v-if="isEditing"
-              v-model="editForm.code_number"
-              class="w-full rounded border px-2 py-1"
-            />
-            <p v-else>{{ selectedDriver?.details.code_number }}</p>
-          </div>
-          <div>
-            <p class="text-xs font-bold text-gray-500 uppercase">Email:</p>
-            <input
-              v-if="isEditing"
-              v-model="editForm.email"
-              class="w-full rounded border px-2 py-1"
-            />
-            <p v-else>{{ selectedDriver?.email }}</p>
-          </div>
-          <div>
-            <p class="text-xs font-bold text-gray-500 uppercase">Phone:</p>
-            <input
-              v-if="isEditing"
-              v-model="editForm.phone"
-              class="w-full rounded border px-2 py-1"
-            />
-            <p v-else>{{ selectedDriver?.phone }}</p>
-          </div>
-          <div>
-            <p class="text-xs font-bold text-gray-500 uppercase">Status:</p>
-            <p>{{ selectedDriver?.status }}</p>
-          </div>
-
-          <div class="col-span-2 space-y-3 border-t pt-4">
-            <p class="text-xs font-bold text-gray-500 uppercase">
-              Address Information:
-            </p>
-            <div class="grid grid-cols-2 gap-2">
-              <div class="space-y-1">
-                <label class="text-[10px] font-bold text-gray-400 uppercase"
-                  >Region</label
-                >
-                <select
-                  v-if="isEditing"
-                  v-model="selectedRegion"
-                  class="w-full rounded border bg-white px-2 py-1 text-xs"
-                >
-                  <option v-for="r in regions" :key="r.code" :value="r.name">
-                    {{ r.name }}
-                  </option>
-                </select>
-                <p v-else class="text-xs">{{ selectedDriver?.region }}</p>
-              </div>
-
-              <div class="space-y-1">
-                <label class="text-[10px] font-bold text-gray-400 uppercase"
-                  >Province</label
-                >
-                <select
-                  v-if="isEditing"
-                  v-model="selectedProvince"
-                  :disabled="isNcr || isLoadingProvinces"
-                  class="w-full rounded border bg-white px-2 py-1 text-xs"
-                >
-                  <option v-for="p in provinces" :key="p.code" :value="p.name">
-                    {{ p.name }}
-                  </option>
-                </select>
-                <p v-else class="text-xs">{{ selectedDriver?.province }}</p>
-              </div>
-
-              <div class="space-y-1">
-                <label class="text-[10px] font-bold text-gray-400 uppercase"
-                  >City / Municipality</label
-                >
-                <select
-                  v-if="isEditing"
-                  v-model="selectedCity"
-                  :disabled="isLoadingCities"
-                  class="w-full rounded border bg-white px-2 py-1 text-xs"
-                >
-                  <option v-for="c in cities" :key="c.code" :value="c.name">
-                    {{ c.name }}
-                  </option>
-                </select>
-                <p v-else class="text-xs">{{ selectedDriver?.city }}</p>
-              </div>
-
-              <div class="space-y-1">
-                <label class="text-[10px] font-bold text-gray-400 uppercase"
-                  >Barangay</label
-                >
-                <select
-                  v-if="isEditing"
-                  v-model="selectedBarangay"
-                  :disabled="isLoadingBarangays"
-                  class="w-full rounded border bg-white px-2 py-1 text-xs"
-                >
-                  <option v-for="b in barangays" :key="b.code" :value="b.name">
-                    {{ b.name }}
-                  </option>
-                </select>
-                <p v-else class="text-xs">{{ selectedDriver?.barangay }}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div
-          class="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 border-t pt-4 text-sm"
-        >
-          <div>
-            <p class="text-xs font-bold text-gray-500 uppercase">
-              License Number:
-            </p>
-            <input
-              v-if="isEditing"
-              v-model="editForm.license_number"
-              class="w-full rounded border px-2 py-1"
-            />
-            <p v-else>{{ selectedDriver?.details.license_number }}</p>
-          </div>
-          <div>
-            <p class="text-xs font-bold text-gray-500 uppercase">
-              License Expiry:
-            </p>
-            <input
-              v-if="isEditing"
-              type="date"
-              v-model="editForm.license_expiry"
-              class="w-full rounded border px-2 py-1"
-            />
-            <p v-else>{{ selectedDriver?.details.license_expiry }}</p>
-          </div>
-        </div>
-
-        <div class="flex justify-start gap-2 pt-2">
-          <template v-if="!isEditing">
-            <Button
-              variant="outline"
-              size="sm"
-              @click="isEditing = true"
-              class="h-7 text-xs"
-              ><Edit class="mr-1 h-3 w-3" /> Edit Profile</Button
-            >
-          </template>
-          <template v-else>
-            <Button
-              variant="default"
-              size="sm"
-              @click="saveDriverDetails"
-              :disabled="editForm.processing"
-              class="h-7 text-xs"
-            >
-              <Loader2
-                v-if="editForm.processing"
-                class="mr-1 h-3 w-3 animate-spin"
+        <div class="custom-scrollbar overflow-y-auto">
+          <div class="mt-1 grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+            <div>
+              <p class="text-xs font-bold text-gray-500 uppercase">
+                ID / Code:
+              </p>
+              <input
+                v-if="isEditing"
+                v-model="editForm.code_number"
+                class="w-full rounded border px-2 py-1"
               />
-              <Check v-else class="mr-1 h-3 w-3" /> Save Changes
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              @click="isEditing = false"
-              class="h-7 text-xs"
-              ><X class="mr-1 h-3 w-3" /> Cancel</Button
-            >
-          </template>
-        </div>
+              <p v-else>{{ selectedDriver?.details.code_number }}</p>
+            </div>
+            <div>
+              <p class="text-xs font-bold text-gray-500 uppercase">Email:</p>
+              <input
+                v-if="isEditing"
+                v-model="editForm.email"
+                class="w-full rounded border px-2 py-1"
+              />
+              <p v-else>{{ selectedDriver?.email }}</p>
+            </div>
+            <div>
+              <p class="text-xs font-bold text-gray-500 uppercase">Phone:</p>
+              <input
+                v-if="isEditing"
+                v-model="editForm.phone"
+                class="w-full rounded border px-2 py-1"
+              />
+              <p v-else>{{ selectedDriver?.phone }}</p>
+            </div>
+            <div>
+              <p class="text-xs font-bold text-gray-500 uppercase">Status:</p>
+              <p>{{ selectedDriver?.status }}</p>
+            </div>
 
-        <div v-if="selectedDriver?.details" class="mt-4 border-t pt-4">
-          <h3 class="mb-2 text-sm font-semibold">Driver Documents</h3>
-          <div class="grid grid-cols-2 gap-4">
-            <div
-              v-for="field in [
-                'front_license_picture',
-                'back_license_picture',
-                'nbi_clearance',
-                'selfie_picture',
-              ] as const"
-              :key="field"
-            >
-              <div
-                v-if="selectedDriver.details[field as keyof DriverDetails]"
-                class="space-y-1"
-              >
-                <div class="flex items-center justify-between">
-                  <p class="text-[10px] font-bold text-gray-400 uppercase">
-                    {{ field.replace(/_/g, ' ') }}
-                  </p>
-                  <div class="flex gap-2">
-                    <button
-                      @click="triggerFileEdit(field)"
-                      class="text-[10px] font-bold text-blue-600 hover:underline"
-                    >
-                      Edit
-                    </button>
-                    <a
-                      :href="
-                        String(
-                          selectedDriver.details[field as keyof DriverDetails],
-                        )
-                      "
-                      class="text-[10px] font-bold text-gray-600 hover:underline"
-                      target="_blank"
-                      >View</a
-                    >
-                  </div>
+            <div class="col-span-2 space-y-3 border-t pt-4">
+              <p class="text-xs font-bold text-gray-500 uppercase">
+                Address Information:
+              </p>
+              <div class="grid grid-cols-2 gap-2">
+                <div class="space-y-1">
+                  <label class="text-[10px] font-bold text-gray-400 uppercase"
+                    >Region</label
+                  >
+                  <select
+                    v-if="isEditing"
+                    v-model="selectedRegion"
+                    class="w-full rounded border bg-white px-2 py-1 text-xs"
+                  >
+                    <option v-for="r in regions" :key="r.code" :value="r.name">
+                      {{ r.name }}
+                    </option>
+                  </select>
+                  <p v-else class="text-xs">{{ selectedDriver?.region }}</p>
                 </div>
-                <img
-                  :src="
-                    String(selectedDriver.details[field as keyof DriverDetails])
-                  "
-                  class="h-24 w-full rounded border bg-gray-50 object-cover"
+
+                <div class="space-y-1">
+                  <label class="text-[10px] font-bold text-gray-400 uppercase"
+                    >Province</label
+                  >
+                  <select
+                    v-if="isEditing"
+                    v-model="selectedProvince"
+                    :disabled="isNcr || isLoadingProvinces"
+                    class="w-full rounded border bg-white px-2 py-1 text-xs"
+                  >
+                    <option
+                      v-for="p in provinces"
+                      :key="p.code"
+                      :value="p.name"
+                    >
+                      {{ p.name }}
+                    </option>
+                  </select>
+                  <p v-else class="text-xs">{{ selectedDriver?.province }}</p>
+                </div>
+
+                <div class="space-y-1">
+                  <label class="text-[10px] font-bold text-gray-400 uppercase"
+                    >City / Municipality</label
+                  >
+                  <select
+                    v-if="isEditing"
+                    v-model="selectedCity"
+                    :disabled="isLoadingCities"
+                    class="w-full rounded border bg-white px-2 py-1 text-xs"
+                  >
+                    <option v-for="c in cities" :key="c.code" :value="c.name">
+                      {{ c.name }}
+                    </option>
+                  </select>
+                  <p v-else class="text-xs">{{ selectedDriver?.city }}</p>
+                </div>
+
+                <div class="space-y-1">
+                  <label class="text-[10px] font-bold text-gray-400 uppercase"
+                    >Barangay</label
+                  >
+                  <select
+                    v-if="isEditing"
+                    v-model="selectedBarangay"
+                    :disabled="isLoadingBarangays"
+                    class="w-full rounded border bg-white px-2 py-1 text-xs"
+                  >
+                    <option
+                      v-for="b in barangays"
+                      :key="b.code"
+                      :value="b.name"
+                    >
+                      {{ b.name }}
+                    </option>
+                  </select>
+                  <p v-else class="text-xs">{{ selectedDriver?.barangay }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 border-t pt-4 text-sm"
+          >
+            <div>
+              <p class="text-xs font-bold text-gray-500 uppercase">
+                License Number:
+              </p>
+              <input
+                v-if="isEditing"
+                v-model="editForm.license_number"
+                class="w-full rounded border px-2 py-1"
+              />
+              <p v-else>{{ selectedDriver?.details.license_number }}</p>
+            </div>
+            <div>
+              <p class="text-xs font-bold text-gray-500 uppercase">
+                License Expiry:
+              </p>
+              <input
+                v-if="isEditing"
+                type="date"
+                v-model="editForm.license_expiry"
+                class="w-full rounded border px-2 py-1"
+              />
+              <p v-else>{{ selectedDriver?.details.license_expiry }}</p>
+            </div>
+          </div>
+
+          <div class="flex justify-start gap-2 pt-2">
+            <template v-if="!isEditing">
+              <Button
+                variant="outline"
+                size="sm"
+                @click="isEditing = true"
+                class="h-7 text-xs"
+                ><Edit class="mr-1 h-3 w-3" /> Edit Profile</Button
+              >
+            </template>
+            <template v-else>
+              <Button
+                variant="default"
+                size="sm"
+                @click="saveDriverDetails"
+                :disabled="editForm.processing"
+                class="h-7 text-xs"
+              >
+                <Loader2
+                  v-if="editForm.processing"
+                  class="mr-1 h-3 w-3 animate-spin"
                 />
+                <Check v-else class="mr-1 h-3 w-3" /> Save Changes
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                @click="isEditing = false"
+                class="h-7 text-xs"
+                ><X class="mr-1 h-3 w-3" /> Cancel</Button
+              >
+            </template>
+          </div>
+
+          <div v-if="selectedDriver?.details" class="mt-4 border-t pt-4">
+            <h3 class="mb-2 text-sm font-semibold">Driver Documents</h3>
+            <div class="grid grid-cols-2 gap-4">
+              <div
+                v-for="field in [
+                  'front_license_picture',
+                  'back_license_picture',
+                  'nbi_clearance',
+                  'selfie_picture',
+                ] as const"
+                :key="field"
+              >
+                <div
+                  v-if="selectedDriver.details[field as keyof DriverDetails]"
+                  class="space-y-1"
+                >
+                  <div class="flex items-center justify-between">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase">
+                      {{ field.replace(/_/g, ' ') }}
+                    </p>
+                    <div class="flex gap-2">
+                      <button
+                        @click="triggerFileEdit(field)"
+                        class="text-[10px] font-bold text-blue-600 hover:underline"
+                      >
+                        Edit
+                      </button>
+                      <a
+                        :href="
+                          String(
+                            selectedDriver.details[
+                              field as keyof DriverDetails
+                            ],
+                          )
+                        "
+                        class="text-[10px] font-bold text-gray-600 hover:underline"
+                        target="_blank"
+                        >View</a
+                      >
+                    </div>
+                  </div>
+                  <img
+                    :src="
+                      String(
+                        selectedDriver.details[field as keyof DriverDetails],
+                      )
+                    "
+                    class="h-24 w-full rounded border bg-gray-50 object-cover"
+                  />
+                </div>
               </div>
             </div>
           </div>
         </div>
-
-        <DialogFooter>
+        <DialogFooter class="flex justify-end gap-2 border-t pt-6">
           <Button variant="ghost" @click="dialogOpen = false">Close</Button>
         </DialogFooter>
       </DialogContent>

@@ -21,8 +21,8 @@ const toggle = (index: number) => {
       >
         <div class="flex items-center justify-between">
           <h1 class="text-xl font-bold">
-            <span class="text-brand-blue">Q1:</span> What is ERP System for Car
-            Boundary Service - Philippines?
+            <span class="text-brand-blue">Q1:</span> What is DDGNS System for
+            Car Boundary Service - Philippines?
           </h1>
           <button
             @click="toggle(0)"
@@ -34,14 +34,14 @@ const toggle = (index: number) => {
         <transition name="slide-fade">
           <p v-if="open[0]" class="mt-2 ps-10 text-gray-800">
             It’s a digital platform that manages franchise, driver, and
-            passenger data in one ERP system, designed for electric taxi and
+            passenger data in one DDGNS system, designed for electric taxi and
             boundary operations.
           </p>
         </transition>
 
         <p class="mt-2 block text-gray-800 md:hidden">
           It’s a digital platform that manages franchise, driver, and passenger
-          data in one ERP system, designed for electric taxi and boundary
+          data in one DDGNS system, designed for electric taxi and boundary
           operations.
         </p>
       </div>

@@ -91,7 +91,7 @@ const mapLocations = computed<MarkerData[]>(() => {
             boundary payments effortlessly.
           </p>
           <p class="pt-4 text-xl">
-            With our ERP System, you get real-time monitoring, financial
+            With our DDGNS System, you get real-time monitoring, financial
             transparency, and reliable reports.
           </p>
         </div>

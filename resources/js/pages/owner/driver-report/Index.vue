@@ -426,54 +426,57 @@ watch(
       </div>
 
       <Dialog v-model:open="showExportModal">
-        <DialogContent class="sm:max-w-[425px]">
-          <DialogHeader>
+        <DialogContent class="flex max-h-[90vh] flex-col sm:max-w-lg">
+          <DialogHeader class="border-b pb-2">
             <DialogTitle> Export {{ exportType.toUpperCase() }} </DialogTitle>
             <DialogDescription>
               Select the year and months to export. This will use your currently
               active filters (period and driver).
             </DialogDescription>
           </DialogHeader>
-          <div class="grid gap-4 py-4">
-            <div class="grid grid-cols-4 items-center gap-4">
-              <label class="text-right">Year</label>
-              <Select v-model="exportYear">
-                <SelectTrigger class="col-span-3">
-                  <SelectValue placeholder="Select year" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem
-                    v-for="year in yearOptions"
-                    :key="year"
-                    :value="year"
-                  >
-                    {{ year }}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div class="grid grid-cols-4 items-start gap-4">
-              <label class="pt-2 text-right">Months</label>
-              <div class="col-span-3 grid grid-cols-2 gap-2">
-                <div
-                  v-for="month in monthOptions"
-                  :key="month.id"
-                  class="flex items-center gap-2"
-                >
-                  <Checkbox
-                    :id="`month-${month.id}`"
-                    :model-value="exportMonths.includes(month.id)"
-                    @update:model-value="() => toggleMonth(month.id)"
-                  />
 
-                  <label :for="`month-${month.id}`" class="cursor-pointer">
-                    {{ month.label }}
-                  </label>
+          <div class="custom-scrollbar overflow-y-auto">
+            <div class="grid gap-4 py-2">
+              <div class="grid grid-cols-4 items-center gap-4">
+                <label class="text-right">Year</label>
+                <Select v-model="exportYear">
+                  <SelectTrigger class="col-span-3">
+                    <SelectValue placeholder="Select year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem
+                      v-for="year in yearOptions"
+                      :key="year"
+                      :value="year"
+                    >
+                      {{ year }}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div class="grid grid-cols-4 items-start gap-4">
+                <label class="pt-2 text-right">Months</label>
+                <div class="col-span-3 grid grid-cols-2 gap-2">
+                  <div
+                    v-for="month in monthOptions"
+                    :key="month.id"
+                    class="flex items-center gap-2"
+                  >
+                    <Checkbox
+                      :id="`month-${month.id}`"
+                      :model-value="exportMonths.includes(month.id)"
+                      @update:model-value="() => toggleMonth(month.id)"
+                    />
+
+                    <label :for="`month-${month.id}`" class="cursor-pointer">
+                      {{ month.label }}
+                    </label>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter class="flex justify-end gap-2 border-t pt-6">
             <Button @click="handleExport"> Confirm Export </Button>
           </DialogFooter>
         </DialogContent>

@@ -578,8 +578,8 @@ watch(
     </div>
 
     <Dialog v-model:open="dialogOpen">
-      <DialogContent class="sm:max-w-lg">
-        <DialogHeader>
+      <DialogContent class="flex max-h-[90vh] flex-col sm:max-w-lg">
+        <DialogHeader class="border-b pb-2">
           <DialogTitle>Expense Details</DialogTitle>
           <DialogDescription>
             Detailed information for invoice
@@ -588,32 +588,36 @@ watch(
           </DialogDescription>
         </DialogHeader>
 
-        <div class="mt-2 space-y-2">
-          <p><strong>Invoice No:</strong> {{ selectedExpense?.invoice_no }}</p>
-          <!-- <p>
+        <div class="custom-scrollbar overflow-y-auto">
+          <div class="space-y-2">
+            <p>
+              <strong>Invoice No:</strong> {{ selectedExpense?.invoice_no }}
+            </p>
+            <!-- <p>
             <strong>Service Type:</strong> {{ selectedExpense?.expense_type }}
           </p> -->
-          <p>
-            <strong>Amount:</strong> {{ selectedExpense?.currency }}
-            {{ selectedExpense?.amount.toLocaleString() }}
-          </p>
-          <p>
-            <strong>Payment Date:</strong>
-            {{ selectedExpense?.payment_date || '—' }}
-          </p>
-          <p><strong>Status:</strong> {{ selectedExpense?.status || '—' }}</p>
-          <p>
-            <strong>Franchise:</strong> {{ selectedExpense?.franchise || '—' }}
-          </p>
-          <p><strong>Branch:</strong> {{ selectedExpense?.branch || '—' }}</p>
-          <p>
-            <strong>Payment Option:</strong>
-            {{ selectedExpense?.payment_option || '—' }}
-          </p>
-          <p><strong>Notes:</strong> {{ selectedExpense?.notes || '—' }}</p>
+            <p>
+              <strong>Amount:</strong> {{ selectedExpense?.currency }}
+              {{ selectedExpense?.amount.toLocaleString() }}
+            </p>
+            <p>
+              <strong>Payment Date:</strong>
+              {{ selectedExpense?.payment_date || '—' }}
+            </p>
+            <p><strong>Status:</strong> {{ selectedExpense?.status || '—' }}</p>
+            <p>
+              <strong>Franchise:</strong>
+              {{ selectedExpense?.franchise || '—' }}
+            </p>
+            <p><strong>Branch:</strong> {{ selectedExpense?.branch || '—' }}</p>
+            <p>
+              <strong>Payment Option:</strong>
+              {{ selectedExpense?.payment_option || '—' }}
+            </p>
+            <p><strong>Notes:</strong> {{ selectedExpense?.notes || '—' }}</p>
+          </div>
         </div>
-
-        <DialogFooter>
+        <DialogFooter class="flex justify-end gap-2 border-t pt-6">
           <Button @click="dialogOpen = false">Close</Button>
         </DialogFooter>
       </DialogContent>

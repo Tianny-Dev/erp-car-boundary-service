@@ -402,8 +402,8 @@ const goBack = () => {
   </AppLayout>
 
   <Dialog :open="showRouteModal" @update:open="showRouteModal = $event">
-    <DialogContent class="sm:max-w-[425px] md:max-w-2xl lg:max-w-4xl">
-      <DialogHeader>
+    <DialogContent class="flex max-h-[90vh] flex-col sm:max-w-lg">
+      <DialogHeader class="border-b pb-2">
         <DialogTitle class="text-xl font-bold text-primary">
           Route Details: {{ props.driver.username }}
         </DialogTitle>
@@ -413,106 +413,111 @@ const goBack = () => {
         <DialogDescription v-else> Loading route data... </DialogDescription>
       </DialogHeader>
 
-      <div v-if="selectedRouteData" class="space-y-6 py-4">
-        <div class="h-[400px] w-full">
-          <LeafletMap :locations="mapLocations" :fit-bounds="true" :zoom="12">
-            <template #popup="{ item }">
-              <div class="p-2">
-                <span
-                  :class="[
-                    item.type === 'Start' ? 'text-green-600' : 'text-red-600',
-                    'font-bold',
-                  ]"
-                >
-                  {{ item.type }} Location
-                </span>
-                <p class="mt-1 text-xs">
-                  Lat: {{ parseAndFix(item.latitude, 8) }}
+      <div class="custom-scrollbar overflow-y-auto">
+        <div v-if="selectedRouteData" class="space-y-6">
+          <div class="h-[300px] w-full">
+            <LeafletMap :locations="mapLocations" :fit-bounds="true" :zoom="12">
+              <template #popup="{ item }">
+                <div class="p-2">
+                  <span
+                    :class="[
+                      item.type === 'Start' ? 'text-green-600' : 'text-red-600',
+                      'font-bold',
+                    ]"
+                  >
+                    {{ item.type }} Location
+                  </span>
+                  <p class="mt-1 text-xs">
+                    Lat: {{ parseAndFix(item.latitude, 8) }}
+                  </p>
+                  <p class="text-xs">
+                    Lng: {{ parseAndFix(item.longitude, 8) }}
+                  </p>
+                </div>
+              </template>
+            </LeafletMap>
+          </div>
+          <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+            <div class="flex flex-col space-y-1">
+              <span class="text-sm font-medium text-muted-foreground">
+                Total Distance
+              </span>
+              <span class="text-lg font-semibold">
+                {{ parseAndFix(selectedRouteData.route.distance_km, 2) }} km
+              </span>
+            </div>
+            <div class="flex flex-col space-y-1">
+              <span class="text-sm font-medium text-muted-foreground">
+                Average Speed
+              </span>
+              <span class="text-lg font-semibold">
+                {{ parseAndFix(selectedRouteData.route.average_speed_kmh, 2) }}
+                km/h
+              </span>
+            </div>
+            <div class="flex flex-col space-y-1">
+              <span class="text-sm font-medium text-muted-foreground">
+                Max Speed
+              </span>
+              <span class="text-lg font-semibold">
+                {{ parseAndFix(selectedRouteData.route.max_speed_kmh, 2) }} km/h
+              </span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div class="rounded-lg border p-3 shadow-sm">
+              <p class="mb-1 text-sm font-medium text-green-600">Start Trip</p>
+              <p class="font-mono text-base">
+                {{
+                  new Date(selectedRouteData.route.start_trip).toLocaleString()
+                }}
+              </p>
+              <div class="mt-2 space-y-1">
+                <p class="text-xs text-muted-foreground">
+                  <span class="font-semibold text-green-700 dark:text-green-500"
+                    >Latitude:</span
+                  >
+                  {{ parseAndFix(selectedRouteData.route.start_lat, 8) }}
                 </p>
-                <p class="text-xs">Lng: {{ parseAndFix(item.longitude, 8) }}</p>
+                <p class="text-xs text-muted-foreground">
+                  <span class="font-semibold text-green-700 dark:text-green-500"
+                    >Longitude:</span
+                  >
+                  {{ parseAndFix(selectedRouteData.route.start_lng, 8) }}
+                </p>
               </div>
-            </template>
-          </LeafletMap>
-        </div>
-        <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
-          <div class="flex flex-col space-y-1">
-            <span class="text-sm font-medium text-muted-foreground">
-              Total Distance
-            </span>
-            <span class="text-lg font-semibold">
-              {{ parseAndFix(selectedRouteData.route.distance_km, 2) }} km
-            </span>
-          </div>
-          <div class="flex flex-col space-y-1">
-            <span class="text-sm font-medium text-muted-foreground">
-              Average Speed
-            </span>
-            <span class="text-lg font-semibold">
-              {{ parseAndFix(selectedRouteData.route.average_speed_kmh, 2) }}
-              km/h
-            </span>
-          </div>
-          <div class="flex flex-col space-y-1">
-            <span class="text-sm font-medium text-muted-foreground">
-              Max Speed
-            </span>
-            <span class="text-lg font-semibold">
-              {{ parseAndFix(selectedRouteData.route.max_speed_kmh, 2) }} km/h
-            </span>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div class="rounded-lg border p-3 shadow-sm">
-            <p class="mb-1 text-sm font-medium text-green-600">Start Trip</p>
-            <p class="font-mono text-base">
-              {{
-                new Date(selectedRouteData.route.start_trip).toLocaleString()
-              }}
-            </p>
-            <div class="mt-2 space-y-1">
-              <p class="text-xs text-muted-foreground">
-                <span class="font-semibold text-green-700 dark:text-green-500"
-                  >Latitude:</span
-                >
-                {{ parseAndFix(selectedRouteData.route.start_lat, 8) }}
-              </p>
-              <p class="text-xs text-muted-foreground">
-                <span class="font-semibold text-green-700 dark:text-green-500"
-                  >Longitude:</span
-                >
-                {{ parseAndFix(selectedRouteData.route.start_lng, 8) }}
-              </p>
             </div>
-          </div>
 
-          <div class="rounded-lg border p-3 shadow-sm">
-            <p class="mb-1 text-sm font-medium text-red-600">End Trip</p>
-            <p class="font-mono text-base">
-              {{ new Date(selectedRouteData.route.end_trip).toLocaleString() }}
-            </p>
-            <div class="mt-2 space-y-1">
-              <p class="text-xs text-muted-foreground">
-                <span class="font-semibold text-red-700 dark:text-red-500"
-                  >Latitude:</span
-                >
-                {{ parseAndFix(selectedRouteData.route.end_lat, 8) }}
+            <div class="rounded-lg border p-3 shadow-sm">
+              <p class="mb-1 text-sm font-medium text-red-600">End Trip</p>
+              <p class="font-mono text-base">
+                {{
+                  new Date(selectedRouteData.route.end_trip).toLocaleString()
+                }}
               </p>
-              <p class="text-xs text-muted-foreground">
-                <span class="font-semibold text-red-700 dark:text-red-500"
-                  >Longitude:</span
-                >
-                {{ parseAndFix(selectedRouteData.route.end_lng, 8) }}
-              </p>
+              <div class="mt-2 space-y-1">
+                <p class="text-xs text-muted-foreground">
+                  <span class="font-semibold text-red-700 dark:text-red-500"
+                    >Latitude:</span
+                  >
+                  {{ parseAndFix(selectedRouteData.route.end_lat, 8) }}
+                </p>
+                <p class="text-xs text-muted-foreground">
+                  <span class="font-semibold text-red-700 dark:text-red-500"
+                    >Longitude:</span
+                  >
+                  {{ parseAndFix(selectedRouteData.route.end_lng, 8) }}
+                </p>
+              </div>
             </div>
           </div>
         </div>
+        <div v-else class="p-8 text-center text-red-500">
+          Error: Route data is missing or not loading. Check console for errors.
+        </div>
       </div>
-      <div v-else class="p-8 text-center text-red-500">
-        Error: Route data is missing or not loading. Check console for errors.
-      </div>
-
-      <DialogFooter>
+      <DialogFooter class="flex justify-end gap-2 border-t pt-6">
         <Button variant="outline" @click="showRouteModal = false">
           Close
         </Button>

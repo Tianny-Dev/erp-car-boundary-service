@@ -34,22 +34,25 @@ class HandleInertiaRequests extends Middleware
      *
      * @return array<string, mixed>
      */
-    public function share(Request $request): array
-    {
-        [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
+public function share(Request $request): array
+{
+    [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
-        return [
-            ...parent::share($request),
-            'name' => config('app.name'),
-            'quote' => ['message' => trim($message), 'author' => trim($author)],
-            'auth' => [
-                'user' => $request->user(),
-            ],
-            'flash' => [
-                'success' => fn () => $request->session()->get('success'),
-                'error'   => fn () => $request->session()->get('error'),
-            ],
-            'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
-        ];
-    }
+    return [
+        ...parent::share($request),
+        'name' => config('app.name'),
+        'quote' => ['message' => trim($message), 'author' => trim($author)],
+        'auth' => [
+            'user' => $request->user() ? array_merge($request->user()->toArray(), [
+                // This adds role_name without breaking the other user fields
+                'role_name' => $request->user()->userType?->name ?? 'User',
+            ]) : null,
+        ],
+        'flash' => [
+            'success' => fn () => $request->session()->get('success'),
+            'error'   => fn () => $request->session()->get('error'),
+        ],
+        'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+    ];
+}
 }

@@ -19,7 +19,7 @@ const driver = userTypes.find((t) => t.name === 'driver');
       class="mx-auto w-full max-w-[1200px] pt-[120px] pb-18 text-center text-white"
     >
       <h1 class="text-3xl font-bold sm:text-4xl lg:text-5xl xl:text-6xl">
-        ERP System for Car Boundary Service
+        DDGNS System for Car Boundary Service
       </h1>
 
       <div
@@ -35,7 +35,7 @@ const driver = userTypes.find((t) => t.name === 'driver');
       </div>
 
       <p class="pt-5 pb-7 text-xl/[28px]">
-        <strong>ERP System for Car Boundary Service – Philippines</strong>
+        <strong>DDGNS System for Car Boundary Service – Philippines</strong>
         brings the power of smart <br class="hidden lg:inline" />
         technology to every trip. Whether you’re a
         <strong>franchise owner, driver, or passenger</strong>, we make

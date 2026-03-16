@@ -189,7 +189,7 @@ const toggleStatus = (id: number, action: 'approve' | 'deny') => {
     { action: action }, // We pass the action here
     {
       onSuccess: () =>
-        toast.success(`Driver ${action}d successfully!`, { id: toastId }),
+        toast.success(`Driver ${action} successfully!`, { id: toastId }),
       onError: () =>
         toast.error(`Failed to ${action} driver.`, { id: toastId }),
       onFinish: () => (updatingId.value = null),
@@ -356,8 +356,8 @@ const toggleStatus = (id: number, action: 'approve' | 'deny') => {
     </div>
 
     <Dialog v-model:open="dialogOpen">
-      <DialogContent class="sm:max-w-lg">
-        <DialogHeader>
+      <DialogContent class="flex max-h-[90vh] flex-col sm:max-w-lg">
+        <DialogHeader class="border-b pb-2">
           <DialogTitle class="text-xl font-semibold">
             Driver's Information
           </DialogTitle>
@@ -370,114 +370,115 @@ const toggleStatus = (id: number, action: 'approve' | 'deny') => {
           </DialogDescription>
         </DialogHeader>
 
-        <!-- Driver Information -->
-        <div class="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-          <!-- <p><strong>ID:</strong> {{ selectedDriver?.details.code_number }}</p> -->
-          <p><strong>Email:</strong> {{ selectedDriver?.email }}</p>
+        <div class="custom-scrollbar overflow-y-auto">
+          <!-- Driver Information -->
+          <div class="mt-1 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+            <!-- <p><strong>ID:</strong> {{ selectedDriver?.details.code_number }}</p> -->
+            <p><strong>Email:</strong> {{ selectedDriver?.email }}</p>
 
-          <p><strong>Phone:</strong> {{ selectedDriver?.phone }}</p>
-          <p><strong>Status:</strong> {{ selectedDriver?.status }}</p>
+            <p><strong>Phone:</strong> {{ selectedDriver?.phone }}</p>
+            <p><strong>Status:</strong> {{ selectedDriver?.status }}</p>
 
-          <p><strong>Region:</strong> {{ selectedDriver?.region }}</p>
-          <p><strong>Province:</strong> {{ selectedDriver?.province }}</p>
-          <p><strong>City:</strong> {{ selectedDriver?.city }}</p>
-          <p><strong>Barangay:</strong> {{ selectedDriver?.barangay }}</p>
-          <p><strong>Address:</strong> {{ selectedDriver?.address }}</p>
-        </div>
+            <p><strong>Region:</strong> {{ selectedDriver?.region }}</p>
+            <p><strong>Province:</strong> {{ selectedDriver?.province }}</p>
+            <p><strong>City:</strong> {{ selectedDriver?.city }}</p>
+            <p><strong>Barangay:</strong> {{ selectedDriver?.barangay }}</p>
+            <p><strong>Address:</strong> {{ selectedDriver?.address }}</p>
+          </div>
 
-        <!-- Driver License Information -->
-        <div class="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-          <p>
-            <strong>License Number:</strong>
-            {{ selectedDriver?.details.license_number }}
-          </p>
-          <p>
-            <strong>License Expiry:</strong>
-            {{ selectedDriver?.details.license_expiry }}
-          </p>
-        </div>
+          <!-- Driver License Information -->
+          <div class="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+            <p>
+              <strong>License Number:</strong>
+              {{ selectedDriver?.details.license_number }}
+            </p>
+            <p>
+              <strong>License Expiry:</strong>
+              {{ selectedDriver?.details.license_expiry }}
+            </p>
+          </div>
 
-        <!-- Optional Images -->
-        <div v-if="selectedDriver?.details" class="mt-4">
-          <h3 class="mb-2 text-sm font-semibold">Driver Documents</h3>
+          <!-- Optional Images -->
+          <div v-if="selectedDriver?.details" class="mt-4 pb-2">
+            <h3 class="mb-2 text-sm font-semibold">Driver Documents</h3>
 
-          <div class="grid grid-cols-2 gap-4">
-            <div v-if="selectedDriver.details.front_license_picture">
-              <div class="gap mb-1 flex justify-between">
-                <p class="text-xs text-gray-500">Front License</p>
-                <a
-                  :href="selectedDriver.details.front_license_picture"
-                  class="text-xs text-blue-500"
-                  target="_blank"
-                  >View</a
-                >
-              </div>
-              <img
-                :src="selectedDriver.details.front_license_picture"
-                class="h-28 w-full rounded border object-cover"
-              />
-            </div>
-
-            <div v-if="selectedDriver.details.back_license_picture">
-              <div class="gap mb-1 flex justify-between">
-                <p class="text-xs text-gray-500">Back License</p>
-                <a
-                  :href="selectedDriver.details.back_license_picture"
-                  class="text-xs text-blue-500"
-                  target="_blank"
-                  >View</a
-                >
-              </div>
-              <img
-                :src="selectedDriver.details.back_license_picture"
-                class="h-28 w-full rounded border object-cover"
-              />
-            </div>
-
-            <div v-if="selectedDriver.details.nbi_clearance">
-              <div class="gap mb-1 flex justify-between">
-                <p class="text-xs text-gray-500">NBI Clearance</p>
-                <a
-                  :href="selectedDriver.details.nbi_clearance"
-                  class="text-xs text-blue-500"
-                  target="_blank"
-                  >View</a
-                >
-              </div>
-              <img
-                :src="selectedDriver.details.nbi_clearance"
-                class="h-28 w-full rounded border object-cover"
-              />
-            </div>
-
-            <div v-if="selectedDriver.details.selfie_picture">
-              <div class="gap mb-1 flex justify-between">
-                <p class="text-xs text-gray-500">Selfie</p>
-                <a
-                  :href="selectedDriver.details.selfie_picture"
-                  class="text-xs text-blue-500"
-                  target="_blank"
-                  >View</a
-                >
+            <div class="grid grid-cols-2 gap-4">
+              <div v-if="selectedDriver.details.front_license_picture">
+                <div class="gap mb-1 flex justify-between">
+                  <p class="text-xs text-gray-500">Front License</p>
+                  <a
+                    :href="selectedDriver.details.front_license_picture"
+                    class="text-xs text-blue-500"
+                    target="_blank"
+                    >View</a
+                  >
+                </div>
+                <img
+                  :src="selectedDriver.details.front_license_picture"
+                  class="h-28 w-full rounded border object-cover"
+                />
               </div>
 
-              <img
-                :src="selectedDriver.details.selfie_picture"
-                class="h-28 w-full rounded border object-cover"
-              />
+              <div v-if="selectedDriver.details.back_license_picture">
+                <div class="gap mb-1 flex justify-between">
+                  <p class="text-xs text-gray-500">Back License</p>
+                  <a
+                    :href="selectedDriver.details.back_license_picture"
+                    class="text-xs text-blue-500"
+                    target="_blank"
+                    >View</a
+                  >
+                </div>
+                <img
+                  :src="selectedDriver.details.back_license_picture"
+                  class="h-28 w-full rounded border object-cover"
+                />
+              </div>
+
+              <div v-if="selectedDriver.details.nbi_clearance">
+                <div class="gap mb-1 flex justify-between">
+                  <p class="text-xs text-gray-500">NBI Clearance</p>
+                  <a
+                    :href="selectedDriver.details.nbi_clearance"
+                    class="text-xs text-blue-500"
+                    target="_blank"
+                    >View</a
+                  >
+                </div>
+                <img
+                  :src="selectedDriver.details.nbi_clearance"
+                  class="h-28 w-full rounded border object-cover"
+                />
+              </div>
+
+              <div v-if="selectedDriver.details.selfie_picture">
+                <div class="gap mb-1 flex justify-between">
+                  <p class="text-xs text-gray-500">Selfie</p>
+                  <a
+                    :href="selectedDriver.details.selfie_picture"
+                    class="text-xs text-blue-500"
+                    target="_blank"
+                    >View</a
+                  >
+                </div>
+
+                <img
+                  :src="selectedDriver.details.selfie_picture"
+                  class="h-28 w-full rounded border object-cover"
+                />
+              </div>
             </div>
           </div>
         </div>
-
-        <DialogFooter class="mt-6 flex justify-end gap-2">
+        <DialogFooter class="flex justify-end gap-2 border-t pt-6">
           <Button @click="dialogOpen = false">Close</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
 
     <Dialog v-model:open="confirmDialogOpen">
-      <DialogContent class="sm:max-w-lg">
-        <DialogHeader>
+      <DialogContent class="flex max-h-[90vh] flex-col sm:max-w-lg">
+        <DialogHeader class="border-b pb-2">
           <DialogTitle class="text-xl font-semibold">
             Confirm Status Change
           </DialogTitle>
@@ -491,106 +492,107 @@ const toggleStatus = (id: number, action: 'approve' | 'deny') => {
         </DialogHeader>
 
         <!-- Driver Information -->
-        <div class="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-          <!-- <p><strong>ID:</strong> {{ driverToToggle?.details.code_number }}</p> -->
-          <p><strong>Email:</strong> {{ driverToToggle?.email }}</p>
+        <div class="custom-scrollbar overflow-y-auto">
+          <div class="mt-1 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+            <!-- <p><strong>ID:</strong> {{ driverToToggle?.details.code_number }}</p> -->
+            <p><strong>Email:</strong> {{ driverToToggle?.email }}</p>
 
-          <p><strong>Phone:</strong> {{ driverToToggle?.phone }}</p>
-          <p><strong>Status:</strong> {{ driverToToggle?.status }}</p>
+            <p><strong>Phone:</strong> {{ driverToToggle?.phone }}</p>
+            <p><strong>Status:</strong> {{ driverToToggle?.status }}</p>
 
-          <p><strong>Region:</strong> {{ driverToToggle?.region }}</p>
-          <p><strong>Province:</strong> {{ driverToToggle?.province }}</p>
-          <p><strong>City:</strong> {{ driverToToggle?.city }}</p>
-          <p><strong>Barangay:</strong> {{ driverToToggle?.barangay }}</p>
-          <p><strong>Address:</strong> {{ driverToToggle?.address }}</p>
-        </div>
+            <p><strong>Region:</strong> {{ driverToToggle?.region }}</p>
+            <p><strong>Province:</strong> {{ driverToToggle?.province }}</p>
+            <p><strong>City:</strong> {{ driverToToggle?.city }}</p>
+            <p><strong>Barangay:</strong> {{ driverToToggle?.barangay }}</p>
+            <p><strong>Address:</strong> {{ driverToToggle?.address }}</p>
+          </div>
 
-        <!-- Driver License Information -->
-        <div class="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-          <p>
-            <strong>License Number:</strong>
-            {{ driverToToggle?.details.license_number }}
-          </p>
-          <p>
-            <strong>License Expiry:</strong>
-            {{ driverToToggle?.details.license_expiry }}
-          </p>
-        </div>
+          <!-- Driver License Information -->
+          <div class="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+            <p>
+              <strong>License Number:</strong>
+              {{ driverToToggle?.details.license_number }}
+            </p>
+            <p>
+              <strong>License Expiry:</strong>
+              {{ driverToToggle?.details.license_expiry }}
+            </p>
+          </div>
 
-        <!-- Optional Images -->
-        <div v-if="driverToToggle?.details" class="mt-4">
-          <h3 class="mb-2 text-sm font-semibold">Driver Documents</h3>
+          <!-- Optional Images -->
+          <div v-if="driverToToggle?.details" class="mt-4">
+            <h3 class="mb-2 text-sm font-semibold">Driver Documents</h3>
 
-          <div class="grid grid-cols-2 gap-4">
-            <div v-if="driverToToggle.details.front_license_picture">
-              <div class="gap mb-1 flex justify-between">
-                <p class="text-xs text-gray-500">Front License</p>
-                <a
-                  :href="driverToToggle.details.front_license_picture"
-                  class="text-xs text-blue-500"
-                  target="_blank"
-                  >View</a
-                >
+            <div class="grid grid-cols-2 gap-4">
+              <div v-if="driverToToggle.details.front_license_picture">
+                <div class="gap mb-1 flex justify-between">
+                  <p class="text-xs text-gray-500">Front License</p>
+                  <a
+                    :href="driverToToggle.details.front_license_picture"
+                    class="text-xs text-blue-500"
+                    target="_blank"
+                    >View</a
+                  >
+                </div>
+
+                <img
+                  :src="driverToToggle.details.front_license_picture"
+                  class="h-28 w-full rounded border object-cover"
+                />
               </div>
 
-              <img
-                :src="driverToToggle.details.front_license_picture"
-                class="h-28 w-full rounded border object-cover"
-              />
-            </div>
-
-            <div v-if="driverToToggle.details.back_license_picture">
-              <div class="gap mb-1 flex justify-between">
-                <p class="text-xs text-gray-500">Back License</p>
-                <a
-                  :href="driverToToggle.details.back_license_picture"
-                  class="text-xs text-blue-500"
-                  target="_blank"
-                  >View</a
-                >
-              </div>
-              <img
-                :src="driverToToggle.details.back_license_picture"
-                class="h-28 w-full rounded border object-cover"
-              />
-            </div>
-
-            <div v-if="driverToToggle.details.nbi_clearance">
-              <div class="gap mb-1 flex justify-between">
-                <p class="text-xs text-gray-500">NBI Clearance</p>
-                <a
-                  :href="driverToToggle.details.nbi_clearance"
-                  class="text-xs text-blue-500"
-                  target="_blank"
-                  >View</a
-                >
+              <div v-if="driverToToggle.details.back_license_picture">
+                <div class="gap mb-1 flex justify-between">
+                  <p class="text-xs text-gray-500">Back License</p>
+                  <a
+                    :href="driverToToggle.details.back_license_picture"
+                    class="text-xs text-blue-500"
+                    target="_blank"
+                    >View</a
+                  >
+                </div>
+                <img
+                  :src="driverToToggle.details.back_license_picture"
+                  class="h-28 w-full rounded border object-cover"
+                />
               </div>
 
-              <img
-                :src="driverToToggle.details.nbi_clearance"
-                class="h-28 w-full rounded border object-cover"
-              />
-            </div>
+              <div v-if="driverToToggle.details.nbi_clearance">
+                <div class="gap mb-1 flex justify-between">
+                  <p class="text-xs text-gray-500">NBI Clearance</p>
+                  <a
+                    :href="driverToToggle.details.nbi_clearance"
+                    class="text-xs text-blue-500"
+                    target="_blank"
+                    >View</a
+                  >
+                </div>
 
-            <div v-if="driverToToggle.details.selfie_picture">
-              <div class="gap mb-1 flex justify-between">
-                <p class="text-xs text-gray-500">Selfie</p>
-                <a
-                  :href="driverToToggle.details.selfie_picture"
-                  class="text-xs text-blue-500"
-                  target="_blank"
-                  >View</a
-                >
+                <img
+                  :src="driverToToggle.details.nbi_clearance"
+                  class="h-28 w-full rounded border object-cover"
+                />
               </div>
-              <img
-                :src="driverToToggle.details.selfie_picture"
-                class="h-28 w-full rounded border object-cover"
-              />
+
+              <div v-if="driverToToggle.details.selfie_picture">
+                <div class="gap mb-1 flex justify-between">
+                  <p class="text-xs text-gray-500">Selfie</p>
+                  <a
+                    :href="driverToToggle.details.selfie_picture"
+                    class="text-xs text-blue-500"
+                    target="_blank"
+                    >View</a
+                  >
+                </div>
+                <img
+                  :src="driverToToggle.details.selfie_picture"
+                  class="h-28 w-full rounded border object-cover"
+                />
+              </div>
             </div>
           </div>
         </div>
-
-        <DialogFooter class="mt-6">
+        <DialogFooter class="flex justify-end gap-2 border-t pt-6">
           <div class="flex w-full justify-between gap-2">
             <div class="flex gap-2">
               <Button

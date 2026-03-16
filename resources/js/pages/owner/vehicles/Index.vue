@@ -456,86 +456,87 @@ const goToPage = (url: string | null) => {
 
     <!-- Create/Edit Dialog -->
     <Dialog v-model:open="showDialog">
-      <DialogContent>
-        <DialogHeader>
+      <DialogContent class="flex max-h-[90vh] flex-col sm:max-w-lg">
+        <DialogHeader class="border-b pb-2">
           <DialogTitle>
             {{ dialogMode === 'create' ? 'Add Vehicle' : 'Edit Vehicle' }}
           </DialogTitle>
         </DialogHeader>
 
-        <div class="grid gap-4 py-4">
-          <Input v-model="plate_number" placeholder="Plate Number" />
-          <Input v-model="vin" placeholder="VIN" />
-          <Input v-model="brand" placeholder="Brand" />
-          <Input v-model="model" placeholder="Model" />
-          <Input v-model="color" placeholder="Color" />
-          <Input v-model="year" type="number" placeholder="Year" />
-          <Select v-model="statusId">
-            <SelectTrigger>
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem v-for="s in statuses" :key="s.id" :value="s.id">
-                {{ s.name }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
+        <div class="custom-scrollbar overflow-y-auto">
+          <div class="grid gap-4 py-4">
+            <Input v-model="plate_number" placeholder="Plate Number" />
+            <Input v-model="vin" placeholder="VIN" />
+            <Input v-model="brand" placeholder="Brand" />
+            <Input v-model="model" placeholder="Model" />
+            <Input v-model="color" placeholder="Color" />
+            <Input v-model="year" type="number" placeholder="Year" />
+            <Select v-model="statusId">
+              <SelectTrigger>
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="s in statuses" :key="s.id" :value="s.id">
+                  {{ s.name }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
 
-          <div class="grid gap-4">
-            <div class="grid gap-2">
-              <div class="flex items-center justify-between">
-                <div class="flex w-full items-center justify-between gap-2">
-                  <label class="ps-1 text-sm font-bold"
-                    >OR-CR
-                    <span class="text-[11px]"
-                      >(Leave empty to keep current)</span
-                    ></label
-                  >
-                  <div v-if="editingVehicle?.or_cr && !or_cr_file">
-                    <a
-                      :href="editingVehicle.or_cr"
-                      target="_blank"
-                      class="flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline"
+            <div class="grid gap-4">
+              <div class="grid gap-2">
+                <div class="flex items-center justify-between">
+                  <div class="flex w-full items-center justify-between gap-2">
+                    <label class="ps-1 text-sm font-bold"
+                      >OR-CR
+                      <span class="text-[11px]"
+                        >(Leave empty to keep current)</span
+                      ></label
                     >
-                      <span>(Current View)</span>
-                    </a>
+                    <div v-if="editingVehicle?.or_cr && !or_cr_file">
+                      <a
+                        :href="editingVehicle.or_cr"
+                        target="_blank"
+                        class="flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline"
+                      >
+                        <span>(Current View)</span>
+                      </a>
+                    </div>
                   </div>
+
+                  <button
+                    v-if="or_cr_file"
+                    type="button"
+                    @click="or_cr_file = null"
+                    class="text-xs font-medium text-red-500 hover:text-red-700"
+                  >
+                    Clear Selection
+                  </button>
                 </div>
 
-                <button
+                <div class="relative">
+                  <Input
+                    type="file"
+                    ref="fileInput"
+                    accept="image/*,.pdf"
+                    @change="handleFileUpload"
+                    class="cursor-pointer file:cursor-pointer file:text-primary"
+                  />
+                </div>
+
+                <p
                   v-if="or_cr_file"
-                  type="button"
-                  @click="or_cr_file = null"
-                  class="text-xs font-medium text-red-500 hover:text-red-700"
+                  class="ps-1 text-[11px] font-medium text-green-600 italic"
                 >
-                  Clear Selection
-                </button>
+                  Ready to upload: {{ or_cr_file.name }}
+                </p>
+                <p v-else class="ps-1 text-[11px] text-muted-foreground">
+                  Accepted: JPG, PNG, or PDF (Max 2MB)
+                </p>
               </div>
-
-              <div class="relative">
-                <Input
-                  type="file"
-                  ref="fileInput"
-                  accept="image/*,.pdf"
-                  @change="handleFileUpload"
-                  class="cursor-pointer file:cursor-pointer file:text-primary"
-                />
-              </div>
-
-              <p
-                v-if="or_cr_file"
-                class="ps-1 text-[11px] font-medium text-green-600 italic"
-              >
-                Ready to upload: {{ or_cr_file.name }}
-              </p>
-              <p v-else class="ps-1 text-[11px] text-muted-foreground">
-                Accepted: JPG, PNG, or PDF (Max 2MB)
-              </p>
             </div>
           </div>
         </div>
-
-        <DialogFooter class="flex justify-end gap-2">
+        <DialogFooter class="flex justify-end gap-2 border-t pt-6">
           <Button variant="outline" @click="showDialog = false">
             Cancel
           </Button>

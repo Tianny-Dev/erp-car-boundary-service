@@ -372,25 +372,27 @@ const createContract = () => {
 
       <!-- Deposit Dialog -->
       <Dialog v-model:open="showDialog">
-        <DialogContent class="max-w-3xl overflow-y-auto">
-          <DialogHeader>
+        <DialogContent class="flex max-h-[90vh] flex-col sm:max-w-lg">
+          <DialogHeader class="border-b pb-2">
             <DialogTitle>Contract Details</DialogTitle>
           </DialogHeader>
 
-          <DialogDescription>
-            <div v-if="selectedContract" class="grid grid-cols-2 gap-4">
-              <template v-for="key in visibleContractFields" :key="key">
-                <div class="font-medium capitalize">
-                  {{ key.replace(/_/g, ' ') }}:
-                </div>
-                <div>
-                  {{ selectedContract[key] }}
-                </div>
-              </template>
-            </div>
-          </DialogDescription>
+          <div class="custom-scrollbar overflow-y-auto">
+            <DialogDescription>
+              <div v-if="selectedContract" class="grid grid-cols-2 gap-4">
+                <template v-for="key in visibleContractFields" :key="key">
+                  <div class="font-medium capitalize">
+                    {{ key.replace(/_/g, ' ') }}:
+                  </div>
+                  <div>
+                    {{ selectedContract[key] }}
+                  </div>
+                </template>
+              </div>
+            </DialogDescription>
+          </div>
 
-          <DialogFooter>
+          <DialogFooter class="flex justify-end gap-2 border-t pt-6">
             <Button variant="outline" @click="showDialog = false"
               >Cancel</Button
             >

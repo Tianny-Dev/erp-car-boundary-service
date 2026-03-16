@@ -13,7 +13,7 @@
 
             <div>
               <h1 class="text-2xl font-bold text-white">
-                ERP SYSTEM FOR CAR BOUNDARY SERVICE - PHILIPPINES
+                DDGNS SYSTEM FOR CAR BOUNDARY SERVICE - PHILIPPINES
               </h1>
             </div>
           </div>
@@ -169,7 +169,7 @@
   <!-- Start All Rights Reserved -->
   <div class="bg-white px-5 py-3 text-center text-lg/[25px] text-brand-blue">
     <p>
-      © 2026 ERP System for Car Boundary Service - Philippines <br />
+      © 2026 DDGNS System for Car Boundary Service - Philippines <br />
       "Smart Mobility for Every Filipino."
     </p>
   </div>

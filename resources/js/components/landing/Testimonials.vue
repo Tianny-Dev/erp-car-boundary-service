@@ -180,7 +180,7 @@ const submitFeedback = async () => {
           </h1>
 
           <p class="pt-6 text-lg/[22px]">
-            Hear how ERP System for Car Boundary <br />Service- Philippines is
+            Hear how DDGNS System for Car Boundary <br />Service- Philippines is
             transforming the way <br />
             Filipinos drive, manage, and ride every day.
           </p>

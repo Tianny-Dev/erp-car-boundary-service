@@ -495,8 +495,8 @@ watch(
       </Card>
     </div>
     <Dialog v-model:open="dialogOpen">
-      <DialogContent class="sm:max-w-lg">
-        <DialogHeader>
+      <DialogContent class="flex max-h-[90vh] flex-col sm:max-w-lg">
+        <DialogHeader class="border-b pb-2">
           <DialogTitle>Revenue Details</DialogTitle>
           <DialogDescription>
             Detailed information for invoice
@@ -504,31 +504,35 @@ watch(
             >.
           </DialogDescription>
         </DialogHeader>
-        <div class="mt-2 space-y-2" v-if="selectedRevenue">
-          <p><strong>Invoice No:</strong> {{ selectedRevenue.invoice_no }}</p>
-          <p>
-            <strong>Service Type:</strong> {{ selectedRevenue.service_type }}
-          </p>
-          <p>
-            <strong>Amount:</strong> {{ selectedRevenue.currency }}
-            {{ selectedRevenue.amount.toLocaleString() }}
-          </p>
-          <p>
-            <strong>Payment Date:</strong>
-            {{ selectedRevenue.payment_date || '—' }}
-          </p>
-          <p><strong>Status:</strong> {{ selectedRevenue.status || '—' }}</p>
-          <p>
-            <strong>Franchise:</strong> {{ selectedRevenue.franchise || '—' }}
-          </p>
-          <p><strong>Branch:</strong> {{ selectedRevenue.branch || '—' }}</p>
-          <p>
-            <strong>Payment Option:</strong>
-            {{ selectedRevenue.payment_option || '—' }}
-          </p>
-          <p><strong>Notes:</strong> {{ selectedRevenue.notes || '—' }}</p>
+
+        <div class="custom-scrollbar overflow-y-auto">
+          <div class="mt-2 space-y-2" v-if="selectedRevenue">
+            <p><strong>Invoice No:</strong> {{ selectedRevenue.invoice_no }}</p>
+            <p>
+              <strong>Service Type:</strong> {{ selectedRevenue.service_type }}
+            </p>
+            <p>
+              <strong>Amount:</strong> {{ selectedRevenue.currency }}
+              {{ selectedRevenue.amount.toLocaleString() }}
+            </p>
+            <p>
+              <strong>Payment Date:</strong>
+              {{ selectedRevenue.payment_date || '—' }}
+            </p>
+            <p><strong>Status:</strong> {{ selectedRevenue.status || '—' }}</p>
+            <p>
+              <strong>Franchise:</strong> {{ selectedRevenue.franchise || '—' }}
+            </p>
+            <p><strong>Branch:</strong> {{ selectedRevenue.branch || '—' }}</p>
+            <p>
+              <strong>Payment Option:</strong>
+              {{ selectedRevenue.payment_option || '—' }}
+            </p>
+            <p><strong>Notes:</strong> {{ selectedRevenue.notes || '—' }}</p>
+          </div>
         </div>
-        <DialogFooter>
+
+        <DialogFooter class="flex justify-end gap-2 border-t pt-6">
           <Button @click="dialogOpen = false">Close</Button>
         </DialogFooter>
       </DialogContent>
