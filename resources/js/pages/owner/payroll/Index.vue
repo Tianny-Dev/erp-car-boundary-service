@@ -344,11 +344,11 @@ watch(
       <div
         class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border"
       >
-        <div class="mb-4 flex items-center justify-between">
+        <div class="mb-4 grid items-center justify-between gap-5 sm:flex">
           <h2 class="font-mono text-xl font-semibold">
             {{ title }}
           </h2>
-          <div class="flex gap-4">
+          <div class="grid gap-4 sm:flex">
             <Select v-model="selectedPeriod">
               <SelectTrigger class="w-[150px] cursor-pointer">
                 <SelectValue placeholder="Filter by Period" />
@@ -390,9 +390,13 @@ watch(
           search-placeholder="Search drivers..."
         >
           <template #custom-actions>
-            <Button @click="openExportModal('pdf')"> Export PDF </Button>
-            <Button @click="openExportModal('excel')"> Export Excel </Button>
-            <Button @click="openExportModal('csv')"> Export CSV </Button>
+            <div class="grid gap-3 sm:flex">
+              <Button @click="openExportModal('pdf')" class="ms-3">
+                Export PDF
+              </Button>
+              <Button @click="openExportModal('excel')"> Export Excel </Button>
+              <Button @click="openExportModal('csv')"> Export CSV </Button>
+            </div>
           </template>
         </DataTable>
       </div>

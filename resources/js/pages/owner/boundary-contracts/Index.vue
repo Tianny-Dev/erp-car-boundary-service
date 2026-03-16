@@ -382,12 +382,15 @@ const createContract = () => {
 
           <div class="custom-scrollbar overflow-y-auto">
             <DialogDescription>
-              <div v-if="selectedContract" class="grid grid-cols-2 gap-4">
+              <div
+                v-if="selectedContract"
+                class="grid grid-cols-1 sm:grid-cols-2 sm:gap-4"
+              >
                 <template v-for="key in visibleContractFields" :key="key">
                   <div class="font-medium capitalize">
                     {{ key.replace(/_/g, ' ') }}:
                   </div>
-                  <div>
+                  <div class="pb-5 sm:pb-0">
                     {{ selectedContract[key] }}
                   </div>
                 </template>

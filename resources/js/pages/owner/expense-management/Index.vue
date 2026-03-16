@@ -360,11 +360,7 @@ watch(
             </TableRow>
 
             <template v-if="!isGrouped">
-              <TableRow
-                v-for="expense in filteredData"
-                :key="expense.id"
-                class="hover:bg-gray-50"
-              >
+              <TableRow v-for="expense in filteredData" :key="expense.id">
                 <TableCell class="font-medium">{{
                   expense.invoice_no
                 }}</TableCell>
@@ -441,7 +437,6 @@ watch(
                   row.year ||
                   gidx
                 "
-                class="hover:bg-gray-50"
               >
                 <TableCell>
                   <template v-if="filters.timePeriod === 'daily'">

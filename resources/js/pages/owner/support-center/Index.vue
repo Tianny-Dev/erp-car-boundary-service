@@ -251,11 +251,7 @@ const markAsCompleted = (ticketId: number) => {
               </TableCell>
             </TableRow>
 
-            <TableRow
-              v-for="row in table.getRowModel().rows"
-              :key="row.id"
-              class="even:bg-gray-50"
-            >
+            <TableRow v-for="row in table.getRowModel().rows" :key="row.id">
               <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id">
                 <FlexRender
                   :render="cell.column.columnDef.cell"
