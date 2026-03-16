@@ -499,46 +499,47 @@ const removeDriverFromFranchise = () => {
         </DialogHeader>
 
         <div class="custom-scrollbar overflow-y-auto">
-          <div class="mt-1 grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
-            <div>
-              <p class="text-xs font-bold text-gray-500 uppercase">
-                ID / Code:
-              </p>
-              <input
-                v-if="isEditing"
-                v-model="editForm.code_number"
-                class="w-full rounded border px-2 py-1"
-              />
-              <p v-else>{{ selectedDriver?.details.code_number }}</p>
+          <div class="mt-1 text-sm">
+            <div class="grid grid-cols-1 gap-2 pb-3 sm:grid-cols-2">
+              <div>
+                <p class="text-xs font-bold text-gray-500 uppercase">
+                  ID / Code:
+                </p>
+                <input
+                  v-if="isEditing"
+                  v-model="editForm.code_number"
+                  class="w-full rounded border px-2 py-1"
+                />
+                <p v-else>{{ selectedDriver?.details.code_number }}</p>
+              </div>
+              <div>
+                <p class="text-xs font-bold text-gray-500 uppercase">Email:</p>
+                <input
+                  v-if="isEditing"
+                  v-model="editForm.email"
+                  class="w-full rounded border px-2 py-1"
+                />
+                <p v-else>{{ selectedDriver?.email }}</p>
+              </div>
+              <div>
+                <p class="text-xs font-bold text-gray-500 uppercase">Phone:</p>
+                <input
+                  v-if="isEditing"
+                  v-model="editForm.phone"
+                  class="w-full rounded border px-2 py-1"
+                />
+                <p v-else>{{ selectedDriver?.phone }}</p>
+              </div>
+              <div>
+                <p class="text-xs font-bold text-gray-500 uppercase">Status:</p>
+                <p>{{ selectedDriver?.status }}</p>
+              </div>
             </div>
-            <div>
-              <p class="text-xs font-bold text-gray-500 uppercase">Email:</p>
-              <input
-                v-if="isEditing"
-                v-model="editForm.email"
-                class="w-full rounded border px-2 py-1"
-              />
-              <p v-else>{{ selectedDriver?.email }}</p>
-            </div>
-            <div>
-              <p class="text-xs font-bold text-gray-500 uppercase">Phone:</p>
-              <input
-                v-if="isEditing"
-                v-model="editForm.phone"
-                class="w-full rounded border px-2 py-1"
-              />
-              <p v-else>{{ selectedDriver?.phone }}</p>
-            </div>
-            <div>
-              <p class="text-xs font-bold text-gray-500 uppercase">Status:</p>
-              <p>{{ selectedDriver?.status }}</p>
-            </div>
-
             <div class="col-span-2 space-y-3 border-t pt-4">
               <p class="text-xs font-bold text-gray-500 uppercase">
                 Address Information:
               </p>
-              <div class="grid grid-cols-2 gap-2">
+              <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <div class="space-y-1">
                   <label class="text-[10px] font-bold text-gray-400 uppercase"
                     >Region</label
@@ -618,7 +619,7 @@ const removeDriverFromFranchise = () => {
           </div>
 
           <div
-            class="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 border-t pt-4 text-sm"
+            class="mt-4 grid grid-cols-1 gap-x-6 gap-y-3 border-t pt-4 text-sm sm:grid-cols-2"
           >
             <div>
               <p class="text-xs font-bold text-gray-500 uppercase">
@@ -681,7 +682,7 @@ const removeDriverFromFranchise = () => {
 
           <div v-if="selectedDriver?.details" class="mt-4 border-t pt-4">
             <h3 class="mb-2 text-sm font-semibold">Driver Documents</h3>
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div
                 v-for="field in [
                   'front_license_picture',

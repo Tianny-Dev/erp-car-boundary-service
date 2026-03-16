@@ -295,12 +295,14 @@ const goToPage = (url: string | null) => {
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="space-y-6 p-6">
       <!-- Header -->
-      <div class="flex items-center justify-between">
+      <div class="grid items-center justify-between gap-5 sm:flex">
         <div>
           <h1 class="mb-1 text-3xl font-bold">Vehicle Management</h1>
           <p class="text-gray-600">Manage all vehicles</p>
         </div>
-        <Button @click="openCreateDialog">+ Add Vehicle</Button>
+        <div>
+          <Button @click="openCreateDialog">+ Add Vehicle</Button>
+        </div>
       </div>
 
       <!-- Filters -->

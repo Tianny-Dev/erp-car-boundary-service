@@ -15,14 +15,6 @@ const isPassenger = computed(
   () => page.props.auth.user?.role_name === 'passenger',
 );
 
-const userRoleDisplay = computed(() => {
-  const role = page.props.auth.user?.role_name;
-  if (role === 'super_admin') return 'Super Admin';
-  if (role === 'owner') return 'Franchise Owner';
-  if (role === 'franchise') return 'Franchise';
-  return role || 'User';
-});
-
 const apkLink = 'https://bb88group.com/erpfranchisingmgmt/APK/DDGNS-ERP.apk';
 </script>
 
