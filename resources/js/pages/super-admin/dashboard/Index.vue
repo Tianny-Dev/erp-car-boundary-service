@@ -3,7 +3,6 @@ import DataTable from '@/components/DataTable.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import axios from 'axios';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
@@ -515,7 +514,7 @@ const franchiseColumns: ColumnDef<FranchiseRow>[] = [
               ]),
           ),
           h(DropdownMenuContent, { align: 'end', class: 'border-2' }, () => [
-            h(DropdownMenuLabel, null, () => 'Actions'),
+            h(DropdownMenuLabel, { class: 'text-gray-500' }, () => 'Actions'),
             h(
               DropdownMenuItem,
               {
@@ -792,7 +791,6 @@ const filteredFranchises = computed(() => {
         </DialogFooter>
       </DialogContent>
     </Dialog> -->
-
 
   <Dialog v-model:open="franchiseModal.isOpen.value">
     <DialogContent class="max-w-2xl overflow-y-auto">

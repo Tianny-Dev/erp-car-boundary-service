@@ -158,7 +158,7 @@ const inventoryColumns = computed<ColumnDef<InventoryRow>[]>(() => {
                 ]),
             ),
             h(DropdownMenuContent, { align: 'end', class: 'border-2' }, () => [
-              h(DropdownMenuLabel, null, () => 'Actions'),
+              h(DropdownMenuLabel, { class: 'text-gray-500' }, () => 'Actions'),
               h(
                 DropdownMenuItem,
                 {

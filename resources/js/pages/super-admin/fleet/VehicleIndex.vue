@@ -237,23 +237,26 @@ const openDeleteModal = (vehicle: VehicleRow) => {
 };
 
 const confirmDelete = () => {
-  if (!selectedVehicle.value) return
+  if (!selectedVehicle.value) return;
   isDeletingVehicle.value = true;
 
-  router.delete(superAdmin.vehicle.destroy(selectedVehicle.value.id).url, {
-    preserveScroll: true,
+  router.delete(
+    superAdmin.vehicle.destroy(selectedVehicle.value.id as number).url,
+    {
+      preserveScroll: true,
 
-    onSuccess: () => {
-      isDeleteModalOpen.value = false;
-      selectedVehicle.value = {};
-      toast.success('Vehicle deleted successfully!');
-    },
+      onSuccess: () => {
+        isDeleteModalOpen.value = false;
+        selectedVehicle.value = {};
+        toast.success('Vehicle deleted successfully!');
+      },
 
-    onFinish: () => {
-      isDeletingVehicle.value = false;
+      onFinish: () => {
+        isDeletingVehicle.value = false;
+      },
     },
-  });
-}
+  );
+};
 
 const statuses = [
   { value: 'active', label: 'Active' },
@@ -317,7 +320,7 @@ const vehicleColumns = computed<ColumnDef<VehicleRow>[]>(() => {
                 ]),
             ),
             h(DropdownMenuContent, { align: 'end', class: 'border-2' }, () => [
-              h(DropdownMenuLabel, null, () => 'Actions'),
+              h(DropdownMenuLabel, { class: 'text-gray-500' }, () => 'Actions'),
               h(
                 DropdownMenuItem,
                 {
@@ -686,8 +689,8 @@ watch(
         <DialogDescription>
           Are you sure you want to delete vehicle with plate no.
           <span class="font-semibold">
-            {{ selectedVehicle?.plate_number }}
-          </span>?
+            {{ selectedVehicle?.plate_number }} </span
+          >?
           <br />
           This action cannot be undone.
         </DialogDescription>
