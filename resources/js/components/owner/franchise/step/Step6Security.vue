@@ -161,7 +161,7 @@ const showConfirmPassword = ref(false);
       :id="fields.terms1"
       :name="fields.terms1"
       v-model="computedTerms1"
-      class="border-black"
+      class="border-gray-500 shadow"
     />
     <div class="grid gap-1.5 leading-none">
       <label
@@ -180,7 +180,7 @@ const showConfirmPassword = ref(false);
       :id="fields.terms2"
       :name="fields.terms2"
       v-model="computedTerms2"
-      class="border-black"
+      class="border-gray-500 shadow"
     />
     <div class="grid gap-1.5 leading-none">
       <label
