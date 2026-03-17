@@ -12,7 +12,7 @@ import {
   CreditCard,
   DollarSign,
   Settings,
-  UserCog,
+  // UserCog,
   Users,
 } from 'lucide-vue-next';
 
@@ -51,7 +51,7 @@ const {
   activeDrivers,
   pendingDrivers,
 
-  activeTechnicians,
+  // activeTechnicians,
   pendingTechnicians,
 
   dailyEarnings,
@@ -142,7 +142,7 @@ const mappedRevenueExpensesData = revenueExpensesData.map((item) => ({
         </Card>
 
         <!-- Active Technicians -->
-        <Card>
+        <!-- <Card>
           <CardHeader
             class="flex flex-row items-center justify-between space-y-0 pb-2"
           >
@@ -157,7 +157,7 @@ const mappedRevenueExpensesData = revenueExpensesData.map((item) => ({
               {{ pendingTechnicians }} unassigned technicians
             </p>
           </CardContent>
-        </Card>
+        </Card> -->
 
         <!-- Daily Earnings -->
         <Card>

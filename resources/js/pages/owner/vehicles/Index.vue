@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { usePage } from '@inertiajs/vue3';
+const page = usePage();
+const errors = computed(() => page.props.errors as any);
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -48,6 +52,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
+import Label from '@/components/ui/label/Label.vue';
 
 interface Vehicle {
   id: number;
@@ -166,8 +171,11 @@ const openCreateDialog = () => {
   year.value = undefined;
   statusId.value = null;
   or_cr_file.value = null;
+  existing_or_cr.value = null;
   showDialog.value = true;
 };
+
+const existing_or_cr = ref<string | null>(null);
 
 const openEditDialog = (vehicle: Vehicle) => {
   dialogMode.value = 'edit';
@@ -179,6 +187,8 @@ const openEditDialog = (vehicle: Vehicle) => {
   color.value = vehicle.color;
   year.value = vehicle.year;
   statusId.value = vehicle.status_id;
+  existing_or_cr.value = vehicle.or_cr;
+  or_cr_file.value = null;
   showDialog.value = true;
 };
 
@@ -237,6 +247,7 @@ const saveVehicle = () => {
         );
         showDialog.value = false;
         or_cr_file.value = null;
+        existing_or_cr.value = null;
       },
       onError: (errors) => {
         // Log errors to console to see exactly why Laravel is rejecting it
@@ -251,6 +262,11 @@ const handleFileUpload = (event: Event) => {
   const target = event.target as HTMLInputElement;
   if (target.files && target.files.length > 0) {
     or_cr_file.value = target.files[0];
+    existing_or_cr.value = null;
+
+    if (page.props.errors.or_cr) {
+      delete page.props.errors.or_cr;
+    }
   }
 };
 
@@ -288,6 +304,36 @@ const goToPage = (url: string | null) => {
   if (!url) return;
   router.get(url, {}, { preserveState: true, preserveScroll: true });
 };
+
+const handleYearInput = (e: Event) => {
+  const target = e.target as HTMLInputElement;
+  // Limit to 4 characters
+  if (target.value.length > 4) {
+    target.value = target.value.slice(0, 4);
+    year.value = Number(target.value);
+  }
+};
+
+// Add this to your script section
+watch(
+  [plate_number, vin, brand, model, color, year, statusId],
+  () => {
+    // Check which field changed and clear its error
+    if (plate_number.value) delete page.props.errors.plate_number;
+    if (vin.value) delete page.props.errors.vin;
+    if (brand.value) delete page.props.errors.brand;
+    if (model.value) delete page.props.errors.model;
+    if (color.value) delete page.props.errors.color;
+    if (year.value) delete page.props.errors.year;
+    if (statusId.value) delete page.props.errors.status_id;
+  },
+  { deep: true },
+);
+
+// Also clear error when a file is uploaded
+watch(or_cr_file, () => {
+  if (or_cr_file.value) delete page.props.errors.or_cr;
+});
 </script>
 
 <template>
@@ -474,74 +520,143 @@ const goToPage = (url: string | null) => {
         </DialogHeader>
 
         <div class="custom-scrollbar overflow-y-auto">
-          <div class="grid gap-4 py-4">
-            <Input v-model="plate_number" placeholder="Plate Number" />
-            <Input v-model="vin" placeholder="VIN" />
-            <Input v-model="brand" placeholder="Brand" />
-            <Input v-model="model" placeholder="Model" />
-            <Input v-model="color" placeholder="Color" />
-            <Input v-model="year" type="number" placeholder="Year" />
-            <Select v-model="statusId">
-              <SelectTrigger>
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem v-for="s in statuses" :key="s.id" :value="s.id">
-                  {{ s.name }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
+          <div class="grid gap-4">
+            <div class="grid gap-1">
+              <Label class="p-1">Plate Number</Label>
+              <Input
+                v-model="plate_number"
+                placeholder="Enter Plate Number"
+                :class="{ 'border-red-500': errors.plate_number }"
+              />
+              <p v-if="errors.plate_number" class="px-1 text-xs text-red-500">
+                {{ errors.plate_number }}
+              </p>
+            </div>
 
-            <div class="grid gap-4">
-              <div class="grid gap-2">
-                <div class="flex items-center justify-between">
-                  <div class="flex w-full items-center justify-between gap-2">
-                    <label class="ps-1 text-sm font-bold"
-                      >OR-CR
-                      <span class="text-[11px]"
-                        >(Leave empty to keep current)</span
-                      ></label
-                    >
-                    <div v-if="editingVehicle?.or_cr && !or_cr_file">
-                      <a
-                        :href="editingVehicle.or_cr"
-                        target="_blank"
-                        class="flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline"
-                      >
-                        <span>(Current View)</span>
-                      </a>
-                    </div>
-                  </div>
+            <div class="grid gap-1">
+              <Label class="p-1">VIN</Label>
+              <Input
+                v-model="vin"
+                placeholder="Enter VIN"
+                :class="{ 'border-red-500': errors.vin }"
+              />
+              <p v-if="errors.vin" class="px-1 text-xs text-red-500">
+                {{ errors.vin }}
+              </p>
+            </div>
 
-                  <button
-                    v-if="or_cr_file"
-                    type="button"
-                    @click="or_cr_file = null"
-                    class="text-xs font-medium text-red-500 hover:text-red-700"
-                  >
-                    Clear Selection
-                  </button>
-                </div>
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div class="grid gap-1">
+                <Label class="p-1">Brand</Label>
+                <Input
+                  v-model="brand"
+                  placeholder="Enter Brand"
+                  :class="{ 'border-red-500': errors.brand }"
+                />
+                <p v-if="errors.brand" class="px-1 text-xs text-red-500">
+                  {{ errors.brand }}
+                </p>
+              </div>
+              <div class="grid gap-1">
+                <Label class="p-1">Model</Label>
+                <Input
+                  v-model="model"
+                  placeholder="Enter Model"
+                  :class="{ 'border-red-500': errors.model }"
+                />
+                <p v-if="errors.model" class="px-1 text-xs text-red-500">
+                  {{ errors.model }}
+                </p>
+              </div>
+            </div>
 
-                <div class="relative">
-                  <Input
-                    type="file"
-                    ref="fileInput"
-                    accept="image/*,.pdf"
-                    @change="handleFileUpload"
-                    class="cursor-pointer file:cursor-pointer file:text-primary"
-                  />
-                </div>
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div class="grid gap-1">
+                <Label class="p-1">Color</Label>
+                <Input
+                  v-model="color"
+                  placeholder="Enter Color"
+                  :class="{ 'border-red-500': errors.color }"
+                />
+                <p v-if="errors.color" class="px-1 text-xs text-red-500">
+                  {{ errors.color }}
+                </p>
+              </div>
+              <div class="grid gap-1">
+                <Label class="p-1">Year</Label>
+                <Input
+                  v-model="year"
+                  type="number"
+                  placeholder="Enter Year (e.g. 2024)"
+                  :class="{ 'border-red-500': errors.year }"
+                  @input="handleYearInput"
+                />
+                <p v-if="errors.year" class="px-1 text-xs text-red-500">
+                  {{ errors.year }}
+                </p>
+              </div>
+            </div>
 
-                <p
-                  v-if="or_cr_file"
-                  class="ps-1 text-[11px] font-medium text-green-600 italic"
+            <div class="grid gap-1">
+              <Label class="p-1">Status</Label>
+              <Select v-model="statusId">
+                <SelectTrigger :class="{ 'border-red-500': errors.status_id }">
+                  <SelectValue placeholder="Select Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="s in statuses" :key="s.id" :value="s.id">
+                    {{ s.name }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <p v-if="errors.status_id" class="px-1 text-xs text-red-500">
+                {{ errors.status_id }}
+              </p>
+            </div>
+
+            <div class="grid gap-1">
+              <Label class="p-1 font-semibold">OR CR</Label>
+              <Input
+                type="file"
+                accept="image/*,.pdf"
+                @change="handleFileUpload"
+                :class="{
+                  'border-red-500 focus-visible:ring-red-500': errors.or_cr,
+                  'cursor-pointer file:cursor-pointer file:text-primary': true,
+                }"
+              />
+
+              <p
+                v-if="errors.or_cr"
+                class="px-1 text-xs font-medium text-red-500"
+              >
+                {{ errors.or_cr }}
+              </p>
+
+              <div
+                v-if="or_cr_file && !errors.or_cr"
+                class="mt-1 flex items-center gap-2 px-1"
+              >
+                <Badge
+                  variant="secondary"
+                  class="bg-green-100 text-green-700 hover:bg-green-100"
                 >
-                  Ready to upload: {{ or_cr_file.name }}
-                </p>
-                <p v-else class="ps-1 text-[11px] text-muted-foreground">
-                  Accepted: JPG, PNG, or PDF (Max 2MB)
-                </p>
+                  New: {{ or_cr_file.name }}
+                </Badge>
+              </div>
+
+              <div
+                v-else-if="existing_or_cr && !errors.or_cr"
+                class="mt-1 flex items-center gap-2 px-1"
+              >
+                <span class="text-[11px] text-gray-500">Current file:</span>
+                <a
+                  :href="`${existing_or_cr}`"
+                  target="_blank"
+                  class="text-[11px] text-blue-600 underline hover:text-blue-800"
+                >
+                  View Document
+                </a>
               </div>
             </div>
           </div>

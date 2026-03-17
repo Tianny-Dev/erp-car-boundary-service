@@ -98,6 +98,7 @@ class BoundaryContractController extends Controller
                     'year' => $vehicle->year,
                     'status_id' => $vehicle->status_id,
                     'status_name' => $vehicle->status->name,
+                    'status' => strtolower($vehicle->status->name),
                 ];
             });
 
@@ -152,35 +153,4 @@ class BoundaryContractController extends Controller
         return to_route('owner.boundary-contracts.index');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
-    }
 }

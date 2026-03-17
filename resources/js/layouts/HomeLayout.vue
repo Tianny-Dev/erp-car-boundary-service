@@ -178,19 +178,19 @@ const { isScrolled, activeSection, isMenuOpen, sectionIds, handleClick } =
                     ? 'Franchise'
                     : id === 'driver'
                       ? 'Driver'
-                      : id === 'technician'
-                        ? 'Technician'
-                        : id === 'passenger'
-                          ? 'Passenger'
-                          : id === 'testi'
-                            ? 'Testimonials'
-                            : id === 'faq'
-                              ? "FAQ's"
-                              : id === 'Terms'
-                                ? 'Terms & Privacy'
-                                : id === 'contact'
-                                  ? 'Contact Us'
-                                  : id
+                      : // : id === 'technician'
+                        //   ? 'Technician'
+                        id === 'passenger'
+                        ? 'Passenger'
+                        : id === 'testi'
+                          ? 'Testimonials'
+                          : id === 'faq'
+                            ? "FAQ's"
+                            : id === 'Terms'
+                              ? 'Terms & Privacy'
+                              : id === 'contact'
+                                ? 'Contact Us'
+                                : id
             }}
           </a>
         </nav>
