@@ -59,7 +59,7 @@ class VehicleController extends Controller
             'brand'        => 'required|string|max:255',
             'model'        => 'required|string|max:255',
             'color'        => 'required|string|max:255',
-            'year'         => 'required|integer',
+            'year'         => 'required|integer|digits:4|between:1900,' . (date('Y') + 1),
             'status_id'    => 'required|exists:statuses,id',
             'or_cr'        => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
@@ -99,7 +99,7 @@ class VehicleController extends Controller
             'brand'        => 'required|string|max:255',
             'model'        => 'required|string|max:255',
             'color'        => 'required|string|max:255',
-            'year'         => 'required|integer',
+            'year'         => 'required|integer|digits:4|between:1900,' . (date('Y') + 1),
             'status_id'    => 'required|exists:statuses,id',
             'or_cr'        => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);

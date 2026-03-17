@@ -23,49 +23,54 @@ class DriverManagementController extends Controller
         $statusQuery = ['active', 'inactive', 'suspended', 'retired'];
 
         $drivers = $franchise->drivers()
-            ->with(['user', 'status'])
+            ->with(['user', 'status', 'boundaryContracts' => function($query) {
+                // Get latest contract with its associated vehicle
+                $query->latest()->with('vehicle');
+            }])
             ->whereHas('status', function ($query) use ($statusQuery) {
                 $query->whereIn('name', $statusQuery);
             })
             ->paginate(10)
-            ->through(fn($driver) => [
-                'id' => $driver->id,
-                'name' => $driver->user?->name,
-                'username' => $driver->user?->username,
-                'email' => $driver->user?->email,
-                'phone' => $driver->user?->phone,
-                'region' => $driver->user?->region,
-                'province' => $driver->user?->province,
-                'city' => $driver->user?->city,
-                'barangay' => $driver->user?->barangay,
-                'address' => $driver->user?->address,
-                'status' => $driver->status?->name,
+            ->through(function($driver) {
+                // FIX: Define $vehicle by grabbing the first contract from the collection
+                $latestContract = $driver->boundaryContracts->first();
+                $vehicle = $latestContract?->vehicle;
 
-                'details' => [
-                    'code_number'     => $driver->code_number,
-                    'license_number'  => $driver->license_number,
-                    'license_expiry'  => $driver->license_expiry,
-                    'is_verified'     => $driver->is_verified,
-                    'shift'           => $driver->shift,
-                    'hire_date'       => $driver->hire_date,
+                return [
+                    'id' => $driver->id,
+                    'name' => $driver->user?->name,
+                    'username' => $driver->user?->username,
+                    'email' => $driver->user?->email,
+                    'phone' => $driver->user?->phone,
+                    'region' => $driver->user?->region,
+                    'province' => $driver->user?->province,
+                    'city' => $driver->user?->city,
+                    'barangay' => $driver->user?->barangay,
+                    'address' => $driver->user?->address,
+                    'status' => $driver->status?->name,
 
-                    'front_license_picture' => $driver->front_license_picture
-                        ? asset('storage/driver_documents/' . $driver->front_license_picture)
-                        : null,
+                    // Now $vehicle is defined and can be mapped
+                    'vehicle' => [
+                        'plate_number' => $vehicle?->plate_number ?? 'No Vehicle',
+                        'brand'        => $vehicle?->brand ?? 'N/A',
+                        'model'        => $vehicle?->model ?? 'N/A',
+                        'color'        => $vehicle?->color ?? 'N/A',
+                    ],
 
-                    'back_license_picture' => $driver->back_license_picture
-                        ? asset('storage/driver_documents/' . $driver->back_license_picture)
-                        : null,
-
-                    'nbi_clearance' => $driver->nbi_clearance
-                        ? asset('storage/driver_documents/' . $driver->nbi_clearance)
-                        : null,
-
-                    'selfie_picture' => $driver->selfie_picture
-                        ? asset('storage/driver_documents/' . $driver->selfie_picture)
-                        : null,
-                ],
-            ]);
+                    'details' => [
+                        'code_number'           => $driver->code_number,
+                        'license_number'        => $driver->license_number,
+                        'license_expiry'        => $driver->license_expiry,
+                        'is_verified'           => $driver->is_verified,
+                        'shift'                 => $driver->shift,
+                        'hire_date'             => $driver->hire_date,
+                        'front_license_picture' => $driver->front_license_picture ? asset('storage/driver_documents/' . $driver->front_license_picture) : null,
+                        'back_license_picture'  => $driver->back_license_picture ? asset('storage/driver_documents/' . $driver->back_license_picture) : null,
+                        'nbi_clearance'         => $driver->nbi_clearance ? asset('storage/driver_documents/' . $driver->nbi_clearance) : null,
+                        'selfie_picture'        => $driver->selfie_picture ? asset('storage/driver_documents/' . $driver->selfie_picture) : null,
+                    ],
+                ];
+            });
 
         $statuses = Status::whereIn('name', ['active', 'suspended', 'retired', 'inactive'])
             ->get(['id', 'name']);

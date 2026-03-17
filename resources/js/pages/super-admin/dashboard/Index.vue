@@ -34,7 +34,7 @@ import { useDetailsModal } from '@/composables/useDetailsModal';
 import AppLayout from '@/layouts/AppLayout.vue';
 import superAdmin from '@/routes/super-admin';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router, usePage } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import { type ColumnDef } from '@tanstack/vue-table';
 import {
   AlertCircleIcon,
@@ -45,25 +45,25 @@ import {
   PlusIcon,
   UsersRoundIcon,
 } from 'lucide-vue-next';
-import { computed, h, onMounted, ref } from 'vue';
+import { computed, h, ref } from 'vue';
 import { toast } from 'vue-sonner';
 
-const page = usePage<{
-  flash?: {
-    success?: string;
-    error?: string;
-  };
-}>();
+// const page = usePage<{
+//   flash?: {
+//     success?: string;
+//     error?: string;
+//   };
+// }>();
 
-onMounted(() => {
-  if (page.props.flash?.success) {
-    toast.success(page.props.flash.success);
-  }
+// onMounted(() => {
+//   if (page.props.flash?.success) {
+//     toast.success(page.props.flash.success);
+//   }
 
-  if (page.props.flash?.error) {
-    toast.error(page.props.flash.error);
-  }
-});
+//   if (page.props.flash?.error) {
+//     toast.error(page.props.flash.error);
+//   }
+// });
 
 interface FranchiseRow {
   id: number;
@@ -369,39 +369,42 @@ const handleDeleteFranchise = () => {
 // };
 
 // Upload Contract Modal State
+const form = useForm({
+  contract_attachment: null as File | null,
+});
 const uploadContractModal = ref(false);
 const selectedFranchiseId = ref<number | null>(null);
-const contractFile = ref<File | null>(null);
+const isUpdate = ref(false);
 
-function openUploadContractModal(franchise: { id: number }) {
+function openUploadContractModal(franchise: any) {
   selectedFranchiseId.value = franchise.id;
+  isUpdate.value = !!franchise.contract_attachment;
+  form.clearErrors();
+  form.reset();
   uploadContractModal.value = true;
 }
 
 function handleContractFileChange(event: Event) {
   const target = event.target as HTMLInputElement;
-  contractFile.value = target.files?.[0] || null;
+  if (target.files) {
+    form.contract_attachment = target.files[0];
+  }
 }
 
 const isUploadingContract = ref(false);
 
 function submitContract() {
-  if (!selectedFranchiseId.value || !contractFile.value) return;
+  if (!selectedFranchiseId.value) return;
 
-  isUploadingContract.value = true;
-
-  const formData = new FormData();
-  formData.append('contract_attachment', contractFile.value);
-
-  router.post(
+  form.post(
     superAdmin.franchise.uploadContract(selectedFranchiseId.value).url,
-    formData,
     {
       forceFormData: true,
       onSuccess: () => {
         uploadContractModal.value = false;
-        contractFile.value = null;
-        toast.success('Contract uploaded successfully!');
+        toast.success(
+          isUpdate.value ? 'Contract updated!' : 'Contract uploaded!',
+        );
       },
       onFinish: () => {
         setTimeout(() => {
@@ -531,9 +534,9 @@ const franchiseColumns: ColumnDef<FranchiseRow>[] = [
               },
               () => 'View Owner Details',
             ),
+            h(DropdownMenuSeparator),
             franchise.status_name === 'pending'
               ? [
-                  h(DropdownMenuSeparator),
                   h(
                     DropdownMenuItem,
                     {
@@ -547,7 +550,6 @@ const franchiseColumns: ColumnDef<FranchiseRow>[] = [
 
             franchise.contract_attachment === null
               ? [
-                  // h(DropdownMenuSeparator),
                   h(
                     DropdownMenuItem,
                     {
@@ -557,9 +559,16 @@ const franchiseColumns: ColumnDef<FranchiseRow>[] = [
                     () => 'Upload Contract',
                   ),
                 ]
-              : null,
-
-            h(DropdownMenuSeparator),
+              : [
+                  h(
+                    DropdownMenuItem,
+                    {
+                      class: 'cursor-pointer text-blue-500 focus:text-blue-600',
+                      onClick: () => openUploadContractModal(franchise),
+                    },
+                    () => 'Update Contract',
+                  ),
+                ],
             h(
               DropdownMenuItem,
               {
@@ -925,23 +934,55 @@ const filteredFranchises = computed(() => {
   <Dialog v-model:open="uploadContractModal">
     <DialogContent class="max-w-md">
       <DialogHeader>
-        <DialogTitle>Upload Contract</DialogTitle>
-        <DialogDescription>
-          Upload the signed contract for this franchise
-        </DialogDescription>
+        <DialogTitle>{{ isUpdate ? 'Update' : 'Upload' }} Contract</DialogTitle>
       </DialogHeader>
 
       <div class="mt-4 grid w-full gap-4">
         <div class="grid w-full items-center gap-1.5">
-          <Label for="contract">Contract File</Label>
-          <Input id="contract" type="file" @change="handleContractFileChange" />
+          <Label
+            for="contract"
+            :class="{ 'text-red-500': form.errors.contract_attachment }"
+            class="ms-1"
+          >
+            Contract File
+          </Label>
+
+          <Input
+            id="contract"
+            type="file"
+            accept=".pdf,.doc,.docx"
+            :class="{ 'border-red-500': form.errors.contract_attachment }"
+            @change="handleContractFileChange"
+          />
+
+          <span
+            v-if="form.errors.contract_attachment"
+            class="text-xs font-medium text-red-500"
+          >
+            {{ form.errors.contract_attachment }}
+          </span>
+
+          <span v-else class="ms-2 text-xs text-muted-foreground">
+            Accepted formats: pdf, doc, docx (Max: 5MB)
+          </span>
         </div>
 
         <div class="mt-4 flex justify-end gap-2">
-          <Button variant="outline" @click="isOpen = false">Cancel</Button>
-          <Button @click="submitContract" :disabled="!contractFile"
-            >Upload</Button
+          <Button
+            variant="outline"
+            :disabled="form.processing"
+            @click="uploadContractModal = false"
           >
+            Cancel
+          </Button>
+
+          <Button
+            @click="submitContract"
+            :disabled="!form.contract_attachment || form.processing"
+          >
+            <span v-if="form.processing">Uploading...</span>
+            <span v-else>{{ isUpdate ? 'Update' : 'Upload' }}</span>
+          </Button>
         </div>
       </div>
     </DialogContent>

@@ -62,6 +62,12 @@ interface Driver {
   email: string;
   phone: string;
   status: string;
+  vehicle: {
+    plate_number: string;
+    brand: string;
+    model: string;
+    color: string;
+  };
   region: string;
   province: string;
   city: string;
@@ -142,6 +148,7 @@ const editForm = useForm({
   province: '',
   city: '',
   barangay: '',
+  status: '',
 });
 
 const viewDriver = (driver: Driver) => {
@@ -151,14 +158,12 @@ const viewDriver = (driver: Driver) => {
   // Prep form values
   editForm.email = driver.email || '';
   editForm.phone = driver.phone || '';
+  editForm.status = driver.status || '';
   editForm.code_number = driver.details.code_number || '';
   editForm.license_number = driver.details.license_number || '';
   editForm.license_expiry = driver.details.license_expiry || '';
 
-  // Set address defaults in composable to trigger chained fetching
   selectedRegion.value = driver.region || '';
-  // Note: Provinces/Cities/Barangays will load via the composable's watchers
-  // based on the name matching logic in your useAddress.ts
   setTimeout(() => {
     if (driver.province) selectedProvince.value = driver.province;
   }, 500);
@@ -377,10 +382,7 @@ const removeDriverFromFranchise = () => {
               <TableHead>Username</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Phone</TableHead>
-              <TableHead>Region</TableHead>
-              <TableHead>Province</TableHead>
-              <TableHead>City</TableHead>
-              <TableHead>Barangay</TableHead>
+              <TableHead>Plate Number</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -395,10 +397,21 @@ const removeDriverFromFranchise = () => {
               <TableCell>{{ driver.username }}</TableCell>
               <TableCell>{{ driver.email }}</TableCell>
               <TableCell>{{ driver.phone }}</TableCell>
-              <TableCell>{{ driver.region }}</TableCell>
-              <TableCell>{{ driver.province }}</TableCell>
-              <TableCell>{{ driver.city }}</TableCell>
-              <TableCell>{{ driver.barangay }}</TableCell>
+              <TableCell class="font-bold text-primary">
+                <div
+                  v-if="
+                    driver?.vehicle &&
+                    driver.vehicle.plate_number !== 'No Vehicle'
+                  "
+                >
+                  {{ driver.vehicle.plate_number }}
+                </div>
+                <div v-else>
+                  <p class="text-sm text-muted-foreground italic">
+                    No vehicle currently assigned
+                  </p>
+                </div>
+              </TableCell>
               <TableCell>
                 <Badge :variant="getStatusVariant(driver.status)">{{
                   driver.status
@@ -506,7 +519,7 @@ const removeDriverFromFranchise = () => {
           </div>
         </DialogHeader>
 
-        <div class="custom-scrollbar overflow-y-auto">
+        <div class="custom-scrollbar scrollbar-gutter-stable overflow-y-auto">
           <div class="mt-1 text-sm">
             <div class="grid grid-cols-1 gap-2 pb-3 sm:grid-cols-2">
               <div>
@@ -521,7 +534,7 @@ const removeDriverFromFranchise = () => {
                 <p v-else>{{ selectedDriver?.details.code_number }}</p>
               </div>
               <div>
-                <p class="text-xs font-bold text-gray-500 uppercase">Email:</p>
+                <p class="text-xs font-bold text-gray-500 uppercase">Email</p>
                 <input
                   v-if="isEditing"
                   v-model="editForm.email"
@@ -530,7 +543,7 @@ const removeDriverFromFranchise = () => {
                 <p v-else>{{ selectedDriver?.email }}</p>
               </div>
               <div>
-                <p class="text-xs font-bold text-gray-500 uppercase">Phone:</p>
+                <p class="text-xs font-bold text-gray-500 uppercase">Phone</p>
                 <input
                   v-if="isEditing"
                   v-model="editForm.phone"
@@ -538,9 +551,17 @@ const removeDriverFromFranchise = () => {
                 />
                 <p v-else>{{ selectedDriver?.phone }}</p>
               </div>
+
               <div>
-                <p class="text-xs font-bold text-gray-500 uppercase">Status:</p>
-                <p>{{ selectedDriver?.status }}</p>
+                <p class="text-xs font-bold text-gray-500 uppercase">Status</p>
+                <input
+                  v-if="isEditing"
+                  v-model="editForm.status"
+                  class="w-full rounded border px-2 py-1"
+                  readonly
+                  disabled
+                />
+                <p v-else>{{ selectedDriver?.status }}</p>
               </div>
             </div>
             <div class="col-span-2 space-y-3 border-t pt-4">
@@ -549,10 +570,9 @@ const removeDriverFromFranchise = () => {
               </p>
               <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <div class="space-y-1">
-                  <label class="text-[10px] font-bold text-gray-400 uppercase"
-                    >Region</label
-                  >
-
+                  <p class="text-xs font-bold text-gray-500 uppercase">
+                    Regions
+                  </p>
                   <Select v-if="isEditing" v-model="selectedRegion">
                     <SelectTrigger
                       class="w-full rounded border bg-white px-2 py-1 text-xs"
@@ -579,10 +599,9 @@ const removeDriverFromFranchise = () => {
                 </div>
 
                 <div class="space-y-1">
-                  <label class="text-[10px] font-bold text-gray-400 uppercase"
-                    >Province</label
-                  >
-
+                  <p class="text-xs font-bold text-gray-500 uppercase">
+                    Province
+                  </p>
                   <Select
                     v-if="isEditing"
                     v-model="selectedProvince"
@@ -613,9 +632,9 @@ const removeDriverFromFranchise = () => {
                 </div>
 
                 <div class="space-y-1">
-                  <label class="text-[10px] font-bold text-gray-400 uppercase"
-                    >City / Municipality</label
-                  >
+                  <p class="text-xs font-bold text-gray-500 uppercase">
+                    City / Municipality
+                  </p>
 
                   <Select
                     v-if="isEditing"
@@ -647,10 +666,9 @@ const removeDriverFromFranchise = () => {
                 </div>
 
                 <div class="space-y-1">
-                  <label class="text-[10px] font-bold text-gray-400 uppercase"
-                    >Barangay</label
-                  >
-
+                  <p class="text-xs font-bold text-gray-500 uppercase">
+                    Barangay
+                  </p>
                   <Select
                     v-if="isEditing"
                     v-model="selectedBarangay"
@@ -686,9 +704,9 @@ const removeDriverFromFranchise = () => {
           <div
             class="mt-4 grid grid-cols-1 gap-x-6 gap-y-3 border-t pt-4 text-sm sm:grid-cols-2"
           >
-            <div>
+            <!-- <div>
               <p class="text-xs font-bold text-gray-500 uppercase">
-                License Number:
+                License Number
               </p>
               <input
                 v-if="isEditing"
@@ -696,10 +714,23 @@ const removeDriverFromFranchise = () => {
                 class="w-full rounded border px-2 py-1"
               />
               <p v-else>{{ selectedDriver?.details.license_number }}</p>
+            </div> -->
+            <div>
+              <p class="text-xs font-bold text-gray-500 uppercase">
+                License Number
+              </p>
+              <input
+                v-if="isEditing"
+                v-model="editForm.license_number"
+                class="w-full rounded border px-2 py-1"
+                readonly
+                disabled
+              />
+              <p v-else>{{ selectedDriver?.details.license_number }}</p>
             </div>
             <div>
               <p class="text-xs font-bold text-gray-500 uppercase">
-                License Expiry:
+                License Expiry
               </p>
               <input
                 v-if="isEditing"
@@ -711,7 +742,7 @@ const removeDriverFromFranchise = () => {
             </div>
           </div>
 
-          <div class="flex justify-start gap-2 pt-2">
+          <div class="flex justify-start gap-2 pt-4">
             <template v-if="!isEditing">
               <Button
                 variant="outline"
@@ -743,6 +774,45 @@ const removeDriverFromFranchise = () => {
                 ><X class="mr-1 h-3 w-3" /> Cancel</Button
               >
             </template>
+          </div>
+
+          <div class="mt-4 border-t pt-4">
+            <h3 class="mb-2 text-sm font-semibold">Vehicle Information</h3>
+            <div
+              v-if="
+                selectedDriver?.vehicle &&
+                selectedDriver.vehicle.plate_number !== 'No Vehicle'
+              "
+              class="grid grid-cols-1 gap-x-6 gap-y-3 pt-2 text-sm sm:grid-cols-2"
+            >
+              <div>
+                <p class="text-xs font-bold text-gray-500 uppercase">
+                  Plate Number
+                </p>
+
+                <p>{{ selectedDriver?.vehicle.plate_number }}</p>
+              </div>
+              <div>
+                <p class="text-xs font-bold text-gray-500 uppercase">Brand</p>
+
+                <p>{{ selectedDriver?.vehicle.brand }}</p>
+              </div>
+              <div>
+                <p class="text-xs font-bold text-gray-500 uppercase">Model</p>
+
+                <p>{{ selectedDriver?.vehicle.model }}</p>
+              </div>
+              <div>
+                <p class="text-xs font-bold text-gray-500 uppercase">Color</p>
+
+                <p>{{ selectedDriver?.vehicle.color }}</p>
+              </div>
+            </div>
+            <div v-else class="pt-2">
+              <p class="text-sm text-muted-foreground italic">
+                No vehicle currently assigned
+              </p>
+            </div>
           </div>
 
           <div v-if="selectedDriver?.details" class="mt-4 border-t pt-4">
