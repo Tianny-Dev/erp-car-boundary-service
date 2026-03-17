@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import { usePage, Head, Link } from '@inertiajs/vue3';
 import { usePageTheme } from '@/composables/usePageTheme';
 import { logout } from '@/routes';
 import { AppPageProps } from '@/types';
+import { Head, Link, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
 // Force light mode on this page only
 usePageTheme('light');
@@ -36,12 +36,10 @@ const apkLink = 'https://bb88group.com/erpfranchisingmgmt/APK/DDGNS-ERP.apk';
       </div>
 
       <div
-        class="absolute left-1/2 z-0 h-full w-full -translate-x-1/2 rounded-2xl bg-white shadow-brand-shadow"
+        class="absolute left-1/2 z-0 h-full w-full -translate-x-1/2 rounded-2xl shadow-brand-shadow"
       ></div>
 
-      <div
-        class="animate-fadeIn relative rounded-2xl bg-white p-3 text-center sm:p-8"
-      >
+      <div class="animate-fadeIn relative rounded-2xl p-3 text-center sm:p-8">
         <div class="h-14 sm:h-1"></div>
 
         <h1
