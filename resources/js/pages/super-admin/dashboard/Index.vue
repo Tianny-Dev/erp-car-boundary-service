@@ -802,11 +802,13 @@ const filteredFranchises = computed(() => {
     </Dialog> -->
 
   <Dialog v-model:open="franchiseModal.isOpen.value">
-    <DialogContent class="max-w-2xl overflow-y-auto">
+    <DialogContent
+      class="flex max-h-[80vh] max-w-3xl flex-col overflow-hidden pe-3"
+    >
       <DialogHeader>
         <DialogTitle>Franchise Details</DialogTitle>
       </DialogHeader>
-      <DialogDescription>
+      <DialogDescription class="flex-1 overflow-y-auto">
         <div
           v-if="franchiseModal.isLoading.value"
           class="grid grid-cols-2 gap-4"
@@ -869,11 +871,13 @@ const filteredFranchises = computed(() => {
   </Dialog>
 
   <Dialog v-model:open="ownerModal.isOpen.value">
-    <DialogContent class="max-w-3xl overflow-y-auto">
+    <DialogContent
+      class="flex max-h-[80vh] max-w-3xl flex-col overflow-hidden pe-3"
+    >
       <DialogHeader>
         <DialogTitle>Owner Details</DialogTitle>
       </DialogHeader>
-      <DialogDescription>
+      <DialogDescription class="flex-1 overflow-y-auto">
         <div v-if="ownerModal.isLoading.value" class="grid grid-cols-2 gap-4">
           <template v-for="item in 10" :key="item">
             <Skeleton class="h-5 w-24" />

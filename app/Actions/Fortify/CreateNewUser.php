@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\Rules\Enum;
 use App\Enums\Shifts;
 use App\Enums\Gender;
@@ -26,7 +27,7 @@ use Laravel\Fortify\Contracts\CreatesNewUsers;
 
 class CreateNewUser implements CreatesNewUsers
 {
-    use PasswordValidationRules;
+    // use PasswordValidationRules;
 
     /**
      * Validate and create a newly registered user.
@@ -57,6 +58,20 @@ class CreateNewUser implements CreatesNewUsers
         }
     }
 
+    protected function customPasswordRules(): array
+    {
+        return [
+            'required', 
+            'string', 
+            'min:8', 
+            'confirmed',
+            Password::min(8)
+                ->mixedCase() 
+                ->numbers()
+                ->symbols(),
+        ];
+    }
+
     protected function createDriver(array $input, int $userTypeId): User
     {
         // 1. Validation
@@ -69,11 +84,13 @@ class CreateNewUser implements CreatesNewUsers
                 Rule::unique('franchises', 'email')
             ],
             'phone' => [
-                'required', 'string', 'max:20',
+                'required',
+                'string',
+                'regex:/^(09|\+639|639)\d{9}$/',
                 Rule::unique(User::class),
                 Rule::unique('franchises', 'phone')
             ],
-            'password' => $this->passwordRules(),
+            'password' => $this->customPasswordRules(),
             'gender' => ['required', new Enum(Gender::class)],
             'birth_date' => ['required','date','before_or_equal:' . now()->subYears(10)->toDateString(),'after_or_equal:' . now()->subYears(100)->toDateString(),],
             'address' => ['required', 'string', 'max:255'],
@@ -81,7 +98,7 @@ class CreateNewUser implements CreatesNewUsers
             'province' => ['nullable', 'string', 'max:255', 'required_unless:region,NCR'],
             'city' => ['required', 'string', 'max:255'],
             'barangay' => ['required', 'string', 'max:255'],
-            'postal_code' => ['required', 'string', 'max:20'],
+            'postal_code' => ['required', 'string', 'max:4'],
             'license_number' => ['required', 'string', 'max:20'],
             'license_expiry' => ['required', 'date','after_or_equal:' . now()->toDateString()],
             'shift' => ['required', new Enum(Shifts::class)],
@@ -159,11 +176,13 @@ class CreateNewUser implements CreatesNewUsers
                 Rule::unique('franchises', 'email')
             ],
             'phone' => [
-                'required', 'string', 'max:20',
+                'required',
+                'string',
+                'regex:/^(09|\+639|639)\d{9}$/',
                 Rule::unique(User::class),
                 Rule::unique('franchises', 'phone')
             ],
-            'password' => $this->passwordRules(),
+            'password' => $this->customPasswordRules(),
             'gender' => ['required', new Enum(Gender::class)],
             'birth_date' => ['required','date','before_or_equal:' . now()->subYears(10)->toDateString(),'after_or_equal:' . now()->subYears(100)->toDateString(),],
             'address' => ['required', 'string', 'max:255'],
@@ -171,7 +190,7 @@ class CreateNewUser implements CreatesNewUsers
             'province' => ['nullable', 'string', 'max:255', 'required_unless:region,NCR'],
             'city' => ['required', 'string', 'max:255'],
             'barangay' => ['required', 'string', 'max:255'],
-            'postal_code' => ['required', 'string', 'max:20'],
+            'postal_code' => ['required', 'string', 'max:4'],
             'terms1' => ['required', 'accepted'],
             'terms2' => ['required', 'accepted'],
         ])->validate();
@@ -227,11 +246,13 @@ class CreateNewUser implements CreatesNewUsers
                 Rule::unique('franchises', 'email')
             ],
             'phone' => [
-                'required', 'string', 'max:20',
+                'required',
+                'string',
+                'regex:/^(09|\+639|639)\d{9}$/',
                 Rule::unique(User::class),
                 Rule::unique('franchises', 'phone')
             ],
-            'password' => $this->passwordRules(),
+            'password' => $this->customPasswordRules(),
             'gender' => ['required', new Enum(Gender::class)],
             'birth_date' => ['required','date','before_or_equal:' . now()->subYears(10)->toDateString(),'after_or_equal:' . now()->subYears(100)->toDateString(),],
             'address' => ['required', 'string', 'max:255'],
@@ -239,7 +260,7 @@ class CreateNewUser implements CreatesNewUsers
             'province' => ['nullable', 'string', 'max:255', 'required_unless:region,NCR'],
             'city' => ['required', 'string', 'max:255'],
             'barangay' => ['required', 'string', 'max:255'],
-            'postal_code' => ['required', 'string', 'max:20'],
+            'postal_code' => ['required', 'string', 'max:4'],
             'expertise'=> ['required', new Enum(Expertise::class)],
             'year_experience'=> ['required','integer', 'between:0,100'],
             'valid_id_type'=> ['required', new Enum(IdType::class)],
@@ -321,23 +342,25 @@ class CreateNewUser implements CreatesNewUsers
                 Rule::unique('franchises', 'email')
             ],
             'phone' => [
-                'required', 'string', 'max:20',
+                'required',
+                'string',
+                'regex:/^(09|\+639|639)\d{9}$/',
                 Rule::unique(User::class),
                 Rule::unique('franchises', 'phone')
             ],
-            'password' => $this->passwordRules(),
+            'password' => $this->customPasswordRules(),
             'home_region' => ['required', 'string', 'max:255'],
             'home_province' => ['nullable', 'string', 'max:255', 'required_unless:home_region,NCR'],
             'home_city' => ['required', 'string', 'max:255'],
             'home_barangay' => ['required', 'string', 'max:255'],
-            'home_postal_code' => ['required', 'string', 'max:20'],
+            'home_postal_code' => ['required', 'string', 'max:4'],
             'home_address' => ['required', 'string', 'max:255'],
             'franchise_name' => ['required', 'string', 'max:255'],
             'franchise_region' => ['required', 'string', 'max:255'],
             'franchise_province' => ['nullable', 'string', 'max:255', 'required_unless:franchise_region,NCR'],
             'franchise_city' => ['required', 'string', 'max:255'],
             'franchise_barangay' => ['required', 'string', 'max:255'],
-            'franchise_postal_code' => ['required', 'string', 'max:20'],
+            'franchise_postal_code' => ['required', 'string', 'max:4'],
             'franchise_address' => ['required', 'string', 'max:255'],
             'valid_id_type' => ['required', 'string', Rule::in(['National ID', 'Passport', 'Driver License', 'Voter ID', 'Unified Multi-Purpose ID', 'TIN ID'])],
             'valid_id_number' => ['required', 'string', 'max:20', Rule::unique('user_owners', 'valid_id_number')],
