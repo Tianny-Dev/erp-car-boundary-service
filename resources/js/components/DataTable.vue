@@ -97,12 +97,12 @@ const toResult = computed(() => {
 <template>
   <div class="flex flex-col gap-4">
     <!-- Search Filter -->
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
       <Input
         v-model="globalFilter"
         type="text"
         :placeholder="searchPlaceholder || 'Search all columns...'"
-        class="max-w-sm"
+        class="max-w-xl lg:max-w-sm"
       />
       <div class="flex items-center gap-2">
         <slot name="custom-actions"></slot>
