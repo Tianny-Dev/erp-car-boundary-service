@@ -22,6 +22,7 @@ interface Vehicle {
   plate_number: string;
   brand: string;
   model: string;
+  status: string;
 }
 
 interface Driver {
@@ -159,9 +160,21 @@ const submit = () => {
                   v-for="vehicle in vehicles"
                   :key="vehicle.id"
                   :value="vehicle.id"
+                  :disabled="vehicle.status === 'maintenance'"
                 >
-                  {{ vehicle.plate_number }} - {{ vehicle.brand }}
-                  {{ vehicle.model }}
+                  <div class="flex w-full items-center justify-between">
+                    <span>
+                      {{ vehicle.plate_number }} - {{ vehicle.brand }}
+                      {{ vehicle.model }}
+                    </span>
+
+                    <span
+                      v-if="vehicle.status === 'maintenance'"
+                      class="ml-2 rounded bg-yellow-100 px-2 py-0.5 text-[10px] text-yellow-700 uppercase"
+                    >
+                      Maintenance
+                    </span>
+                  </div>
                 </SelectItem>
               </SelectContent>
             </Select>

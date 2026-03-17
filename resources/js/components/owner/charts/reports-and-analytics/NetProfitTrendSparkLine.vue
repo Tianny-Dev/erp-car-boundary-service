@@ -11,7 +11,7 @@ import {
   Title,
   Tooltip,
 } from 'chart.js';
-import { computed, ref } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import { Line } from 'vue-chartjs';
 
 // Register Chart.js components
@@ -37,11 +37,24 @@ const props = defineProps<{
 }>();
 
 // Default color
-const chartColor = props.colors?.[0] ?? '#3b82f6'; // Tailwind blue-500
+const chartColor = props.colors?.[0] ?? '#3b82f6';
 
-// Format numbers (fallback)
+// Formatter
 const formatY = props.yFormatter ?? ((val: number) => `$ ${val.toFixed(2)}`);
 
+// 🌙 Detect dark mode
+const isDark = ref(false);
+
+onMounted(() => {
+  isDark.value = document.documentElement.classList.contains('dark');
+});
+
+// Theme colors
+const textColor = computed(() => (isDark.value ? '#e5e7eb' : '#374151'));
+const gridColor = computed(() => (isDark.value ? '#374151' : '#e5e7eb'));
+const tooltipBg = computed(() => (isDark.value ? '#1f2937' : '#111827'));
+
+// Data
 const chartData = computed<ChartData<'line'>>(() => ({
   labels: props.data.map((item) => item.year),
   datasets: [
@@ -58,20 +71,21 @@ const chartData = computed<ChartData<'line'>>(() => ({
   ],
 }));
 
-const chartOptions = ref<ChartOptions<'line'>>({
+// Options (dynamic)
+const chartOptions = computed<ChartOptions<'line'>>(() => ({
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
     legend: {
       display: true,
       position: 'top',
-      labels: { color: '#374151' },
+      labels: { color: textColor.value },
     },
     tooltip: {
-      backgroundColor: '#111827',
+      backgroundColor: tooltipBg.value,
       titleColor: '#f9fafb',
       bodyColor: '#f9fafb',
-      borderColor: '#3b82f6',
+      borderColor: chartColor,
       borderWidth: 1,
       callbacks: {
         label: (context) => {
@@ -81,27 +95,21 @@ const chartOptions = ref<ChartOptions<'line'>>({
         },
       },
     },
-    // title: {
-    //   display: true,
-    //   text: 'Growth Rate Over Years',
-    //   color: '#111827',
-    //   font: { size: 16, weight: 'bold' },
-    // },
   },
   scales: {
     x: {
-      ticks: { color: '#6b7280' },
+      ticks: { color: textColor.value },
       grid: { display: false },
     },
     y: {
       ticks: {
-        color: '#6b7280',
+        color: textColor.value,
         callback: (val) => formatY(Number(val)),
       },
-      grid: { color: '#e5e7eb' },
+      grid: { color: gridColor.value },
     },
   },
-});
+}));
 </script>
 
 <template>

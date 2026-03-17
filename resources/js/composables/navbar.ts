@@ -13,7 +13,7 @@ export function useNavbar() {
     'works',
     'franchise',
     'driver',
-    'technician',
+    // 'technician',
     'passenger',
     'testi',
     'faq',

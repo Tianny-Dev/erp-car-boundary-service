@@ -85,7 +85,7 @@ usePageTheme('light');
     <!-- Driver End -->
 
     <!-- Technician Start -->
-    <Technician :userTypes="userTypes" />
+    <!-- <Technician :userTypes="userTypes" /> -->
     <!-- Technician End -->
 
     <!-- Passenger Start -->

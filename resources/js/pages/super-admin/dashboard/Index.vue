@@ -680,9 +680,10 @@ const filteredFranchises = computed(() => {
           search-placeholder="Search franchises..."
         >
           <template #custom-actions>
-            <div class="mb-4 flex items-center gap-4">
+            <div class="flex w-full items-center gap-3 sm:w-auto sm:gap-4">
+              
               <Select v-model="selectedStatus">
-                <SelectTrigger class="w-48">
+                <SelectTrigger class="flex-1 w-full sm:flex-none sm:w-[150px] lg:w-[200px]">
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -692,10 +693,11 @@ const filteredFranchises = computed(() => {
                 </SelectContent>
               </Select>
 
-              <!-- You can keep Add Franchise button here -->
-              <Button class="ms-auto" @click="createFranchise">
-                <PlusIcon /> Add Franchise
+              <Button class="shrink-0" @click="createFranchise">
+                <PlusIcon class="mr-1.5 h-4 w-4" /> 
+                <span>Add Franchise</span>
               </Button>
+              
             </div>
           </template>
         </DataTable>

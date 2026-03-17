@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class UserDriver extends Model
 {
@@ -99,5 +100,10 @@ class UserDriver extends Model
     public function tipsReceived()
     {
         return $this->hasMany(Tip::class, 'driver_id');
+    }
+
+    public function latestBoundaryContract(): HasOne
+    {
+        return $this->hasOne(BoundaryContract::class, 'driver_id')->latestOfMany();
     }
 }

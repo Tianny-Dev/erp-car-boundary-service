@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { usePageTheme } from '@/composables/usePageTheme';
-import { home, logout } from '@/routes';
+import { logout } from '@/routes';
 import { AppPageProps } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
@@ -70,8 +70,8 @@ const apkLink = 'https://bb88group.com/erpfranchisingmgmt/APK/DDGNS-ERP.apk';
 
             <div class="flex gap-3">
               <Link
-                :href="home()"
-                class="block w-full rounded-lg bg-gray-500 px-4 py-2 text-center font-semibold text-white transition hover:bg-gray-600"
+                :href="logout()"
+                class="block w-full rounded-lg bg-green-500 px-4 py-2 text-center font-semibold text-white transition hover:bg-green-600"
               >
                 Home
               </Link>
@@ -94,8 +94,8 @@ const apkLink = 'https://bb88group.com/erpfranchisingmgmt/APK/DDGNS-ERP.apk';
 
           <div class="animate-fadeIn flex gap-3">
             <Link
-              :href="home()"
-              class="block w-full rounded-lg bg-green-500 px-4 py-2 text-center font-semibold text-white transition hover:bg-green-700"
+              :href="logout()"
+              class="block w-full rounded-lg bg-green-500 px-4 py-2 text-center font-semibold text-white transition hover:bg-green-600"
             >
               Home
             </Link>
