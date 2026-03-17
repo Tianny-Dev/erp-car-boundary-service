@@ -49,7 +49,7 @@ class FranchiseController extends Controller
     public function uploadContract(Request $request, Franchise $franchise)
     {
         $request->validate([
-            'contract_attachment' => 'required|file|mimes:pdf,doc,docx,odt,rtf,txt,xls,xlsx|max:10240',
+            'contract_attachment' => 'required|file|mimes:pdf,doc,docx|max:5120',
         ]);
 
         $file = $request->file('contract_attachment');
