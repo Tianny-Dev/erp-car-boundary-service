@@ -349,7 +349,6 @@ const vehicleColumns = computed<ColumnDef<VehicleRow>[]>(() => {
                   () => 'Change Status',
                 ),
               ],
-              h(DropdownMenuSeparator),
               [
                 h(
                   DropdownMenuItem,

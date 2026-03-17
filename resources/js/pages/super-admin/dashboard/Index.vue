@@ -680,9 +680,10 @@ const filteredFranchises = computed(() => {
           search-placeholder="Search franchises..."
         >
           <template #custom-actions>
-            <div class="mb-4 flex items-center gap-4">
+            <div class="flex w-full items-center gap-3 sm:w-auto sm:gap-4">
+              
               <Select v-model="selectedStatus">
-                <SelectTrigger class="w-48">
+                <SelectTrigger class="flex-1 w-full sm:flex-none sm:w-[150px] lg:w-[200px]">
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -692,10 +693,11 @@ const filteredFranchises = computed(() => {
                 </SelectContent>
               </Select>
 
-              <!-- You can keep Add Franchise button here -->
-              <Button class="ms-auto" @click="createFranchise">
-                <PlusIcon /> Add Franchise
+              <Button class="shrink-0" @click="createFranchise">
+                <PlusIcon class="mr-1.5 h-4 w-4" /> 
+                <span>Add Franchise</span>
               </Button>
+              
             </div>
           </template>
         </DataTable>
@@ -802,11 +804,13 @@ const filteredFranchises = computed(() => {
     </Dialog> -->
 
   <Dialog v-model:open="franchiseModal.isOpen.value">
-    <DialogContent class="max-w-2xl overflow-y-auto">
+    <DialogContent
+      class="flex max-h-[80vh] max-w-3xl flex-col overflow-hidden pe-3"
+    >
       <DialogHeader>
         <DialogTitle>Franchise Details</DialogTitle>
       </DialogHeader>
-      <DialogDescription>
+      <DialogDescription class="flex-1 overflow-y-auto">
         <div
           v-if="franchiseModal.isLoading.value"
           class="grid grid-cols-2 gap-4"
@@ -869,11 +873,13 @@ const filteredFranchises = computed(() => {
   </Dialog>
 
   <Dialog v-model:open="ownerModal.isOpen.value">
-    <DialogContent class="max-w-3xl overflow-y-auto">
+    <DialogContent
+      class="flex max-h-[80vh] max-w-3xl flex-col overflow-hidden pe-3"
+    >
       <DialogHeader>
         <DialogTitle>Owner Details</DialogTitle>
       </DialogHeader>
-      <DialogDescription>
+      <DialogDescription class="flex-1 overflow-y-auto">
         <div v-if="ownerModal.isLoading.value" class="grid grid-cols-2 gap-4">
           <template v-for="item in 10" :key="item">
             <Skeleton class="h-5 w-24" />
