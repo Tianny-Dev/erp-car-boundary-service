@@ -7,6 +7,7 @@ use App\Http\Controllers\Owner\DetailsDriverController;
 use App\Http\Controllers\Owner\DetailsPayrollController;
 use App\Http\Controllers\Owner\DriverApplicationController;
 use App\Http\Controllers\Owner\DriverManagementController;
+use App\Http\Controllers\Owner\InventoryController;
 use App\Http\Controllers\Owner\PayrollDriverController;
 use App\Http\Controllers\Owner\ReportDriverController;
 use App\Http\Controllers\Owner\ExpenseManagementController;
@@ -34,7 +35,14 @@ Route::middleware(['auth', 'verified', 'user_type:owner', 'check.active'])->pref
     Route::resource('drivers', DriverManagementController::class);
     Route::resource('drivers-application', DriverApplicationController::class);
     Route::resource('vehicles', VehicleController::class);
+    Route::get('/vehicles/{vehicle}/maintenance-history', [VehicleController::class, 'maintenanceHistory'])
+    ->name('vehicles.maintenance-history');
     Route::resource('vehicle-drivers', VehicleDriverController::class);
+
+    Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
+    Route::post('/inventory', [InventoryController::class, 'store'])->name('inventory.store');
+    Route::put('/inventory/{inventory}', [InventoryController::class, 'update'])->name('inventory.update');
+    Route::delete('/inventory/{inventory}', [InventoryController::class, 'destroy'])->name('inventory.destroy');
 
     Route::put('/drivers/{id}/status', [DriverManagementController::class, 'updateStatus'])
     ->name('drivers.updateStatus');

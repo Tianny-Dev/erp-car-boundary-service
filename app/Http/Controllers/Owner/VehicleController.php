@@ -36,7 +36,6 @@ class VehicleController extends Controller
                     'year' => $vehicle->year,
                     'status_id' => $vehicle->status_id,
                     'status_name' => $vehicle->status?->name,
-                    // Return the full URL for the frontend
                     'or_cr' => $vehicle->or_cr
                         ? asset('storage/vehicle_documents/' . $vehicle->or_cr)
                         : null,
@@ -53,7 +52,7 @@ class VehicleController extends Controller
      */
     public function store(Request $request)
     {
-        $data = $request->validate([
+        $request->validate([
             'plate_number' => 'required|string|max:255|unique:vehicles',
             'vin'          => 'required|string|max:255|unique:vehicles',
             'brand'        => 'required|string|max:255',
@@ -69,16 +68,12 @@ class VehicleController extends Controller
             return redirect()->back()->with('error', 'No franchise found.');
         }
 
-        // 1. Create the record first to get the ID (optional, or use timestamp)
         $vehicle = new Vehicle($request->except('or_cr'));
         $vehicle->franchise_id = $franchise->id;
 
-        // 2. Handle File Upload using your driver logic
         if ($request->hasFile('or_cr')) {
             $file = $request->file('or_cr');
-            // Using time() + plate_number to ensure uniqueness before ID is generated
             $filename = time() . '_or_cr_' . str_replace(' ', '_', $request->plate_number) . '.' . $file->getClientOriginalExtension();
-
             $file->storeAs('vehicle_documents', $filename, 'public');
             $vehicle->or_cr = $filename;
         }
@@ -93,6 +88,12 @@ class VehicleController extends Controller
      */
     public function update(Request $request, Vehicle $vehicle)
     {
+        // Security check: Ensure vehicle belongs to the authenticated user's franchise
+        $franchise = auth()->user()->ownerDetails?->franchises()->first();
+        if ($vehicle->franchise_id !== $franchise->id) {
+            abort(403);
+        }
+
         $request->validate([
             'plate_number' => 'required|string|max:255|unique:vehicles,plate_number,' . $vehicle->id,
             'vin'          => 'required|string|max:255|unique:vehicles,vin,' . $vehicle->id,
@@ -104,28 +105,54 @@ class VehicleController extends Controller
             'or_cr'        => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
 
-        // Handle File Update
         if ($request->hasFile('or_cr')) {
-            // Delete old file
             if ($vehicle->or_cr) {
                 Storage::disk('public')->delete('vehicle_documents/' . $vehicle->or_cr);
             }
 
             $file = $request->file('or_cr');
             $filename = time() . '_or_cr_' . $vehicle->id . '.' . $file->getClientOriginalExtension();
-
             $file->storeAs('vehicle_documents', $filename, 'public');
             $vehicle->or_cr = $filename;
         }
 
-        // Update other fields
         $vehicle->update($request->only([
             'plate_number', 'vin', 'brand', 'model', 'color', 'year', 'status_id'
         ]));
 
-        $vehicle->save();
-
         return redirect()->back()->with('success', 'Vehicle updated!');
+    }
+
+    /**
+     * Get maintenance history for the vehicle.
+     */
+    public function maintenanceHistory(Vehicle $vehicle)
+    {
+        // Security check: Ensure owner owns this vehicle
+        $franchise = auth()->user()->ownerDetails?->franchises()->first();
+        if ($vehicle->franchise_id !== $franchise?->id) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $history = $vehicle->maintenances()
+            ->with('inventory')
+            ->orderByDesc('maintenance_date')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'inventory_name' => $item->inventory?->name ?? 'General Maintenance',
+                    'category' => $item->inventory?->category ?? 'Other',
+                    'maintenance_date' => $item->maintenance_date->format('M d, Y'),
+                    'next_maintenance_date' => $item->next_maintenance_date
+                        ? $item->next_maintenance_date->format('M d, Y')
+                        : 'N/A',
+                    'specification' => $item->inventory?->specification ?? 'N/A',
+                    'description' => $item->description,
+                ];
+            });
+
+        return response()->json($history);
     }
 
     /**
@@ -133,7 +160,11 @@ class VehicleController extends Controller
      */
     public function destroy(Vehicle $vehicle)
     {
-        // Clean up the file from storage before deleting the record
+        $franchise = auth()->user()->ownerDetails?->franchises()->first();
+        if ($vehicle->franchise_id !== $franchise->id) {
+            abort(403);
+        }
+
         if ($vehicle->or_cr) {
             Storage::disk('public')->delete('vehicle_documents/' . $vehicle->or_cr);
         }

@@ -278,6 +278,12 @@ const navConfig: Record<string, NavItem[]> = {
       icon: CarTaxiFront,
       group: 'Management',
     },
+    {
+      title: 'Inventory Management',
+      href: owner.inventory.index(),
+      icon: Box,
+      group: 'Management',
+    },
     // {
     //   title: 'Assign Drivers',
     //   href: owner.vehicleDrivers.index(),

@@ -2,6 +2,7 @@
 import { usePage } from '@inertiajs/vue3';
 const page = usePage();
 const errors = computed(() => page.props.errors as any);
+import axios from 'axios';
 
 import {
   AlertDialog,
@@ -54,6 +55,17 @@ import { computed, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 import Label from '@/components/ui/label/Label.vue';
 
+import { MoreHorizontal } from 'lucide-vue-next';
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+
 interface Vehicle {
   id: number;
   plate_number: string;
@@ -105,6 +117,39 @@ watch(
   },
   { deep: true },
 );
+
+// Maintenance Modal State
+const maintenanceModal = {
+  isOpen: ref(false),
+  isLoading: ref(false),
+  isError: ref(false),
+  data: ref<any[]>([]),
+
+  // Method to open and fetch data
+  open: async (vehicle: Vehicle) => {
+    maintenanceModal.isOpen.value = true;
+    maintenanceModal.isLoading.value = true;
+    maintenanceModal.isError.value = false;
+    maintenanceModal.data.value = [];
+
+    try {
+      // Calls the maintenanceHistory method in your VehicleController
+      const response = await axios.get(
+        `/owner/vehicles/${vehicle.id}/maintenance-history`,
+      );
+      maintenanceModal.data.value = response.data;
+    } catch (error) {
+      console.error('Failed to load maintenance history:', error);
+      maintenanceModal.isError.value = true;
+    } finally {
+      maintenanceModal.isLoading.value = false;
+    }
+  },
+
+  close: () => {
+    maintenanceModal.isOpen.value = false;
+  },
+};
 
 // Breadcrumb
 const breadcrumbs = [{ title: 'Vehicle Management', href: '/owner/vehicles' }];
@@ -406,12 +451,20 @@ watch(or_cr_file, () => {
                   {{ v.status_name }}
                 </Badge>
               </TableCell>
-              <TableCell class="flex gap-2">
+
+              <!-- <TableCell class="flex gap-2">
                 <Button size="sm" variant="outline" @click="openEditDialog(v)">
                   Edit
                 </Button>
 
-                <!-- Delete -->
+                <Button
+                  size="sm"
+                  variant="outline"
+                  @click="maintenanceModal.open(v)"
+                >
+                  View Maintenance History
+                </Button>
+
                 <AlertDialog>
                   <AlertDialogTrigger as-child>
                     <Button
@@ -446,6 +499,69 @@ watch(or_cr_file, () => {
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
+              </TableCell> -->
+
+              <TableCell class="text-center">
+                <DropdownMenu>
+                  <DropdownMenuTrigger as-child>
+                    <Button variant="ghost" class="h-8 w-8 p-0">
+                      <span class="sr-only">Open menu</span>
+                      <MoreHorizontal class="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" class="w-48">
+                    <DropdownMenuLabel class="text-xs text-muted-foreground"
+                      >Actions</DropdownMenuLabel
+                    >
+
+                    <DropdownMenuItem
+                      @click="openEditDialog(v)"
+                      class="cursor-pointer"
+                    >
+                      Edit Vehicle
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem
+                      @click="maintenanceModal.open(v)"
+                      class="cursor-pointer"
+                    >
+                      Maintenance History
+                    </DropdownMenuItem>
+
+                    <DropdownMenuSeparator />
+
+                    <AlertDialog>
+                      <AlertDialogTrigger as-child>
+                        <div
+                          class="relative flex cursor-pointer items-center rounded-sm px-2 py-1.5 text-sm text-red-600 transition-colors outline-none select-none hover:bg-destructive hover:text-destructive-foreground focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                        >
+                          Delete Vehicle
+                        </div>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This will permanently remove
+                            <b>{{ v.plate_number }}</b> from the system.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            @click="
+                              confirmDeleteVehicle(v);
+                              deleteVehicle();
+                            "
+                          >
+                            Confirm Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </TableCell>
             </TableRow>
 
@@ -509,6 +625,91 @@ watch(or_cr_file, () => {
         </Pagination>
       </div>
     </div>
+
+    <Dialog v-model:open="maintenanceModal.isOpen.value">
+      <DialogContent class="flex max-h-[80vh] max-w-4xl flex-col">
+        <DialogHeader>
+          <DialogTitle>Maintenance History</DialogTitle>
+          <DialogDescription>
+            Showing all maintenance records for this vehicle.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div class="flex-1 overflow-y-auto py-4 pe-1.5">
+          <div v-if="maintenanceModal.isLoading.value" class="space-y-4">
+            <div
+              v-for="i in 3"
+              :key="i"
+              class="h-24 w-full animate-pulse rounded-lg bg-muted"
+            />
+          </div>
+
+          <Alert
+            v-else-if="maintenanceModal.isError.value"
+            variant="destructive"
+          >
+            <AlertCircleIcon class="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription
+              >Failed to load maintenance history.</AlertDescription
+            >
+          </Alert>
+
+          <div
+            v-else-if="maintenanceModal.data.value?.length"
+            class="space-y-4"
+          >
+            <div
+              v-for="item in maintenanceModal.data.value"
+              :key="item.id"
+              class="rounded-lg border p-4 transition-colors hover:bg-muted/50"
+            >
+              <div class="mb-2 flex items-start justify-between">
+                <div>
+                  <h4 class="text-lg font-bold text-primary">
+                    {{ item.inventory_name }}
+                  </h4>
+                  <Badge variant="outline" class="mt-1">{{
+                    item.category
+                  }}</Badge>
+                </div>
+                <div class="text-right text-sm">
+                  <p class="font-medium text-foreground">
+                    Date: {{ item.maintenance_date }}
+                  </p>
+                  <p class="text-muted-foreground italic">
+                    Next: {{ item.next_maintenance_date }}
+                  </p>
+                </div>
+              </div>
+
+              <div
+                class="mt-3 grid grid-cols-1 gap-4 border-t pt-3 text-sm md:grid-cols-2"
+              >
+                <div>
+                  <span class="block font-semibold">Specification:</span>
+                  <p class="text-muted-foreground">{{ item.specification }}</p>
+                </div>
+                <div>
+                  <span class="block font-semibold">Work Done:</span>
+                  <p class="text-muted-foreground">{{ item.description }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div v-else class="py-10 text-center text-muted-foreground">
+            No maintenance records found for this vehicle.
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" @click="maintenanceModal.close"
+            >Close</Button
+          >
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
 
     <!-- Create/Edit Dialog -->
     <Dialog v-model:open="showDialog">
