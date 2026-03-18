@@ -35,7 +35,7 @@ import {
   ReceiptText,
   Ticket,
   Users,
-  Wrench,
+  // Wrench,
   FileUser,
 } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
@@ -44,7 +44,7 @@ import NavMain from './NavMain.vue';
 // 🧠 1. Get the logged-in user
 const page = usePage();
 const user = page.props.auth.user;
-const userFranchise = user.owner?.franchises?.[0];
+// const userFranchise = user.owner?.franchises?.[0];
 
 // 🧭 2. Map user_type_id to role name
 const typeMap: Record<number, string> = {
@@ -231,12 +231,12 @@ const navConfig: Record<string, NavItem[]> = {
       icon: HelpCircle,
       group: 'Support',
     },
-    {
-      title: 'Maintenance Requests',
-      href: manager.maintenanceRequests.index(),
-      icon: Wrench,
-      group: 'Support',
-    },
+    // {
+    //   title: 'Maintenance Requests',
+    //   href: manager.maintenanceRequests.index(),
+    //   icon: Wrench,
+    //   group: 'Support',
+    // },
   ],
 
   owner: [
@@ -342,12 +342,12 @@ const navConfig: Record<string, NavItem[]> = {
       icon: HelpCircle,
       group: 'Support',
     },
-    {
-      title: 'Maintenance Requests',
-      href: owner.maintenanceRequests.index(),
-      icon: Wrench,
-      group: 'Support',
-    },
+    // {
+    //   title: 'Maintenance Requests',
+    //   href: owner.maintenanceRequests.index(),
+    //   icon: Wrench,
+    //   group: 'Support',
+    // },
 
     {
       title: 'My Contract',

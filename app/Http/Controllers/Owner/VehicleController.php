@@ -197,6 +197,7 @@ class VehicleController extends Controller
                         ? $item->next_maintenance_date->format('M d, Y')
                         : 'N/A',
                     'specification' => $item->inventory?->specification ?? 'N/A',
+                    'quantity' => $item->quantity,
                     'description' => $item->description,
                 ];
             });
