@@ -277,11 +277,11 @@ watch(
       <div
         class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border"
       >
-        <div class="mb-4 flex items-center justify-between">
-          <h2 class="font-mono text-xl font-semibold">Franchise Revenues</h2>
-          <div class="flex gap-4">
+        <div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <h2 class="font-mono text-xl font-semibold">Franchise Revenues</h2>  
+          <div class="grid w-full grid-cols-2 gap-3 sm:flex sm:w-auto sm:flex-row sm:gap-4">
             <Select v-model="selectedService">
-              <SelectTrigger class="w-[150px]">
+              <SelectTrigger class="w-full sm:w-[150px] sm:shrink-0">
                 <SelectValue placeholder="Filter by..." />
               </SelectTrigger>
               <SelectContent>
@@ -291,7 +291,7 @@ watch(
             </Select>
 
             <Select v-model="selectedPeriod">
-              <SelectTrigger class="w-[150px]">
+              <SelectTrigger class="w-full sm:w-[150px] sm:shrink-0">
                 <SelectValue placeholder="Filter by..." />
               </SelectTrigger>
               <SelectContent>
@@ -302,6 +302,7 @@ watch(
             </Select>
 
             <MultiSelect
+              class="col-span-2 w-full sm:col-span-1 sm:w-auto sm:flex-1 sm:min-w-[200px] sm:max-w-[300px]"
               v-model="selectedContext"
               :options="contextOptions"
               placeholder="Select Franchises"
@@ -313,6 +314,7 @@ watch(
                 }
               "
             />
+            
           </div>
         </div>
 
@@ -322,9 +324,11 @@ watch(
           search-placeholder="Search revenues..."
         >
           <template #custom-actions>
-            <Button @click="openExportModal('pdf')"> Export PDF </Button>
-            <Button @click="openExportModal('excel')"> Export Excel </Button>
-            <Button @click="openExportModal('csv')"> Export CSV </Button>
+            <div class="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-row sm:items-center">    
+              <Button class="w-full sm:w-auto" @click="openExportModal('pdf')"> Export PDF </Button>
+              <Button class="w-full sm:w-auto" @click="openExportModal('excel')"> Export Excel</Button>
+              <Button class="col-span-2 w-full sm:col-span-1 sm:w-auto" @click="openExportModal('csv')"> Export CSV </Button>
+            </div>
           </template>
         </DataTable>
       </div>
