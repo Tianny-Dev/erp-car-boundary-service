@@ -263,50 +263,67 @@ watch(
     <div
       class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
     >
-      <div
-        class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border"
-      >
-        <div class="mb-4 flex items-center justify-between">
-          <h2 class="font-mono text-xl font-semibold">Franchise Expenses</h2>
-          <div class="flex gap-4">
-            <Select v-model="selectedPeriod">
-              <SelectTrigger class="w-[150px]">
-                <SelectValue placeholder="Filter by..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="daily"> Daily </SelectItem>
-                <SelectItem value="weekly"> Weekly </SelectItem>
-                <SelectItem value="monthly"> Monthly </SelectItem>
-              </SelectContent>
-            </Select>
+      <div class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border">
+  
+  <div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between lg:items-center">
+    
+    <h2 class="font-mono text-xl font-semibold">Franchise Expenses</h2>
+    
+    <div class="grid w-full grid-cols-2 gap-3 sm:flex sm:w-auto sm:flex-row sm:gap-4">
+      
+      <Select v-model="selectedPeriod">
+        <SelectTrigger class="w-full sm:w-[150px] sm:shrink-0">
+          <SelectValue placeholder="Filter by..." />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="daily"> Daily </SelectItem>
+          <SelectItem value="weekly"> Weekly </SelectItem>
+          <SelectItem value="monthly"> Monthly </SelectItem>
+        </SelectContent>
+      </Select>
 
-            <MultiSelect
-              v-model="selectedContext"
-              :options="contextOptions"
-              placeholder="Select Franchises"
-              all-label="All Franchises"
-              @change="
-                (val) => {
-                  selectedFranchise = val;
-                  updateFilters();
-                }
-              "
-            />
-          </div>
-        </div>
+      <MultiSelect
+        class="w-full sm:w-auto sm:flex-1 sm:min-w-[150px] sm:max-w-[250px]"
+        v-model="selectedContext"
+        :options="contextOptions"
+        placeholder="Select Franchises"
+        all-label="All Franchises"
+        @change="
+          (val) => {
+            selectedFranchise = val;
+            updateFilters();
+          }
+        "
+      />
+      
+    </div>
+  </div>
 
-        <DataTable
-          :columns="expenseColumns"
-          :data="expenses.data"
-          search-placeholder="Search expenses..."
-        >
-          <template #custom-actions>
-            <Button @click="openExportModal('pdf')"> Export PDF </Button>
-            <Button @click="openExportModal('excel')"> Export Excel </Button>
-            <Button @click="openExportModal('csv')"> Export CSV </Button>
-          </template>
-        </DataTable>
+  <DataTable
+    :columns="expenseColumns"
+    :data="expenses.data"
+    search-placeholder="Search expenses..."
+  >
+    <template #custom-actions>
+      <div class="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-row sm:items-center">
+        
+        <Button class="w-full sm:w-auto" @click="openExportModal('pdf')">
+          Export PDF
+        </Button>
+        
+        <Button class="w-full sm:w-auto" @click="openExportModal('excel')">
+          Export Excel
+        </Button>
+        
+        <Button class="col-span-2 w-full sm:col-span-1 sm:w-auto" @click="openExportModal('csv')">
+          Export CSV
+        </Button>
+        
       </div>
+    </template>
+  </DataTable>
+  
+</div>
       <Dialog v-model:open="showExportModal">
         <DialogContent class="sm:max-w-[425px]">
           <DialogHeader>
