@@ -278,45 +278,45 @@ watch(
         class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border"
       >
         <div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-  <h2 class="font-mono text-xl font-semibold">Franchise Revenues</h2>  
-  <div class="grid w-full grid-cols-2 gap-3 sm:flex sm:w-auto sm:flex-row sm:gap-4">
-    <Select v-model="selectedService">
-      <SelectTrigger class="w-full sm:w-[150px] sm:shrink-0">
-        <SelectValue placeholder="Filter by..." />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="Trips"> Trips </SelectItem>
-        <SelectItem value="Boundary"> Boundary </SelectItem>
-      </SelectContent>
-    </Select>
+          <h2 class="font-mono text-xl font-semibold">Franchise Revenues</h2>  
+          <div class="grid w-full grid-cols-2 gap-3 sm:flex sm:w-auto sm:flex-row sm:gap-4">
+            <Select v-model="selectedService">
+              <SelectTrigger class="w-full sm:w-[150px] sm:shrink-0">
+                <SelectValue placeholder="Filter by..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Trips"> Trips </SelectItem>
+                <SelectItem value="Boundary"> Boundary </SelectItem>
+              </SelectContent>
+            </Select>
 
-    <Select v-model="selectedPeriod">
-      <SelectTrigger class="w-full sm:w-[150px] sm:shrink-0">
-        <SelectValue placeholder="Filter by..." />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="daily"> Daily </SelectItem>
-        <SelectItem value="weekly"> Weekly </SelectItem>
-        <SelectItem value="monthly"> Monthly </SelectItem>
-      </SelectContent>
-    </Select>
+            <Select v-model="selectedPeriod">
+              <SelectTrigger class="w-full sm:w-[150px] sm:shrink-0">
+                <SelectValue placeholder="Filter by..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="daily"> Daily </SelectItem>
+                <SelectItem value="weekly"> Weekly </SelectItem>
+                <SelectItem value="monthly"> Monthly </SelectItem>
+              </SelectContent>
+            </Select>
 
-    <MultiSelect
-      class="col-span-2 w-full sm:col-span-1 sm:w-auto sm:flex-1 sm:min-w-[200px] sm:max-w-[300px]"
-      v-model="selectedContext"
-      :options="contextOptions"
-      placeholder="Select Franchises"
-      all-label="All Franchises"
-      @change="
-        (val) => {
-          selectedFranchise = val;
-          updateFilters();
-        }
-      "
-    />
-    
-  </div>
-</div>
+            <MultiSelect
+              class="col-span-2 w-full sm:col-span-1 sm:w-auto sm:flex-1 sm:min-w-[200px] sm:max-w-[300px]"
+              v-model="selectedContext"
+              :options="contextOptions"
+              placeholder="Select Franchises"
+              all-label="All Franchises"
+              @change="
+                (val) => {
+                  selectedFranchise = val;
+                  updateFilters();
+                }
+              "
+            />
+            
+          </div>
+        </div>
 
         <DataTable
           :columns="revenueColumns"
@@ -324,12 +324,12 @@ watch(
           search-placeholder="Search revenues..."
         >
           <template #custom-actions>
-  <div class="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-row sm:items-center">    
-    <Button class="w-full sm:w-auto" @click="openExportModal('pdf')"> Export PDF </Button>
-    <Button class="w-full sm:w-auto" @click="openExportModal('excel')"> Export Excel</Button>
-    <Button class="col-span-2 w-full sm:col-span-1 sm:w-auto" @click="openExportModal('csv')"> Export CSV </Button>
-  </div>
-</template>
+            <div class="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-row sm:items-center">    
+              <Button class="w-full sm:w-auto" @click="openExportModal('pdf')"> Export PDF </Button>
+              <Button class="w-full sm:w-auto" @click="openExportModal('excel')"> Export Excel</Button>
+              <Button class="col-span-2 w-full sm:col-span-1 sm:w-auto" @click="openExportModal('csv')"> Export CSV </Button>
+            </div>
+          </template>
         </DataTable>
       </div>
 
