@@ -152,16 +152,16 @@ const paginationLinks = computed(() => {
   );
 });
 
-const getStatusVariant = (status: string | null) => {
-  switch (status?.toLowerCase()) {
+const getBadgeClass = (status: string) => {
+  switch (status) {
     case 'paid':
-      return 'default';
+      return 'bg-green-500 hover:bg-green-600';
     case 'overdue':
-      return 'destructive';
+      return 'bg-rose-500 hover:bg-rose-600';
     case 'pending':
-      return 'outline';
+      return 'bg-amber-500 hover:bg-amber-600';
     default:
-      return 'secondary';
+      return 'bg-gray-500 hover:bg-gray-600';
   }
 };
 
@@ -342,8 +342,8 @@ watch(
                 <TableCell>{{ revenue.payment_date || '—' }}</TableCell>
                 <TableCell>
                   <Badge
-                    :variant="getStatusVariant(revenue.status)"
-                    class="px-2 py-1 capitalize"
+                    :class="getBadgeClass(revenue.status)"
+                    class="text-white"
                     >{{ revenue.status }}</Badge
                   >
                 </TableCell>

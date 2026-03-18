@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { usePage } from '@inertiajs/vue3';
+import axios from 'axios';
 const page = usePage();
 const errors = computed(() => page.props.errors as any);
-import axios from 'axios';
 
 import {
   AlertDialog,
@@ -25,6 +25,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import Label from '@/components/ui/label/Label.vue';
 import {
   Pagination,
   PaginationContent,
@@ -53,8 +54,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
-import Label from '@/components/ui/label/Label.vue';
-import { Textarea } from '@/components/ui/textarea'; // Ensure this is imported
+import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { MoreHorizontal, AlertCircleIcon } from 'lucide-vue-next';
 
@@ -262,6 +262,21 @@ const openEditDialog = (vehicle: Vehicle) => {
   showDialog.value = true;
 };
 
+// Status badge style
+const getBadgeClass = (status: string) => {
+  switch (status) {
+    case 'active':
+      return 'bg-blue-500 hover:bg-blue-600';
+    case 'available':
+      return 'bg-green-500 hover:bg-green-600';
+    case 'maintenance':
+      return 'bg-rose-500 hover:bg-rose-600';
+    default:
+      return 'bg-gray-500 hover:bg-gray-600';
+  }
+};
+
+// Save vehicle (create or update)
 const saveVehicle = () => {
   const formData = new FormData();
   formData.append('plate_number', plate_number.value || '');
@@ -412,8 +427,8 @@ const getStatusVariant = (status: string) => {
               <TableCell>{{ v.model }}</TableCell>
               <TableCell>{{ v.color }}</TableCell>
               <TableCell>{{ v.year }}</TableCell>
-              <TableCell class="capitalize">
-                <Badge :variant="getStatusVariant(v.status_name)">
+              <TableCell>
+                <Badge :class="getBadgeClass(v.status_name)" class="text-white">
                   {{ v.status_name }}
                 </Badge>
               </TableCell>
