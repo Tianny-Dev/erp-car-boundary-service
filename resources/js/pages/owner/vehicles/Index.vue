@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { usePage } from '@inertiajs/vue3';
+import axios from 'axios';
 const page = usePage();
 const errors = computed(() => page.props.errors as any);
-import axios from 'axios';
 
 import {
   AlertDialog,
@@ -25,6 +25,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import Label from '@/components/ui/label/Label.vue';
 import {
   Pagination,
   PaginationContent,
@@ -53,7 +54,6 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
-import Label from '@/components/ui/label/Label.vue';
 
 import { MoreHorizontal } from 'lucide-vue-next';
 
@@ -238,18 +238,16 @@ const openEditDialog = (vehicle: Vehicle) => {
 };
 
 // Status badge style
-const getStatusVariant = (status: string) => {
+const getBadgeClass = (status: string) => {
   switch (status) {
     case 'active':
-      return 'default';
-    case 'pending':
-      return 'secondary';
-    case 'retired':
-      return 'destructive';
-    case 'suspended':
-      return 'outline';
+      return 'bg-blue-500 hover:bg-blue-600';
+    case 'available':
+      return 'bg-green-500 hover:bg-green-600';
+    case 'maintenance':
+      return 'bg-rose-500 hover:bg-rose-600';
     default:
-      return 'secondary';
+      return 'bg-gray-500 hover:bg-gray-600';
   }
 };
 
@@ -446,8 +444,8 @@ watch(or_cr_file, () => {
               <TableCell>{{ v.model }}</TableCell>
               <TableCell>{{ v.color }}</TableCell>
               <TableCell>{{ v.year }}</TableCell>
-              <TableCell class="capitalize">
-                <Badge :variant="getStatusVariant(v.status_name)">
+              <TableCell>
+                <Badge :class="getBadgeClass(v.status_name)" class="text-white">
                   {{ v.status_name }}
                 </Badge>
               </TableCell>

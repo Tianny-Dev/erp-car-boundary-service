@@ -160,16 +160,16 @@ const goToPage = (url: string | null) => {
 // -------------------------
 // Helpers
 // -------------------------
-const getStatusVariant = (status: string) => {
+const getBadgeClass = (status: string) => {
   switch (status) {
     case 'active':
-      return 'default';
+      return 'bg-blue-500 hover:bg-blue-600';
     case 'pending':
-      return 'secondary';
-    case 'retired':
-      return 'destructive';
+      return 'bg-amber-500 hover:bg-amber-600';
+    case 'inactive':
+      return 'bg-rose-500 hover:bg-rose-600';
     default:
-      return 'secondary';
+      return 'bg-gray-500 hover:bg-gray-600';
   }
 };
 
@@ -270,7 +270,7 @@ const toggleStatus = (id: number, action: 'approve' | 'deny') => {
               <TableCell>{{ driver.city }}</TableCell>
               <TableCell>{{ driver.barangay }}</TableCell>
               <TableCell>
-                <Badge :variant="getStatusVariant(driver.status)">
+                <Badge :class="getBadgeClass(driver.status)" class="text-white">
                   {{ driver.status }}
                 </Badge>
               </TableCell>

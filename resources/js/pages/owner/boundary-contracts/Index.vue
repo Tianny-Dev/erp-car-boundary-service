@@ -141,18 +141,16 @@ const openDialog = (contract: Contract) => {
 // -------------------------
 // Helpers
 // -------------------------
-const getStatusVariant = (status: string | undefined) => {
+const getBadgeClass = (status: string) => {
   switch (status) {
     case 'active':
-      return 'default';
+      return 'bg-blue-500 hover:bg-blue-600';
+    case 'inactive':
+      return 'bg-rose-500 hover:bg-rose-600';
     case 'pending':
-      return 'secondary';
-    case 'expired':
-      return 'outline';
-    case 'terminated':
-      return 'destructive';
+      return 'bg-amber-500 hover:bg-amber-600';
     default:
-      return 'secondary';
+      return 'bg-gray-500 hover:bg-gray-600';
   }
 };
 
@@ -297,7 +295,10 @@ const createContract = () => {
                 {{ new Date(contract.end_date).toLocaleDateString() }}
               </TableCell>
               <TableCell>
-                <Badge :variant="getStatusVariant(contract.status)">
+                <Badge
+                  :class="getBadgeClass(contract.status)"
+                  class="text-white"
+                >
                   {{ contract.status }}
                 </Badge>
               </TableCell>

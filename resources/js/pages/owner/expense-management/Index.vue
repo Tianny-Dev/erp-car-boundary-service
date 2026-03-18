@@ -170,16 +170,16 @@ const paginationLinks = computed(() => {
 // -------------------------
 // Helpers
 // -------------------------
-const getStatusVariant = (status: string | null) => {
-  switch (status?.toLowerCase()) {
+const getBadgeClass = (status: string) => {
+  switch (status) {
     case 'paid':
-      return 'default';
+      return 'bg-green-500 hover:bg-green-600';
     case 'overdue':
-      return 'destructive';
+      return 'bg-rose-500 hover:bg-rose-600';
     case 'pending':
-      return 'outline';
+      return 'bg-amber-500 hover:bg-amber-600';
     default:
-      return 'secondary';
+      return 'bg-gray-500 hover:bg-gray-600';
   }
 };
 
@@ -323,7 +323,6 @@ watch(
                 <TableHead>Payment Date</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Franchise</TableHead>
-                <TableHead>Branch</TableHead>
                 <TableHead>Payment Option</TableHead>
                 <TableHead>Action</TableHead>
               </TableRow>
@@ -371,14 +370,13 @@ watch(
                 <TableCell>{{ expense.payment_date || '—' }}</TableCell>
                 <TableCell>
                   <Badge
-                    :variant="getStatusVariant(expense.status)"
-                    class="px-2 py-1"
+                    :class="getBadgeClass(expense.status)"
+                    class="text-white"
                   >
                     {{ expense.status }}
                   </Badge>
                 </TableCell>
                 <TableCell>{{ expense.franchise || '—' }}</TableCell>
-                <TableCell>{{ expense.branch || '—' }}</TableCell>
                 <TableCell>{{ expense.payment_option || '—' }}</TableCell>
                 <TableCell>
                   <Button
