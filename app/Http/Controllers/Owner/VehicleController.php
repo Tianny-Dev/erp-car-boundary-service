@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
+use App\Models\Inventory;
+use App\Models\Maintenance;
 use App\Models\Vehicle;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -15,6 +17,7 @@ class VehicleController extends Controller
      */
     public function index()
     {
+        $user = auth()->user();
         $franchise = auth()->user()->ownerDetails?->franchises()->first();
 
         if (!$franchise) {
@@ -44,7 +47,53 @@ class VehicleController extends Controller
 
         return Inertia::render('owner/vehicles/Index', [
             'vehicles' => $vehicles,
+            'inventories' => Inventory::where('franchise_id', $franchise->id)->get(),
         ]);
+    }
+
+    public function storeMaintenance(Request $request)
+    {
+        $request->validate([
+            'vehicle_id' => 'required|exists:vehicles,id',
+            'inventory_id' => 'required|exists:inventories,id',
+            'quantity' => 'required|integer|min:1',
+            'maintenance_date' => 'required|date',
+            'next_maintenance_date' => 'nullable|date|after_or_equal:maintenance_date',
+            'description' => 'nullable|string',
+        ]);
+
+        $franchise = auth()->user()->ownerDetails?->franchises()->first();
+
+        // 1. Find the vehicle and the inventory item
+        $vehicle = Vehicle::findOrFail($request->vehicle_id);
+        $inventory = Inventory::where('id', $request->inventory_id)
+                            ->where('franchise_id', $franchise->id)
+                            ->firstOrFail();
+
+        // Check stock
+        if ($inventory->quantity < $request->quantity) {
+            return redirect()->back()->with('error', 'Insufficient stock in inventory.');
+        }
+
+        // 2. Create the maintenance record
+        Maintenance::create([
+            'vehicle_id'            => $request->vehicle_id,
+            'inventory_id'          => $request->inventory_id,
+            'quantity'              => $request->quantity,
+            'maintenance_date'      => $request->maintenance_date,
+            'next_maintenance_date' => $request->next_maintenance_date,
+            'description'           => $request->description,
+        ]);
+
+        // 3. Update the vehicle status to 5 (Maintenance)
+        $vehicle->update([
+            'status_id' => 5
+        ]);
+
+        // 4. Subtract stock
+        $inventory->subtractStock($request->quantity);
+
+        return redirect()->back()->with('success', 'Maintenance record saved and vehicle status updated!');
     }
 
     /**

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { usePage } from '@inertiajs/vue3';
+import axios from 'axios';
 const page = usePage();
 const errors = computed(() => page.props.errors as any);
-import axios from 'axios';
 
 import {
   AlertDialog,
@@ -25,6 +25,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import Label from '@/components/ui/label/Label.vue';
 import {
   Pagination,
   PaginationContent,
@@ -53,9 +54,9 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
-import Label from '@/components/ui/label/Label.vue';
-
-import { MoreHorizontal } from 'lucide-vue-next';
+import { Textarea } from '@/components/ui/textarea';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { MoreHorizontal, AlertCircleIcon } from 'lucide-vue-next';
 
 import {
   DropdownMenu,
@@ -100,32 +101,55 @@ interface Status {
   name: string;
 }
 
-interface Props {
+const props = defineProps<{
   vehicles: VehiclesPaginator;
-}
+  inventories: any[];
+}>();
 
-const { vehicles } = defineProps<Props>();
-const paginator = ref(vehicles);
+const paginator = ref(props.vehicles);
+
+// Maintenance Form State
+const showMaintenanceDialog = ref(false);
+const isSubmittingMaintenance = ref(false);
+
+const maintenanceForm = ref({
+  vehicle_id: null as number | null,
+  inventory_id: null as number | null,
+  quantity: 1,
+  description: '',
+  maintenance_date: new Date().toISOString().substr(0, 10),
+  next_maintenance_date: '',
+});
+
+const resetMaintenanceForm = () => {
+  maintenanceForm.value = {
+    vehicle_id: null,
+    inventory_id: null,
+    quantity: 1,
+    description: '',
+    maintenance_date: new Date().toISOString().substr(0, 10),
+    next_maintenance_date: '',
+  };
+};
 
 // -------------------------
-// Watcher: update paginator when props change
+// Watchers
 // -------------------------
 watch(
-  () => vehicles,
+  () => props.vehicles,
   (newVehicles) => {
     paginator.value = newVehicles;
   },
   { deep: true },
 );
 
-// Maintenance Modal State
+// Maintenance Modal State (History)
 const maintenanceModal = {
   isOpen: ref(false),
   isLoading: ref(false),
   isError: ref(false),
   data: ref<any[]>([]),
 
-  // Method to open and fetch data
   open: async (vehicle: Vehicle) => {
     maintenanceModal.isOpen.value = true;
     maintenanceModal.isLoading.value = true;
@@ -133,7 +157,6 @@ const maintenanceModal = {
     maintenanceModal.data.value = [];
 
     try {
-      // Calls the maintenanceHistory method in your VehicleController
       const response = await axios.get(
         `/owner/vehicles/${vehicle.id}/maintenance-history`,
       );
@@ -151,29 +174,39 @@ const maintenanceModal = {
   },
 };
 
-// Breadcrumb
-const breadcrumbs = [{ title: 'Vehicle Management', href: '/owner/vehicles' }];
+const selectedInventory = computed(() =>
+  props.inventories?.find((i) => i.id === maintenanceForm.value.inventory_id),
+);
 
-// Filters
+const submitMaintenance = () => {
+  router.post('/owner/vehicles/maintenance', maintenanceForm.value, {
+    onStart: () => (isSubmittingMaintenance.value = true),
+    onFinish: () => (isSubmittingMaintenance.value = false),
+    onSuccess: () => {
+      toast.success('Maintenance record added and stock updated!');
+      showMaintenanceDialog.value = false;
+      resetMaintenanceForm();
+    },
+    onError: (errors) => toast.error(Object.values(errors)[0] as string),
+  });
+};
+
+// Existing logic for Vehicles (Breadcrumb, Filters, CRUD) ...
+const breadcrumbs = [{ title: 'Vehicle Management', href: '/owner/vehicles' }];
 const globalFilter = ref('');
 const statusFilter = ref('all');
-
-// State
 const isSaving = ref(false);
 const deletingId = ref<number | null>(null);
 const selectedVehicleToDelete = ref<Vehicle | null>(null);
 const or_cr_file = ref<File | null>(null);
 
-// Filtered Vehicles
 const filteredVehicles = computed(() => {
   let filtered = paginator.value.data;
-
   if (statusFilter.value !== 'all') {
     filtered = filtered.filter(
       (v) => v.status_name.toLowerCase() === statusFilter.value,
     );
   }
-
   if (globalFilter.value) {
     const term = globalFilter.value.toLowerCase();
     filtered = filtered.filter((v) =>
@@ -182,25 +215,18 @@ const filteredVehicles = computed(() => {
       ),
     );
   }
-
   return filtered;
 });
 
-// Status options
 const statuses = ref<Status[]>([
   { id: 15, name: 'Available' },
-  // { id: 3, name: 'suspended' },
-  // { id: 4, name: 'retired' },
   { id: 5, name: 'Maintenance' },
-  // { id: 6, name: 'Pending' },
 ]);
 
-// Dialogs
 const showDialog = ref(false);
 const dialogMode = ref<'create' | 'edit'>('create');
 const editingVehicle = ref<Vehicle | null>(null);
 
-// Form refs
 const plate_number = ref('');
 const vin = ref('');
 const brand = ref('');
@@ -208,6 +234,7 @@ const model = ref('');
 const color = ref('');
 const year = ref<number>();
 const statusId = ref<number | null>(null);
+const existing_or_cr = ref<string | null>(null);
 
 const openCreateDialog = () => {
   dialogMode.value = 'create';
@@ -219,8 +246,6 @@ const openCreateDialog = () => {
   existing_or_cr.value = null;
   showDialog.value = true;
 };
-
-const existing_or_cr = ref<string | null>(null);
 
 const openEditDialog = (vehicle: Vehicle) => {
   dialogMode.value = 'edit';
@@ -238,26 +263,22 @@ const openEditDialog = (vehicle: Vehicle) => {
 };
 
 // Status badge style
-const getStatusVariant = (status: string) => {
+const getBadgeClass = (status: string) => {
   switch (status) {
     case 'active':
-      return 'default';
-    case 'pending':
-      return 'secondary';
-    case 'retired':
-      return 'destructive';
-    case 'suspended':
-      return 'outline';
+      return 'bg-blue-500 hover:bg-blue-600';
+    case 'available':
+      return 'bg-green-500 hover:bg-green-600';
+    case 'maintenance':
+      return 'bg-rose-500 hover:bg-rose-600';
     default:
-      return 'secondary';
+      return 'bg-gray-500 hover:bg-gray-600';
   }
 };
 
 // Save vehicle (create or update)
 const saveVehicle = () => {
   const formData = new FormData();
-
-  // Use logical OR to ensure we don't append "undefined" as a string
   formData.append('plate_number', plate_number.value || '');
   formData.append('vin', vin.value || '');
   formData.append('brand', brand.value || '');
@@ -266,14 +287,8 @@ const saveVehicle = () => {
   formData.append('year', year.value ? String(year.value) : '');
   formData.append('status_id', statusId.value ? String(statusId.value) : '');
 
-  // Only append the file if a new one was selected
-  if (or_cr_file.value) {
-    formData.append('or_cr', or_cr_file.value);
-  }
-
-  if (dialogMode.value === 'edit') {
-    formData.append('_method', 'PUT');
-  }
+  if (or_cr_file.value) formData.append('or_cr', or_cr_file.value);
+  if (dialogMode.value === 'edit') formData.append('_method', 'PUT');
 
   router.post(
     dialogMode.value === 'create'
@@ -281,7 +296,7 @@ const saveVehicle = () => {
       : `/owner/vehicles/${editingVehicle.value?.id}`,
     formData,
     {
-      forceFormData: true, // This is important
+      forceFormData: true,
       onStart: () => (isSaving.value = true),
       onFinish: () => (isSaving.value = false),
       onSuccess: () => {
@@ -295,7 +310,6 @@ const saveVehicle = () => {
         existing_or_cr.value = null;
       },
       onError: (errors) => {
-        // Log errors to console to see exactly why Laravel is rejecting it
         console.error(errors);
         toast.error('Check the form for errors');
       },
@@ -308,23 +322,16 @@ const handleFileUpload = (event: Event) => {
   if (target.files && target.files.length > 0) {
     or_cr_file.value = target.files[0];
     existing_or_cr.value = null;
-
-    if (page.props.errors.or_cr) {
-      delete page.props.errors.or_cr;
-    }
   }
 };
 
-// Confirm delete (open AlertDialog)
 const confirmDeleteVehicle = (vehicle: Vehicle) => {
   selectedVehicleToDelete.value = vehicle;
 };
 
-// Perform delete
 const deleteVehicle = () => {
   if (!selectedVehicleToDelete.value) return;
   const id = selectedVehicleToDelete.value.id;
-
   router.delete(`/owner/vehicles/${id}`, {
     onStart: () => (deletingId.value = id),
     onFinish: () => {
@@ -332,53 +339,24 @@ const deleteVehicle = () => {
       selectedVehicleToDelete.value = null;
     },
     onSuccess: () => toast.success('Vehicle Deleted!'),
-    onError: () => toast.error('Failed to delete vehicle'),
   });
-};
-
-// -------------------------
-// Pagination Helpers
-// -------------------------
-const paginationLinks = computed(() =>
-  paginator.value.links.filter(
-    (link) => link.label !== 'Previous' && link.label !== 'Next',
-  ),
-);
-
-const goToPage = (url: string | null) => {
-  if (!url) return;
-  router.get(url, {}, { preserveState: true, preserveScroll: true });
 };
 
 const handleYearInput = (e: Event) => {
   const target = e.target as HTMLInputElement;
-  // Limit to 4 characters
   if (target.value.length > 4) {
     target.value = target.value.slice(0, 4);
     year.value = Number(target.value);
   }
 };
 
-// Add this to your script section
-watch(
-  [plate_number, vin, brand, model, color, year, statusId],
-  () => {
-    // Check which field changed and clear its error
-    if (plate_number.value) delete page.props.errors.plate_number;
-    if (vin.value) delete page.props.errors.vin;
-    if (brand.value) delete page.props.errors.brand;
-    if (model.value) delete page.props.errors.model;
-    if (color.value) delete page.props.errors.color;
-    if (year.value) delete page.props.errors.year;
-    if (statusId.value) delete page.props.errors.status_id;
-  },
-  { deep: true },
-);
-
-// Also clear error when a file is uploaded
-watch(or_cr_file, () => {
-  if (or_cr_file.value) delete page.props.errors.or_cr;
-});
+const getStatusVariant = (status: string) => {
+  if (!status) return 'secondary';
+  const s = status.toLowerCase();
+  if (s === 'available') return 'default';
+  if (s === 'maintenance') return 'secondary';
+  return 'outline';
+};
 </script>
 
 <template>
@@ -391,7 +369,10 @@ watch(or_cr_file, () => {
           <h1 class="mb-1 text-3xl font-bold">Vehicle Management</h1>
           <p class="text-gray-600">Manage all vehicles</p>
         </div>
-        <div>
+        <div class="flex gap-5">
+          <Button @click="showMaintenanceDialog = true"
+            >+ Add Maintenance</Button
+          >
           <Button @click="openCreateDialog">+ Add Vehicle</Button>
         </div>
       </div>
@@ -446,8 +427,8 @@ watch(or_cr_file, () => {
               <TableCell>{{ v.model }}</TableCell>
               <TableCell>{{ v.color }}</TableCell>
               <TableCell>{{ v.year }}</TableCell>
-              <TableCell class="capitalize">
-                <Badge :variant="getStatusVariant(v.status_name)">
+              <TableCell>
+                <Badge :class="getBadgeClass(v.status_name)" class="text-white">
                   {{ v.status_name }}
                 </Badge>
               </TableCell>
@@ -626,7 +607,7 @@ watch(or_cr_file, () => {
       </div>
     </div>
 
-    <Dialog v-model:open="maintenanceModal.isOpen.value">
+    <Dialog v-model:open="maintenanceModal.isOpen">
       <DialogContent class="flex max-h-[80vh] max-w-4xl flex-col">
         <DialogHeader>
           <DialogTitle>Maintenance History</DialogTitle>
@@ -869,6 +850,131 @@ watch(or_cr_file, () => {
           <Button @click="saveVehicle" :disabled="isSaving">
             <Spinner v-if="isSaving" class="mr-2 h-4 w-4" />
             {{ dialogMode === 'create' ? 'Create' : 'Update' }}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    <Dialog v-model:open="showMaintenanceDialog">
+      <DialogContent class="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Add Maintenance Record</DialogTitle>
+        </DialogHeader>
+
+        <div class="grid gap-4 py-4">
+          <div class="grid gap-2">
+            <Label>Select Vehicle</Label>
+            <Select v-model="maintenanceForm.vehicle_id">
+              <SelectTrigger
+                ><SelectValue placeholder="Choose Vehicle"
+              /></SelectTrigger>
+              <SelectContent>
+                <SelectItem
+                  v-for="v in vehicles.data"
+                  :key="v.id"
+                  :value="v.id"
+                >
+                  {{ v.plate_number }} - {{ v.model }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div class="grid gap-2">
+            <Label>Part / Inventory Item</Label>
+            <Select v-model="maintenanceForm.inventory_id">
+              <SelectTrigger>
+                <SelectValue
+                  :placeholder="
+                    inventories.length
+                      ? 'Select Item'
+                      : 'No inventory records found'
+                  "
+                />
+              </SelectTrigger>
+              <SelectContent>
+                <div
+                  v-if="inventories.length === 0"
+                  class="p-2 text-center text-sm text-muted-foreground"
+                >
+                  No inventory available
+                </div>
+
+                <SelectItem
+                  v-for="item in inventories"
+                  :key="item.id"
+                  :value="item.id.toString()"
+                >
+                  {{ item.name }} (Stock: {{ item.quantity }})
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div
+            v-if="selectedInventory"
+            class="grid grid-cols-2 gap-4 rounded-md bg-muted p-3 text-sm"
+          >
+            <div>
+              <span class="text-muted-foreground">Unit Price:</span>
+              <p class="font-bold">₱{{ selectedInventory.unit_price }}</p>
+            </div>
+            <div>
+              <span class="text-muted-foreground">Available Stock:</span>
+              <p
+                :class="
+                  selectedInventory.quantity < maintenanceForm.quantity
+                    ? 'text-red-500'
+                    : 'text-green-600'
+                "
+              >
+                {{ selectedInventory.quantity }} units
+              </p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="grid gap-2">
+              <Label>Quantity Used</Label>
+              <Input type="number" v-model="maintenanceForm.quantity" min="1" />
+            </div>
+            <div class="grid gap-2">
+              <Label>Date</Label>
+              <Input type="date" v-model="maintenanceForm.maintenance_date" />
+            </div>
+          </div>
+
+          <div class="grid gap-2">
+            <Label>Next Maintenance Date</Label>
+            <Input
+              type="date"
+              v-model="maintenanceForm.next_maintenance_date"
+            />
+          </div>
+
+          <div class="grid gap-2">
+            <Label>Work Description</Label>
+            <Textarea
+              v-model="maintenanceForm.description"
+              placeholder="What was fixed?"
+            />
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" @click="showMaintenanceDialog = false"
+            >Cancel</Button
+          >
+          <Button
+            @click="submitMaintenance"
+            :disabled="
+              isSubmittingMaintenance ||
+              (selectedInventory &&
+                maintenanceForm.quantity > selectedInventory.quantity)
+            "
+          >
+            <Spinner v-if="isSubmittingMaintenance" class="mr-2 h-4 w-4" />
+            Save Maintenance
           </Button>
         </DialogFooter>
       </DialogContent>

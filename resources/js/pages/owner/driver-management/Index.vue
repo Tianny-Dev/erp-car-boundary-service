@@ -303,17 +303,18 @@ const goToPage = (url: string | null) => {
   );
 };
 
-const getStatusVariant = (status: string) => {
+const getBadgeClass = (status: string) => {
   switch (status) {
     case 'active':
-      return 'default';
-    case 'pending':
-      return 'secondary';
-    case 'retired':
+      return 'bg-blue-500 hover:bg-blue-600';
     case 'suspended':
-      return 'destructive';
+      return 'bg-rose-500 hover:bg-rose-600';
+    case 'retired':
+      return 'bg-rose-500 hover:bg-rose-600';
+    case 'inactive':
+      return 'bg-rose-500 hover:bg-rose-600';
     default:
-      return 'secondary';
+      return 'bg-gray-500 hover:bg-gray-600';
   }
 };
 
@@ -413,9 +414,11 @@ const removeDriverFromFranchise = () => {
                 </div>
               </TableCell>
               <TableCell>
-                <Badge :variant="getStatusVariant(driver.status)">{{
-                  driver.status
-                }}</Badge>
+                <Badge
+                  :class="getBadgeClass(driver.status)"
+                  class="text-white"
+                  >{{ driver.status }}</Badge
+                >
               </TableCell>
               <TableCell class="flex gap-2">
                 <Button

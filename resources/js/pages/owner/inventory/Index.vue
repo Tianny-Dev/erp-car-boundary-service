@@ -74,6 +74,7 @@ interface InventoryItem {
     | 'Other';
   specification: string;
   quantity: number;
+  total_used: number | null;
   unit_price: number;
   notes?: string;
 }
@@ -195,6 +196,7 @@ const formatCurrency = (value: number) => {
               <TableHead>Category</TableHead>
               <TableHead>Spec</TableHead>
               <TableHead>Qty</TableHead>
+              <TableHead>Used in Maint.</TableHead>
               <TableHead>Price</TableHead>
               <TableHead class="text-center">Actions</TableHead>
             </TableRow>
@@ -217,6 +219,11 @@ const formatCurrency = (value: number) => {
                 >
                   {{ item.quantity }}
                 </span>
+              </TableCell>
+              <TableCell>
+                <Badge variant="outline" class="font-mono">
+                  {{ item.total_used || 0 }}
+                </Badge>
               </TableCell>
               <TableCell>{{ formatCurrency(item.unit_price) }}</TableCell>
               <TableCell class="text-center">

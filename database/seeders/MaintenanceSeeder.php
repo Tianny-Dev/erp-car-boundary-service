@@ -24,7 +24,7 @@ class MaintenanceSeeder extends Seeder
         // Maintenance Status: 1 (Active)
         // Expense Status: 6 (Pending)
         // =================================================================
-        
+
         $vehiclesInMaintenance = Vehicle::where('status_id', 5)->get();
 
         foreach ($vehiclesInMaintenance as $vehicle) {
@@ -40,6 +40,7 @@ class MaintenanceSeeder extends Seeder
             $maintenance = Maintenance::create([
                 'vehicle_id'            => $vehicle->id,
                 'inventory_id'          => $inventory->id,
+                'quantity'              => 1,
                 'technician_id'         => $technicianId,
                 'status_id'             => 1, // Active Maintenance
                 'description'           => 'Urgent repair: ' . $inventory->name,
@@ -88,6 +89,7 @@ class MaintenanceSeeder extends Seeder
             $maintenance = Maintenance::create([
                 'vehicle_id'            => $vehicle->id,
                 'inventory_id'          => $inventory->id,
+                'quantity'              => 1,
                 'technician_id'         => $technicianId,
                 'status_id'             => 16, // Completed
                 'description'           => 'Routine maintenance: ' . $inventory->name,
