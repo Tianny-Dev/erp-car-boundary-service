@@ -310,54 +310,55 @@ watch(
     <div
       class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
     >
-      <div
-        class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border"
+      <div 
+      class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border"
       >
-        <div class="mb-4 flex items-center justify-between">
-          <h2 class="font-mono text-xl font-semibold">Franchise Contracts</h2>
+  <div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <h2 class="font-mono text-xl font-semibold">Franchise Contracts</h2>
 
-          <div class="flex gap-4">
-            <Select v-model="selectedStatus">
-              <SelectTrigger class="w-[150px]">
-                <SelectValue placeholder="Filter by..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="active"> Active </SelectItem>
-                <SelectItem value="pending"> Pending </SelectItem>
-                <SelectItem value="expired"> Expired </SelectItem>
-                <SelectItem value="terminated"> Terminated </SelectItem>
-              </SelectContent>
-            </Select>
+    <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:gap-4">
+      <Select v-model="selectedStatus">
+        <SelectTrigger class="w-full sm:w-[150px] sm:shrink-0">
+          <SelectValue placeholder="Filter by..." />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="active"> Active </SelectItem>
+          <SelectItem value="pending"> Pending </SelectItem>
+          <SelectItem value="expired"> Expired </SelectItem>
+          <SelectItem value="terminated"> Terminated </SelectItem>
+        </SelectContent>
+      </Select>
 
-            <MultiSelect
-              v-model="selectedContext"
-              :options="contextOptions"
-              placeholder="
-                Select Franchises
-              "
-              all-label="All Franchises"
-              @change="
-                (val) => {
-                  selectedFranchise = val;
-                  updateFilters();
-                }
-              "
-            />
-          </div>
-        </div>
+      <MultiSelect
+        class="w-full sm:w-auto  sm:min-w-[175px] sm:max-w-[300px]"
+        v-model="selectedContext"
+        :options="contextOptions"
+        placeholder="
+        Select Franchises
+        "
+        all-label="All Franchises"
+        @change="
+          (val) => {
+            selectedFranchise = val;
+            updateFilters();
+          }
+        "
+      />
+    </div>
+  </div>
 
-        <DataTable
-          :columns="contractColumns"
-          :data="contracts.data"
-          search-placeholder="Search contracts..."
-        >
-          <template #custom-actions>
-            <Button class="me-5" @click="createContract">
-              <PlusIcon />Add Contract
-            </Button>
-          </template>
-        </DataTable>
-      </div>
+  <DataTable
+    :columns="contractColumns"
+    :data="contracts.data"
+    search-placeholder="Search contracts..."
+  >
+    <template #custom-actions>
+      <Button class="w-full flex items-center justify-center gap-2 sm:w-auto sm:me-5" @click="createContract">
+        <PlusIcon class="h-4 w-4" /> Add Contract
+      </Button>
+    </template>
+  </DataTable>
+</div>
     </div>
 
     <Dialog v-model:open="contractModal.isOpen.value">
