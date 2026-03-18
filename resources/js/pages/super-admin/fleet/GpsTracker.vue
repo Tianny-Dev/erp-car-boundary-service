@@ -138,25 +138,37 @@ const updateFilters = () => {
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
       <div class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border">
-        <div class="mb-4 flex items-center justify-between">
-          <h2 class="font-mono text-xl font-semibold">
-            Franchise Monitoring
-          </h2>
+        <div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+  
+  <h2 class="font-mono text-xl font-semibold">Franchise Monitoring</h2>
 
-          <div class="flex gap-4">
-            <MultiSelect v-model="selectedDriver" :options="driverOptions" placeholder="Select Drivers"
-              all-label="All Drivers" @change="updateFilters" />
+  <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:gap-4">
+    
+    <MultiSelect
+      class="w-full sm:w-auto sm:flex-1 sm:min-w-[200px] sm:max-w-[300px]"
+      v-model="selectedDriver"
+      :options="driverOptions"
+      placeholder="Select Drivers"
+      all-label="All Drivers"
+      @change="updateFilters"
+    />
 
-            <MultiSelect v-model="selectedContext" :options="contextOptions" placeholder="Select Franchises" all-label="
-                All Franchises
-              " @change="
-                (val) => {
-                  selectedFranchise = val;
-                  updateFilters();
-                }
-              " />
-          </div>
-        </div>
+    <MultiSelect
+      class="w-full sm:w-auto sm:flex-1 sm:min-w-[200px] sm:max-w-[300px]"
+      v-model="selectedContext"
+      :options="contextOptions"
+      placeholder="Select Franchises"
+      all-label="All Franchises"
+      @change="
+        (val) => {
+          selectedFranchise = val;
+          updateFilters();
+        }
+      "
+    />
+    
+  </div>
+</div>
 
         <div class="w-full rounded-lg border shadow-sm">
           <LeafletMap :locations="props.mapMarkers.data" :fit-bounds="props.mapMarkers.data.length > 0">
