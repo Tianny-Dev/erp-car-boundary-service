@@ -45,6 +45,7 @@ const props = defineProps<{
   idTypes?: { value: string; label: string }[];
   expertise?: { value: string; label: string }[];
   // v-model props
+  licenseNumber?: string;
   licenseExpiry?: string;
   selectedIdType?: string;
   selectedExpertise?: string;
@@ -58,6 +59,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits([
+  'update:licenseNumber',
   'update:licenseExpiry',
   'update:selectedIdType',
   'update:selectedExpertise',
@@ -104,6 +106,34 @@ const labels = computed(() => ({ ...defaultLabels, ...props.labels }));
 const show = computed(() => ({ ...defaultShowFields, ...props.showFields }));
 
 // --- V-MODEL COMPUTEDS ---
+const computedLicenseNumber = computed<string | undefined>({
+  get: () => props.licenseNumber,
+  set: (value) => {
+    if (!value) {
+      emit('update:licenseNumber', '');
+      return;
+    }
+    // 1. Remove all non-alphanumeric characters and convert to Uppercase
+    let raw = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+
+    // 2. Apply the mask: A00-00-000000
+    let formatted = '';
+    if (raw.length > 0) {
+      // First 3 chars
+      formatted += raw.substring(0, 3);
+      if (raw.length > 3) {
+        // Next 2 chars
+        formatted += '-' + raw.substring(3, 5);
+      }
+      if (raw.length > 5) {
+        // Last 6 chars
+        formatted += '-' + raw.substring(5, 11);
+      }
+    }
+
+    emit('update:licenseNumber', formatted);
+  },
+});
 const computedLicenseExpiry = computed<string | undefined>({
   get: () => props.licenseExpiry,
   set: (value) => emit('update:licenseExpiry', value),
@@ -158,9 +188,9 @@ function removeFile(side: 'front' | 'back') {
 <template>
   <!-- DRIVER'S LICENSE -->
   <div v-if="show.licenseNumber" class="grid gap-2">
-    <Label :for="fields.licenseNumber" class="font-semibold text-auth-blue">{{
-      labels.licenseNumber
-    }}</Label>
+    <Label :for="fields.licenseNumber" class="font-semibold text-auth-blue">
+      {{ labels.licenseNumber }}
+    </Label>
     <div
       class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
     >
@@ -171,9 +201,10 @@ function removeFile(side: 'front' | 'back') {
         :id="fields.licenseNumber"
         type="text"
         :name="fields.licenseNumber"
+        v-model="computedLicenseNumber"
         required
-        :autocomplete="fields.licenseNumber"
-        placeholder="Driver's License Number"
+        placeholder="A00-00-000000"
+        maxlength="13"
         class="flex-1 border-0 font-mono font-semibold focus-visible:ring-0"
       />
     </div>

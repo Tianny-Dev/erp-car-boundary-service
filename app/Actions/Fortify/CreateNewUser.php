@@ -74,10 +74,14 @@ class CreateNewUser implements CreatesNewUsers
 
     protected function createDriver(array $input, int $userTypeId): User
     {
+        if (isset($input['license_number'])) {
+            $input['license_number'] = str_replace('-', '', $input['license_number']);
+        }
+            
         // 1. Validation
         Validator::make($input, [
-           'username' => ['required', 'string', 'max:255', Rule::unique(User::class)],
-            'name' => ['nullable', 'string', 'max:255'],
+           'username' => ['required', 'string', 'min:3', 'max:255', Rule::unique(User::class)],
+            'name' => ['nullable', 'string', 'min:3', 'max:255'],
             'email' => [
                 'required', 'string', 'email', 'max:255',
                 Rule::unique(User::class),
@@ -99,7 +103,7 @@ class CreateNewUser implements CreatesNewUsers
             'city' => ['required', 'string', 'max:255'],
             'barangay' => ['required', 'string', 'max:255'],
             'postal_code' => ['required', 'string', 'max:4'],
-            'license_number' => ['required', 'string', 'max:20'],
+            'license_number' => ['required', 'string', 'size:11', 'regex:/^A[0-9]{10}$/'],
             'license_expiry' => ['required', 'date','after_or_equal:' . now()->toDateString()],
             'shift' => ['required', new Enum(Shifts::class)],
             'front_license_picture' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
@@ -168,8 +172,8 @@ class CreateNewUser implements CreatesNewUsers
     {
         // 1. Validation
         Validator::make($input, [
-            'username' => ['required', 'string', 'max:255', Rule::unique(User::class)],
-            'name' => ['nullable', 'string', 'max:255'],
+            'username' => ['required', 'string', 'min:3', 'max:255', Rule::unique(User::class)],
+            'name' => ['nullable', 'string', 'min:3', 'max:255'],
             'email' => [
                 'required', 'string', 'email', 'max:255',
                 Rule::unique(User::class),
@@ -334,8 +338,8 @@ class CreateNewUser implements CreatesNewUsers
     {
         // 1. Validation
         Validator::make($input, [
-            'username' => ['required', 'string', 'max:255', Rule::unique(User::class)],
-            'name' => ['nullable', 'string', 'max:255'],
+            'username' => ['required', 'string', 'min:3', 'max:255', Rule::unique(User::class)],
+            'name' => ['nullable', 'string', 'min:3', 'max:255'],
             'email' => [
                 'required', 'string', 'email', 'max:255',
                 Rule::unique(User::class),
