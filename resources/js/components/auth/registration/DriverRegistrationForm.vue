@@ -69,6 +69,7 @@ const addressLabels = {
 };
 
 // Step 3 Identity State & Config ---
+const licenseNumber = ref('');
 const driverIdFront = ref<File | null>(null);
 const driverIdBack = ref<File | null>(null);
 const identityStep3Show = {
@@ -226,6 +227,7 @@ watch(
         <Step4Account
           :errors="errors"
           :show-fields="identityStep3Show"
+          v-model:license-number="licenseNumber"
           v-model:validIdFront="driverIdFront"
           v-model:validIdBack="driverIdBack"
           :field-names="identityfields"
