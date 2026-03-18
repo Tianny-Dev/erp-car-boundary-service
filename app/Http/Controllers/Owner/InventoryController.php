@@ -12,18 +12,19 @@ class InventoryController extends Controller
     public function index()
     {
         $user = auth()->user();
-
-        // Get the first franchise owned by this user based on your relationship structure
         $franchise = $user->ownerDetails?->franchises?->first();
 
-        // If no franchise exists, we return an empty collection or handle as needed
+        // We use withSum to get the total quantity from the maintenances table
         $inventory = $franchise
-            ? Inventory::where('franchise_id', $franchise->id)->latest()->paginate(10)
+            ? Inventory::where('franchise_id', $franchise->id)
+                ->withSum('maintenances as total_used', 'quantity')
+                ->latest()
+                ->paginate(10)
             : [];
 
         return Inertia::render('owner/inventory/Index', [
             'inventory' => $inventory,
-            'franchise_id' => $franchise?->id // Pass this so the frontend knows which ID to send back
+            'franchise_id' => $franchise?->id
         ]);
     }
 

@@ -15,6 +15,7 @@ return new class extends Migration
             $table->foreignId('id')->primary()->constrained('users')->onDelete('cascade');
             $table->foreignId('status_id')->constrained('statuses')->onDelete('restrict');
             $table->date('birth_date');
+            $table->string('profile_pic')->nullable();
             $table->timestamps();
         });
     }
