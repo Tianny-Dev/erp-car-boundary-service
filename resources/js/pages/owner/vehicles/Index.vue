@@ -56,7 +56,7 @@ import { computed, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { MoreHorizontal, AlertCircleIcon } from 'lucide-vue-next';
+import { MoreHorizontal } from 'lucide-vue-next';
 
 import {
   DropdownMenu,
