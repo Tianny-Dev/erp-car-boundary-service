@@ -198,27 +198,27 @@ const updateFilters = () => {
     <div
       class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
     >
-      <div
-        class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border"
+      <div 
+      class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border"
       >
-        <div class="mb-4 flex items-center justify-between">
+        <div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h2 class="font-mono text-xl font-semibold">Franchise Inventory</h2>
 
-          <div class="flex gap-4">
+          <div class="flex w-full sm:w-auto">
             <MultiSelect
+              class="w-full sm:min-w-[180px] sm:max-w-[350px]"
               v-model="selectedFranchise"
               :options="contextOptions"
               placeholder="
-               Select Franchises
-                 
+              Select Franchises
+
               "
               all-label="
-                All Franchises
+              All Franchises
               "
               @change="
                 (val) => {
                   selectedFranchise = val;
-
                   updateFilters();
                 }
               "
@@ -231,6 +231,7 @@ const updateFilters = () => {
           :data="inventories.data"
           search-placeholder="Search inventories..."
         />
+        
       </div>
     </div>
   </AppLayout>
