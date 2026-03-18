@@ -306,43 +306,43 @@ watch(
         >
           <h2 class="font-mono text-xl font-semibold">Franchise Earnings</h2>
 
-          <div
-            class="grid w-full grid-cols-2 gap-3 sm:flex sm:w-auto sm:flex-row sm:gap-4"
-          >
-            <Select v-model="selectedPeriod">
-              <SelectTrigger class="w-full sm:w-[150px] sm:shrink-0">
-                <SelectValue placeholder="Filter by..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="daily"> Daily </SelectItem>
-                <SelectItem value="weekly"> Weekly </SelectItem>
-                <SelectItem value="monthly"> Monthly </SelectItem>
-              </SelectContent>
-            </Select>
+          <div class="flex w-full flex-wrap gap-3 sm:w-auto sm:gap-4">
+  
+  <Select v-model="selectedPeriod">
+    <SelectTrigger class="min-w-[130px] flex-1 sm:max-w-[150px] sm:shrink-0">
+      <SelectValue placeholder="Filter by..." />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectItem value="daily"> Daily </SelectItem>
+      <SelectItem value="weekly"> Weekly </SelectItem>
+      <SelectItem value="monthly"> Monthly </SelectItem>
+    </SelectContent>
+  </Select>
 
-            <MultiSelect
-              class="w-full sm:w-auto sm:max-w-[250px] sm:min-w-[150px] sm:flex-1"
-              v-model="selectedDriver"
-              :options="driverOptions"
-              placeholder="Select Drivers"
-              all-label="All Drivers"
-              @change="updateFilters"
-            />
+  <MultiSelect
+    class="min-w-[170px] flex-1 sm:max-w-[250px]"
+    v-model="selectedDriver"
+    :options="driverOptions"
+    placeholder="Select Drivers"
+    all-label="All Drivers"
+    @change="updateFilters"
+  />
 
-            <MultiSelect
-              class="col-span-2 w-full sm:col-span-1 sm:w-auto sm:max-w-[250px] sm:min-w-[150px] sm:flex-1"
-              v-model="selectedContext"
-              :options="contextOptions"
-              placeholder="Select Franchises"
-              all-label="All Franchises"
-              @change="
-                (val) => {
-                  selectedFranchise = val;
-                  updateFilters();
-                }
-              "
-            />
-          </div>
+  <MultiSelect
+    class="min-w-[170px] flex-1 sm:max-w-[250px]"
+    v-model="selectedContext"
+    :options="contextOptions"
+    placeholder="Select Franchises"
+    all-label="All Franchises"
+    @change="
+      (val) => {
+        selectedFranchise = val;
+        updateFilters();
+      }
+    "
+  />
+  
+</div>
         </div>
 
         <DataTable
@@ -354,9 +354,19 @@ watch(
             <div
               class="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-row sm:items-center"
             >
-              <Button class="w-full sm:w-auto" @click="openExportModal('pdf')"> Export PDF</Button>
-              <Button class="w-full sm:w-auto" @click="openExportModal('excel')"> Export Excel </Button>
-              <Button class="col-span-2 w-full sm:col-span-1 sm:w-auto" @click="openExportModal('csv')">
+              <Button class="w-full sm:w-auto" @click="openExportModal('pdf')">
+                Export PDF</Button
+              >
+              <Button
+                class="w-full sm:w-auto"
+                @click="openExportModal('excel')"
+              >
+                Export Excel
+              </Button>
+              <Button
+                class="col-span-2 w-full sm:col-span-1 sm:w-auto"
+                @click="openExportModal('csv')"
+              >
                 Export CSV
               </Button>
             </div>
