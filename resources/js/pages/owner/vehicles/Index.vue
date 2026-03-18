@@ -143,35 +143,36 @@ watch(
   { deep: true },
 );
 
-// Maintenance Modal State (History)
-const maintenanceModal = {
-  isOpen: ref(false),
-  isLoading: ref(false),
-  isError: ref(false),
-  data: ref<any[]>([]),
+// Define the entire modal state as ONE ref object
+const maintenanceModal = ref({
+  isOpen: false,
+  isLoading: false,
+  isError: false,
+  data: [] as any[],
+});
 
-  open: async (vehicle: Vehicle) => {
-    maintenanceModal.isOpen.value = true;
-    maintenanceModal.isLoading.value = true;
-    maintenanceModal.isError.value = false;
-    maintenanceModal.data.value = [];
+// Define the functions separately or as part of the logic
+const openMaintenanceHistory = async (vehicle: Vehicle) => {
+  maintenanceModal.value.isOpen = true;
+  maintenanceModal.value.isLoading = true;
+  maintenanceModal.value.isError = false;
+  maintenanceModal.value.data = [];
 
-    try {
-      const response = await axios.get(
-        `/owner/vehicles/${vehicle.id}/maintenance-history`,
-      );
-      maintenanceModal.data.value = response.data;
-    } catch (error) {
-      console.error('Failed to load maintenance history:', error);
-      maintenanceModal.isError.value = true;
-    } finally {
-      maintenanceModal.isLoading.value = false;
-    }
-  },
+  try {
+    const response = await axios.get(
+      `/owner/vehicles/${vehicle.id}/maintenance-history`,
+    );
+    maintenanceModal.value.data = response.data;
+  } catch (error) {
+    console.error('Failed to load maintenance history:', error);
+    maintenanceModal.value.isError = true;
+  } finally {
+    maintenanceModal.value.isLoading = false;
+  }
+};
 
-  close: () => {
-    maintenanceModal.isOpen.value = false;
-  },
+const closeMaintenanceHistory = () => {
+  maintenanceModal.value.isOpen = false;
 };
 
 const selectedInventory = computed(() =>
@@ -262,6 +263,20 @@ const openEditDialog = (vehicle: Vehicle) => {
   showDialog.value = true;
 };
 
+const paginationLinks = computed(() => paginator.value.links || []);
+
+const goToPage = (url: string | null) => {
+  if (!url) return;
+  router.get(
+    url,
+    {
+      status: statusFilter.value !== 'all' ? statusFilter.value : undefined,
+      search: globalFilter.value || undefined,
+    },
+    { preserveState: true, preserveScroll: true },
+  );
+};
+
 // Status badge style
 const getBadgeClass = (status: string) => {
   switch (status) {
@@ -348,14 +363,6 @@ const handleYearInput = (e: Event) => {
     target.value = target.value.slice(0, 4);
     year.value = Number(target.value);
   }
-};
-
-const getStatusVariant = (status: string) => {
-  if (!status) return 'secondary';
-  const s = status.toLowerCase();
-  if (s === 'available') return 'default';
-  if (s === 'maintenance') return 'secondary';
-  return 'outline';
 };
 </script>
 
@@ -503,7 +510,7 @@ const getStatusVariant = (status: string) => {
                     </DropdownMenuItem>
 
                     <DropdownMenuItem
-                      @click="maintenanceModal.open(v)"
+                      @click="openMaintenanceHistory(v)"
                       class="cursor-pointer"
                     >
                       Maintenance History
@@ -617,7 +624,7 @@ const getStatusVariant = (status: string) => {
         </DialogHeader>
 
         <div class="flex-1 overflow-y-auto py-4 pe-1.5">
-          <div v-if="maintenanceModal.isLoading.value" class="space-y-4">
+          <div v-if="maintenanceModal.isLoading" class="space-y-4">
             <div
               v-for="i in 3"
               :key="i"
@@ -625,23 +632,17 @@ const getStatusVariant = (status: string) => {
             />
           </div>
 
-          <Alert
-            v-else-if="maintenanceModal.isError.value"
-            variant="destructive"
-          >
-            <AlertCircleIcon class="h-4 w-4" />
+          <Alert v-else-if="maintenanceModal.isError" variant="destructive">
+            <AlertCircle class="h-4 w-4" />
             <AlertTitle>Error</AlertTitle>
             <AlertDescription
               >Failed to load maintenance history.</AlertDescription
             >
           </Alert>
 
-          <div
-            v-else-if="maintenanceModal.data.value?.length"
-            class="space-y-4"
-          >
+          <div v-else-if="maintenanceModal.data?.length" class="space-y-4">
             <div
-              v-for="item in maintenanceModal.data.value"
+              v-for="item in maintenanceModal.data"
               :key="item.id"
               class="rounded-lg border p-4 transition-colors hover:bg-muted/50"
             >
@@ -650,9 +651,9 @@ const getStatusVariant = (status: string) => {
                   <h4 class="text-lg font-bold text-primary">
                     {{ item.inventory_name }}
                   </h4>
-                  <Badge variant="outline" class="mt-1">{{
-                    item.category
-                  }}</Badge>
+                  <Badge variant="outline" class="mt-1">
+                    {{ item.category }}
+                  </Badge>
                 </div>
                 <div class="text-right text-sm">
                   <p class="font-medium text-foreground">
@@ -685,9 +686,9 @@ const getStatusVariant = (status: string) => {
         </div>
 
         <DialogFooter>
-          <Button variant="outline" @click="maintenanceModal.close"
-            >Close</Button
-          >
+          <Button variant="outline" @click="closeMaintenanceHistory">
+            Close
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
