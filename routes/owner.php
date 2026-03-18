@@ -35,9 +35,11 @@ Route::middleware(['auth', 'verified', 'user_type:owner', 'check.active'])->pref
     Route::resource('drivers', DriverManagementController::class);
     Route::resource('drivers-application', DriverApplicationController::class);
     Route::resource('vehicles', VehicleController::class);
-    Route::get('/vehicles/{vehicle}/maintenance-history', [VehicleController::class, 'maintenanceHistory'])
-    ->name('vehicles.maintenance-history');
+    Route::get('/vehicles/{vehicle}/maintenance-history', [VehicleController::class, 'maintenanceHistory'])->name('vehicles.maintenance-history');
+    Route::post('/vehicles/maintenance', [VehicleController::class, 'storeMaintenance'])->name('vehicles.maintenance.store');
+
     Route::resource('vehicle-drivers', VehicleDriverController::class);
+
 
     Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
     Route::post('/inventory', [InventoryController::class, 'store'])->name('inventory.store');
@@ -67,3 +69,4 @@ Route::middleware(['auth', 'verified', 'user_type:owner', 'check.active'])->pref
     Route::get('/franchise/my-contract', [FranchiseController::class, 'myContract'])
         ->name('franchise.my-contract');
 });
+

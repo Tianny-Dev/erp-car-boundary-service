@@ -31,4 +31,9 @@ class Inventory extends Model
     {
         return $this->hasMany(Maintenance::class);
     }
+
+    // Helper to subtract stock
+    public function subtractStock($amount) {
+        $this->decrement('quantity', $amount);
+    }
 }
