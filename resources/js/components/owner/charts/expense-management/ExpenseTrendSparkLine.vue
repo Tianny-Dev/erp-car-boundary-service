@@ -4,14 +4,16 @@ import {
   ChartData,
   Chart as ChartJS,
   ChartOptions,
+  Filler,
   Legend,
   LinearScale,
   LineElement,
   PointElement,
   Title,
   Tooltip,
+  TooltipItem, // Essential for fixing the 'red line'
 } from 'chart.js';
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { Line } from 'vue-chartjs';
 
 ChartJS.register(
@@ -22,6 +24,7 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
+  Filler,
 );
 
 interface DataItem {
@@ -36,15 +39,27 @@ const props = defineProps<{
   yFormatter?: (value: number) => string;
 }>();
 
-// Default color
+// --- Theme Detection ---
+const isDark = ref(false);
+const updateTheme = () => {
+  isDark.value = document.documentElement.classList.contains('dark');
+};
+
+onMounted(() => {
+  updateTheme();
+  const observer = new MutationObserver(updateTheme);
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['class'],
+  });
+});
+
 const chartColor = props.colors?.[0] ?? '#3b82f6';
-
-// Default label
 const chartLabel = props.label ?? 'Value';
+const formatY =
+  props.yFormatter ?? ((val: number) => `$${val.toLocaleString()}`);
 
-// Format numbers (fallback)
-const formatY = props.yFormatter ?? ((val: number) => `$ ${val.toFixed(2)}`);
-
+// --- Reactive Chart Data ---
 const chartData = computed<ChartData<'line'>>(() => ({
   labels: props.data.map((item) => item.year),
   datasets: [
@@ -52,57 +67,93 @@ const chartData = computed<ChartData<'line'>>(() => ({
       label: chartLabel,
       data: props.data.map((item) => item.value),
       borderColor: chartColor,
-      backgroundColor: chartColor + '33',
-      tension: 0.3,
+      backgroundColor: isDark.value ? `${chartColor}22` : `${chartColor}33`,
+      tension: 0.4,
       fill: true,
       pointRadius: 4,
       pointHoverRadius: 6,
+      pointBackgroundColor: chartColor,
+      pointBorderColor: isDark.value ? '#1e293b' : '#ffffff',
+      pointBorderWidth: 2,
     },
   ],
 }));
 
-const chartOptions = ref<ChartOptions<'line'>>({
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: { display: true, position: 'top', labels: { color: '#374151' } },
-    tooltip: {
-      backgroundColor: '#111827',
-      titleColor: '#f9fafb',
-      bodyColor: '#f9fafb',
-      borderColor: chartColor,
-      borderWidth: 1,
-      callbacks: {
-        label: (context) => {
-          const value = context.parsed.y;
-          return value !== null
-            ? `${chartLabel}: ${formatY(value)}`
-            : `${chartLabel}: N/A`;
+// --- Reactive Options (Fixed Red Lines) ---
+const chartOptions = computed<ChartOptions<'line'>>(() => {
+  const textColor = isDark.value ? '#94a3b8' : '#4b5563';
+  const titleColor = isDark.value ? '#f8fafc' : '#111827';
+  const gridColor = isDark.value
+    ? 'rgba(255, 255, 255, 0.05)'
+    : 'rgba(0, 0, 0, 0.1)';
+
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: {
+      mode: 'index' as const,
+      intersect: false,
+    },
+    plugins: {
+      legend: {
+        display: true,
+        position: 'top' as const,
+        align: 'end' as const,
+        labels: {
+          color: textColor,
+          boxWidth: 10,
+          usePointStyle: true,
+          font: { weight: '500' as const },
         },
       },
-    },
-    title: {
-      display: true,
-      text: chartLabel + ' Over Years',
-      color: '#111827',
-      font: { size: 16, weight: 'bold' },
-    },
-  },
-  scales: {
-    x: { ticks: { color: '#6b7280' }, grid: { display: false } },
-    y: {
-      ticks: {
-        color: '#6b7280',
-        callback: (val) => formatY(Number(val)),
+      tooltip: {
+        enabled: true,
+        backgroundColor: isDark.value ? '#1e293b' : '#ffffff',
+        titleColor: titleColor,
+        bodyColor: textColor,
+        borderColor: isDark.value ? '#334155' : '#e2e8f0',
+        borderWidth: 1,
+        padding: 12,
+        callbacks: {
+          label: (context: TooltipItem<'line'>) => {
+            const val = context.parsed.y;
+            return val !== null ? `${chartLabel}: ${formatY(val)}` : chartLabel;
+          },
+        },
       },
-      grid: { color: '#e5e7eb' },
+      title: {
+        display: !!props.label,
+        text: `${chartLabel} Over Years`,
+        color: titleColor,
+        font: {
+          size: 16,
+          weight: '600' as const, // Fixed red line
+        },
+        align: 'start' as const,
+      },
     },
-  },
+    scales: {
+      x: {
+        ticks: { color: textColor, font: { size: 11 } },
+        grid: { display: false },
+        border: { display: false },
+      },
+      y: {
+        ticks: {
+          color: textColor,
+          font: { size: 11 },
+          callback: (value) => formatY(Number(value)),
+        },
+        grid: { color: gridColor },
+        border: { dash: [4, 4], display: false }, // Cleaner dashed lines
+      },
+    },
+  };
 });
 </script>
 
 <template>
-  <div class="h-[400px] w-full">
+  <div class="h-[400px] w-full p-4">
     <Line :data="chartData" :options="chartOptions" />
   </div>
 </template>
