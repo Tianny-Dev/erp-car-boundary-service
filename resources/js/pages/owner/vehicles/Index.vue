@@ -666,11 +666,15 @@ const handleYearInput = (e: Event) => {
               </div>
 
               <div
-                class="mt-3 grid grid-cols-1 gap-4 border-t pt-3 text-sm md:grid-cols-2"
+                class="mt-3 grid grid-cols-1 gap-4 border-t pt-3 text-sm md:grid-cols-3"
               >
                 <div>
                   <span class="block font-semibold">Specification:</span>
                   <p class="text-muted-foreground">{{ item.specification }}</p>
+                </div>
+                <div>
+                  <span class="block font-semibold">Quantity</span>
+                  <p class="text-muted-foreground">{{ item.quantity }}</p>
                 </div>
                 <div>
                   <span class="block font-semibold">Work Done:</span>
