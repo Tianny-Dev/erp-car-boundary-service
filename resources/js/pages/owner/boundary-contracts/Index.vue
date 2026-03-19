@@ -227,10 +227,10 @@ const createContract = () => {
       </div>
 
       <!-- Filters -->
-      <div class="flex flex-col gap-4 md:flex-row md:items-center">
-        <div class="relative flex-1">
-          <Search
-            class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400"
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="relative w-full sm:max-w-md sm:flex-1">
+          <Search 
+          class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" 
           />
           <input
             v-model="globalFilter"
@@ -238,24 +238,25 @@ const createContract = () => {
             class="w-full rounded-md border px-10 py-2"
           />
         </div>
+        <div class="grid w-full grid-cols-2 gap-3 sm:flex sm:w-auto sm:flex-row sm:items-center sm:gap-4">
+          <Select v-model="statusFilter">
+            <SelectTrigger class="w-full sm:w-[150px] md:w-48 sm:shrink-0">
+              <SelectValue>
+                {{ statusFilter === 'all' ? 'Filter by status' : statusFilter }}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="paid">Paid</SelectItem>
+              <SelectItem value="overdue">Overdue</SelectItem>
+            </SelectContent>
+          </Select>
 
-        <Select v-model="statusFilter">
-          <SelectTrigger class="w-full md:w-48">
-            <SelectValue>{{
-              statusFilter === 'all' ? 'Filter by status' : statusFilter
-            }}</SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="paid">Paid</SelectItem>
-            <SelectItem value="overdue">Overdue</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Button class="me-5" @click="createContract"
-          ><PlusIcon />Add Contract</Button
-        >
+          <Button class="w-full sm:w-auto" @click="createContract">
+            <PlusIcon class="mr-2 h-4 w-4" /> Add Contract
+          </Button>
+        </div>
       </div>
 
       <!-- Table -->
