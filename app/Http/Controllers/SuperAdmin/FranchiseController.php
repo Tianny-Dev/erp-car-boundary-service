@@ -83,13 +83,18 @@ class FranchiseController extends Controller
             'name' => ['nullable', 'string', 'max:255'],
 
             'email' => [
-                'required', 'string', 'email', 'max:255',
+                'required',
+                'string',
+                'email',
+                'max:255',
                 Rule::unique(User::class),
                 Rule::unique('franchises', 'email'),
             ],
 
             'phone' => [
-                'required', 'string', 'max:20',
+                'required',
+                'string',
+                'max:20',
                 Rule::unique(User::class),
                 Rule::unique('franchises', 'phone'),
             ],
@@ -112,6 +117,9 @@ class FranchiseController extends Controller
             'franchise_barangay' => ['required', 'string', 'max:255'],
             'franchise_postal_code' => ['required', 'string', 'max:20'],
             'franchise_address' => ['required', 'string', 'max:255'],
+
+            'latitude' => ['required', 'numeric', 'between:-90,90'],
+            'longitude' => ['required', 'numeric', 'between:-180,180'],
 
             // Owner ID
             'valid_id_type' => [
@@ -197,6 +205,8 @@ class FranchiseController extends Controller
                 'city' => $validated['franchise_city'],
                 'barangay' => $validated['franchise_barangay'],
                 'postal_code' => $validated['franchise_postal_code'],
+                'latitude' => $validated['latitude'],
+                'longitude' => $validated['longitude'],
 
                 'dti_registration_attachment' => $dtiPath,
                 'mayor_permit_attachment' => $mayorPath,
