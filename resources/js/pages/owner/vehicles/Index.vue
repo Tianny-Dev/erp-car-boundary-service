@@ -372,19 +372,19 @@ const handleYearInput = (e: Event) => {
     <div class="space-y-6 p-6">
       <!-- Header -->
       <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-  <div>
-    <h1 class="mb-1 text-3xl font-bold">Vehicle Management</h1>
-    <p class="text-sm text-gray-600 sm:text-base">Manage all vehicles</p>
-  </div>
-  <div class="grid w-full grid-cols-2 gap-3 sm:flex sm:w-auto sm:flex-row sm:gap-4">
-    <Button class="w-full sm:w-auto" @click="showMaintenanceDialog = true">
-      + Add Maintenance
-    </Button>
-    <Button class="w-full sm:w-auto" @click="openCreateDialog">
-      + Add Vehicle
-    </Button>
-  </div>
-</div>
+        <div>
+          <h1 class="mb-1 text-3xl font-bold">Vehicle Management</h1>
+          <p class="text-sm text-gray-600 sm:text-base">Manage all vehicles</p>
+        </div>
+        <div class="grid w-full grid-cols-2 gap-3 sm:flex sm:w-auto sm:flex-row sm:gap-4">
+          <Button class="w-full sm:w-auto" @click="showMaintenanceDialog = true">
+            + Add Maintenance
+          </Button>
+          <Button class="w-full sm:w-auto" @click="openCreateDialog">
+            + Add Vehicle
+          </Button>
+        </div>
+      </div>
 
       <!-- Filters -->
       <div class="flex flex-col gap-4 md:flex-row md:items-center">
