@@ -37,8 +37,9 @@ class FortifyServiceProvider extends ServiceProvider
     {
         Fortify::authenticateUsing(function (Request $request) {
             $user = User::where('email', $request->email)
-                        ->orWhere('phone', $request->email)
-                        ->first();
+                ->orWhere('phone', $request->email)
+                ->orWhere('username', $request->email)
+                ->first();
 
             if ($user && Hash::check($request->password, $user->password)) {
                 return $user;
@@ -65,24 +66,24 @@ class FortifyServiceProvider extends ServiceProvider
     private function configureViews(): void
     {
         // For the Login Page
-        Fortify::loginView(fn (Request $request) => Inertia::render('auth/Login', [
+        Fortify::loginView(fn(Request $request) => Inertia::render('auth/Login', [
             'canResetPassword' => Features::enabled(Features::resetPasswords()),
             'canRegister' => Features::enabled(Features::registration()),
             'status' => $request->session()->get('status'),
             'franchises' => Franchise::select(['id', 'name', 'region', 'province', 'city', 'latitude', 'longitude'])->get(),
-            'userTypes'  => [] // Ensure this matches your Vue props
+            'userTypes' => [] // Ensure this matches your Vue props
         ]));
 
-        Fortify::resetPasswordView(fn (Request $request) => Inertia::render('auth/ResetPassword', [
+        Fortify::resetPasswordView(fn(Request $request) => Inertia::render('auth/ResetPassword', [
             'email' => $request->email,
             'token' => $request->route('token'),
         ]));
 
-        Fortify::requestPasswordResetLinkView(fn (Request $request) => Inertia::render('auth/ForgotPassword', [
+        Fortify::requestPasswordResetLinkView(fn(Request $request) => Inertia::render('auth/ForgotPassword', [
             'status' => $request->session()->get('status'),
         ]));
 
-        Fortify::verifyEmailView(fn (Request $request) => Inertia::render('auth/VerifyEmail', [
+        Fortify::verifyEmailView(fn(Request $request) => Inertia::render('auth/VerifyEmail', [
             'status' => $request->session()->get('status'),
         ]));
 
@@ -100,13 +101,13 @@ class FortifyServiceProvider extends ServiceProvider
                 'paymentOptions' => $paymentOptions,
                 // YOU NEED THESE HERE TOO:
                 'franchises' => Franchise::select(['id', 'name', 'region', 'province', 'city', 'latitude', 'longitude'])->get(),
-                'userTypes'  => []
+                'userTypes' => []
             ]);
         });
 
-        Fortify::twoFactorChallengeView(fn () => Inertia::render('auth/TwoFactorChallenge'));
+        Fortify::twoFactorChallengeView(fn() => Inertia::render('auth/TwoFactorChallenge'));
 
-        Fortify::confirmPasswordView(fn () => Inertia::render('auth/ConfirmPassword'));
+        Fortify::confirmPasswordView(fn() => Inertia::render('auth/ConfirmPassword'));
     }
 
     /**
@@ -119,7 +120,7 @@ class FortifyServiceProvider extends ServiceProvider
         });
 
         RateLimiter::for('login', function (Request $request) {
-            $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
+            $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())) . '|' . $request->ip());
 
             return Limit::perMinute(5)->by($throttleKey);
         });
