@@ -187,35 +187,33 @@ const markAsCompleted = (ticketId: number) => {
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="flex flex-col gap-4 rounded-xl p-4 shadow">
       <!-- Header + Filters -->
-      <div
-        class="flex flex-wrap items-center justify-between gap-4 border-b pb-4"
-      >
-        <h1 class="text-xl font-semibold">Support Center</h1>
+      <div class="flex flex-col gap-4 border-b pb-4 sm:flex-row sm:items-center sm:justify-between">
+  
+  <h1 class="text-xl font-semibold">Support Center</h1>
 
-        <div class="flex gap-2">
-          <Select v-model="status">
-            <SelectTrigger class="w-full md:w-48">
-              <SelectValue>{{
-                status === 'all' ? 'Filter by status' : status
-              }}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="Open">Open</SelectItem>
-              <SelectItem value="In Progress">In Progress</SelectItem>
-              <SelectItem value="Resolved">Resolved</SelectItem>
-            </SelectContent>
-          </Select>
+  <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+    
+    <Select v-model="status">
+      <SelectTrigger class="w-full sm:w-[150px] md:w-48 sm:shrink-0">
+        <SelectValue>{{ status === 'all' ? 'Filter by status' : status }}</SelectValue>
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="all">All Status</SelectItem>
+        <SelectItem value="Open">Open</SelectItem>
+        <SelectItem value="In Progress">In Progress</SelectItem>
+        <SelectItem value="Resolved">Resolved</SelectItem>
+      </SelectContent>
+    </Select>
 
-          <!-- Search -->
-          <input
-            v-model="search"
-            type="text"
-            placeholder="Search tickets..."
-            class="rounded-md border px-3 py-2 text-sm"
-          />
-        </div>
-      </div>
+    <input
+      v-model="search"
+      type="text"
+      placeholder="Search tickets..."
+      class="w-full rounded-md border px-3 py-2 text-sm sm:w-[200px] md:w-[250px]"
+    />
+    
+  </div>
+</div>
 
       <!-- Table -->
       <div class="rounded-lg border">
