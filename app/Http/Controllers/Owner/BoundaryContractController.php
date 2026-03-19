@@ -128,12 +128,14 @@ class BoundaryContractController extends Controller
     {
         DB::transaction(function () use ($request) {
 
-            $pendingStatusId = Status::where('name', 'pending')->firstOrFail()->id;
+            $activeBoundaryStatusId = Status::where('name', 'active')->firstOrFail()->id;
+            $activeStatusId = Status::where('name', 'active')->firstOrFail()->id;
+
             $franchise = auth()->user()->ownerDetails?->franchises()->first();
             $franchiseId = $franchise?->id;
 
             BoundaryContract::create([
-                'status_id' => $pendingStatusId,
+                'status_id' => $activeBoundaryStatusId,
                 'franchise_id' => $franchiseId,
                 'driver_id' => $request->driver,
                 'vehicle_id' => $request->vehicle,
@@ -147,7 +149,11 @@ class BoundaryContractController extends Controller
                 'end_date' => $request->end_date,
             ]);
 
-            Vehicle::where('id', $request->vehicle)->update(['driver_id' => $request->driver]);
+            Vehicle::where('id', $request->vehicle)->update([
+                'driver_id' => $request->driver,
+                'status_id' => $activeStatusId
+            ]);
+
         });
 
         return to_route('owner.boundary-contracts.index');

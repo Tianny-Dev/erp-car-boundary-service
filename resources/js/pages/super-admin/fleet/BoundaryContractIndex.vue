@@ -18,7 +18,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
+  // DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -38,7 +38,7 @@ import { type ColumnDef } from '@tanstack/vue-table';
 import { debounce } from 'lodash-es';
 import { AlertCircleIcon, MoreHorizontal, PlusIcon } from 'lucide-vue-next';
 import { computed, h, ref, watch } from 'vue';
-import { toast } from 'vue-sonner';
+// import { toast } from 'vue-sonner';
 
 // --- Define Props ---
 const props = defineProps<{
@@ -149,33 +149,33 @@ const formatCurrency = (amount: number): string => {
 };
 
 // --- Approve Modal State ---
-const isApproveModalOpen = ref(false);
-const isApprovingContract = ref(false);
-const selectedContract = ref<Partial<ContractRow>>({});
+// const isApproveModalOpen = ref(false);
+// const isApprovingContract = ref(false);
+// const selectedContract = ref<Partial<ContractRow>>({});
 
-const openApproveModal = (contract: ContractRow) => {
-  selectedContract.value = contract;
-  isApproveModalOpen.value = true;
-};
+// const openApproveModal = (contract: ContractRow) => {
+//   selectedContract.value = contract;
+//   isApproveModalOpen.value = true;
+// };
 
-const handleApproveContract = () => {
-  if (!selectedContract.value?.id) return;
-  isApprovingContract.value = true;
+// const handleApproveContract = () => {
+//   if (!selectedContract.value?.id) return;
+//   isApprovingContract.value = true;
 
-  router.patch(
-    superAdmin.boundaryContract.approve(selectedContract.value.id).url,
-    {},
-    {
-      onSuccess: () => {
-        isApproveModalOpen.value = false;
-        toast.success('Contract approved successfully!');
-      },
-      onFinish: () => {
-        isApprovingContract.value = false;
-      },
-    },
-  );
-};
+//   router.patch(
+//     superAdmin.boundaryContract.approve(selectedContract.value.id).url,
+//     {},
+//     {
+//       onSuccess: () => {
+//         isApproveModalOpen.value = false;
+//         toast.success('Contract approved successfully!');
+//       },
+//       onFinish: () => {
+//         isApprovingContract.value = false;
+//       },
+//     },
+//   );
+// };
 
 // Computed columns for the data table
 const contractColumns = computed<ColumnDef<ContractRow>[]>(() => {
@@ -218,7 +218,7 @@ const contractColumns = computed<ColumnDef<ContractRow>[]>(() => {
           'bg-blue-500 hover:bg-blue-600': status === 'active',
           'bg-rose-500 hover:bg-rose-600':
             status === 'terminated' || status === 'expired',
-          'bg-amber-500 hover:bg-amber-600': status === 'pending',
+          // 'bg-amber-500 hover:bg-amber-600': status === 'pending',
         };
         return h('div', { class: 'text-center' }, [
           h(
@@ -256,20 +256,20 @@ const contractColumns = computed<ColumnDef<ContractRow>[]>(() => {
                 },
                 () => 'View Contract Details',
               ),
-              contract.status_name === 'pending'
-                ? [
-                    h(DropdownMenuSeparator),
-                    h(
-                      DropdownMenuItem,
-                      {
-                        class:
-                          'cursor-pointer text-blue-500 focus:text-blue-600',
-                        onClick: () => openApproveModal(contract),
-                      },
-                      () => 'Approve Contract',
-                    ),
-                  ]
-                : null,
+              // contract.status_name === 'pending'
+              //   ? [
+              //       h(DropdownMenuSeparator),
+              //       h(
+              //         DropdownMenuItem,
+              //         {
+              //           class:
+              //             'cursor-pointer text-blue-500 focus:text-blue-600',
+              //           onClick: () => openApproveModal(contract),
+              //         },
+              //         () => 'Approve Contract',
+              //       ),
+              //     ]
+              //   : null,
             ]),
           ]),
         ]);
@@ -310,55 +310,62 @@ watch(
     <div
       class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
     >
-      <div 
-      class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border"
+      <div
+        class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border"
       >
-  <div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-    <h2 class="font-mono text-xl font-semibold">Franchise Contracts</h2>
+        <div
+          class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <h2 class="font-mono text-xl font-semibold">Franchise Contracts</h2>
 
-    <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:gap-4">
-      <Select v-model="selectedStatus">
-        <SelectTrigger class="w-full sm:w-[150px] sm:shrink-0">
-          <SelectValue placeholder="Filter by..." />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="active"> Active </SelectItem>
-          <SelectItem value="pending"> Pending </SelectItem>
-          <SelectItem value="expired"> Expired </SelectItem>
-          <SelectItem value="terminated"> Terminated </SelectItem>
-        </SelectContent>
-      </Select>
+          <div
+            class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:gap-4"
+          >
+            <Select v-model="selectedStatus">
+              <SelectTrigger class="w-full sm:w-[150px] sm:shrink-0">
+                <SelectValue placeholder="Filter by..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active"> Active </SelectItem>
+                <!-- <SelectItem value="pending"> Pending </SelectItem> -->
+                <SelectItem value="expired"> Expired </SelectItem>
+                <SelectItem value="terminated"> Terminated </SelectItem>
+              </SelectContent>
+            </Select>
 
-      <MultiSelect
-        class="w-full sm:w-auto  sm:min-w-[175px] sm:max-w-[300px]"
-        v-model="selectedContext"
-        :options="contextOptions"
-        placeholder="
+            <MultiSelect
+              class="w-full sm:w-auto sm:max-w-[300px] sm:min-w-[175px]"
+              v-model="selectedContext"
+              :options="contextOptions"
+              placeholder="
         Select Franchises
         "
-        all-label="All Franchises"
-        @change="
-          (val) => {
-            selectedFranchise = val;
-            updateFilters();
-          }
-        "
-      />
-    </div>
-  </div>
+              all-label="All Franchises"
+              @change="
+                (val) => {
+                  selectedFranchise = val;
+                  updateFilters();
+                }
+              "
+            />
+          </div>
+        </div>
 
-  <DataTable
-    :columns="contractColumns"
-    :data="contracts.data"
-    search-placeholder="Search contracts..."
-  >
-    <template #custom-actions>
-      <Button class="w-full flex items-center justify-center gap-2 sm:w-auto sm:me-5" @click="createContract">
-        <PlusIcon class="h-4 w-4" /> Add Contract
-      </Button>
-    </template>
-  </DataTable>
-</div>
+        <DataTable
+          :columns="contractColumns"
+          :data="contracts.data"
+          search-placeholder="Search contracts..."
+        >
+          <template #custom-actions>
+            <Button
+              class="flex w-full items-center justify-center gap-2 sm:me-5 sm:w-auto"
+              @click="createContract"
+            >
+              <PlusIcon class="h-4 w-4" /> Add Contract
+            </Button>
+          </template>
+        </DataTable>
+      </div>
     </div>
 
     <Dialog v-model:open="contractModal.isOpen.value">
@@ -411,7 +418,7 @@ watch(
       </DialogContent>
     </Dialog>
 
-    <Dialog v-model:open="isApproveModalOpen">
+    <!-- <Dialog v-model:open="isApproveModalOpen">
       <DialogContent class="max-w-md font-mono">
         <DialogHeader>
           <DialogTitle class="text-2xl">Approve Driver?</DialogTitle>
@@ -434,6 +441,6 @@ watch(
           </Button>
         </DialogFooter>
       </DialogContent>
-    </Dialog>
+    </Dialog> -->
   </AppLayout>
 </template>
