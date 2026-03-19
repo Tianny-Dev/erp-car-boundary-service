@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
+use App\Notifications\DriverContractApproved;
 use Illuminate\Http\Request;
 use App\Models\Status;
 use Illuminate\Support\Facades\DB;
@@ -25,7 +26,7 @@ class BoundaryContractController extends Controller
     {
         // 1. Validate all filters
         $validated = $request->validate([
-            'franchise' => ['sometimes', 'nullable', 'array'], 
+            'franchise' => ['sometimes', 'nullable', 'array'],
             'status' => ['sometimes', 'string', Rule::in(['active', 'terminated', 'expired'])],
         ]);
 
@@ -42,7 +43,7 @@ class BoundaryContractController extends Controller
         // 4. Return all data to Inertia
         return Inertia::render('super-admin/fleet/BoundaryContractIndex', [
             'contracts' => BoundaryContractDatatableResource::collection($contracts),
-            'franchises' => fn () => Franchise::select('id', 'name')->get(),
+            'franchises' => fn() => Franchise::select('id', 'name')->get(),
             'filters' => [
                 'franchise' => $filters['franchise'],
                 'status' => $filters['status'],
@@ -58,10 +59,10 @@ class BoundaryContractController extends Controller
         $query = BoundaryContract::with([
             'driver.user:id,username',
             'status:id,name',
-        ])->whereHas('status', fn ($q) => $q->where('name', $filters['status']));
+        ])->whereHas('status', fn($q) => $q->where('name', $filters['status']));
 
         $query->whereNotNull('franchise_id')
-            ->when(!empty($filters['franchise']), fn ($q) => $q->whereIn('franchise_id', $filters['franchise']))
+            ->when(!empty($filters['franchise']), fn($q) => $q->whereIn('franchise_id', $filters['franchise']))
             ->with('franchise:id,name');
 
         return $query;
@@ -82,14 +83,14 @@ class BoundaryContractController extends Controller
     public function create(): Response
     {
         return Inertia::render('super-admin/fleet/BoundaryContractCreate', [
-            'franchises' => fn () => Franchise::select('id', 'name')->get(),
+            'franchises' => fn() => Franchise::select('id', 'name')->get(),
         ]);
     }
 
     public function getContractResources(Request $request)
     {
         $request->validate([
-            'id'   => ['required', 'integer'],
+            'id' => ['required', 'integer'],
         ]);
         $entityId = $request->id;
 
@@ -127,8 +128,8 @@ class BoundaryContractController extends Controller
             })
             ->get()
             ->map(fn($v) => [
-                'id' => $v->id, 
-                'name' => "{$v->plate_number} - {$v->brand} {$v->model}" 
+                'id' => $v->id,
+                'name' => "{$v->plate_number} - {$v->brand} {$v->model}"
             ]);
 
         return response()->json([
@@ -160,6 +161,10 @@ class BoundaryContractController extends Controller
 
             // Update vehicle driver_id
             Vehicle::where('id', $request->vehicle_id)->update(['driver_id' => $request->driver_id]);
+
+            $driver = UserDriver::with('user')->findOrFail($request->driver_id);
+            $driver->user->notify(new DriverContractApproved());
+
         });
 
         return redirect(route('super-admin.boundaryContract.index'));

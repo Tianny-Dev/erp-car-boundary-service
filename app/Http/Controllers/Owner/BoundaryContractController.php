@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Owner\StoreBoundaryContractRequest;
 use App\Models\BoundaryContract;
 use App\Models\Status;
+use App\Models\UserDriver;
 use App\Models\Vehicle;
+use App\Notifications\DriverContractApproved;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -22,7 +24,7 @@ class BoundaryContractController extends Controller
         $franchiseId = $franchise?->id;
 
         $query = BoundaryContract::with(['driver.user', 'status', 'franchise'])
-            ->when($franchiseId, fn ($q) => $q->where('franchise_id', $franchiseId))
+            ->when($franchiseId, fn($q) => $q->where('franchise_id', $franchiseId))
             ->orderByDesc('created_at');
 
         // Filter by status
@@ -36,14 +38,14 @@ class BoundaryContractController extends Controller
         if ($search = request('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                ->orWhere('coverage_area', 'like', "%{$search}%")
-                ->orWhereHas('franchise', fn($q2) => $q2->where('name', 'like', "%{$search}%"));
+                    ->orWhere('coverage_area', 'like', "%{$search}%")
+                    ->orWhereHas('franchise', fn($q2) => $q2->where('name', 'like', "%{$search}%"));
                 // ->orWhereHas('branch', fn($q2) => $q2->where('name', 'like', "%{$search}%"));
             });
         }
 
         $contracts = $query->paginate(10)
-            ->through(fn ($contract) => [
+            ->through(fn($contract) => [
                 'id' => $contract->id,
                 'name' => $contract->name,
                 'amount' => $contract->amount,
@@ -153,6 +155,9 @@ class BoundaryContractController extends Controller
                 'driver_id' => $request->driver,
                 'status_id' => $activeStatusId
             ]);
+
+            $driver = UserDriver::with('user')->findOrFail($request->driver);
+            $driver->user->notify(new DriverContractApproved());
 
         });
 
