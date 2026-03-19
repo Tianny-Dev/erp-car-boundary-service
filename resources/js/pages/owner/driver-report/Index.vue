@@ -368,67 +368,70 @@ watch(
     <div
       class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
     >
-      <div
+      <div 
         class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border"
-      >
-        <div class="mb-4 grid items-center justify-between sm:flex">
-          <div>
-            <h2 class="font-mono text-xl font-semibold">
-              {{ title }}
-            </h2>
-          </div>
-          <div class="grid gap-4 sm:flex">
-            <Select v-model="selectedPeriod">
-              <SelectTrigger class="w-[150px] cursor-pointer">
-                <SelectValue placeholder="Filter by Period" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="daily" class="cursor-pointer">
-                  Daily
-                </SelectItem>
-                <SelectItem value="weekly" class="cursor-pointer">
-                  Weekly
-                </SelectItem>
-                <SelectItem value="monthly" class="cursor-pointer">
-                  Monthly
-                </SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select v-model="selectedDriver">
-              <SelectTrigger class="w-[200px] cursor-pointer">
-                <SelectValue placeholder="Select Driver" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Drivers</SelectItem>
-                <SelectItem
-                  v-for="driver in drivers"
-                  :key="driver.id"
-                  :value="String(driver.id)"
-                >
-                  {{ driver.username }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        <DataTable
-          :columns="revenueColumns"
-          :data="revenues.data"
-          search-placeholder="Search drivers..."
         >
-          <template #custom-actions>
-            <div class="grid gap-3 sm:flex">
-              <Button @click="openExportModal('pdf')" class="ms-2">
-                Export PDF
-              </Button>
-              <Button @click="openExportModal('excel')"> Export Excel </Button>
-              <Button @click="openExportModal('csv')"> Export CSV </Button>
-            </div>
-          </template>
-        </DataTable>
+  <div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <h2 class="font-mono text-xl font-semibold">
+        {{ title }}
+      </h2>
+    </div>
+    <div class="grid w-full grid-cols-2 gap-3 sm:flex sm:w-auto sm:flex-row sm:gap-4">
+      <Select v-model="selectedPeriod">
+        <SelectTrigger class="w-full cursor-pointer sm:w-[150px] sm:shrink-0">
+          <SelectValue placeholder="Filter by Period" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="daily" class="cursor-pointer"> Daily </SelectItem>
+          <SelectItem value="weekly" class="cursor-pointer"> Weekly </SelectItem>
+          <SelectItem value="monthly" class="cursor-pointer"> Monthly </SelectItem>
+        </SelectContent>
+      </Select>
+
+      <Select v-model="selectedDriver">
+        <SelectTrigger class="w-full cursor-pointer sm:w-[200px] sm:shrink-0">
+          <SelectValue placeholder="Select Driver" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All Drivers</SelectItem>
+          <SelectItem
+            v-for="driver in drivers"
+            :key="driver.id"
+            :value="String(driver.id)"
+          >
+            {{ driver.username }}
+          </SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  </div>
+
+  <DataTable
+    :columns="revenueColumns"
+    :data="revenues.data"
+    search-placeholder="Search drivers..."
+  >
+    <template #custom-actions>
+      <div class="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-row sm:items-center">
+        
+        <Button class="w-full sm:w-auto" @click="openExportModal('pdf')">
+          Export PDF
+        </Button>
+        
+        <Button class="w-full sm:w-auto" @click="openExportModal('excel')">
+          Export Excel
+        </Button>
+        
+        <Button class="col-span-2 w-full sm:col-span-1 sm:w-auto" @click="openExportModal('csv')">
+          Export CSV
+        </Button>
+        
       </div>
+    </template>
+  </DataTable>
+  
+</div>
 
       <Dialog v-model:open="showExportModal">
         <DialogContent class="flex max-h-[90vh] flex-col sm:max-w-lg">
