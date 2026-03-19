@@ -26,7 +26,7 @@ class BoundaryContractController extends Controller
         // 1. Validate all filters
         $validated = $request->validate([
             'franchise' => ['sometimes', 'nullable', 'array'], 
-            'status' => ['sometimes', 'string', Rule::in(['active', 'pending', 'terminated', 'expired'])],
+            'status' => ['sometimes', 'string', Rule::in(['active', 'terminated', 'expired'])],
         ]);
 
         // 2. Set defaults
@@ -141,10 +141,10 @@ class BoundaryContractController extends Controller
     {
         DB::transaction(function () use ($request) {
 
-            $pendingStatusId = Status::where('name', 'pending')->firstOrFail()->id;
+            $activeStatusId = Status::where('name', 'active')->firstOrFail()->id;
 
             BoundaryContract::create([
-                'status_id' => $pendingStatusId,
+                'status_id' => $activeStatusId,
                 'franchise_id' => $request->franchise_id,
                 'driver_id' => $request->driver_id,
                 'vehicle_id' => $request->vehicle_id,
