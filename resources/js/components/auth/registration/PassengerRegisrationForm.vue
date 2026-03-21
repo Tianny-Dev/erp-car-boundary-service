@@ -117,6 +117,8 @@ watch(
   { deep: true, immediate: true },
 );
 const phoneNumber = ref('09');
+const password = ref('');
+const confirmPassword = ref('');
 </script>
 
 <template>
@@ -181,6 +183,8 @@ const phoneNumber = ref('09');
           :labels="securityStep4Labels"
           v-model:terms1="terms1"
           v-model:terms2="terms2"
+          v-model:password="password"
+          v-model:confirmPassword="confirmPassword"
         />
       </div>
 
