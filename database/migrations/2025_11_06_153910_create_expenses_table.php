@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('franchise_id')->nullable()->constrained('franchises')->onDelete('restrict');
             $table->foreignId('maintenance_id')->constrained('maintenances')->onDelete('restrict');
             $table->string('invoice_no', 100)->unique();
+            $table->dateTime('payment_date')->nullable();
             $table->decimal('amount', 10, 2);
             $table->string('currency', 10)->default('PHP');
             $table->text('notes')->nullable();

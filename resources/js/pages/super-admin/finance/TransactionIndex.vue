@@ -193,6 +193,7 @@ const transactionColumns = computed<ColumnDef<TransactionRow>[]>(() => {
     {
       accessorKey: 'invoice_no',
       header: 'Invoice #',
+      cell: (info) => info.getValue() || '-',
     },
     {
       accessorKey: 'franchise_name',
@@ -313,55 +314,59 @@ watch(
       <div
         class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border"
       >
-       <div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between lg:items-center">
-  <h2 class="font-mono text-xl font-semibold">
-    Franchise Transactions
-  </h2>
-  <div class="grid w-full grid-cols-2 gap-3 sm:flex sm:w-auto sm:flex-row sm:flex-wrap sm:gap-4 lg:flex-nowrap">
-    <Select v-model="selectedType">
-      <SelectTrigger class="w-full sm:w-[150px] sm:shrink-0">
-        <SelectValue placeholder="Filter by..." />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="revenue"> Revenue </SelectItem>
-        <SelectItem value="expense"> Expense </SelectItem>
-      </SelectContent>
-    </Select>
+        <div
+          class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between lg:items-center"
+        >
+          <h2 class="font-mono text-xl font-semibold">
+            Franchise Transactions
+          </h2>
+          <div
+            class="grid w-full grid-cols-2 gap-3 sm:flex sm:w-auto sm:flex-row sm:flex-wrap sm:gap-4 lg:flex-nowrap"
+          >
+            <Select v-model="selectedType">
+              <SelectTrigger class="w-full sm:w-[150px] sm:shrink-0">
+                <SelectValue placeholder="Filter by..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="revenue"> Revenue </SelectItem>
+                <SelectItem value="expense"> Expense </SelectItem>
+              </SelectContent>
+            </Select>
 
-    <Select v-if="selectedType === 'revenue'" v-model="selectedService">
-      <SelectTrigger class="w-full sm:w-[150px] sm:shrink-0">
-        <SelectValue placeholder="Filter by..." />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="Trips"> Trips </SelectItem>
-        <SelectItem value="Boundary"> Boundary </SelectItem>
-      </SelectContent>
-    </Select>
+            <Select v-if="selectedType === 'revenue'" v-model="selectedService">
+              <SelectTrigger class="w-full sm:w-[150px] sm:shrink-0">
+                <SelectValue placeholder="Filter by..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Trips"> Trips </SelectItem>
+                <SelectItem value="Boundary"> Boundary </SelectItem>
+              </SelectContent>
+            </Select>
 
-    <MultiSelect
-      class="col-span-2 w-full sm:col-span-1 sm:w-auto sm:flex-1 sm:min-w-[150px] sm:max-w-[250px]"
-      v-model="selectedDriver"
-      :options="driverOptions"
-      placeholder="Select Drivers"
-      all-label="All Drivers"
-      @change="updateFilters"
-    />
+            <MultiSelect
+              class="col-span-2 w-full sm:col-span-1 sm:w-auto sm:max-w-[250px] sm:min-w-[150px] sm:flex-1"
+              v-model="selectedDriver"
+              :options="driverOptions"
+              placeholder="Select Drivers"
+              all-label="All Drivers"
+              @change="updateFilters"
+            />
 
-    <MultiSelect
-      class="col-span-2 w-full sm:col-span-1 sm:w-auto sm:flex-1 sm:min-w-[150px] sm:max-w-[250px]"
-      v-model="selectedContext"
-      :options="contextOptions"
-      placeholder="Select Franchises"
-      all-label="All Franchises"
-      @change="
-        (val) => {
-          selectedFranchise = val;
-          updateFilters();
-        }
-      "
-    />
-  </div>
-</div>
+            <MultiSelect
+              class="col-span-2 w-full sm:col-span-1 sm:w-auto sm:max-w-[250px] sm:min-w-[150px] sm:flex-1"
+              v-model="selectedContext"
+              :options="contextOptions"
+              placeholder="Select Franchises"
+              all-label="All Franchises"
+              @change="
+                (val) => {
+                  selectedFranchise = val;
+                  updateFilters();
+                }
+              "
+            />
+          </div>
+        </div>
 
         <DataTable
           :columns="transactionColumns"

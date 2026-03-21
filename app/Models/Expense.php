@@ -17,6 +17,7 @@ class Expense extends Model
         'amount',
         'currency',
         'notes',
+        'payment_date',
     ];
 
     // relationship to franchise

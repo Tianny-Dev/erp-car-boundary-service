@@ -104,6 +104,7 @@ class VehicleController extends Controller
                 'amount'         => $totalAmount,
                 'currency'       => 'PHP',
                 'notes'          => "Maintenance for {$vehicle->plate_number}: {$request->description}",
+                'payment_date'   => now(),
             ]);
 
             // 4. Update the vehicle status to 5 (Maintenance)
