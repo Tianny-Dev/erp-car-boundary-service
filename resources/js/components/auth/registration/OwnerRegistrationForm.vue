@@ -184,6 +184,8 @@ watch(
   },
   { deep: true, immediate: true },
 );
+
+const phoneNumber = ref('09');
 </script>
 
 <template>
@@ -220,7 +222,11 @@ watch(
 
       <!-- Step 1: Personal Information -->
       <div v-show="currentStep === 1" class="space-y-4" data-step="1">
-        <Step1Personal :errors="errors" :show-fields="personalStep1Show" />
+        <Step1Personal
+          :errors="errors"
+          :show-fields="personalStep1Show"
+          v-model:phone="phoneNumber"
+        />
       </div>
 
       <!-- Step 2: Home Address -->

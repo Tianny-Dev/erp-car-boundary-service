@@ -116,6 +116,7 @@ watch(
   },
   { deep: true, immediate: true },
 );
+const phoneNumber = ref('09');
 </script>
 
 <template>
@@ -158,6 +159,7 @@ watch(
           :show-fields="personalStep1Show"
           v-model:selectedGender="selectedGender"
           v-model:birthday="birthday"
+          v-model:phone="phoneNumber"
         />
       </div>
 
