@@ -107,7 +107,7 @@ class DatabaseSeeder extends Seeder
 
         // $this->call(SupportTicketSeeder::class);
 
-        // $this->call(FeedbackSeeder::class);
+        $this->call(FeedbackSeeder::class);
 
     }
 }
