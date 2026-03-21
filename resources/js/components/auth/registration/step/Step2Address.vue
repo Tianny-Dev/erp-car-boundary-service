@@ -94,6 +94,17 @@ watch(
     emit('change', new Event('change'));
   },
 );
+
+// --- HANDLERS ---
+const handlePostalCodeInput = (e: Event) => {
+  const target = e.target as HTMLInputElement;
+  let val = target.value.replace(/\D/g, '');
+  if (val.length > 4) {
+    val = val.slice(0, 4);
+  }
+  target.value = val;
+  emit('update:postalCode', val);
+};
 </script>
 
 <template>
@@ -287,9 +298,9 @@ watch(
 
   <!-- Postal Code -->
   <div class="grid gap-2">
-    <Label :for="fieldNames.postalCode" class="font-semibold text-auth-blue">{{
-      labels.postalCode
-    }}</Label>
+    <Label :for="fieldNames.postalCode" class="font-semibold text-auth-blue">
+      {{ labels.postalCode }}
+    </Label>
     <div
       class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
     >
@@ -298,24 +309,37 @@ watch(
       </div>
       <Input
         :id="fieldNames.postalCode"
-        type="number"
+        type="text"
+        inputmode="numeric"
         :name="fieldNames.postalCode"
         required
         :model-value="postalCode"
-        @update:model-value="emit('update:postalCode', $event)"
+        @input="
+          (e) => {
+            handlePostalCodeInput(e);
+            $emit('change', e);
+          }
+        "
         :autocomplete="fieldNames.postalCode"
         placeholder="2009"
         class="flex-1 border-0 font-mono font-semibold focus-visible:ring-0"
       />
     </div>
+
+    <p
+      v-if="postalCode && postalCode.toString().length < 4"
+      class="text-xs font-semibold text-red-500"
+    >
+      Postal code must be exactly 4 digits.
+    </p>
+
     <InputError :message="errors?.[fieldNames.postalCode]" />
   </div>
 
-  <!-- Address -->
   <div class="grid gap-2">
-    <Label :for="fieldNames.address" class="font-semibold text-auth-blue">{{
-      labels.address
-    }}</Label>
+    <Label :for="fieldNames.address" class="font-semibold text-auth-blue">
+      {{ labels.address }}
+    </Label>
     <div
       class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
     >
@@ -328,7 +352,12 @@ watch(
         :name="fieldNames.address"
         required
         :model-value="streetAddress"
-        @update:model-value="emit('update:streetAddress', $event)"
+        @input="
+          (val) => {
+            emit('update:streetAddress', val);
+            $emit('change', $event);
+          }
+        "
         autocomplete="address"
         placeholder="123 St. / Building Name"
         class="flex-1 border-0 font-mono font-semibold focus-visible:ring-0"

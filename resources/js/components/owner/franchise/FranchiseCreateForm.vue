@@ -121,9 +121,34 @@ const currentStep = ref(1);
 const totalSteps = 6;
 const terms1 = ref(false);
 const terms2 = ref(false);
+
+// ADD THESE HELPER COMPUTEDS IN THE PARENT
+const isPasswordValid = computed(() => {
+  const val = password.value || '';
+  const has8Chars = val.length >= 8;
+  const hasUpper = /[A-Z]/.test(val);
+  const hasLower = /[a-z]/.test(val);
+  const hasNumber = /\d/.test(val);
+  const hasSpecial = /[@$!%*?&#]/.test(val);
+
+  return has8Chars && hasUpper && hasLower && hasNumber && hasSpecial;
+});
+
+const isConfirmMatch = computed(() => {
+  return (
+    password.value === confirmPassword.value && confirmPassword.value !== ''
+  );
+});
+
 const canSubmit = computed(() => {
   if (currentStep.value === totalSteps) {
-    return terms1.value && terms2.value;
+    // MUST have terms checked AND valid password AND matching confirmation
+    return (
+      terms1.value &&
+      terms2.value &&
+      isPasswordValid.value &&
+      isConfirmMatch.value
+    );
   }
   return true;
 });
@@ -179,6 +204,10 @@ watch(
   },
   { deep: true, immediate: true },
 );
+
+const phoneNumber = ref('09');
+const password = ref('');
+const confirmPassword = ref('');
 </script>
 
 <template>
@@ -206,7 +235,11 @@ watch(
 
     <!-- Step 1: Personal Information -->
     <div v-show="currentStep === 1" class="space-y-4" data-step="1">
-      <Step1Personal :errors="errors" :show-fields="personalStep1Show" />
+      <Step1Personal
+        :errors="errors"
+        :show-fields="personalStep1Show"
+        v-model:phone="phoneNumber"
+      />
     </div>
 
     <!-- Step 2: Home Address -->
@@ -260,6 +293,8 @@ watch(
         :labels="securityStep6Labels"
         v-model:terms1="terms1"
         v-model:terms2="terms2"
+        v-model:password="password"
+        v-model:confirmPassword="confirmPassword"
       />
     </div>
 

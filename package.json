@@ -47,6 +47,7 @@
         "date-fns": "^4.1.0",
         "laravel-vite-plugin": "^2.0.0",
         "leaflet": "^1.9.4",
+        "leaflet-control-geocoder": "^3.3.1",
         "lucide-vue-next": "^0.553.0",
         "reka-ui": "^2.6.1",
         "tailwind-merge": "^3.2.0",

@@ -80,9 +80,31 @@ const show = computed(() => ({ ...defaultShowFields, ...props.showFields }));
 // --- INTERNAL STATE ---
 const showPassword = ref(false);
 const showConfirmPassword = ref(false);
+
+// --- PASSWORD VALIDATION LOGIC ---
+const passwordRequirements = computed(() => {
+  const val = props.password || '';
+  return [
+    { label: 'At least 8 characters', met: val.length >= 8 },
+    { label: 'At least one uppercase letter', met: /[A-Z]/.test(val) },
+    { label: 'At least one lowercase letter', met: /[a-z]/.test(val) },
+    { label: 'At least one number', met: /\d/.test(val) },
+    {
+      label: 'At least one special character (@$!%*?&)',
+      met: /[@$!%*?&#]/.test(val),
+    },
+  ];
+});
+
+const passwordsMatch = computed(() => {
+  // If confirmation is empty, don't show an error yet
+  if (!props.confirmPassword) return true;
+  return props.password === props.confirmPassword;
+});
 </script>
 
 <template>
+  <!-- Password -->
   <!-- Password -->
   <template v-if="show.password">
     <div class="grid gap-2">
@@ -108,7 +130,7 @@ const showConfirmPassword = ref(false);
           />
           <button
             type="button"
-            class="absolute inset-y-0 right-0 flex cursor-pointer items-center pr-3 text-gray-500 hover:text-gray-700"
+            class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500"
             @click="showPassword = !showPassword"
           >
             <Eye v-if="!showPassword" class="h-5 w-5" />
@@ -116,16 +138,43 @@ const showConfirmPassword = ref(false);
           </button>
         </div>
       </div>
+
+      <div
+        v-if="
+          (password?.length ?? 0) > 0 &&
+          !passwordRequirements.every((req) => req.met)
+        "
+        class="mt-1 grid grid-cols-1 gap-1 text-[11px]"
+      >
+        <div
+          v-for="(req, index) in passwordRequirements"
+          :key="index"
+          :class="req.met ? 'text-green-600' : 'text-gray-400'"
+          class="flex items-center gap-1 transition-colors duration-300"
+        >
+          <span v-if="req.met">✔</span>
+          <span v-else>○</span>
+          {{ req.label }}
+        </div>
+      </div>
+
+      <p
+        v-else-if="passwordRequirements.every((req) => req.met)"
+        class="text-[11px] font-bold text-green-600"
+      >
+        ✔ Password is secure
+      </p>
+
       <InputError :message="errors?.[fields.password]" />
     </div>
 
-    <!-- Confirm Password -->
     <div class="grid gap-2">
       <Label for="password_confirmation" class="font-semibold text-auth-blue"
         >Confirm Password</Label
       >
       <div
         class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
+        :class="!passwordsMatch ? 'border-red-500' : ''"
       >
         <div class="flex items-center justify-center bg-auth-blue px-3">
           <Lock class="h-5 w-5 text-white" />
@@ -143,7 +192,7 @@ const showConfirmPassword = ref(false);
           />
           <button
             type="button"
-            class="absolute inset-y-0 right-0 flex cursor-pointer items-center pr-3 text-gray-500 hover:text-gray-700"
+            class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500"
             @click="showConfirmPassword = !showConfirmPassword"
           >
             <Eye v-if="!showConfirmPassword" class="h-5 w-5" />
@@ -151,6 +200,9 @@ const showConfirmPassword = ref(false);
           </button>
         </div>
       </div>
+      <p v-if="!passwordsMatch" class="text-xs font-semibold text-red-500">
+        Passwords do not match
+      </p>
       <InputError :message="errors?.[fields.confirmPassword]" />
     </div>
   </template>

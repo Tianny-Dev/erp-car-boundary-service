@@ -7,10 +7,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { CheckIcon, MapPinIcon, XIcon } from 'lucide-vue-next';
+import { debounce } from 'lodash';
+import {
+  CheckIcon,
+  Loader2,
+  MapPinIcon,
+  Search,
+  X,
+  XIcon,
+} from 'lucide-vue-next';
 import { onBeforeUnmount, ref, watch } from 'vue';
 
 // Fix Leaflet's broken default icon paths under Vite bundlers
@@ -42,26 +51,26 @@ const mapContainer = ref<HTMLDivElement | null>(null);
 let map: L.Map | null = null;
 let marker: L.Marker | null = null;
 
-// Temp coords while the dialog is open (not committed until "Confirm")
 const tempCoords = ref<Coords | null>(null);
-
-// Philippines geographic center as default view
 const PH_CENTER: L.LatLngTuple = [12.8797, 121.774];
 
-// ── Map lifecycle ──────────────────────────────────────────────────────────────
+// --- Search Logic State ---
+const searchQuery = ref('');
+const searchResults = ref<any[]>([]);
+const isSearching = ref(false);
+const showResults = ref(false);
 
+// --- Map Functions ---
 function initMap() {
   if (!mapContainer.value || map) return;
 
   map = L.map(mapContainer.value).setView(PH_CENTER, 6);
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    attribution: '&copy; OpenStreetMap contributors',
     maxZoom: 19,
   }).addTo(map);
 
-  // Restore previous pin if one exists
   if (tempCoords.value) {
     placeMarker(tempCoords.value.lat, tempCoords.value.lng);
     map.setView([tempCoords.value.lat, tempCoords.value.lng], 15);
@@ -74,20 +83,71 @@ function initMap() {
 
 function placeMarker(lat: number, lng: number) {
   if (!map) return;
-
   if (marker) {
     marker.setLatLng([lat, lng]);
   } else {
     marker = L.marker([lat, lng], { draggable: true }).addTo(map);
-
-    // Allow fine-tuning by dragging
     marker.on('dragend', () => {
       const pos = marker!.getLatLng();
       tempCoords.value = { lat: pos.lat, lng: pos.lng };
     });
   }
-
   tempCoords.value = { lat, lng };
+}
+
+// --- Search Implementation ---
+async function performSearch(query: string) {
+  if (query.trim().length < 3) {
+    searchResults.value = [];
+    showResults.value = false;
+    return;
+  }
+
+  isSearching.value = true;
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&countrycodes=ph&limit=5&q=${encodeURIComponent(query)}`,
+    );
+    const data = await response.json();
+    searchResults.value = data;
+    showResults.value = true;
+  } catch (error) {
+    console.error('Search failed', error);
+  } finally {
+    isSearching.value = false;
+  }
+}
+
+const debouncedSearch = debounce((val: string) => {
+  performSearch(val);
+}, 500);
+
+watch(searchQuery, (newVal) => {
+  if (newVal.trim().length >= 3) {
+    debouncedSearch(newVal);
+  } else {
+    searchResults.value = [];
+    showResults.value = false;
+  }
+});
+
+function selectResult(result: any) {
+  const lat = parseFloat(result.lat);
+  const lon = parseFloat(result.lon);
+
+  if (map) {
+    map.setView([lat, lon], 16);
+    placeMarker(lat, lon);
+  }
+
+  searchQuery.value = result.display_name;
+  showResults.value = false;
+}
+
+function clearSearch() {
+  searchQuery.value = '';
+  searchResults.value = [];
+  showResults.value = false;
 }
 
 function destroyMap() {
@@ -98,10 +158,8 @@ function destroyMap() {
   }
 }
 
-// ── Dialog handlers ────────────────────────────────────────────────────────────
-
+// --- Dialog Handlers ---
 function handleOpen() {
-  // Pre-populate temp coords from existing value so user sees their previous pin
   tempCoords.value = props.modelValue ? { ...props.modelValue } : null;
   open.value = true;
 }
@@ -113,17 +171,14 @@ function handleConfirm() {
 
 function handleCancel() {
   tempCoords.value = null;
+  clearSearch();
   open.value = false;
 }
 
-// ── Watchers ───────────────────────────────────────────────────────────────────
-
 watch(open, (val) => {
   if (val) {
-    // Wait one tick for the dialog DOM to be rendered before initialising the map
     setTimeout(() => {
       initMap();
-      // invalidateSize ensures Leaflet fills the container correctly
       setTimeout(() => map?.invalidateSize(), 100);
     }, 50);
   } else {
@@ -147,7 +202,6 @@ onBeforeUnmount(destroyMap);
         <MapPinIcon class="h-5 w-5 text-white" />
       </div>
 
-      <!-- Trigger button -->
       <Button
         type="button"
         variant="ghost"
@@ -164,14 +218,8 @@ onBeforeUnmount(destroyMap);
       </Button>
     </div>
 
-    <!-- Error message (mirrors your other field components) -->
     <p v-if="errorMsg" class="text-sm text-destructive">{{ errorMsg }}</p>
 
-    <!--
-      Hidden inputs picked up by:
-        1. MultiStepFooter's DOM-based required-field validation
-        2. The native <form> submit (serialised into FormData)
-    -->
     <input
       type="hidden"
       name="latitude"
@@ -185,7 +233,6 @@ onBeforeUnmount(destroyMap);
       required
     />
 
-    <!-- Map dialog -->
     <Dialog
       :open="open"
       @update:open="
@@ -198,17 +245,72 @@ onBeforeUnmount(destroyMap);
         class="flex max-w-2xl flex-col gap-0 overflow-hidden p-0 sm:max-w-3xl"
       >
         <DialogHeader class="px-4 pt-4 pb-3">
-          <DialogTitle class="text-auth-blue">
-            Pin Franchise Location
-          </DialogTitle>
-          <p class="text-sm text-muted-foreground">
-            Click anywhere on the map to drop a pin. Drag the marker to
-            fine-tune the exact position.
-          </p>
+          <DialogTitle class="text-auth-blue"
+            >Pin Franchise Location</DialogTitle
+          >
+
+          <div class="relative mt-2 w-full">
+            <div
+              class="flex items-center rounded-md border pr-1 shadow-sm ring-offset-background focus-within:ring-2 focus-within:ring-auth-blue/20"
+            >
+              <Input
+                v-model="searchQuery"
+                placeholder="Search places in Philippines..."
+                class="border-none shadow-none focus-visible:ring-0"
+                @focus="searchQuery.length >= 3 ? (showResults = true) : null"
+              />
+              <button
+                v-if="searchQuery"
+                @click="clearSearch"
+                class="mr-1 rounded-full p-1 text-slate-400 hover:bg-slate-100"
+              >
+                <X class="h-4 w-4" />
+              </button>
+              <div
+                class="flex h-8 w-8 items-center justify-center text-auth-blue"
+              >
+                <Loader2 v-if="isSearching" class="h-4 w-4 animate-spin" />
+                <Search v-else class="h-4 w-4" />
+              </div>
+            </div>
+
+            <div
+              v-if="showResults"
+              class="absolute z-[2000] mt-1 w-full overflow-hidden rounded-md border bg-white shadow-lg"
+            >
+              <ul
+                v-if="searchResults.length > 0"
+                class="max-h-48 overflow-y-auto py-1"
+              >
+                <li
+                  v-for="result in searchResults"
+                  :key="result.place_id"
+                  @click="selectResult(result)"
+                  class="flex cursor-pointer items-start space-x-3 border-b px-4 py-2 transition-colors last:border-0 hover:bg-slate-50"
+                >
+                  <MapPinIcon
+                    class="mt-1 h-4 w-4 flex-shrink-0 text-slate-400"
+                  />
+                  <div class="flex flex-col">
+                    <span class="text-xs font-semibold text-slate-700">
+                      {{ result.display_name.split(',')[0] }}
+                    </span>
+                    <span class="line-clamp-1 text-[10px] text-slate-500">
+                      {{ result.display_name }}
+                    </span>
+                  </div>
+                </li>
+              </ul>
+              <div v-else-if="!isSearching" class="p-4 text-center">
+                <p class="text-xs text-slate-500">
+                  No results found for "{{ searchQuery }}"
+                </p>
+              </div>
+            </div>
+          </div>
         </DialogHeader>
 
-        <!-- Leaflet mounts here — explicit height is required -->
-        <div ref="mapContainer" class="h-[420px] w-full" />
+        <div ref="mapContainer" class="h-[380px] w-full border-y" />
 
         <DialogFooter class="flex items-center gap-3 px-4 py-3">
           <p class="flex-1 truncate text-xs text-muted-foreground">
@@ -216,24 +318,20 @@ onBeforeUnmount(destroyMap);
               📍 {{ tempCoords.lat.toFixed(6) }},
               {{ tempCoords.lng.toFixed(6) }}
             </template>
-            <span v-else class="italic">
-              No pin placed yet — click the map
-            </span>
+            <span v-else class="italic">No pin placed yet</span>
           </p>
 
           <Button type="button" variant="outline" @click="handleCancel">
-            <XIcon class="mr-1 h-4 w-4" />
-            Cancel
+            <XIcon class="mr-1 h-4 w-4" /> Cancel
           </Button>
 
           <Button
             type="button"
             :disabled="!tempCoords"
-            class="bg-auth-blue text-white hover:bg-auth-blue hover:opacity-80"
+            class="bg-auth-blue text-white hover:bg-auth-blue/90"
             @click="handleConfirm"
           >
-            <CheckIcon class="mr-1 h-4 w-4" />
-            Confirm
+            <CheckIcon class="mr-1 h-4 w-4" /> Confirm
           </Button>
         </DialogFooter>
       </DialogContent>

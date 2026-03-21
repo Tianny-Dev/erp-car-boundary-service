@@ -132,6 +132,17 @@ const calculatedAge = computed(() => {
   }
   return age;
 });
+
+const handlePhoneInput = (e: Event) => {
+  const target = e.target as HTMLInputElement;
+  let val = target.value.replace(/\D/g, '');
+  if (!val.startsWith('09')) {
+    val = '09' + val.replace(/^0?9?/, '');
+  }
+  val = val.substring(0, 11);
+  target.value = val;
+  emit('update:phone', val);
+};
 </script>
 
 <template>
@@ -217,9 +228,9 @@ const calculatedAge = computed(() => {
 
   <!-- Phone -->
   <div v-if="show.phone" class="grid gap-2">
-    <Label :for="fields.phone" class="font-semibold text-auth-blue">{{
-      labels.phone
-    }}</Label>
+    <Label :for="fields.phone" class="font-semibold text-auth-blue">
+      {{ labels.phone }}
+    </Label>
     <div
       class="flex w-full max-w-sm overflow-hidden rounded-md border border-gray-300"
     >
@@ -230,11 +241,11 @@ const calculatedAge = computed(() => {
         :id="fields.phone"
         type="tel"
         :name="fields.phone"
-        :model-value="phone"
-        @update:model-value="emit('update:phone', $event)"
+        :model-value="props.phone"
+        @input="handlePhoneInput"
         required
-        :autocomplete="fields.phone"
-        placeholder="639123456789"
+        inputmode="numeric"
+        placeholder="09123456789"
         class="flex-1 border-0 font-mono font-semibold focus-visible:ring-0"
       />
     </div>
