@@ -93,80 +93,105 @@ class VehicleController extends Controller
         return back();
     }
 
-    public function update(Request $request, Vehicle $vehicle)
+   public function store(Request $request)
     {
-        $validated = $request->validate([
-            'franchise_id' => ['required', 'exists:franchises,id'],
-            'plate_number' => ['required', 'string', 'max:20', Rule::unique('vehicles')->ignore($vehicle->id)],
-            'vin' => ['required', 'string', 'max:50', Rule::unique('vehicles')->ignore($vehicle->id)],
-            'brand' => ['required', 'string', 'max:100'],
-            'model' => ['required', 'string', 'max:100'],
-            'year' => ['required', 'integer'],
-            'color' => ['required', 'string', 'max:50'],
-            'or_cr' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
+        $request->validate([
+            'franchise_id' => 'required|exists:franchises,id',
+            'plate_number' => [
+                'required',
+                'string',
+                'unique:vehicles,plate_number',
+                'regex:/^([A-Z]{3}\s?\d{3,4}|[A-Z]{2}\s?\d{5})$/i'
+            ],
+            'vin'   => [
+                'required',
+                'string',
+                'size:17',
+                'unique:vehicles,vin',
+                'regex:/^[A-HJ-NPR-Z0-9]+$/i'
+            ],
+            'brand' => 'required|string|max:50',
+            'model' => 'required|string|max:50',
+            'color' => 'required|string|max:30',
+            'year'  => 'required|integer|digits:4|between:1900,' . (date('Y') + 1),
+            'or_cr' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
+        ], [
+            'plate_number.regex' => 'The plate number format is invalid (e.g., ABC 1234 or AB 12345).',
+            'vin.regex' => 'The VIN contains invalid characters (I, O, and Q are not allowed).',
         ]);
 
-        // Update text fields (this excludes the file from the array automatically if not provided)
-        $vehicle->fill($request->except('or_cr'));
-
-        if ($request->hasFile('or_cr')) {
-            // 1. Delete old file from storage if it exists
-            if ($vehicle->or_cr) {
-                Storage::disk('public')->delete('vehicle_documents/'.$vehicle->or_cr);
-            }
-
-            // 2. Handle New File Upload
-            $file = $request->file('or_cr');
-
-            // Consistent naming: timestamp + cleaned plate number
-            $filename = time().'_or_cr_'.str_replace(' ', '_', $request->plate_number).'.'.$file->getClientOriginalExtension();
-
-            $file->storeAs('vehicle_documents', $filename, 'public');
-
-            // 3. Update the database column
-            $vehicle->or_cr = $filename;
-        }
-
-        $vehicle->save();
-
-        // Use 'back' so the Inertia modal refreshes its data automatically
-        return back()->with('success', 'Vehicle updated successfully');
-    }
-
-    public function store(StoreVehicleRequest $request)
-    {
         $availableStatusId = Status::where('name', 'available')->firstOrFail()->id;
 
-        // 1. Create the vehicle instance first
-        $vehicle = new Vehicle([
-            'status_id' => $availableStatusId,
-            'franchise_id' => $request->franchise_id,
-            'plate_number' => $request->plate_number,
-            'vin' => $request->vin,
-            'brand' => $request->brand,
-            'model' => $request->model,
-            'color' => $request->color,
-            'year' => $request->year,
-            'or_cr' => $request->or_cr,
-        ]);
+        $vehicle = new Vehicle($request->except('or_cr'));
+        $vehicle->status_id = $availableStatusId;
+        $vehicle->plate_number = strtoupper(trim($request->plate_number));
+        $vehicle->vin = strtoupper(trim($request->vin));
 
-        // 2. Handle File Upload using your specific naming logic
         if ($request->hasFile('or_cr')) {
             $file = $request->file('or_cr');
+            $safePlate = str_replace(' ', '_', $vehicle->plate_number);
+            $filename = time() . '_or_cr_' . $safePlate . '.' . $file->getClientOriginalExtension();
 
-            // Naming: time() + plate_number for uniqueness
-            $filename = time().'_or_cr_'.str_replace(' ', '_', $request->plate_number).'.'.$file->getClientOriginalExtension();
-
-            // Store in storage/app/public/vehicle_documents
             $file->storeAs('vehicle_documents', $filename, 'public');
-
-            // Save filename to database column
             $vehicle->or_cr = $filename;
         }
 
         $vehicle->save();
 
-        return redirect(route('super-admin.vehicle.index'));
+        return redirect(route('super-admin.vehicle.index'))->with('success', 'Vehicle created!');
+    }
+
+    /**
+     * Update the specified vehicle.
+     */
+    public function update(Request $request, Vehicle $vehicle)
+    {
+        $request->validate([
+            'franchise_id' => 'required|exists:franchises,id',
+            'plate_number' => [
+                'required',
+                'string',
+                Rule::unique('vehicles')->ignore($vehicle->id),
+                'regex:/^([A-Z]{3}\s?\d{3,4}|[A-Z]{2}\s?\d{5})$/i'
+            ],
+            'vin'   => [
+                'required',
+                'string',
+                'size:17',
+                Rule::unique('vehicles')->ignore($vehicle->id),
+                'regex:/^[A-HJ-NPR-Z0-9]+$/i'
+            ],
+            'brand' => 'required|string|max:50',
+            'model' => 'required|string|max:50',
+            'color' => 'required|string|max:30',
+            'year'  => 'required|integer|digits:4|between:1900,' . (date('Y') + 1),
+            'or_cr' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+        ], [
+            'plate_number.regex' => 'The plate number format is invalid (e.g., ABC 1234 or AB 12345).',
+            'vin.regex' => 'The VIN contains invalid characters (I, O, and Q are not allowed).',
+        ]);
+
+        $vehicle->fill($request->except('or_cr'));
+        $vehicle->plate_number = strtoupper(trim($request->plate_number));
+        $vehicle->vin = strtoupper(trim($request->vin));
+
+        if ($request->hasFile('or_cr')) {
+            // Delete old file if it exists
+            if ($vehicle->or_cr) {
+                Storage::disk('public')->delete('vehicle_documents/' . $vehicle->or_cr);
+            }
+
+            $file = $request->file('or_cr');
+            $safePlate = str_replace(' ', '_', $vehicle->plate_number);
+            $filename = time() . '_or_cr_' . $safePlate . '.' . $file->getClientOriginalExtension();
+
+            $file->storeAs('vehicle_documents', $filename, 'public');
+            $vehicle->or_cr = $filename;
+        }
+
+        $vehicle->save();
+
+        return back()->with('success', 'Vehicle updated successfully');
     }
 
     public function destroy(string $id)
