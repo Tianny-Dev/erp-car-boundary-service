@@ -138,7 +138,9 @@ class VehicleController extends Controller
 
         $vehicle->save();
 
-        return redirect(route('super-admin.vehicle.index'))->with('success', 'Vehicle created!');
+        return redirect()
+        ->route('super-admin.vehicle.index', ['status' => 'available'])
+        ->with('success', 'Vehicle created!');
     }
 
     /**
@@ -151,21 +153,21 @@ class VehicleController extends Controller
             'plate_number' => [
                 'required',
                 'string',
-                Rule::unique('vehicles')->ignore($vehicle->id),
+                'unique:vehicles,plate_number',
                 'regex:/^([A-Z]{3}\s?\d{3,4}|[A-Z]{2}\s?\d{5})$/i'
             ],
             'vin'   => [
                 'required',
                 'string',
                 'size:17',
-                Rule::unique('vehicles')->ignore($vehicle->id),
+                'unique:vehicles,vin',
                 'regex:/^[A-HJ-NPR-Z0-9]+$/i'
             ],
             'brand' => 'required|string|max:50',
             'model' => 'required|string|max:50',
             'color' => 'required|string|max:30',
             'year'  => 'required|integer|digits:4|between:1900,' . (date('Y') + 1),
-            'or_cr' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'or_cr' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ], [
             'plate_number.regex' => 'The plate number format is invalid (e.g., ABC 1234 or AB 12345).',
             'vin.regex' => 'The VIN contains invalid characters (I, O, and Q are not allowed).',

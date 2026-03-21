@@ -246,6 +246,7 @@ const filteredVehicles = computed(() => {
 });
 
 const statuses = ref<Status[]>([
+  { id: 1, name: 'Active' },
   { id: 15, name: 'Available' },
   { id: 5, name: 'Maintenance' },
 ]);
@@ -263,14 +264,18 @@ const year = ref<number>();
 const statusId = ref<number | null>(null);
 const existing_or_cr = ref<string | null>(null);
 
+const STATUS_ACTIVE = 1;
+const STATUS_AVAILABLE = 15;
+const STATUS_MAINTENANCE = 5;
+
 const openCreateDialog = () => {
-  // Clear any existing errors from previous attempts
   router.reload({ only: ['errors'] });
   dialogMode.value = 'create';
   editingVehicle.value = null;
   plate_number.value = vin.value = brand.value = model.value = color.value = '';
   year.value = undefined;
-  statusId.value = null;
+  statusId.value = STATUS_AVAILABLE;
+
   or_cr_file.value = null;
   existing_or_cr.value = null;
   showDialog.value = true;
@@ -291,6 +296,37 @@ const openEditDialog = (vehicle: Vehicle) => {
   or_cr_file.value = null;
   showDialog.value = true;
 };
+
+// Computed property to filter which statuses are allowed to be selected
+const availableStatuses = computed(() => {
+  if (dialogMode.value === 'create') {
+    return [{ id: STATUS_AVAILABLE, name: 'Available' }];
+  }
+
+  if (dialogMode.value === 'edit' && editingVehicle.value) {
+    const currentStatus = editingVehicle.value.status_id;
+
+    if (currentStatus === STATUS_MAINTENANCE) {
+      return [
+        { id: STATUS_MAINTENANCE, name: 'Maintenance' },
+        { id: STATUS_ACTIVE, name: 'Active' },
+      ];
+    }
+
+    if (currentStatus === STATUS_ACTIVE) {
+      return [{ id: STATUS_ACTIVE, name: 'Active' }];
+    }
+  }
+
+  // Fallback
+  return statuses.value;
+});
+
+const isStatusDisabled = computed(() => {
+  if (dialogMode.value === 'create') return true;
+  if (editingVehicle.value?.status_id === STATUS_ACTIVE) return true;
+  return false;
+});
 
 const paginationLinks = computed(() => paginator.value.links || []);
 
@@ -486,6 +522,7 @@ const vehicleColors = [
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
             <SelectItem value="available">Available</SelectItem>
             <SelectItem value="maintenance">Maintenance</SelectItem>
           </SelectContent>
@@ -863,12 +900,6 @@ const vehicleColors = [
                   <SelectContent>
                     <SelectItem v-for="c in vehicleColors" :key="c" :value="c">
                       <div class="flex items-center gap-2">
-                        <!-- <div
-                          class="h-3 w-3 rounded-full border border-gray-300"
-                          :style="{
-                            backgroundColor: c.toLowerCase().replace(' ', ''),
-                          }"
-                        ></div> -->
                         {{ c }}
                       </div>
                     </SelectItem>
@@ -895,16 +926,35 @@ const vehicleColors = [
 
             <div class="grid gap-1">
               <Label class="p-1">Status</Label>
-              <Select v-model="statusId">
-                <SelectTrigger :class="{ 'border-red-500': errors.status_id }">
+
+              <Select v-model="statusId" :disabled="isStatusDisabled">
+                <SelectTrigger
+                  :class="{
+                    'border-red-500': errors.status_id,
+                    'bg-slate-50 opacity-80': isStatusDisabled,
+                  }"
+                >
                   <SelectValue placeholder="Select Status" />
                 </SelectTrigger>
+
                 <SelectContent>
-                  <SelectItem v-for="s in statuses" :key="s.id" :value="s.id">
+                  <SelectItem
+                    v-for="s in availableStatuses"
+                    :key="s.id"
+                    :value="s.id"
+                  >
                     {{ s.name }}
                   </SelectItem>
                 </SelectContent>
               </Select>
+
+              <p
+                v-if="isStatusDisabled && dialogMode === 'edit'"
+                class="px-1 text-[10px] text-slate-500 italic"
+              >
+                Status is managed automatically or locked.
+              </p>
+
               <p v-if="errors.status_id" class="px-1 text-xs text-red-500">
                 {{ errors.status_id }}
               </p>
