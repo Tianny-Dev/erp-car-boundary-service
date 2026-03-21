@@ -8,6 +8,7 @@ use App\Models\Revenue;
 use App\Models\UserDriver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Database\Eloquent\Builder;
 use App\Exports\DriverExport;
@@ -140,8 +141,9 @@ class PayrollDriverController extends Controller
         $breakdownTypes = DB::table('percentage_types')->pluck('name');
 
         // Dynamically create select statements for breakdown sums (Needed for export breakdown totals)
-        $breakdownSelects = $breakdownTypes->map(function ($type) {
-            return "SUM(CASE WHEN percentage_types.name = '{$type}' THEN revenue_breakdowns.total_earning ELSE 0 END) AS breakdown_{$type}";
+        $breakdownSelects = $breakdownTypes->map(function ($name) {
+            $safeKey = Str::slug($name, '_');
+            return "SUM(CASE WHEN percentage_types.name = '{$name}' THEN revenue_breakdowns.total_earning ELSE 0 END) AS breakdown_{$safeKey}";
         })->join(', ');
 
         // --- NEW: Select statement for the total deduction (sum of all breakdowns) ---

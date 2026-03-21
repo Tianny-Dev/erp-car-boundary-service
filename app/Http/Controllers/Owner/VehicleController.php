@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
+use App\Models\Expense;
 use App\Models\Inventory;
 use App\Models\Maintenance;
 use App\Models\Vehicle;
@@ -58,11 +59,15 @@ class VehicleController extends Controller
             'inventory_id' => 'required|exists:inventories,id',
             'quantity' => 'required|integer|min:1',
             'maintenance_date' => 'required|date',
-            'next_maintenance_date' => 'nullable|date|after_or_equal:maintenance_date',
-            'description' => 'nullable|string',
+            'next_maintenance_date' => 'required|date|after_or_equal:maintenance_date',
+            'description' => 'required|string|min:5',
         ]);
 
         $franchise = auth()->user()->ownerDetails?->franchises()->first();
+
+        if (!$franchise) {
+            return redirect()->back()->with('error', 'Franchise context not found.');
+        }
 
         // 1. Find the vehicle and the inventory item
         $vehicle = Vehicle::findOrFail($request->vehicle_id);
@@ -75,25 +80,40 @@ class VehicleController extends Controller
             return redirect()->back()->with('error', 'Insufficient stock in inventory.');
         }
 
-        // 2. Create the maintenance record
-        Maintenance::create([
-            'vehicle_id'            => $request->vehicle_id,
-            'inventory_id'          => $request->inventory_id,
-            'quantity'              => $request->quantity,
-            'maintenance_date'      => $request->maintenance_date,
-            'next_maintenance_date' => $request->next_maintenance_date,
-            'description'           => $request->description,
-        ]);
+        // Use a transaction to ensure everything saves together
+        return \DB::transaction(function () use ($request, $vehicle, $inventory, $franchise) {
 
-        // 3. Update the vehicle status to 5 (Maintenance)
-        $vehicle->update([
-            'status_id' => 5
-        ]);
+            // 2. Create the maintenance record
+            $maintenance = Maintenance::create([
+                'vehicle_id'            => $request->vehicle_id,
+                'inventory_id'          => $request->inventory_id,
+                'quantity'              => $request->quantity,
+                'maintenance_date'      => $request->maintenance_date,
+                'next_maintenance_date' => $request->next_maintenance_date,
+                'description'           => $request->description,
+            ]);
 
-        // 4. Subtract stock
-        $inventory->subtractStock($request->quantity);
+            // 3. Create the Expense Record
+            // Calculating: Unit Price * Quantity
+            $totalAmount = $inventory->unit_price * $request->quantity;
 
-        return redirect()->back()->with('success', 'Maintenance record saved and vehicle status updated!');
+            Expense::create([
+                'franchise_id'   => $franchise->id,
+                'maintenance_id' => $maintenance->id,
+                'invoice_no'     => 'INV-' . strtoupper(uniqid()),
+                'amount'         => $totalAmount,
+                'currency'       => 'PHP',
+                'notes'          => "Maintenance for {$vehicle->plate_number}: {$request->description}",
+            ]);
+
+            // 4. Update the vehicle status to 5 (Maintenance)
+            $vehicle->update(['status_id' => 5]);
+
+            // 5. Subtract stock
+            $inventory->subtractStock($request->quantity);
+
+            return redirect()->back()->with('success', 'Maintenance record and expense logged successfully!');
+        });
     }
 
     /**
@@ -102,27 +122,38 @@ class VehicleController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'plate_number' => 'required|string|max:255|unique:vehicles',
-            'vin'          => 'required|string|max:255|unique:vehicles',
-            'brand'        => 'required|string|max:255',
-            'model'        => 'required|string|max:255',
-            'color'        => 'required|string|max:255',
+            'plate_number' => [
+                'required',
+                'string',
+                'unique:vehicles',
+                'regex:/^([A-Z]{3}\s?\d{3,4}|[A-Z]{2}\s?\d{5})$/i'
+            ],
+            'vin'          => 'required|string|max:17|unique:vehicles', // VINs are standard 17 chars
+            'brand'        => 'required|string|max:50',
+            'model'        => 'required|string|max:50',
+            'color'        => 'required|string|max:30',
             'year'         => 'required|integer|digits:4|between:1900,' . (date('Y') + 1),
             'status_id'    => 'required|exists:statuses,id',
             'or_cr'        => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
+        ], [
+            'plate_number.regex' => 'The plate number format is invalid (e.g., ABC 1234 or AB 12345).',
         ]);
 
         $franchise = auth()->user()->ownerDetails?->franchises()->first();
+
         if (!$franchise) {
             return redirect()->back()->with('error', 'No franchise found.');
         }
 
         $vehicle = new Vehicle($request->except('or_cr'));
         $vehicle->franchise_id = $franchise->id;
+        $vehicle->plate_number = strtoupper(trim($request->plate_number));
 
         if ($request->hasFile('or_cr')) {
             $file = $request->file('or_cr');
-            $filename = time() . '_or_cr_' . str_replace(' ', '_', $request->plate_number) . '.' . $file->getClientOriginalExtension();
+            $safePlate = str_replace(' ', '_', $vehicle->plate_number);
+            $filename = time() . '_or_cr_' . $safePlate . '.' . $file->getClientOriginalExtension();
+
             $file->storeAs('vehicle_documents', $filename, 'public');
             $vehicle->or_cr = $filename;
         }

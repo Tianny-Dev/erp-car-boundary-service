@@ -458,6 +458,14 @@ const removeDriverFromFranchise = () => {
                 /></Button>
               </TableCell>
             </TableRow>
+            <TableRow v-if="paginator.data.length === 0">
+              <TableCell
+                colspan="10"
+                class="py-6 text-center text-muted-foreground"
+              >
+                No results found.
+              </TableCell>
+            </TableRow>
           </TableBody>
         </Table>
       </div>

@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { usePage } from '@inertiajs/vue3';
+import { usePage, router, Head } from '@inertiajs/vue3';
 import axios from 'axios';
-const page = usePage();
-const errors = computed(() => page.props.errors as any);
+import { computed, ref, watch } from 'vue';
+import { toast } from 'vue-sonner';
+import { MoreHorizontal } from 'lucide-vue-next';
 
+// UI Components
 import {
   AlertDialog,
   AlertDialogAction,
@@ -51,13 +53,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, router } from '@inertiajs/vue3';
-import { computed, ref, watch } from 'vue';
-import { toast } from 'vue-sonner';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { MoreHorizontal } from 'lucide-vue-next';
-
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -106,6 +103,17 @@ const props = defineProps<{
   inventories: any[];
 }>();
 
+const page = usePage();
+// Fixed Error Handling: Computed for initial, but we will mutate the source
+const errors = computed(() => page.props.errors as any);
+
+// Helper to clear errors immediately on input
+const clearError = (field: string) => {
+  if (page.props.errors[field]) {
+    delete (page.props.errors as any)[field];
+  }
+};
+
 const paginator = ref(props.vehicles);
 
 // Maintenance Form State
@@ -143,7 +151,6 @@ watch(
   { deep: true },
 );
 
-// Define the entire modal state as ONE ref object
 const maintenanceModal = ref({
   isOpen: false,
   isLoading: false,
@@ -151,7 +158,6 @@ const maintenanceModal = ref({
   data: [] as any[],
 });
 
-// Define the functions separately or as part of the logic
 const openMaintenanceHistory = async (vehicle: Vehicle) => {
   maintenanceModal.value.isOpen = true;
   maintenanceModal.value.isLoading = true;
@@ -187,12 +193,32 @@ const submitMaintenance = () => {
       toast.success('Maintenance record added and stock updated!');
       showMaintenanceDialog.value = false;
       resetMaintenanceForm();
+      router.reload({ only: ['errors'] });
     },
-    onError: (errors) => toast.error(Object.values(errors)[0] as string),
+    // onError: (errs) => toast.error('Please fix the errors in the form'),
   });
 };
 
-// Existing logic for Vehicles (Breadcrumb, Filters, CRUD) ...
+const handleVinInput = (e: Event) => {
+  const target = e.target as HTMLInputElement;
+  let val = target.value.toUpperCase();
+
+  // 1. Remove non-alphanumeric characters
+  // 2. Globally prohibited letters in VINs: I (eye), O (oh), and Q (que)
+  val = val.replace(/[^A-Z0-9]/g, '').replace(/[IOQ]/g, '');
+
+  // 3. Limit to 17 characters
+  if (val.length > 17) {
+    val = val.slice(0, 17);
+  }
+
+  vin.value = val;
+
+  if (errors.value.vin) {
+    clearError('vin');
+  }
+};
+
 const breadcrumbs = [{ title: 'Vehicle Management', href: '/owner/vehicles' }];
 const globalFilter = ref('');
 const statusFilter = ref('all');
@@ -238,6 +264,8 @@ const statusId = ref<number | null>(null);
 const existing_or_cr = ref<string | null>(null);
 
 const openCreateDialog = () => {
+  // Clear any existing errors from previous attempts
+  router.reload({ only: ['errors'] });
   dialogMode.value = 'create';
   editingVehicle.value = null;
   plate_number.value = vin.value = brand.value = model.value = color.value = '';
@@ -249,6 +277,7 @@ const openCreateDialog = () => {
 };
 
 const openEditDialog = (vehicle: Vehicle) => {
+  router.reload({ only: ['errors'] });
   dialogMode.value = 'edit';
   editingVehicle.value = vehicle;
   plate_number.value = vehicle.plate_number;
@@ -277,7 +306,6 @@ const goToPage = (url: string | null) => {
   );
 };
 
-// Status badge style
 const getBadgeClass = (status: string) => {
   switch (status) {
     case 'active':
@@ -291,10 +319,12 @@ const getBadgeClass = (status: string) => {
   }
 };
 
-// Save vehicle (create or update)
 const saveVehicle = () => {
   const formData = new FormData();
-  formData.append('plate_number', plate_number.value || '');
+  formData.append(
+    'plate_number',
+    plate_number.value.toUpperCase().trim() || '',
+  );
   formData.append('vin', vin.value || '');
   formData.append('brand', brand.value || '');
   formData.append('model', model.value || '');
@@ -324,12 +354,33 @@ const saveVehicle = () => {
         or_cr_file.value = null;
         existing_or_cr.value = null;
       },
-      onError: (errors) => {
-        console.error(errors);
+      onError: () => {
         toast.error('Check the form for errors');
       },
     },
   );
+};
+
+// -------------------------
+// REFINED INPUT HANDLERS
+// -------------------------
+
+const handlePlateInput = (e: Event) => {
+  const target = e.target as HTMLInputElement;
+  let val = target.value.toUpperCase();
+
+  // Format Logic: Strip non-alphanumeric then add space
+  val = val.replace(/[^A-Z0-9]/g, '');
+  if (val.length > 3 && isNaN(Number(val[2]))) {
+    // 3 Letters + Numbers
+    val = val.slice(0, 3) + ' ' + val.slice(3, 7);
+  } else if (val.length > 2) {
+    // 2 Letters + Numbers (Motorcycles)
+    val = val.slice(0, 2) + ' ' + val.slice(2, 7);
+  }
+
+  plate_number.value = val;
+  clearError('plate_number');
 };
 
 const handleFileUpload = (event: Event) => {
@@ -337,8 +388,25 @@ const handleFileUpload = (event: Event) => {
   if (target.files && target.files.length > 0) {
     or_cr_file.value = target.files[0];
     existing_or_cr.value = null;
+    clearError('or_cr');
   }
 };
+
+const handleYearInput = (e: Event) => {
+  const target = e.target as HTMLInputElement;
+  if (target.value.length > 4) {
+    target.value = target.value.slice(0, 4);
+    year.value = Number(target.value);
+  }
+  clearError('year');
+};
+
+// Handle Select changes
+watch(statusId, () => clearError('status_id'));
+watch(vin, () => clearError('vin'));
+watch(brand, () => clearError('brand'));
+watch(model, () => clearError('model'));
+watch(color, () => clearError('color'));
 
 const confirmDeleteVehicle = (vehicle: Vehicle) => {
   selectedVehicleToDelete.value = vehicle;
@@ -357,13 +425,22 @@ const deleteVehicle = () => {
   });
 };
 
-const handleYearInput = (e: Event) => {
-  const target = e.target as HTMLInputElement;
-  if (target.value.length > 4) {
-    target.value = target.value.slice(0, 4);
-    year.value = Number(target.value);
-  }
-};
+const vehicleColors = [
+  'White',
+  'Black',
+  'Silver',
+  'Gray',
+  'Red',
+  'Blue',
+  'Brown',
+  'Green',
+  'Yellow',
+  'Orange',
+  'Gold',
+  'Beige',
+  'Magenta',
+  'Purple',
+];
 </script>
 
 <template>
@@ -371,13 +448,20 @@ const handleYearInput = (e: Event) => {
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="space-y-6 p-6">
       <!-- Header -->
-      <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div
+        class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+      >
         <div>
           <h1 class="mb-1 text-3xl font-bold">Vehicle Management</h1>
           <p class="text-sm text-gray-600 sm:text-base">Manage all vehicles</p>
         </div>
-        <div class="grid w-full grid-cols-2 gap-3 sm:flex sm:w-auto sm:flex-row sm:gap-4">
-          <Button class="w-full sm:w-auto" @click="showMaintenanceDialog = true">
+        <div
+          class="grid w-full grid-cols-2 gap-3 sm:flex sm:w-auto sm:flex-row sm:gap-4"
+        >
+          <Button
+            class="w-full sm:w-auto"
+            @click="showMaintenanceDialog = true"
+          >
             + Add Maintenance
           </Button>
           <Button class="w-full sm:w-auto" @click="openCreateDialog">
@@ -716,6 +800,7 @@ const handleYearInput = (e: Event) => {
                 v-model="plate_number"
                 placeholder="Enter Plate Number"
                 :class="{ 'border-red-500': errors.plate_number }"
+                @input="handlePlateInput"
               />
               <p v-if="errors.plate_number" class="px-1 text-xs text-red-500">
                 {{ errors.plate_number }}
@@ -723,14 +808,20 @@ const handleYearInput = (e: Event) => {
             </div>
 
             <div class="grid gap-1">
-              <Label class="p-1">VIN</Label>
+              <Label class="p-1">VIN (Chassis Number)</Label>
               <Input
                 v-model="vin"
-                placeholder="Enter VIN"
+                placeholder="17-character VIN"
+                maxlength="17"
                 :class="{ 'border-red-500': errors.vin }"
+                @input="handleVinInput"
+                class="font-mono uppercase"
               />
               <p v-if="errors.vin" class="px-1 text-xs text-red-500">
                 {{ errors.vin }}
+              </p>
+              <p class="px-1 text-[10px] text-muted-foreground">
+                Standard 17-digit Chassis Number (Excludes I, O, Q)
               </p>
             </div>
 
@@ -762,11 +853,27 @@ const handleYearInput = (e: Event) => {
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div class="grid gap-1">
                 <Label class="p-1">Color</Label>
-                <Input
+                <Select
                   v-model="color"
-                  placeholder="Enter Color"
-                  :class="{ 'border-red-500': errors.color }"
-                />
+                  @update:model-value="clearError('color')"
+                >
+                  <SelectTrigger :class="{ 'border-red-500': errors.color }">
+                    <SelectValue placeholder="Select Color" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem v-for="c in vehicleColors" :key="c" :value="c">
+                      <div class="flex items-center gap-2">
+                        <!-- <div
+                          class="h-3 w-3 rounded-full border border-gray-300"
+                          :style="{
+                            backgroundColor: c.toLowerCase().replace(' ', ''),
+                          }"
+                        ></div> -->
+                        {{ c }}
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
                 <p v-if="errors.color" class="px-1 text-xs text-red-500">
                   {{ errors.color }}
                 </p>
@@ -871,10 +978,13 @@ const handleYearInput = (e: Event) => {
         <div class="grid gap-4 py-4">
           <div class="grid gap-2">
             <Label>Select Vehicle</Label>
-            <Select v-model="maintenanceForm.vehicle_id">
-              <SelectTrigger
-                ><SelectValue placeholder="Choose Vehicle"
-              /></SelectTrigger>
+            <Select
+              v-model="maintenanceForm.vehicle_id"
+              @update:model-value="clearError('vehicle_id')"
+            >
+              <SelectTrigger :class="{ 'border-red-500': errors.vehicle_id }">
+                <SelectValue placeholder="Choose Vehicle" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem
                   v-for="v in vehicles.data"
@@ -885,12 +995,21 @@ const handleYearInput = (e: Event) => {
                 </SelectItem>
               </SelectContent>
             </Select>
+            <p
+              v-if="errors.vehicle_id"
+              class="text-xs font-medium text-red-500"
+            >
+              {{ errors.vehicle_id }}
+            </p>
           </div>
 
           <div class="grid gap-2">
             <Label>Part / Inventory Item</Label>
-            <Select v-model="maintenanceForm.inventory_id">
-              <SelectTrigger>
+            <Select
+              v-model="maintenanceForm.inventory_id"
+              @update:model-value="clearError('inventory_id')"
+            >
+              <SelectTrigger :class="{ 'border-red-500': errors.inventory_id }">
                 <SelectValue
                   :placeholder="
                     inventories.length
@@ -906,7 +1025,6 @@ const handleYearInput = (e: Event) => {
                 >
                   No inventory available
                 </div>
-
                 <SelectItem
                   v-for="item in inventories"
                   :key="item.id"
@@ -916,6 +1034,12 @@ const handleYearInput = (e: Event) => {
                 </SelectItem>
               </SelectContent>
             </Select>
+            <p
+              v-if="errors.inventory_id"
+              class="text-xs font-medium text-red-500"
+            >
+              {{ errors.inventory_id }}
+            </p>
           </div>
 
           <div
@@ -943,11 +1067,34 @@ const handleYearInput = (e: Event) => {
           <div class="grid grid-cols-2 gap-4">
             <div class="grid gap-2">
               <Label>Quantity Used</Label>
-              <Input type="number" v-model="maintenanceForm.quantity" min="1" />
+              <Input
+                type="number"
+                v-model="maintenanceForm.quantity"
+                min="1"
+                :class="{ 'border-red-500': errors.quantity }"
+                @input="clearError('quantity')"
+              />
+              <p
+                v-if="errors.quantity"
+                class="text-xs font-medium text-red-500"
+              >
+                {{ errors.quantity }}
+              </p>
             </div>
             <div class="grid gap-2">
               <Label>Date</Label>
-              <Input type="date" v-model="maintenanceForm.maintenance_date" />
+              <Input
+                type="date"
+                v-model="maintenanceForm.maintenance_date"
+                :class="{ 'border-red-500': errors.maintenance_date }"
+                @input="clearError('maintenance_date')"
+              />
+              <p
+                v-if="errors.maintenance_date"
+                class="text-xs font-medium text-red-500"
+              >
+                {{ errors.maintenance_date }}
+              </p>
             </div>
           </div>
 
@@ -956,7 +1103,15 @@ const handleYearInput = (e: Event) => {
             <Input
               type="date"
               v-model="maintenanceForm.next_maintenance_date"
+              :class="{ 'border-red-500': errors.next_maintenance_date }"
+              @input="clearError('next_maintenance_date')"
             />
+            <p
+              v-if="errors.next_maintenance_date"
+              class="text-xs font-medium text-red-500"
+            >
+              {{ errors.next_maintenance_date }}
+            </p>
           </div>
 
           <div class="grid gap-2">
@@ -964,7 +1119,15 @@ const handleYearInput = (e: Event) => {
             <Textarea
               v-model="maintenanceForm.description"
               placeholder="What was fixed?"
+              :class="{ 'border-red-500': errors.description }"
+              @input="clearError('description')"
             />
+            <p
+              v-if="errors.description"
+              class="text-xs font-medium text-red-500"
+            >
+              {{ errors.description }}
+            </p>
           </div>
         </div>
 
