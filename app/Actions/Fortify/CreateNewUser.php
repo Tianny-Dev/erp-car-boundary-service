@@ -69,6 +69,7 @@ class CreateNewUser implements CreatesNewUsers
                 ->mixedCase() 
                 ->numbers()
                 ->symbols(),
+            'regex:/[\d\W_]/'
         ];
     }
 

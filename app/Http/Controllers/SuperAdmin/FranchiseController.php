@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 
 class FranchiseController extends Controller
@@ -99,7 +100,7 @@ class FranchiseController extends Controller
                 Rule::unique('franchises', 'phone'),
             ],
 
-            'password' => $this->passwordRules(),
+            'password' => $this->customPasswordRules(),
 
             // Home address
             'home_region' => ['required', 'string', 'max:255'],
@@ -331,16 +332,18 @@ class FranchiseController extends Controller
         return back();
     }
 
-    protected function passwordRules(): array
+    protected function customPasswordRules(): array
     {
         return [
-            'required',
-            'string',
-            'min:8',
+            'required', 
+            'string', 
+            'min:8', 
             'confirmed',
-            'regex:/[a-z]/',      // lowercase
-            'regex:/[A-Z]/',      // uppercase
-            'regex:/[0-9]/',      // number
+            Password::min(8)
+                ->mixedCase() 
+                ->numbers()
+                ->symbols(),
+            'regex:/[\d\W_]/'
         ];
     }
 }
