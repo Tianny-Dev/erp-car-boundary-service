@@ -135,6 +135,13 @@ const driverDetails = computed(() => {
       value: data.front_license_picture,
       type: 'link',
     },
+    //  {
+    //   label: 'Front License Picture',
+    //   value: data.front_license_picture
+    //     ? `/storage/driver_documents/${data.front_license_picture}`
+    //     : null,
+    //   type: 'link',
+    // },
     {
       label: 'Back License Picture',
       value: data.back_license_picture,
@@ -258,10 +265,14 @@ watch(
       <div
         class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border"
       >
-        <div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div
+          class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        >
           <h2 class="font-mono text-xl font-semibold">Franchise Drivers</h2>
 
-          <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:gap-4">
+          <div
+            class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:gap-4"
+          >
             <Select v-model="selectedStatus">
               <SelectTrigger class="w-full cursor-pointer sm:w-[150px]">
                 <SelectValue placeholder="Filter by..." />
@@ -280,7 +291,7 @@ watch(
             </Select>
 
             <MultiSelect
-              class="w-full sm:w-[175px]" 
+              class="w-full sm:w-[175px]"
               v-model="selectedContext"
               :options="contextOptions"
               placeholder="Select Franchises"
@@ -292,7 +303,6 @@ watch(
                 }
               "
             />
-            
           </div>
         </div>
 
