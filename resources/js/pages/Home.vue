@@ -12,7 +12,7 @@ import FAQs from '@/components/landing/FAQs.vue';
 import Franchise from '@/components/landing/Franchise.vue';
 import Join from '@/components/landing/Join.vue';
 import Passenger from '@/components/landing/Passenger.vue';
-import Technician from '@/components/landing/Technician.vue';
+// import Technician from '@/components/landing/Technician.vue';
 import Terms from '@/components/landing/Terms.vue';
 import Testimonials from '@/components/landing/Testimonials.vue';
 import Works from '@/components/landing/Works.vue';

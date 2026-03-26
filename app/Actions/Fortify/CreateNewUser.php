@@ -61,12 +61,12 @@ class CreateNewUser implements CreatesNewUsers
     protected function customPasswordRules(): array
     {
         return [
-            'required', 
-            'string', 
-            'min:8', 
+            'required',
+            'string',
+            'min:8',
             'confirmed',
             Password::min(8)
-                ->mixedCase() 
+                ->mixedCase()
                 ->numbers()
                 ->symbols(),
             'regex:/[\d\W_]/'
@@ -78,7 +78,7 @@ class CreateNewUser implements CreatesNewUsers
         if (isset($input['license_number'])) {
             $input['license_number'] = str_replace('-', '', $input['license_number']);
         }
-            
+
         // 1. Validation
         Validator::make($input, [
            'username' => ['required', 'string', 'min:3', 'max:255', Rule::unique(User::class)],
@@ -123,14 +123,19 @@ class CreateNewUser implements CreatesNewUsers
         // 2. Create Records in a Transaction
         $user = DB::transaction(function () use ($input, $userTypeId) {
 
-            // 'In-Active' status ID is 2, default for drivers
             $inActiveStatusId = 2;
 
-            // 2a. Store all files
-            $frontIdPath = $input['front_license_picture']->store('driver_documents', 'public');
-            $backIdPath = $input['back_license_picture']->store('driver_documents', 'public');
-            $nbiClearancePath = $input['nbi_clearance']->store('driver_documents', 'public');
-            $selfiePicturePath = $input['selfie_picture']->store('driver_documents', 'public');
+            $input['front_license_picture']->store('driver_documents', 'public');
+            $frontIdName = $input['front_license_picture']->hashName();
+
+            $input['back_license_picture']->store('driver_documents', 'public');
+            $backIdName = $input['back_license_picture']->hashName();
+
+            $input['nbi_clearance']->store('driver_documents', 'public');
+            $nbiClearanceName = $input['nbi_clearance']->hashName();
+
+            $input['selfie_picture']->store('driver_documents', 'public');
+            $selfiePictureName = $input['selfie_picture']->hashName();
 
 
             // 2b. Create User
@@ -156,12 +161,13 @@ class CreateNewUser implements CreatesNewUsers
                 'shift' => $input['shift'],
                 'license_number' => $input['license_number'],
                 'license_expiry'=> $input['license_expiry'],
-                'front_license_picture' => $frontIdPath,
-                'back_license_picture' => $backIdPath,
-                'nbi_clearance' => $nbiClearancePath,
-                'selfie_picture' => $selfiePicturePath,
+                // Storing only the unique filenames here
+                'front_license_picture' => $frontIdName,
+                'back_license_picture' => $backIdName,
+                'nbi_clearance' => $nbiClearanceName,
+                'selfie_picture' => $selfiePictureName,
             ]);
-            // Return the new user from the closure
+
             return $newUser;
         });
 

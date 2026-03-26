@@ -171,11 +171,9 @@ const handleUpdateVehicle = () => {
           vehicleModal.open(vehicleModal.data.value.id);
         }
       },
-      onError: (errors) => {
-        // Logic for handling validation errors is already handled by
-        // the :class bindings in your template, but we can add a toast here.
-        toast.error('Please check the form for errors.');
-      },
+      // onError: (errors) => {
+      //   toast.error('Please check the form for errors.');
+      // },
     });
 };
 
@@ -390,6 +388,68 @@ watch(
     updateFilters();
   }, 300),
 );
+
+const handlePlateInput = (e: Event) => {
+  const target = e.target as HTMLInputElement;
+  let val = target.value.toUpperCase();
+
+  // Strip non-alphanumeric then add space
+  val = val.replace(/[^A-Z0-9]/g, '');
+  if (val.length > 3 && isNaN(Number(val[2]))) {
+    // 3 Letters + Numbers (Standard)
+    val = val.slice(0, 3) + ' ' + val.slice(3, 7);
+  } else if (val.length > 2) {
+    // 2 Letters + Numbers (Motorcycles)
+    val = val.slice(0, 2) + ' ' + val.slice(2, 7);
+  }
+
+  editForm.plate_number = val;
+  editForm.errors.plate_number = '';
+};
+
+const handleVinInput = (e: Event) => {
+  const target = e.target as HTMLInputElement;
+  let val = target.value.toUpperCase();
+
+  // Remove non-alphanumeric and prohibited letters (I, O, Q)
+  val = val.replace(/[^A-Z0-9]/g, '').replace(/[IOQ]/g, '');
+
+  if (val.length > 17) {
+    val = val.slice(0, 17);
+  }
+
+  editForm.vin = val;
+  editForm.errors.vin = '';
+};
+
+const handleYearInput = (e: Event) => {
+  const target = e.target as HTMLInputElement;
+  let val = target.value;
+
+  if (val.length > 4) {
+    val = val.slice(0, 4);
+  }
+
+  editForm.year = val;
+  editForm.errors.year = '';
+};
+
+const vehicleColors = [
+  'White',
+  'Black',
+  'Silver',
+  'Gray',
+  'Red',
+  'Blue',
+  'Brown',
+  'Green',
+  'Yellow',
+  'Orange',
+  'Gold',
+  'Beige',
+  'Magenta',
+  'Purple',
+];
 </script>
 
 <template>
@@ -399,56 +459,61 @@ watch(
     <div
       class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
     >
-      <div 
-      class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border"
+      <div
+        class="relative rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border"
       >
-        <div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-    <h2 class="font-mono text-xl font-semibold">Franchise Vehicles</h2>
+        <div
+          class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <h2 class="font-mono text-xl font-semibold">Franchise Vehicles</h2>
 
-    <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:gap-4">
-      
-      <Select v-model="selectedStatus">
-        <SelectTrigger class="w-full cursor-pointer sm:w-[150px] sm:shrink-0">
-          <SelectValue placeholder="Filter by..." />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="active">Active</SelectItem>
-          <SelectItem value="available">Available</SelectItem>
-          <SelectItem value="maintenance">Maintenance</SelectItem>
-        </SelectContent>
-      </Select>
+          <div
+            class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:gap-4"
+          >
+            <Select v-model="selectedStatus">
+              <SelectTrigger
+                class="w-full cursor-pointer sm:w-[150px] sm:shrink-0"
+              >
+                <SelectValue placeholder="Filter by..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="available">Available</SelectItem>
+                <SelectItem value="maintenance">Maintenance</SelectItem>
+              </SelectContent>
+            </Select>
 
-      <MultiSelect
-        class="w-full sm:w-[175px]"
-        v-model="selectedContext"
-        :options="contextOptions"
-        placeholder="Select Franchises"
-        all-label="All Franchises"
-        @change="
-          (val) => {
-            selectedFranchise = val;
-            updateFilters();
-          }
-        "
-      />
-    </div>
-  </div>
+            <MultiSelect
+              class="w-full sm:w-[175px]"
+              v-model="selectedContext"
+              :options="contextOptions"
+              placeholder="Select Franchises"
+              all-label="All Franchises"
+              @change="
+                (val) => {
+                  selectedFranchise = val;
+                  updateFilters();
+                }
+              "
+            />
+          </div>
+        </div>
 
-  <DataTable
-    :columns="vehicleColumns"
-    :data="vehicles.data"
-    search-placeholder="Search vehicles..."
-  >
-    <template #custom-actions>
-      <Button 
-        class="w-full flex items-center justify-center gap-2 sm:w-auto sm:me-5" 
-        @click="createVehicle"
-      >
-        <PlusIcon class="h-4 w-4" /> Add Vehicle
-      </Button>
-    </template>
-  </DataTable>
-</div>
+        <DataTable
+          :columns="vehicleColumns"
+          :data="vehicles.data"
+          search-placeholder="Search vehicles..."
+        >
+          <template #custom-actions>
+            <Button
+              class="flex w-full items-center justify-center gap-2 sm:me-5 sm:w-auto"
+              @click="createVehicle"
+            >
+              <PlusIcon class="h-4 w-4" /> Add Vehicle
+            </Button>
+          </template>
+        </DataTable>
+      </div>
     </div>
   </AppLayout>
 
@@ -494,6 +559,8 @@ watch(
             <Label>Plate Number</Label>
             <Input
               v-model="editForm.plate_number"
+              placeholder="e.g., ABC 1234"
+              @input="handlePlateInput"
               :class="{ 'border-destructive': editForm.errors.plate_number }"
             />
             <span
@@ -504,14 +571,19 @@ watch(
           </div>
 
           <div class="flex flex-col gap-1.5">
-            <Label>VIN</Label>
+            <Label>VIN (Chassis Number)</Label>
             <Input
               v-model="editForm.vin"
+              @input="handleVinInput"
               :class="{ 'border-destructive': editForm.errors.vin }"
             />
+
             <span v-if="editForm.errors.vin" class="text-xs text-destructive">{{
               editForm.errors.vin
             }}</span>
+            <p v-else class="px-1 text-[10px] text-muted-foreground">
+              Excludes I, O, and Q
+            </p>
           </div>
 
           <div class="flex flex-col gap-1.5">
@@ -535,16 +607,28 @@ watch(
             <Input
               v-model="editForm.year"
               type="number"
+              @input="handleYearInput"
               :class="{ 'border-destructive': editForm.errors.year }"
             />
           </div>
 
           <div class="flex flex-col gap-1.5">
             <Label>Color</Label>
-            <Input
+            <Select
               v-model="editForm.color"
-              :class="{ 'border-destructive': editForm.errors.color }"
-            />
+              @update:model-value="editForm.errors.color = ''"
+            >
+              <SelectTrigger
+                :class="{ 'border-red-500': editForm.errors.color }"
+              >
+                <SelectValue placeholder="Select Color" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="c in vehicleColors" :key="c" :value="c">
+                  {{ c }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div class="flex flex-col gap-1.5">

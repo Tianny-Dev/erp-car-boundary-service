@@ -490,9 +490,7 @@ const toggleStatus = (id: number, action: 'approve' | 'deny') => {
 
           <DialogDescription class="text-gray-600">
             You are about to toggle the status of
-            <span class="font-semibold text-gray-900">
-              {{ driverToToggle?.username }} </span
-            >.
+            <span class="font-semibold"> {{ driverToToggle?.username }} </span>.
           </DialogDescription>
         </DialogHeader>
 

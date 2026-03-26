@@ -114,6 +114,7 @@ const show = computed(() => ({ ...defaultShowFields, ...props.showFields }));
     :id="fields.nbiClearance"
     :name="fields.nbiClearance"
     :label="labels.nbiClearance"
+    accept="image/*"
     :required="true"
     :errorMsg="errors?.[fields.nbiClearance]"
   />

@@ -7,6 +7,7 @@ use App\Models\Expense;
 use App\Models\Inventory;
 use App\Models\Maintenance;
 use App\Models\Vehicle;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -32,6 +33,7 @@ class VehicleController extends Controller
             ->through(function ($vehicle) {
                 return [
                     'id' => $vehicle->id,
+                    'driver_id' => $vehicle->driver_id,
                     'plate_number' => $vehicle->plate_number,
                     'vin' => $vehicle->vin,
                     'brand' => $vehicle->brand,
@@ -69,21 +71,20 @@ class VehicleController extends Controller
             return redirect()->back()->with('error', 'Franchise context not found.');
         }
 
-        // 1. Find the vehicle and the inventory item
-        $vehicle = Vehicle::findOrFail($request->vehicle_id);
         $inventory = Inventory::where('id', $request->inventory_id)
-                            ->where('franchise_id', $franchise->id)
-                            ->firstOrFail();
+                        ->where('franchise_id', $franchise->id)
+                        ->firstOrFail();
 
-        // Check stock
+        // BETTER VALIDATION: Throw a validation exception for 'quantity'
         if ($inventory->quantity < $request->quantity) {
-            return redirect()->back()->with('error', 'Insufficient stock in inventory.');
+            throw ValidationException::withMessages([
+                'quantity' => ["Insufficient stock. Only {$inventory->quantity} units available."],
+            ]);
         }
 
-        // Use a transaction to ensure everything saves together
-        return \DB::transaction(function () use ($request, $vehicle, $inventory, $franchise) {
+        return \DB::transaction(function () use ($request, $inventory, $franchise) {
+            $vehicle = Vehicle::findOrFail($request->vehicle_id);
 
-            // 2. Create the maintenance record
             $maintenance = Maintenance::create([
                 'vehicle_id'            => $request->vehicle_id,
                 'inventory_id'          => $request->inventory_id,
@@ -93,27 +94,20 @@ class VehicleController extends Controller
                 'description'           => $request->description,
             ]);
 
-            // 3. Create the Expense Record
-            // Calculating: Unit Price * Quantity
-            $totalAmount = $inventory->unit_price * $request->quantity;
-
             Expense::create([
                 'franchise_id'   => $franchise->id,
                 'maintenance_id' => $maintenance->id,
                 'invoice_no'     => 'INV-' . strtoupper(uniqid()),
-                'amount'         => $totalAmount,
+                'amount'         => $inventory->unit_price * $request->quantity,
                 'currency'       => 'PHP',
                 'notes'          => "Maintenance for {$vehicle->plate_number}: {$request->description}",
                 'payment_date'   => now(),
             ]);
 
-            // 4. Update the vehicle status to 5 (Maintenance)
             $vehicle->update(['status_id' => 5]);
-
-            // 5. Subtract stock
             $inventory->subtractStock($request->quantity);
 
-            return redirect()->back()->with('success', 'Maintenance record and expense logged successfully!');
+            return redirect()->back()->with('success', 'Maintenance record logged!');
         });
     }
 

@@ -134,63 +134,80 @@ class PayrollDriverController extends Controller
      * @return \Illuminate\Support\Collection
      */
     private function applyPeriodGrouping(
-        Builder $query,
-        string $period,
+    Builder $query,
+    string $period,
     ) {
-        // Fetch all breakdown types to dynamically generate SUM(CASE...) expressions
+        // 1. Fetch breakdown types for dynamic columns
         $breakdownTypes = DB::table('percentage_types')->pluck('name');
 
-        // Dynamically create select statements for breakdown sums (Needed for export breakdown totals)
         $breakdownSelects = $breakdownTypes->map(function ($name) {
             $safeKey = Str::slug($name, '_');
             return "SUM(CASE WHEN percentage_types.name = '{$name}' THEN revenue_breakdowns.total_earning ELSE 0 END) AS breakdown_{$safeKey}";
         })->join(', ');
 
-        // --- NEW: Select statement for the total deduction (sum of all breakdowns) ---
+        // 2. Select logic for Total Amount and Deductions
+        // We use a subquery for total_amount to avoid duplication caused by the breakdown joins
+        $totalAmountSelect = "(
+            SELECT SUM(r2.amount)
+            FROM revenues r2
+            WHERE r2.id IN (SELECT DISTINCT r3.id FROM revenues r3)
+            AND FIND_IN_SET(r2.id, GROUP_CONCAT(DISTINCT revenues.id))
+        ) as total_amount";
+
+        // A cleaner SQL approach for grouped total amount when joins are present:
+        $amountSelect = "SUM(revenues.amount / (
+            SELECT COUNT(*) FROM revenue_breakdowns rb2 WHERE rb2.revenue_id = revenues.id
+        )) as total_amount";
+
+        // NOTE: If some revenues have NO breakdowns, the division above fails.
+        // This refined select handles both cases:
+        $refinedAmountSelect = "SUM(DISTINCT revenues.amount * 1) as total_amount_simple,
+                                SUM(revenues.amount) / NULLIF(COUNT(revenue_breakdowns.id)/COUNT(DISTINCT revenues.id), 0) as total_amount";
+
         $totalDeductionSelect = 'SUM(revenue_breakdowns.total_earning) AS total_deduction';
-        $fullSelects = $breakdownSelects . ", " . $totalDeductionSelect;
+        $fullSelects = ($breakdownSelects ? $breakdownSelects . ", " : "") . $totalDeductionSelect;
 
-
-        // 1. Core Joins (needed for all grouped reports)
+        // 3. Core Joins
         $query->join('users', 'revenues.driver_id', '=', 'users.id')
-              ->leftJoin('revenue_breakdowns', 'revenues.id', '=', 'revenue_breakdowns.revenue_id')
-              ->leftJoin('percentage_types', 'revenue_breakdowns.percentage_type_id', '=', 'percentage_types.id');
+            ->leftJoin('revenue_breakdowns', 'revenues.id', '=', 'revenue_breakdowns.revenue_id')
+            ->leftJoin('percentage_types', 'revenue_breakdowns.percentage_type_id', '=', 'percentage_types.id')
+            ->join('franchises', 'revenues.franchise_id', '=', 'franchises.id');
 
-        // 2. Base Grouping fields for all periods
-        $groupingSelects = "
-            SUM(DISTINCT revenues.amount) as total_amount,
-            revenues.service_type,
-            users.id as driver_id,
-            users.username as driver_username
+        // 4. Grouping Fields
+        $groupingFields = [
+            'users.id',
+            'users.username',
+            'revenues.service_type',
+            'franchises.id',
+            'franchises.name'
+        ];
+
+        // Using a Cross-Database compatible way to get the correct sum despite joins:
+        // We sum the amount and divide by the number of times it was duplicated by the join
+        $baseSelect = "
+            SUM(revenues.amount) / COUNT(DISTINCT revenue_breakdowns.id) * COUNT(DISTINCT revenues.id) / COUNT(DISTINCT revenues.id)
         ";
 
-        // 3. Add Tab-specific Joins and Selects (Kept logic but uses implicit 'franchise' tab)
-        $groupingFields = ['users.id', 'users.username', 'revenues.service_type'];
+        // Simplest fix for Laravel/MySQL:
+        $groupingSelects = "
+            (SUM(revenues.amount) / COUNT(revenues.id)) * COUNT(DISTINCT revenues.id) as total_amount,
+            revenues.service_type,
+            users.id as driver_id,
+            users.username as driver_username,
+            franchises.name as franchise_name
+        ";
 
-        // Since the report is scoped to ONE franchise, we can enforce the join to get names
-        // If revenue has a franchise_id, join the name
-        $query->join('franchises', 'revenues.franchise_id', '=', 'franchises.id')
-            ->addSelect('franchises.id as franchise_id', 'franchises.name as franchise_name');
-        $groupingFields[] = 'franchises.id';
-        $groupingFields[] = 'franchises.name';
+        // --- Handle Periods ---
 
-        // --- Handle Daily Period (GROUPED QUERY) ---
         if ($period === 'daily') {
-            $query->selectRaw($groupingSelects . ", DATE(revenues.payment_date) as daily_date_sort, " . $fullSelects);
-
-            $query->groupBy(array_merge($groupingFields, [DB::raw('DATE(revenues.payment_date)'), 'revenues.service_type']))
+            $query->selectRaw($groupingSelects . ", DATE(revenues.payment_date) as daily_date_sort, " . $fullSelects)
+                ->groupBy(array_merge($groupingFields, [DB::raw('DATE(revenues.payment_date)')]))
                 ->orderBy('daily_date_sort', 'desc');
-
-            return $query->get();
         }
 
-        // --- Handle Weekly/Monthly (Grouped Query with JOINs) ---
-
-        // Apply period-specific grouping
         if ($period === 'weekly') {
-            $query->selectRaw($groupingSelects . ", MIN(revenues.payment_date) as week_start, MAX(revenues.payment_date) as week_end, " . $fullSelects);
-
-            $query->groupBy(array_merge($groupingFields, [DB::raw('YEAR(revenues.payment_date)'), DB::raw('WEEK(revenues.payment_date, 1)'), 'revenues.service_type']))
+            $query->selectRaw($groupingSelects . ", MIN(revenues.payment_date) as week_start, MAX(revenues.payment_date) as week_end, " . $fullSelects)
+                ->groupBy(array_merge($groupingFields, [DB::raw('YEAR(revenues.payment_date)'), DB::raw('WEEK(revenues.payment_date, 1)')]))
                 ->orderBy('week_start', 'desc');
         }
 
@@ -198,15 +215,12 @@ class PayrollDriverController extends Controller
             $query->selectRaw($groupingSelects . ",
                 DATE_FORMAT(revenues.payment_date, '%M %Y') as month_name,
                 YEAR(revenues.payment_date) as year_sort,
-                MONTH(revenues.payment_date) as month_sort,
-                " . $fullSelects);
-
-            $query->groupBy(array_merge($groupingFields, [
-                DB::raw('YEAR(revenues.payment_date)'),
-                DB::raw('MONTH(revenues.payment_date)'),
-                DB::raw("DATE_FORMAT(revenues.payment_date, '%M %Y')"),
-                'revenues.service_type'
-            ]))
+                MONTH(revenues.payment_date) as month_sort, " . $fullSelects)
+                ->groupBy(array_merge($groupingFields, [
+                    DB::raw('YEAR(revenues.payment_date)'),
+                    DB::raw('MONTH(revenues.payment_date)'),
+                    DB::raw("DATE_FORMAT(revenues.payment_date, '%M %Y')")
+                ]))
                 ->orderBy('year_sort', 'desc')
                 ->orderBy('month_sort', 'desc');
         }
