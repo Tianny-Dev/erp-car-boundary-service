@@ -239,10 +239,13 @@ class FranchiseController extends Controller
                     'city',
                     'barangay',
                     'postal_code',
-                    'dti_registration_attachment',
-                    'mayor_permit_attachment',
-                    'proof_agreement_attachment',
                 ]),
+                'dti_url' => $franchise->dti_registration_attachment 
+                    ? Storage::url($franchise->dti_registration_attachment) : null,
+                'mayor_url' => $franchise->mayor_permit_attachment 
+                    ? Storage::url($franchise->mayor_permit_attachment) : null,
+                'proof_url' => $franchise->proof_agreement_attachment 
+                    ? Storage::url($franchise->proof_agreement_attachment) : null,
                 'owner' => $franchise->owner ? [
                     'id' => $franchise->owner->id,
                     'user' => $franchise->owner->user ? $franchise->owner->user->only([

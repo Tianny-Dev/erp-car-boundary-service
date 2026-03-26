@@ -5,6 +5,7 @@ interface PsgcApiItem {
   code: string;
   name: string;
 }
+const isInitialLoad = ref(false);
 
 export function useAddress() {
   // State for dropdown lists
@@ -94,6 +95,8 @@ export function useAddress() {
   // --- Watchers to chain requests ---
 
   watch(selectedRegion, async (name) => {
+    if (isInitialLoad.value) return; // Skip on initial load
+
     // Clear downstream selections
     selectedProvince.value = '';
     selectedCity.value = '';
@@ -143,6 +146,57 @@ export function useAddress() {
     }
   });
 
+  async function initializeAddress(initialData: {
+    region?: string;
+    province?: string;
+    city?: string;
+    barangay?: string;
+  }) {
+    isInitialLoad.value = true;
+
+    // 1. Load Regions first
+    await fetchRegions();
+    if (!initialData.region) {
+      isInitialLoad.value = false;
+      return;
+    }
+    selectedRegion.value = initialData.region;
+    const region = regions.value.find((r) => r.name === initialData.region);
+
+    if (region) {
+      // 2. Load Provinces OR Cities (if NCR)
+      if (region.code === '130000000' || region.name.includes('NCR')) {
+        await fetchCities(region.code, true);
+      } else {
+        await fetchProvinces(region.code);
+        if (initialData.province) {
+          selectedProvince.value = initialData.province;
+          const province = provinces.value.find(
+            (p) => p.name === initialData.province,
+          );
+          if (province) await fetchCities(province.code, false);
+        }
+      }
+
+      // 3. Load Barangays
+      if (initialData.city) {
+        selectedCity.value = initialData.city;
+        const city = cities.value.find((c) => c.name === initialData.city);
+        if (city) {
+          await fetchBarangays(city.code);
+          if (initialData.barangay) {
+            selectedBarangay.value = initialData.barangay;
+          }
+        }
+      }
+    }
+
+    // Small delay to ensure watchers don't overwrite during the async chain
+    setTimeout(() => {
+      isInitialLoad.value = false;
+    }, 500);
+  }
+
   // --- Lifecycle ---
   // Fetch initial region list when composable is used
   onMounted(fetchRegions);
@@ -162,5 +216,6 @@ export function useAddress() {
     isLoadingProvinces,
     isLoadingCities,
     isLoadingBarangays,
+    initializeAddress,
   };
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\SuperAdmin;
 use App\Http\Controllers\Controller;
 use App\Models\UserOwner;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use App\Enums\IdType;
 
@@ -95,7 +96,7 @@ class FranchiseOwnerController extends Controller
         if ($request->hasFile('front_valid_id_picture')) {
             // Delete old file if exists
             if ($userOwner->front_valid_id_picture) {
-                \Storage::disk('public')->delete($userOwner->front_valid_id_picture);
+                Storage::disk('public')->delete($userOwner->front_valid_id_picture);
             }
             $ownerData['front_valid_id_picture'] = $request->file('front_valid_id_picture')
                 ->store('valid-ids', 'public');
@@ -104,7 +105,7 @@ class FranchiseOwnerController extends Controller
         if ($request->hasFile('back_valid_id_picture')) {
             // Delete old file if exists
             if ($userOwner->back_valid_id_picture) {
-                \Storage::disk('public')->delete($userOwner->back_valid_id_picture);
+                Storage::disk('public')->delete($userOwner->back_valid_id_picture);
             }
             $ownerData['back_valid_id_picture'] = $request->file('back_valid_id_picture')
                 ->store('valid-ids', 'public');
