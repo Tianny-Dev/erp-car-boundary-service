@@ -24,10 +24,17 @@ class AllocationController extends Controller
 
     public function store(Request $request)
     {
+        if (PercentageType::count() >= 7) {
+            return back()->withErrors([
+                'name' => 'Maximum limit of 7 allocations has been reached.'
+            ]);
+        }
+
+        $maxLimit = $request->type === 'PHP' ? 10 : 5;
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', 'unique:percentage_types,name'],
             'type' => ['required', Rule::in(['Percentage', 'PHP'])],
-            'value' => ['required', 'numeric', 'min:0'],
+            'value' => ['required', 'numeric', 'min:0', "max:$maxLimit"],
         ]);
 
         PercentageType::create($validated);
@@ -37,9 +44,10 @@ class AllocationController extends Controller
 
     public function update(Request $request, PercentageType $allocation)
     {
+        $maxLimit = $request->type === 'PHP' ? 10 : 5;
         $validated = $request->validate([
             'type' => ['required', Rule::in(['Percentage', 'PHP'])],
-            'value' => ['required', 'numeric', 'min:0'],
+            'value' => ['required', 'numeric', 'min:0', "max:$maxLimit"],
         ]);
 
         $allocation->update($validated);
