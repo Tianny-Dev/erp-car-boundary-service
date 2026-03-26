@@ -23,7 +23,8 @@ const stepTitles: Record<number, string> = {
   1: 'Basic Information',
   2: 'Home Address',
   3: 'Franchise Details',
-  5: 'Identity Verification',
+  4: 'Identity Verification',
+  5: 'Business Documentation',
   6: 'Account Security',
 };
 

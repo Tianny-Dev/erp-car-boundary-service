@@ -18,9 +18,9 @@ const stepTitles: Record<number, string> = {
   1: 'Basic Information',
   2: 'Home Address',
   3: 'Franchise Details',
-  5: 'Identity Verification',
-  6: 'Documents to Upload',
-  7: 'Account Security',
+  4: 'Identity Verification',
+  5: 'Documents to Upload',
+  6: 'Account Security',
 };
 
 const nextStep = () => {
