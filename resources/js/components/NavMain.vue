@@ -29,18 +29,23 @@ const groupedItems = computed(() => {
 <template>
   <div>
     <template v-for="(groupItems, groupName) in groupedItems" :key="groupName">
-      <SidebarGroup class="px-2 py-0">
-        <SidebarGroupLabel>{{ groupName }}</SidebarGroupLabel>
+      <SidebarGroup class="overflow-visible px-2 py-0">
+        <SidebarGroupLabel v-if="groupName" class="pointer-events-none">
+          {{ groupName }}
+        </SidebarGroupLabel>
 
         <SidebarMenu>
-          <SidebarMenuItem v-for="item in groupItems" :key="item.title">
+          <SidebarMenuItem
+            v-for="(item, index) in groupItems"
+            :key="item.title + index"
+          >
             <SidebarMenuButton
               as-child
               :is-active="urlIsActive(item.href, page.url)"
               :tooltip="item.title"
             >
-              <Link :href="item.href">
-                <component :is="item.icon" />
+              <Link :href="item.href" class="flex w-full items-center gap-2">
+                <component :is="item.icon" class="size-4 shrink-0" />
                 <span>{{ item.title }}</span>
               </Link>
             </SidebarMenuButton>
