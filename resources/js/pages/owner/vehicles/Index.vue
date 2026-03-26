@@ -75,6 +75,7 @@ interface Vehicle {
   status_id: number;
   status_name: string;
   or_cr: string;
+  driver_id: number | null;
 }
 
 interface VehiclesPaginator {
@@ -186,6 +187,15 @@ const selectedInventory = computed(() =>
 );
 
 const submitMaintenance = () => {
+  // Prevent submission if frontend detects low stock
+  if (
+    selectedInventory.value &&
+    maintenanceForm.value.quantity > selectedInventory.value.quantity
+  ) {
+    toast.error('Cannot exceed available stock');
+    return;
+  }
+
   router.post('/owner/vehicles/maintenance', maintenanceForm.value, {
     onStart: () => (isSubmittingMaintenance.value = true),
     onFinish: () => (isSubmittingMaintenance.value = false),
@@ -193,9 +203,7 @@ const submitMaintenance = () => {
       toast.success('Maintenance record added and stock updated!');
       showMaintenanceDialog.value = false;
       resetMaintenanceForm();
-      router.reload({ only: ['errors'] });
     },
-    // onError: (errs) => toast.error('Please fix the errors in the form'),
   });
 };
 
@@ -298,6 +306,22 @@ const openEditDialog = (vehicle: Vehicle) => {
 };
 
 // Computed property to filter which statuses are allowed to be selected
+interface Vehicle {
+  id: number;
+  plate_number: string;
+  vin: string;
+  brand: string;
+  model: string;
+  color: string;
+  year: number;
+  status_id: number;
+  status_name: string;
+  or_cr: string;
+  driver_id: number | null; // Add this line
+}
+
+// 1. Determine which statuses the user can actually pick in the dropdown
+// 1. Determine which statuses the user can actually pick in the dropdown
 const availableStatuses = computed(() => {
   if (dialogMode.value === 'create') {
     return [{ id: STATUS_AVAILABLE, name: 'Available' }];
@@ -305,26 +329,46 @@ const availableStatuses = computed(() => {
 
   if (dialogMode.value === 'edit' && editingVehicle.value) {
     const currentStatus = editingVehicle.value.status_id;
+    const hasDriver = !!editingVehicle.value.driver_id; // Now we will use this
 
+    // Rule: If current is Maintenance
     if (currentStatus === STATUS_MAINTENANCE) {
+      // If there is a driver, they can go back to Active.
+      // If no driver, they can only go back to Available.
       return [
         { id: STATUS_MAINTENANCE, name: 'Maintenance' },
-        { id: STATUS_ACTIVE, name: 'Active' },
+        hasDriver
+          ? { id: STATUS_ACTIVE, name: 'Active' }
+          : { id: STATUS_AVAILABLE, name: 'Available' },
       ];
     }
 
+    // Rule: If it's Active (meaning it has a driver)
     if (currentStatus === STATUS_ACTIVE) {
       return [{ id: STATUS_ACTIVE, name: 'Active' }];
     }
+
+    // Rule: If it's Available
+    if (currentStatus === STATUS_AVAILABLE) {
+      return [{ id: STATUS_AVAILABLE, name: 'Available' }];
+    }
   }
 
-  // Fallback
   return statuses.value;
 });
 
+// 2. Determine if the Select should be grayed out entirely
 const isStatusDisabled = computed(() => {
   if (dialogMode.value === 'create') return true;
-  if (editingVehicle.value?.status_id === STATUS_ACTIVE) return true;
+
+  if (editingVehicle.value) {
+    // Lock status if it's currently Available (User must use Maintenance module or assign driver elsewhere)
+    if (editingVehicle.value.status_id === STATUS_AVAILABLE) return true;
+
+    // Lock status if it's Active (Managed by driver assignment)
+    if (editingVehicle.value.status_id === STATUS_ACTIVE) return true;
+  }
+
   return false;
 });
 
@@ -1114,18 +1158,34 @@ const vehicleColors = [
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-2 items-start gap-4">
             <div class="grid gap-2">
               <Label>Quantity Used</Label>
               <Input
                 type="number"
                 v-model="maintenanceForm.quantity"
                 min="1"
-                :class="{ 'border-red-500': errors.quantity }"
+                :class="{
+                  'border-red-500':
+                    errors.quantity ||
+                    (selectedInventory &&
+                      maintenanceForm.quantity > selectedInventory.quantity),
+                }"
                 @input="clearError('quantity')"
               />
               <p
-                v-if="errors.quantity"
+                v-if="
+                  selectedInventory &&
+                  maintenanceForm.quantity > selectedInventory.quantity
+                "
+                class="text-xs font-medium text-red-500"
+              >
+                Warning: Exceeds available stock ({{
+                  selectedInventory.quantity
+                }})
+              </p>
+              <p
+                v-else-if="errors.quantity"
                 class="text-xs font-medium text-red-500"
               >
                 {{ errors.quantity }}
