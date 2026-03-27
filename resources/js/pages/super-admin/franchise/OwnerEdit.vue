@@ -40,8 +40,8 @@ interface Owner {
   id: number;
   valid_id_type: string;
   valid_id_number: string;
-  front_valid_id_picture: string | null;
-  back_valid_id_picture: string | null;
+  front_valid_id_picture: string;
+  back_valid_id_picture: string;
   status: Status | null;
   user: User | null;
 }
@@ -154,10 +154,10 @@ watch(selectedBarangay, (v) => (formData.value.barangay = v));
 
 onMounted(async () => {
   await initializeAddress({
-    region: props.franchise.region,
-    province: props.franchise.province,
-    city: props.franchise.city,
-    barangay: props.franchise.barangay,
+    region: props.owner?.user?.region,
+    province: props.owner?.user?.province,
+    city: props.owner?.user?.city,
+    barangay: props.owner?.user?.barangay,
   });
 });
 
@@ -241,10 +241,10 @@ const reset = async () => {
     back_valid_id_picture: null,
   };
   await initializeAddress({
-    region: props.franchise.region,
-    province: props.franchise.province,
-    city: props.franchise.city,
-    barangay: props.franchise.barangay,
+    region: props.owner?.user?.region,
+    province: props.owner?.user?.province,
+    city: props.owner?.user?.city,
+    barangay: props.owner?.user?.barangay,
   });
 
   toast.info('Form has been reset to original values.');
@@ -449,12 +449,13 @@ const reset = async () => {
               >
                 ✓ {{ selectedFiles.front_valid_id_picture.name }}
               </p>
-              <p
-                v-else-if="props.owner?.front_valid_id_picture"
-                class="text-sm text-gray-500"
+              <a
+                :href="props.owner.front_valid_id_picture"
+                target="_blank"
+                class="ms-2 cursor-pointer text-sm text-blue-600 underline hover:text-blue-800"
               >
-                Current: {{ props.owner.front_valid_id_picture }}
-              </p>
+                View Current Front ID Picture
+              </a>
             </div>
             <div class="space-y-2">
               <Label>Back ID Picture</Label>
@@ -471,12 +472,13 @@ const reset = async () => {
               >
                 ✓ {{ selectedFiles.back_valid_id_picture.name }}
               </p>
-              <p
-                v-else-if="props.owner?.back_valid_id_picture"
-                class="text-sm text-gray-500"
+              <a
+                :href="props.owner.back_valid_id_picture"
+                target="_blank"
+                class="ms-2 cursor-pointer text-sm text-blue-600 underline hover:text-blue-800"
               >
-                Current: {{ props.owner.back_valid_id_picture }}
-              </p>
+                View Current Back ID Picture
+              </a>
             </div>
           </div>
         </div>

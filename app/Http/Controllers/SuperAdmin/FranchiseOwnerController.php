@@ -20,8 +20,10 @@ class FranchiseOwnerController extends Controller
                 'id' => $userOwner->id,
                 'valid_id_type' => $userOwner->valid_id_type,
                 'valid_id_number' => $userOwner->valid_id_number,
-                'front_valid_id_picture' => $userOwner->front_valid_id_picture,
-                'back_valid_id_picture' => $userOwner->back_valid_id_picture,
+                'front_valid_id_picture' => $userOwner->front_valid_id_picture ?
+                    Storage::url($userOwner->front_valid_id_picture) : null,
+                'back_valid_id_picture' => $userOwner->back_valid_id_picture  ?
+                    Storage::url($userOwner->back_valid_id_picture) : null,
                 'status' => $userOwner->status ? $userOwner->status->only(['id', 'name']) : null,
                 'user' => $userOwner->user ? $userOwner->user->only([
                     'id',
