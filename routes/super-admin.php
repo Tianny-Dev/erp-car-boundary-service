@@ -16,6 +16,7 @@ use App\Http\Controllers\SuperAdmin\OwnerController;
 use App\Http\Controllers\SuperAdmin\RevenueController;
 use App\Http\Controllers\SuperAdmin\TransactionController;
 use App\Http\Controllers\SuperAdmin\VehicleController;
+use App\Http\Controllers\SuperAdmin\TaxiMetricController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-admin')->name('super-admin.')->group(function () {
@@ -48,6 +49,9 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
     Route::get('/allocation', [AllocationController::class, 'index'])->name('allocation.index');
     Route::post('/allocation', [AllocationController::class, 'store'])->name('allocation.store');
     Route::put('/allocation/{allocation}', [AllocationController::class, 'update'])->name('allocation.update');
+
+    Route::get('/taxi-metric', [TaxiMetricController::class, 'index'])->name('taxiMetric.index');
+    Route::patch('/taxi-metric/{taxiMetric}', [TaxiMetricController::class, 'update'])->name('taxiMetric.update');
 
     Route::get('/driver', [DriverController::class, 'index'])->name('driver.index');
     Route::get('/driver/{driver}', [DriverController::class, 'show'])->name('driver.show');

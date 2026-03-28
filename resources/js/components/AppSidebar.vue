@@ -27,6 +27,8 @@ import {
   DollarSign,
   FileSpreadsheet,
   FileText,
+  // Wrench,
+  FileUser,
   HandCoins,
   HelpCircle,
   History,
@@ -34,9 +36,8 @@ import {
   Map,
   ReceiptText,
   Ticket,
+  Tickets,
   Users,
-  // Wrench,
-  FileUser,
 } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import NavMain from './NavMain.vue';
@@ -131,6 +132,12 @@ const navConfig: Record<string, NavItem[]> = {
       title: 'Allocation Management',
       href: superAdmin.allocation.index(),
       icon: HandCoins,
+      group: 'Finance',
+    },
+    {
+      title: 'Trip Matrix Management',
+      href: superAdmin.taxiMetric.index(),
+      icon: Tickets,
       group: 'Finance',
     },
     {
