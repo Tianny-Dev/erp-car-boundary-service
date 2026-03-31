@@ -23,9 +23,27 @@ class TaxiMetricController extends Controller
     public function update(Request $request, TaxiMetric $taxiMetric)
     {
         $validated = $request->validate([
-            'flag'       => ['required', 'numeric', 'min:0'],
-            'per_minute' => ['required', 'numeric', 'min:0'],
-            'per_km'     => ['required', 'numeric', 'min:0'],
+            'flag' => [
+                'required',
+                'numeric',
+                'min:0',
+                'max:100',
+                'regex:/^\d+(\.\d{1,2})?$/'
+            ],
+            'per_minute' => [
+                'required',
+                'numeric',
+                'min:0',
+                'max:50',
+                'regex:/^\d+(\.\d{1,2})?$/'
+            ],
+            'per_km' => [
+                'required',
+                'numeric',
+                'min:0',
+                'max:100',
+                'regex:/^\d+(\.\d{1,2})?$/'
+            ],
         ]);
 
         $taxiMetric->update($validated);
