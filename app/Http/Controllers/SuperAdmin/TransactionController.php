@@ -7,7 +7,6 @@ use App\Http\Resources\SuperAdmin\TransactionDatatableResource;
 use App\Http\Resources\SuperAdmin\TransactionResource;
 use App\Models\Franchise;
 use App\Models\Revenue;
-use App\Models\Expense;
 use App\Models\UserDriver;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -21,18 +20,14 @@ class TransactionController extends Controller
     {
         // 1. Validate all filters
         $validated = $request->validate([
-            'type' => ['sometimes', 'string', Rule::in(['revenue', 'expense'])],
             'franchise' => ['sometimes', 'nullable', 'array'], 
-            'driver' => ['sometimes', 'nullable', 'array'],
-            'service' => ['sometimes', 'string', Rule::in(['Trips', 'Boundary'])],
+            'driver' => ['sometimes', 'nullable', 'array'], 
         ]);
 
         // 2. Set defaults
         $filters = [
-            'type' => $validated['type'] ?? 'revenue',
             'franchise' => $validated['franchise'] ?? [],
             'driver' => $validated['driver'] ?? [],
-            'service' => $validated['service'] ?? 'Trips',
         ];
 
         // 3. Build and execute query
@@ -56,16 +51,9 @@ class TransactionController extends Controller
      */
     private function buildBaseQuery(array $filters): Builder
     {
-        $isExpense = $filters['type'] === 'expense';
-        $query = $isExpense ? Expense::query() : Revenue::query();
-
-        // Conditional Eager Loading
-        $relations = ['status:id,name'];
-        if (!$isExpense) {
-            $relations[] = 'driver.user:id,username';
-            $query->where('service_type', $filters['service']); // Only for revenue
-        }
-        $query->with($relations);
+        $query = Revenue::query()
+        ->with(['status:id,name', 'driver.user:id,username',])
+        ->where('service_type', 'Trips');
 
         // Filter by specific driver if selected
         $query->when(!empty($filters['driver']), function ($q) use ($filters) {
@@ -103,15 +91,14 @@ class TransactionController extends Controller
         return $query->orderBy('users.username')->get();
     }
 
-    public function show(Request $request, $id)
+    public function show($id)
     {
-        $type = $request->query('type', 'revenue');
-
-        $model = $type === 'expense' 
-        ? Expense::with(['status', 'franchise:id,name', 'paymentOption', 'maintenance.inventory', 'maintenance.vehicle'])
-        : Revenue::with(['status', 'driver.user:id,username', 'franchise:id,name', 'paymentOption:id,name']);
-
-        $transaction = $model->findOrFail($id);
+        $revenue = Revenue::with([
+            'status', 
+            'driver.user:id,username', 
+            'franchise:id,name', 
+            'paymentOption:id,name']);
+        $transaction = $revenue->findOrFail($id);
 
         return new TransactionResource($transaction);
     }
