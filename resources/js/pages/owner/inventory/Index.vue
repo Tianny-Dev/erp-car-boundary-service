@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { toast } from 'vue-sonner';
@@ -68,7 +68,6 @@ interface InventoryItem {
   notes?: string;
 }
 
-// Props from Inertia
 const props = defineProps<{
   inventory: {
     data: InventoryItem[];
@@ -82,33 +81,37 @@ const props = defineProps<{
     prev_page_url: string | null;
     next_page_url: string | null;
   };
-  franchise_id: number; // Captured from your Controller
+  franchise_id: number;
 }>();
 
 const page = usePage();
 const errors = computed(() => page.props.errors as any);
 
-// Breadcrumbs
+/**
+ * Optimized clearError to handle the reactive page.props
+ */
+const clearError = (field: string) => {
+  if (page.props.errors && (page.props.errors as any)[field]) {
+    delete (page.props.errors as any)[field];
+  }
+};
+
 const breadcrumbs = [
   { title: 'Inventory Management', href: '/owner/inventory' },
 ];
 
-// State
 const isSaving = ref(false);
 const showDialog = ref(false);
 const dialogMode = ref<'create' | 'edit'>('create');
 const editingItem = ref<InventoryItem | null>(null);
 
-/** * FIX: Using Partial<InventoryItem> removes the red line error
- * when assigning "item" to "form".
- */
 const form = ref<Partial<InventoryItem>>({
   franchise_id: props.franchise_id,
   code_no: '',
   name: '',
   category: 'Other',
   specification: '',
-  quantity: 0,
+  quantity: 1,
   unit_price: 0,
   notes: '',
 });
@@ -121,7 +124,6 @@ const categories: InventoryItem['category'][] = [
   'Other',
 ];
 
-// Helper to access pagination data easily
 const paginator = computed(() => props.inventory);
 const paginationLinks = computed(() => paginator.value.links || []);
 
@@ -133,7 +135,7 @@ const openCreate = () => {
     name: '',
     category: 'Other',
     specification: '',
-    quantity: 0,
+    quantity: 1,
     unit_price: 0,
     notes: '',
   };
@@ -143,12 +145,10 @@ const openCreate = () => {
 const openEdit = (item: InventoryItem) => {
   dialogMode.value = 'edit';
   editingItem.value = item;
-  /** FIX: This spread now works perfectly with the Partial type above */
   form.value = { ...item };
   showDialog.value = true;
 };
 
-// Pagination Logic
 const goToPage = (url: string | null) => {
   if (!url) return;
   router.get(url, {}, { preserveState: true, preserveScroll: true });
@@ -183,13 +183,47 @@ const formatCurrency = (value: number) => {
     currency: 'PHP',
   }).format(value);
 };
+
+// -------------------------
+// WATCHERS FOR ERROR CLEARING
+// -------------------------
+watch(
+  () => form.value.code_no,
+  () => clearError('code_no'),
+);
+watch(
+  () => form.value.name,
+  () => clearError('name'),
+);
+watch(
+  () => form.value.category,
+  () => clearError('category'),
+);
+watch(
+  () => form.value.specification,
+  () => clearError('specification'),
+);
+watch(
+  () => form.value.quantity,
+  () => clearError('quantity'),
+);
+watch(
+  () => form.value.unit_price,
+  () => clearError('unit_price'),
+);
+watch(
+  () => form.value.notes,
+  () => clearError('notes'),
+);
 </script>
 
 <template>
   <Head title="Inventory Management" />
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="space-y-6 p-6">
-      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div
+        class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+      >
         <div>
           <h1 class="text-3xl font-bold">Inventory</h1>
           <p class="text-sm text-muted-foreground sm:text-base">
@@ -261,7 +295,6 @@ const formatCurrency = (value: number) => {
                 </DropdownMenu>
               </TableCell>
             </TableRow>
-
             <TableRow v-if="inventory.data.length === 0">
               <TableCell
                 colspan="8"
@@ -279,7 +312,6 @@ const formatCurrency = (value: number) => {
           Showing {{ paginator.from || 0 }} to {{ paginator.to || 0 }} of
           {{ paginator.total }} entries
         </span>
-
         <Pagination
           :items-per-page="paginator.per_page"
           :total="paginator.total"
@@ -291,7 +323,6 @@ const formatCurrency = (value: number) => {
               :disabled="!paginator.prev_page_url"
               @click="goToPage(paginator.prev_page_url)"
             />
-
             <template v-for="link in paginationLinks" :key="link.label">
               <PaginationItem
                 v-if="!isNaN(Number(link.label))"
@@ -312,7 +343,6 @@ const formatCurrency = (value: number) => {
               </PaginationItem>
               <PaginationEllipsis v-else-if="link.label.includes('...')" />
             </template>
-
             <PaginationNext
               :disabled="!paginator.next_page_url"
               @click="goToPage(paginator.next_page_url)"
@@ -325,13 +355,11 @@ const formatCurrency = (value: number) => {
     <Dialog v-model:open="showDialog">
       <DialogContent class="max-w-md">
         <DialogHeader>
-          <DialogTitle>
-            {{
-              dialogMode === 'create'
-                ? 'Add Inventory Item'
-                : 'Edit Inventory Item'
-            }}
-          </DialogTitle>
+          <DialogTitle>{{
+            dialogMode === 'create'
+              ? 'Add Inventory Item'
+              : 'Edit Inventory Item'
+          }}</DialogTitle>
           <DialogDescription
             >Fill in the details for your inventory record.</DialogDescription
           >
@@ -344,19 +372,27 @@ const formatCurrency = (value: number) => {
               <Input
                 v-model="form.code_no"
                 placeholder="INV-001"
-                :class="{ 'border-red-500': errors.code_no }"
+                :class="{ 'border-red-500 ring-red-500': errors.code_no }"
               />
+              <p v-if="errors.code_no" class="text-[11px] text-red-500">
+                {{ errors.code_no }}
+              </p>
             </div>
             <div class="space-y-2">
               <Label>Category</Label>
               <Select v-model="form.category">
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger :class="{ 'border-red-500': errors.category }">
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem v-for="cat in categories" :key="cat" :value="cat">
                     {{ cat }}
                   </SelectItem>
                 </SelectContent>
               </Select>
+              <p v-if="errors.category" class="text-[11px] text-red-500">
+                {{ errors.category }}
+              </p>
             </div>
           </div>
 
@@ -365,8 +401,11 @@ const formatCurrency = (value: number) => {
             <Input
               v-model="form.name"
               placeholder="Item Name"
-              :class="{ 'border-red-500': errors.name }"
+              :class="{ 'border-red-500 ring-red-500': errors.name }"
             />
+            <p v-if="errors.name" class="text-[11px] text-red-500">
+              {{ errors.name }}
+            </p>
           </div>
 
           <div class="space-y-2">
@@ -374,17 +413,43 @@ const formatCurrency = (value: number) => {
             <Input
               v-model="form.specification"
               placeholder="e.g. 10W-40 Synthetic"
+              :class="{ 'border-red-500': errors.specification }"
             />
+            <p v-if="errors.specification" class="text-[11px] text-red-500">
+              {{ errors.specification }}
+            </p>
           </div>
 
           <div class="grid grid-cols-2 gap-4">
             <div class="space-y-2">
               <Label>Quantity</Label>
-              <Input type="number" v-model="form.quantity" />
+              <Input
+                type="number"
+                v-model.number="form.quantity"
+                min="1"
+                :class="{ 'border-red-500 ring-red-500': errors.quantity }"
+                @blur="
+                  if (!form.quantity || form.quantity < 1) form.quantity = 1;
+                "
+                @keypress="
+                  if (['-', 'e'].includes($event.key)) $event.preventDefault();
+                "
+              />
+              <p v-if="errors.quantity" class="text-[11px] text-red-500">
+                {{ errors.quantity }}
+              </p>
             </div>
             <div class="space-y-2">
               <Label>Unit Price (₱)</Label>
-              <Input type="number" step="0.01" v-model="form.unit_price" />
+              <Input
+                type="number"
+                step="0.01"
+                v-model="form.unit_price"
+                :class="{ 'border-red-500 ring-red-500': errors.unit_price }"
+              />
+              <p v-if="errors.unit_price" class="text-[11px] text-red-500">
+                {{ errors.unit_price }}
+              </p>
             </div>
           </div>
 
@@ -393,7 +458,11 @@ const formatCurrency = (value: number) => {
             <Textarea
               v-model="form.notes"
               placeholder="Additional details..."
+              :class="{ 'border-red-500': errors.notes }"
             />
+            <p v-if="errors.notes" class="text-[11px] text-red-500">
+              {{ errors.notes }}
+            </p>
           </div>
         </div>
 
