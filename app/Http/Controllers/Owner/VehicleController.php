@@ -72,8 +72,8 @@ class VehicleController extends Controller
         }
 
         $inventory = Inventory::where('id', $request->inventory_id)
-                        ->where('franchise_id', $franchise->id)
-                        ->firstOrFail();
+            ->where('franchise_id', $franchise->id)
+            ->firstOrFail();
 
         // BETTER VALIDATION: Throw a validation exception for 'quantity'
         if ($inventory->quantity < $request->quantity) {
@@ -86,22 +86,22 @@ class VehicleController extends Controller
             $vehicle = Vehicle::findOrFail($request->vehicle_id);
 
             $maintenance = Maintenance::create([
-                'vehicle_id'            => $request->vehicle_id,
-                'inventory_id'          => $request->inventory_id,
-                'quantity'              => $request->quantity,
-                'maintenance_date'      => $request->maintenance_date,
+                'vehicle_id' => $request->vehicle_id,
+                'inventory_id' => $request->inventory_id,
+                'quantity' => $request->quantity,
+                'maintenance_date' => $request->maintenance_date,
                 'next_maintenance_date' => $request->next_maintenance_date,
-                'description'           => $request->description,
+                'description' => $request->description,
             ]);
 
             Expense::create([
-                'franchise_id'   => $franchise->id,
+                'franchise_id' => $franchise->id,
                 'maintenance_id' => $maintenance->id,
-                'invoice_no'     => 'INV-' . strtoupper(uniqid()),
-                'amount'         => $inventory->unit_price * $request->quantity,
-                'currency'       => 'PHP',
-                'notes'          => "Maintenance for {$vehicle->plate_number}: {$request->description}",
-                'payment_date'   => now(),
+                'invoice_no' => 'INV-' . strtoupper(uniqid()),
+                'amount' => $inventory->unit_price * $request->quantity,
+                'currency' => 'PHP',
+                'notes' => "Maintenance for {$vehicle->plate_number}: {$request->description}",
+                'payment_date' => now(),
             ]);
 
             $vehicle->update(['status_id' => 5]);
@@ -123,13 +123,13 @@ class VehicleController extends Controller
                 'unique:vehicles',
                 'regex:/^([A-Z]{3}\s?\d{3,4}|[A-Z]{2}\s?\d{5})$/i'
             ],
-            'vin'          => 'required|string|max:17|unique:vehicles', // VINs are standard 17 chars
-            'brand'        => 'required|string|max:50',
-            'model'        => 'required|string|max:50',
-            'color'        => 'required|string|max:30',
-            'year'         => 'required|integer|digits:4|between:1900,' . (date('Y') + 1),
-            'status_id'    => 'required|exists:statuses,id',
-            'or_cr'        => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'vin' => 'required|string|max:17|unique:vehicles', // VINs are standard 17 chars
+            'brand' => 'required|string|max:50',
+            'model' => 'required|string|max:50',
+            'color' => 'required|string|max:30',
+            'year' => 'required|integer|digits:4|between:1900,' . (date('Y') + 1),
+            'status_id' => 'required|exists:statuses,id',
+            'or_cr' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ], [
             'plate_number.regex' => 'The plate number format is invalid (e.g., ABC 1234 or AB 12345).',
         ]);
@@ -171,13 +171,13 @@ class VehicleController extends Controller
 
         $request->validate([
             'plate_number' => 'required|string|max:255|unique:vehicles,plate_number,' . $vehicle->id,
-            'vin'          => 'required|string|max:255|unique:vehicles,vin,' . $vehicle->id,
-            'brand'        => 'required|string|max:255',
-            'model'        => 'required|string|max:255',
-            'color'        => 'required|string|max:255',
-            'year'         => 'required|integer|digits:4|between:1900,' . (date('Y') + 1),
-            'status_id'    => 'required|exists:statuses,id',
-            'or_cr'        => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'vin' => 'required|string|max:255|unique:vehicles,vin,' . $vehicle->id,
+            'brand' => 'required|string|max:255',
+            'model' => 'required|string|max:255',
+            'color' => 'required|string|max:255',
+            'year' => 'required|integer|digits:4|between:1900,' . (date('Y') + 1),
+            'status_id' => 'required|exists:statuses,id',
+            'or_cr' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
 
         if ($request->hasFile('or_cr')) {
@@ -192,7 +192,13 @@ class VehicleController extends Controller
         }
 
         $vehicle->update($request->only([
-            'plate_number', 'vin', 'brand', 'model', 'color', 'year', 'status_id'
+            'plate_number',
+            'vin',
+            'brand',
+            'model',
+            'color',
+            'year',
+            'status_id'
         ]));
 
         return redirect()->back()->with('success', 'Vehicle updated!');

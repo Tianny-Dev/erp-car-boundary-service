@@ -41,7 +41,7 @@ class VehicleController extends Controller
         // 4. Return all data to Inertia
         return Inertia::render('super-admin/fleet/VehicleIndex', [
             'vehicles' => VehicleDatatableResource::collection($vehicles),
-            'franchises' => fn () => Franchise::select('id', 'name')->get(),
+            'franchises' => fn() => Franchise::select('id', 'name')->get(),
             'filters' => [
                 'franchise' => $filters['franchise'],
                 'status' => $filters['status'],
@@ -56,10 +56,10 @@ class VehicleController extends Controller
     {
         $query = Vehicle::with([
             'status:id,name',
-        ])->whereHas('status', fn ($q) => $q->where('name', $filters['status']));
+        ])->whereHas('status', fn($q) => $q->where('name', $filters['status']));
 
         $query->whereNotNull('franchise_id')
-            ->when(! empty($filters['franchise']), fn ($q) => $q->whereIn('franchise_id', $filters['franchise']))
+            ->when(!empty($filters['franchise']), fn($q) => $q->whereIn('franchise_id', $filters['franchise']))
             ->with('franchise:id,name');
 
         return $query;
@@ -76,7 +76,7 @@ class VehicleController extends Controller
     public function create(): Response
     {
         return Inertia::render('super-admin/fleet/VehicleCreate', [
-            'franchises' => fn () => Franchise::select('id', 'name')->get(),
+            'franchises' => fn() => Franchise::select('id', 'name')->get(),
         ]);
     }
 
@@ -93,7 +93,7 @@ class VehicleController extends Controller
         return back();
     }
 
-   public function store(Request $request)
+    public function store(Request $request)
     {
         $request->validate([
             'franchise_id' => 'required|exists:franchises,id',
@@ -103,7 +103,7 @@ class VehicleController extends Controller
                 'unique:vehicles,plate_number',
                 'regex:/^([A-Z]{3}\s?\d{3,4}|[A-Z]{2}\s?\d{5})$/i'
             ],
-            'vin'   => [
+            'vin' => [
                 'required',
                 'string',
                 'size:17',
@@ -113,7 +113,7 @@ class VehicleController extends Controller
             'brand' => 'required|string|max:50',
             'model' => 'required|string|max:50',
             'color' => 'required|string|max:30',
-            'year'  => 'required|integer|digits:4|between:1900,' . (date('Y') + 1),
+            'year' => 'required|integer|digits:4|between:1900,' . (date('Y') + 1),
             'or_cr' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ], [
             'plate_number.regex' => 'The plate number format is invalid (e.g., ABC 1234 or AB 12345).',
@@ -139,8 +139,8 @@ class VehicleController extends Controller
         $vehicle->save();
 
         return redirect()
-        ->route('super-admin.vehicle.index', ['status' => 'available'])
-        ->with('success', 'Vehicle created!');
+            ->route('super-admin.vehicle.index', ['status' => 'available'])
+            ->with('success', 'Vehicle created!');
     }
 
     /**
@@ -153,21 +153,23 @@ class VehicleController extends Controller
             'plate_number' => [
                 'required',
                 'string',
-                'unique:vehicles,plate_number',
+                // 'unique:vehicles,plate_number',
+                Rule::unique('vehicles', 'plate_number')->ignore($vehicle->id),
                 'regex:/^([A-Z]{3}\s?\d{3,4}|[A-Z]{2}\s?\d{5})$/i'
             ],
-            'vin'   => [
+            'vin' => [
                 'required',
                 'string',
                 'size:17',
-                'unique:vehicles,vin',
+                // 'unique:vehicles,vin',
+                Rule::unique('vehicles', 'vin')->ignore($vehicle->id),
                 'regex:/^[A-HJ-NPR-Z0-9]+$/i'
             ],
             'brand' => 'required|string|max:50',
             'model' => 'required|string|max:50',
             'color' => 'required|string|max:30',
-            'year'  => 'required|integer|digits:4|between:1900,' . (date('Y') + 1),
-            'or_cr' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'year' => 'required|integer|digits:4|between:1900,' . (date('Y') + 1),
+            'or_cr' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ], [
             'plate_number.regex' => 'The plate number format is invalid (e.g., ABC 1234 or AB 12345).',
             'vin.regex' => 'The VIN contains invalid characters (I, O, and Q are not allowed).',
@@ -227,10 +229,12 @@ class VehicleController extends Controller
     public function maintenanceHistory(Vehicle $vehicle)
     {
         // Eager load maintenance with its related inventory
-        $vehicle->loadMissing(['maintenances' => function ($query) {
-            $query->orderBy('maintenance_date', 'desc')
-                ->with('inventory:id,name,category,specification'); // eager load inventory
-        }]);
+        $vehicle->loadMissing([
+            'maintenances' => function ($query) {
+                $query->orderBy('maintenance_date', 'desc')
+                    ->with('inventory:id,name,category,specification'); // eager load inventory
+            }
+        ]);
 
         return MaintenanceHistoryResource::collection($vehicle->maintenances);
     }
