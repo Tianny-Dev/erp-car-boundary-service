@@ -311,8 +311,6 @@ const getBadgeClass = (status: string) => {
       return 'bg-rose-500 hover:bg-rose-600';
     case 'retired':
       return 'bg-rose-500 hover:bg-rose-600';
-    case 'inactive':
-      return 'bg-rose-500 hover:bg-rose-600';
     default:
       return 'bg-gray-500 hover:bg-gray-600';
   }
@@ -451,6 +449,7 @@ const removeDriverFromFranchise = () => {
                   </DropdownMenuContent>
                 </DropdownMenu>
                 <Button
+                  v-if="driver.status === 'retired'"
                   size="sm"
                   variant="destructive"
                   @click="confirmRemoveDriver(driver)"

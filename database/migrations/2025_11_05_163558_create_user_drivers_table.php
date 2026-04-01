@@ -28,6 +28,7 @@ return new class extends Migration
             $table->enum('shift', ['Morning', 'Evening', 'Night'])->default('Morning');
             $table->date('hire_date')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
@@ -36,6 +37,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('user_drivers');
+        Schema::table('user_drivers', function (Blueprint $table) {
+            $table->dropSoftDeletes();
+        });
     }
 };

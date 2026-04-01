@@ -186,12 +186,22 @@ const toggleStatus = (id: number, action: 'approve' | 'deny') => {
 
   router.put(
     `/owner/drivers-application/${id}`,
-    { action: action }, // We pass the action here
+    { action: action },
     {
-      onSuccess: () =>
-        toast.success(`Driver ${action} successfully!`, { id: toastId }),
-      onError: () =>
-        toast.error(`Failed to ${action} driver.`, { id: toastId }),
+      onSuccess: (page) => {
+        // If Laravel returns successfully but with validation/custom errors
+        const errorMsg = page.props.errors?.error;
+        if (errorMsg) {
+          toast.error(errorMsg, { id: toastId });
+        } else {
+          toast.success(`Driver ${action} successfully!`, { id: toastId });
+        }
+      },
+      onError: (errors) => {
+        // Handle standard validation errors or 500 errors
+        const msg = errors.error || `Failed to ${action} driver.`;
+        toast.error(msg, { id: toastId });
+      },
       onFinish: () => (updatingId.value = null),
     },
   );

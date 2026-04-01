@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
+use App\Models\BoundaryContract;
 use App\Models\Status;
 use App\Models\UserDriver;
+use App\Models\Vehicle;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -20,11 +23,10 @@ class DriverManagementController extends Controller
             abort(404, 'Franchise not found');
         }
 
-        $statusQuery = ['active', 'inactive', 'suspended', 'retired'];
+        $statusQuery = ['active', 'suspended', 'retired'];
 
         $drivers = $franchise->drivers()
             ->with(['user', 'status', 'boundaryContracts' => function($query) {
-                // Get latest contract with its associated vehicle
                 $query->latest()->with('vehicle');
             }])
             ->whereHas('status', function ($query) use ($statusQuery) {
@@ -32,7 +34,6 @@ class DriverManagementController extends Controller
             })
             ->paginate(10)
             ->through(function($driver) {
-                // FIX: Define $vehicle by grabbing the first contract from the collection
                 $latestContract = $driver->boundaryContracts->first();
                 $vehicle = $latestContract?->vehicle;
 
@@ -48,15 +49,12 @@ class DriverManagementController extends Controller
                     'barangay' => $driver->user?->barangay,
                     'address' => $driver->user?->address,
                     'status' => $driver->status?->name,
-
-                    // Now $vehicle is defined and can be mapped
                     'vehicle' => [
                         'plate_number' => $vehicle?->plate_number ?? 'No Vehicle',
                         'brand'        => $vehicle?->brand ?? 'N/A',
                         'model'        => $vehicle?->model ?? 'N/A',
                         'color'        => $vehicle?->color ?? 'N/A',
                     ],
-
                     'details' => [
                         'code_number'           => $driver->code_number,
                         'license_number'        => $driver->license_number,
@@ -72,7 +70,7 @@ class DriverManagementController extends Controller
                 ];
             });
 
-        $statuses = Status::whereIn('name', ['active', 'suspended', 'retired', 'inactive'])
+        $statuses = Status::whereIn('name', ['active', 'suspended', 'retired'])
             ->get(['id', 'name']);
 
         return Inertia::render('owner/driver-management/Index', [
@@ -84,15 +82,12 @@ class DriverManagementController extends Controller
     public function update(Request $request, string $id)
     {
         $franchise = auth()->user()->ownerDetails?->franchises()->first();
-
         if (!$franchise) {
             return redirect()->back()->withErrors(['message' => 'Franchise not found']);
         }
 
-        // We use $id because in your DB, Driver ID and User ID are identical.
         $driver = UserDriver::with('user')->findOrFail($id);
 
-        // Security check
         if (!$driver->franchises()->where('franchise_id', $franchise->id)->exists()) {
             abort(403, 'Unauthorized action.');
         }
@@ -113,72 +108,107 @@ class DriverManagementController extends Controller
             }
         }
 
-        // 2. Handle Profile & Unique Field Updates
+        // 2. Handle Profile Updates
         if ($request->hasAny(['email', 'phone', 'license_number', 'code_number', 'region'])) {
-
-            // KEY CHANGE: Since you use Shared Primary Keys, $driver->id IS the User's ID.
             $userId = $driver->id;
-
             $request->validate([
-                'email' => [
-                    'sometimes',
-                    'email',
-                    Rule::unique('users', 'email')->ignore($userId),
-                ],
-                'phone' => [
-                    'sometimes',
-                    Rule::unique('users', 'phone')->ignore($userId),
-                ],
-                'code_number' => [
-                    'sometimes',
-                    Rule::unique('user_drivers', 'code_number')->ignore($driver->id),
-                ],
-                'license_number' => [
-                    'sometimes',
-                    Rule::unique('user_drivers', 'license_number')->ignore($driver->id),
-                ],
-                'license_expiry' => 'sometimes|date|nullable',
-                'region'         => 'sometimes|string',
-                'province'       => 'sometimes|string|nullable',
-                'city'           => 'sometimes|string',
-                'barangay'       => 'sometimes|string',
-                'shift'          => 'sometimes|string|nullable',
+                'email' => ['sometimes', 'email', Rule::unique('users', 'email')->ignore($userId)],
+                'phone' => ['sometimes', Rule::unique('users', 'phone')->ignore($userId)],
+                'code_number' => ['sometimes', Rule::unique('user_drivers', 'code_number')->ignore($driver->id)],
+                'license_number' => ['sometimes', Rule::unique('user_drivers', 'license_number')->ignore($driver->id)],
             ]);
 
-            // Update User record
             if ($driver->user) {
-                $driver->user->update($request->only([
-                    'email', 'phone', 'region', 'province', 'city', 'barangay'
-                ]));
+                $driver->user->update($request->only(['email', 'phone', 'region', 'province', 'city', 'barangay']));
             }
-
-            // Update Driver record
-            $driver->update($request->only([
-                'license_number', 'license_expiry', 'code_number', 'shift'
-            ]));
+            $driver->update($request->only(['license_number', 'license_expiry', 'code_number', 'shift']));
 
             return redirect()->back()->with('success', 'Driver profile updated!');
         }
 
-        // 3. Handle Status Update
+        // 3. Handle Status Update (Syncing with Boundary Contracts)
         if ($request->has('status_id')) {
             $request->validate(['status_id' => 'required|exists:statuses,id']);
-            $driver->update(['status_id' => $request->status_id]);
-            return redirect()->back()->with('success', 'Driver status updated!');
+            $newStatus = Status::findOrFail($request->status_id);
+
+            DB::transaction(function () use ($driver, $newStatus) {
+                // Always update the Driver status first
+                $driver->update(['status_id' => $newStatus->id]);
+
+                // Find the latest contract regardless of its current status
+                $latestContract = BoundaryContract::where('driver_id', $driver->id)->latest()->first();
+
+                if ($latestContract) {
+                    // Sync the contract status to match the driver
+                    $latestContract->update(['status_id' => $newStatus->id]);
+
+                    if (in_array($newStatus->name, ['suspended', 'retired'])) {
+                        // Release Vehicle
+                        $availableStatus = Status::where('name', 'available')->first();
+
+                        if ($latestContract->vehicle_id) {
+                            Vehicle::where('id', $latestContract->vehicle_id)->update([
+                                'driver_id' => null,
+                                'status_id' => $availableStatus?->id ?? 1
+                            ]);
+
+                            // Important: Null the vehicle_id in the contract to indicate it's no longer active
+                            $latestContract->update(['vehicle_id' => null]);
+                        }
+                    }
+                    elseif ($newStatus->name === 'active') {
+                        // If moving back to active, ensure the vehicle logic is handled
+                        // Note: Re-assigning a vehicle usually happens via a dedicated assignment,
+                        // but this ensures the contract record matches the driver status.
+                        $occupiedStatus = Status::where('name', 'occupied')->orWhere('name', 'active')->first();
+
+                        if ($latestContract->vehicle_id) {
+                            Vehicle::where('id', $latestContract->vehicle_id)->update([
+                                'driver_id' => $driver->id,
+                                'status_id' => $occupiedStatus?->id ?? 2
+                            ]);
+                        }
+                    }
+                }
+            });
+
+            return redirect()->back()->with('success', 'Driver and contract statuses updated.');
         }
 
         return redirect()->back();
     }
 
     public function destroy(string $id)
-    {
-        $driver = UserDriver::findOrFail($id);
-        $ownerFranchises = auth()->user()->ownerDetails->franchises->pluck('id');
-        $driver->franchises()->detach($ownerFranchises);
-        $driver->status_id = 6;
-        $driver->is_verified = false;
-        $driver->save();
+{
+    // Find the driver (this will only find non-deleted drivers by default)
+    $driver = UserDriver::findOrFail($id);
 
-        return back()->with('success', 'Driver removed successfully.');
-    }
+    $ownerFranchises = auth()->user()->ownerDetails->franchises->pluck('id');
+    $retiredStatus = Status::where('name', 'retired')->first();
+    $availableStatus = Status::where('name', 'available')->first();
+
+    DB::transaction(function () use ($driver, $ownerFranchises, $retiredStatus, $availableStatus) {
+
+        Vehicle::where('driver_id', $driver->id)->update([
+            'driver_id' => null,
+            'status_id' => $availableStatus?->id ?? 1
+        ]);
+
+        BoundaryContract::where('driver_id', $driver->id)->update([
+            'status_id' => $retiredStatus?->id ?? 6,
+            'vehicle_id' => null
+        ]);
+
+        $driver->franchises()->detach($ownerFranchises);
+
+        $driver->update([
+            'status_id' => $retiredStatus?->id ?? 6,
+            'is_verified' => false
+        ]);
+
+        $driver->delete();
+    });
+
+    return back()->with('success', 'Driver has been moved to trash/retired.');
+}
 }

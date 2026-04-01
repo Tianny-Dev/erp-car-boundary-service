@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -12,7 +11,6 @@ import {
 import {
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
   PaginationItem,
   PaginationNext,
   PaginationPrevious,
@@ -32,17 +30,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import AppLayout from '@/layouts/AppLayout.vue';
 import owner from '@/routes/owner';
 import type { BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
-import { Calendar, Eye, PlusIcon, Search } from 'lucide-vue-next';
+import { Calendar, Eye, Pencil, PlusIcon, Search } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
 interface Contract {
@@ -53,19 +45,18 @@ interface Contract {
   contract_terms: string;
   start_date: string;
   end_date: string;
-  status: 'pending' | 'paid' | 'overdue' | string;
+  status: string;
   driver_username: string;
   driver_email: string;
   driver_phone: string;
   franchise: string | null;
-  franchise_email?: string;
-  franchise_phone?: string;
-  branch: string | null;
+  vehicle_info: string; // Added this
 }
 
 const visibleContractFields = [
   'name',
   'amount',
+  'vehicle_info', // Added to dialog
   'coverage_area',
   'contract_terms',
   'start_date',
@@ -75,8 +66,6 @@ const visibleContractFields = [
   'driver_email',
   'driver_phone',
   'franchise',
-  'franchise_email',
-  'franchise_phone',
 ] as const;
 
 interface ContractsPaginator {
@@ -102,9 +91,6 @@ interface Props {
 const { contracts } = defineProps<Props>();
 const paginator = ref(contracts);
 
-// -------------------------
-// Watcher: update paginator when props change
-// -------------------------
 watch(
   () => contracts,
   (newContracts) => {
@@ -113,23 +99,13 @@ watch(
   { deep: true },
 );
 
-// -------------------------
-// Breadcrumbs
-// -------------------------
 const breadcrumbs: BreadcrumbItem[] = [
   { title: 'Boundary Contracts', href: owner.boundaryContracts.index().url },
 ];
 
-// -------------------------
-// Filters / Search
-// -------------------------
 const globalFilter = ref('');
 const statusFilter = ref('all');
-const depositFilter = ref('all');
 
-// -------------------------
-// Dialog
-// -------------------------
 const selectedContract = ref<Contract | null>(null);
 const showDialog = ref(false);
 
@@ -138,25 +114,18 @@ const openDialog = (contract: Contract) => {
   showDialog.value = true;
 };
 
-// -------------------------
-// Helpers
-// -------------------------
 const getBadgeClass = (status: string) => {
-  switch (status) {
+  switch (status.toLowerCase()) {
     case 'active':
       return 'bg-blue-500 hover:bg-blue-600';
-    case 'inactive':
+    case 'suspended':
+    case 'retired':
       return 'bg-rose-500 hover:bg-rose-600';
-    case 'pending':
-      return 'bg-amber-500 hover:bg-amber-600';
     default:
       return 'bg-gray-500 hover:bg-gray-600';
   }
 };
 
-// -------------------------
-// Computed: Filtered data for client-side search
-// -------------------------
 const filteredData = computed(() => {
   if (!globalFilter.value) return paginator.value.data;
   const search = globalFilter.value.toLowerCase();
@@ -167,40 +136,29 @@ const filteredData = computed(() => {
   );
 });
 
-// -------------------------
-// Pagination links without Previous/Next
-// -------------------------
 const paginationLinks = computed(() =>
   paginator.value.links.filter(
     (link) => link.label !== 'Previous' && link.label !== 'Next',
   ),
 );
 
-// -------------------------
-// Pagination / server-side navigation
-// -------------------------
 const goToPage = (url: string | null) => {
   if (!url) return;
   router.get(
     url,
     {
       status: statusFilter.value !== 'all' ? statusFilter.value : undefined,
-      depositStatus:
-        depositFilter.value !== 'all' ? depositFilter.value : undefined,
       search: globalFilter.value || undefined,
     },
     { preserveState: true, preserveScroll: true },
   );
 };
 
-// Watch filters / search and reload table
-watch([statusFilter, depositFilter, globalFilter], () => {
+watch([statusFilter, globalFilter], () => {
   router.get(
     paginator.value.path,
     {
       status: statusFilter.value !== 'all' ? statusFilter.value : undefined,
-      depositStatus:
-        depositFilter.value !== 'all' ? depositFilter.value : undefined,
       search: globalFilter.value || undefined,
       per_page: paginator.value.per_page,
     },
@@ -208,17 +166,15 @@ watch([statusFilter, depositFilter, globalFilter], () => {
   );
 });
 
-const createContract = () => {
-  router.get(owner.boundaryContracts.create().url);
-};
+const createContract = () => router.get(owner.boundaryContracts.create().url);
+const editContract = (id: number) =>
+  router.get(owner.boundaryContracts.edit({ boundary_contract: id }).url);
 </script>
 
 <template>
   <Head title="Boundary Contracts" />
-
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="space-y-6 p-6">
-      <!-- Header -->
       <div>
         <h1 class="mb-1 text-3xl font-bold">Boundary Contracts</h1>
         <p class="text-gray-600">
@@ -226,7 +182,6 @@ const createContract = () => {
         </p>
       </div>
 
-      <!-- Filters -->
       <div
         class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
       >
@@ -244,100 +199,87 @@ const createContract = () => {
           class="grid w-full grid-cols-2 gap-3 sm:flex sm:w-auto sm:flex-row sm:items-center sm:gap-4"
         >
           <Select v-model="statusFilter">
-            <SelectTrigger class="w-full sm:w-[150px] sm:shrink-0 md:w-48">
-              <SelectValue>
-                {{ statusFilter === 'all' ? 'Filter by status' : statusFilter }}
-              </SelectValue>
+            <SelectTrigger class="w-full sm:w-[150px] md:w-48">
+              <SelectValue>{{
+                statusFilter === 'all' ? 'Filter by status' : statusFilter
+              }}</SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="paid">Paid</SelectItem>
-              <SelectItem value="overdue">Overdue</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="retired">Retired</SelectItem>
+              <SelectItem value="suspended">Suspended</SelectItem>
             </SelectContent>
           </Select>
-
           <Button class="w-full sm:w-auto" @click="createContract">
             <PlusIcon class="mr-2 h-4 w-4" /> Add Contract
           </Button>
         </div>
       </div>
 
-      <!-- Table -->
       <div class="rounded-lg border">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Contract Name</TableHead>
-              <TableHead>Driver Username</TableHead>
-              <TableHead>Franchise</TableHead>
+              <TableHead>Driver</TableHead>
+              <TableHead>Vehicle</TableHead>
               <TableHead>Amount</TableHead>
-              <TableHead>Coverage Area</TableHead>
               <TableHead>Duration</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
-
           <TableBody>
             <TableRow v-if="filteredData.length === 0">
-              <TableCell colspan="8" class="py-6 text-center text-gray-500">
-                No results found.
-              </TableCell>
+              <TableCell colspan="7" class="py-6 text-center text-gray-500"
+                >No results found.</TableCell
+              >
             </TableRow>
-
             <TableRow v-for="contract in filteredData" :key="contract.id">
               <TableCell class="font-medium">{{ contract.name }}</TableCell>
               <TableCell>{{ contract.driver_username || '—' }}</TableCell>
-              <TableCell>{{ contract.franchise || '—' }}</TableCell>
+              <TableCell>{{ contract.vehicle_info }}</TableCell>
               <TableCell class="font-medium">₱{{ contract.amount }}</TableCell>
-              <TableCell class="max-w-xs truncate">{{
-                contract.coverage_area
-              }}</TableCell>
-              <TableCell class="flex items-center gap-2">
-                <Calendar class="h-4 w-4 text-gray-400" />
-                {{ new Date(contract.start_date).toLocaleDateString() }} -
-                {{ new Date(contract.end_date).toLocaleDateString() }}
+              <TableCell>
+                <div class="flex items-center gap-2 text-xs">
+                  <Calendar class="h-3 w-3 text-gray-400" />
+                  {{ new Date(contract.start_date).toLocaleDateString() }} -
+                  {{ new Date(contract.end_date).toLocaleDateString() }}
+                </div>
               </TableCell>
               <TableCell>
                 <Badge
                   :class="getBadgeClass(contract.status)"
-                  class="text-white"
+                  class="text-white capitalize"
+                  >{{ contract.status }}</Badge
                 >
-                  {{ contract.status }}
-                </Badge>
               </TableCell>
               <TableCell class="flex gap-2">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger as-child>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        @click="openDialog(contract)"
-                        class="cursor-pointer"
-                      >
-                        <Eye />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>View</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  @click="openDialog(contract)"
+                  ><Eye class="h-4 w-4"
+                /></Button>
+                <Button
+                  v-if="contract.status === 'active'"
+                  size="sm"
+                  variant="outline"
+                  @click="editContract(contract.id)"
+                  ><Pencil class="h-4 w-4"
+                /></Button>
               </TableCell>
             </TableRow>
           </TableBody>
         </Table>
       </div>
 
-      <!-- Pagination -->
       <div class="flex items-center justify-between pt-4">
         <span class="text-sm text-gray-600">
           Showing {{ paginator.from || 0 }} to {{ paginator.to || 0 }} of
           {{ paginator.total }} entries
         </span>
-
         <Pagination
           :items-per-page="paginator.per_page"
           :total="paginator.total"
@@ -349,7 +291,6 @@ const createContract = () => {
               :disabled="!paginator.prev_page_url"
               @click="goToPage(paginator.prev_page_url)"
             />
-
             <template v-for="link in paginationLinks" :key="link.label">
               <PaginationItem
                 v-if="!isNaN(Number(link.label))"
@@ -370,7 +311,6 @@ const createContract = () => {
               </PaginationItem>
               <PaginationEllipsis v-else-if="link.label.includes('...')" />
             </template>
-
             <PaginationNext
               :disabled="!paginator.next_page_url"
               @click="goToPage(paginator.next_page_url)"
@@ -379,36 +319,31 @@ const createContract = () => {
         </Pagination>
       </div>
 
-      <!-- Deposit Dialog -->
       <Dialog v-model:open="showDialog">
         <DialogContent class="flex max-h-[90vh] flex-col sm:max-w-lg">
-          <DialogHeader class="border-b pb-2">
-            <DialogTitle>Contract Details</DialogTitle>
-          </DialogHeader>
-
-          <div class="custom-scrollbar overflow-y-auto">
-            <DialogDescription>
-              <div
-                v-if="selectedContract"
-                class="grid grid-cols-1 sm:grid-cols-2 sm:gap-4"
-              >
-                <template v-for="key in visibleContractFields" :key="key">
-                  <div class="font-medium capitalize">
-                    {{ key.replace(/_/g, ' ') }}:
-                  </div>
-                  <div class="pb-5 sm:pb-0">
-                    {{ selectedContract[key] }}
-                  </div>
-                </template>
-              </div>
-            </DialogDescription>
-          </div>
-
-          <DialogFooter class="flex justify-end gap-2 border-t pt-6">
-            <Button variant="outline" @click="showDialog = false"
-              >Cancel</Button
+          <DialogHeader class="border-b pb-2"
+            ><DialogTitle>Contract Details</DialogTitle></DialogHeader
+          >
+          <div class="overflow-y-auto py-4">
+            <div
+              v-if="selectedContract"
+              class="grid grid-cols-1 gap-y-3 sm:grid-cols-2"
             >
-          </DialogFooter>
+              <template v-for="key in visibleContractFields" :key="key">
+                <div class="text-xs font-bold text-gray-500 uppercase">
+                  {{ key.replace(/_/g, ' ') }}:
+                </div>
+                <div class="pb-2 text-sm">
+                  {{ selectedContract[key] || 'N/A' }}
+                </div>
+              </template>
+            </div>
+          </div>
+          <DialogFooter
+            ><Button variant="outline" @click="showDialog = false"
+              >Close</Button
+            ></DialogFooter
+          >
         </DialogContent>
       </Dialog>
     </div>
