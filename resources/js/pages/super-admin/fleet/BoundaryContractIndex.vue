@@ -217,8 +217,7 @@ const contractColumns = computed<ColumnDef<ContractRow>[]>(() => {
         const badgeClass = {
           'bg-blue-500 hover:bg-blue-600': status === 'active',
           'bg-rose-500 hover:bg-rose-600':
-            status === 'terminated' || status === 'expired',
-          // 'bg-amber-500 hover:bg-amber-600': status === 'pending',
+            status === 'retired' || status === 'suspended',
         };
         return h('div', { class: 'text-center' }, [
           h(
@@ -328,8 +327,8 @@ watch(
               <SelectContent>
                 <SelectItem value="active"> Active </SelectItem>
                 <!-- <SelectItem value="pending"> Pending </SelectItem> -->
-                <SelectItem value="expired"> Expired </SelectItem>
-                <SelectItem value="terminated"> Terminated </SelectItem>
+                <SelectItem value="retired">Retired</SelectItem>
+                <SelectItem value="suspended">Suspended</SelectItem>
               </SelectContent>
             </Select>
 

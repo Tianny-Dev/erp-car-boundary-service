@@ -27,7 +27,7 @@ class BoundaryContractController extends Controller
         // 1. Validate all filters
         $validated = $request->validate([
             'franchise' => ['sometimes', 'nullable', 'array'],
-            'status' => ['sometimes', 'string', Rule::in(['active', 'terminated', 'expired'])],
+            'status' => ['sometimes', 'string', Rule::in(['active', 'retired', 'suspended'])],
         ]);
 
         // 2. Set defaults
