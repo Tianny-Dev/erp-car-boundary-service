@@ -12,11 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('franchise_user_driver', function (Blueprint $table) {
-            // composite primary key instead of auto-increment
             $table->foreignId('franchise_id')->constrained('franchises')->onDelete('cascade');
-            $table->foreignId('user_driver_id')->constrained('user_drivers')->onDelete('cascade');
-
-            // Set composite primary key
+            $table->foreignId('user_driver_id')->unique()->constrained('user_drivers')->onDelete('cascade');
             $table->primary(['franchise_id', 'user_driver_id']);
         });
     }

@@ -8,7 +8,8 @@ use App\Models\UserDriver;
 use Faker\Factory;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Database\QueryException;
 
 class DriverApplicationController extends Controller
 {
@@ -22,15 +23,6 @@ class DriverApplicationController extends Controller
         if (!$franchise) {
             abort(404, 'Franchise not found');
         }
-
-        // $driversQuery = User::with('driverDetails.status')
-        //     ->whereHas('userType', fn($q) => $q->where('name', 'driver'))
-        //     ->whereHas('driverDetails', fn ($q) =>
-        //         $q->where('is_verified', 1)
-        //         ->whereHas('status', fn ($s) =>
-        //             $s->whereIn('name', ['pending'])
-        //         )
-        //     );
 
         $driversQuery = User::with('driverDetails.status')
             ->whereHas('userType', fn ($q) =>
@@ -96,86 +88,55 @@ class DriverApplicationController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, string $id)
     {
         $driver = UserDriver::findOrFail($id);
         $ownerFranchises = auth()->user()->ownerDetails->franchises->pluck('id');
-
-        // Get the action from the request ('approve' or 'deny')
         $action = $request->input('action');
 
+        // Select only the first franchise of the owner to attach
+        $targetFranchiseId = $ownerFranchises->first();
+
         if ($action === 'approve') {
-            // Status 1 for active/approved
-            $driver->status_id = 1;
+            try {
+                DB::transaction(function () use ($driver, $targetFranchiseId) {
+                    // 1. Check if driver is already assigned (Double Check)
+                    if ($driver->franchises()->exists()) {
+                        throw new \Exception('This driver has already been accepted by another franchise.');
+                    }
 
-            // Attach to owner's franchises if not already attached
-            $driver->franchises()->syncWithoutDetaching($ownerFranchises);
+                    // 2. Update Driver Info
+                    $driver->status_id = 1; // Active
+                    $driver->is_verified = true;
 
-            // Generate code if empty
-            if (empty($driver->code_number)) {
-                $faker = Factory::create();
-                do {
-                    $code = $faker->bothify('??-####');
-                } while (UserDriver::where('code_number', $code)->exists());
+                    if (empty($driver->code_number)) {
+                        $faker = Factory::create();
+                        do {
+                            $code = $faker->bothify('??-####');
+                        } while (UserDriver::where('code_number', $code)->exists());
+                        $driver->code_number = $code;
+                    }
+                    $driver->save();
 
-                $driver->code_number = $code;
+                    // 3. Attach to Franchise (This will fail if unique constraint is triggered)
+                    $driver->franchises()->attach($targetFranchiseId);
+                });
+            } catch (QueryException $e) {
+                // Handle Database unique constraint failure
+                return back()->withErrors(['error' => 'This driver was already taken by another franchise just now.']);
+            } catch (\Exception $e) {
+                // Handle the manual exception
+                return back()->withErrors(['error' => $e->getMessage()]);
             }
-            $driver->is_verified = true;
 
         } elseif ($action === 'deny') {
-            // Status 18 for Deny
-            $driver->status_id = 18;
-            // Detach from franchises when denied
+            $driver->status_id = 18; // Deny
             $driver->franchises()->detach($ownerFranchises);
-        } else {
-            // Fallback for your original toggle logic if no action is provided
-            $driver->status_id = ($driver->status_id === 1) ? 2 : 1;
+            $driver->save();
         }
 
-        $driver->save();
-
-        return back()->with('success', 'Driver application updated.');
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return back()->with('success', 'Driver application processed.');
     }
 }
