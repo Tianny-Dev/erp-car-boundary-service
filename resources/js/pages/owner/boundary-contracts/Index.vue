@@ -207,7 +207,8 @@ const editContract = (id: number) =>
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="retired">Retired</SelectItem>
+              <SelectItem value="suspended">Suspended</SelectItem>
             </SelectContent>
           </Select>
           <Button class="w-full sm:w-auto" @click="createContract">
