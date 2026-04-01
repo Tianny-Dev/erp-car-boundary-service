@@ -154,9 +154,9 @@ class FranchiseController extends Controller
         ]);
 
         // 2. Transaction
-        $user = DB::transaction(function () use ($validated, $userTypeId) {
+        DB::transaction(function () use ($validated, $userTypeId) {
 
-            $pendingStatusId = 6;
+            $activeStatusId = Status::where('name', 'active')->firstOrFail()->id;
 
             // Store files
             $frontIdPath = $validated['front_valid_id_picture']->store('owner_ids', 'public');
@@ -185,7 +185,7 @@ class FranchiseController extends Controller
             // Create Owner
             $owner = UserOwner::create([
                 'id' => $user->id,
-                'status_id' => $pendingStatusId,
+                'status_id' => $activeStatusId,
                 'valid_id_type' => $validated['valid_id_type'],
                 'valid_id_number' => $validated['valid_id_number'],
                 'front_valid_id_picture' => $frontIdPath,
@@ -195,7 +195,7 @@ class FranchiseController extends Controller
             // Create Franchise
             Franchise::create([
                 'owner_id' => $owner->id,
-                'status_id' => $pendingStatusId,
+                'status_id' => $activeStatusId,
                 'name' => $validated['franchise_name'],
                 'email' => $validated['email'],
                 'phone' => $validated['phone'],
