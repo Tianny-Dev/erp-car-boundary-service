@@ -50,10 +50,8 @@ class MaintenanceSeeder extends Seeder
 
             // 2. Create Pending Expense
             Expense::create([
-                'status_id'         => 6, // Pending
                 'franchise_id'      => $vehicle->franchise_id,
                 'maintenance_id'    => $maintenance->id,
-                'payment_option_id' => 1,
                 'invoice_no'        => 'MNT-' . strtoupper(Str::random(8)),
                 'amount'            => $cost,
                 'currency'          => 'PHP',
@@ -99,10 +97,8 @@ class MaintenanceSeeder extends Seeder
 
             // 2. Create Paid Expense
             Expense::create([
-                'status_id'         => 8, // Paid
                 'franchise_id'      => $vehicle->franchise_id,
                 'maintenance_id'    => $maintenance->id,
-                'payment_option_id' => rand(1, 4),
                 'invoice_no'        => 'MNT-PAID-' . strtoupper(Str::random(8)),
                 'amount'            => $cost,
                 'currency'          => 'PHP',

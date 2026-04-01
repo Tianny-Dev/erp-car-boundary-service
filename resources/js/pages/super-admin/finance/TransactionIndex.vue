@@ -19,13 +19,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useDetailsModal } from '@/composables/useDetailsModal';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -33,9 +26,8 @@ import superAdmin from '@/routes/super-admin';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import { type ColumnDef } from '@tanstack/vue-table';
-import { debounce } from 'lodash-es';
 import { AlertCircleIcon, MoreHorizontal } from 'lucide-vue-next';
-import { computed, h, ref, watch } from 'vue';
+import { computed, h, ref } from 'vue';
 
 // --- Define Props ---
 const props = defineProps<{
@@ -45,10 +37,8 @@ const props = defineProps<{
   franchises: { id: number; name: string }[];
   drivers: { id: number; username: string }[];
   filters: {
-    type: 'revenue' | 'expense';
     franchise: string[];
     driver: string[];
-    service: 'Trips' | 'Boundary';
   };
 }>();
 
@@ -56,7 +46,6 @@ const props = defineProps<{
 interface TransactionRow {
   id: number;
   franchise_name?: string;
-  type: string;
   invoice_no: string;
   amount: number;
   date: string;
@@ -74,10 +63,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 // --- 4. Setup Reactive State for Filters ---
-const selectedType = ref(props.filters.type);
 const selectedFranchise = ref<string[]>(props.filters.franchise || []);
 const selectedDriver = ref<string[]>(props.filters.driver || []);
-const selectedService = ref(props.filters.service);
 
 const selectedContext = computed({
   get: () => selectedFranchise.value,
@@ -119,57 +106,33 @@ const transactionDetails = computed(() => {
   if (!data) return [];
 
   const amount = formatCurrency(data.amount);
-  const nameValue = data.franchise_name;
-  const nameLabel = 'Franchise';
 
   const details = [
-    { label: nameLabel, value: nameValue, type: 'text' },
+    { label: 'Franchise', value: data.franchise_name, type: 'text' },
     { label: 'Service Type', value: data.service_type, type: 'text' },
     { label: 'Invoice #', value: data.invoice_no, type: 'text' },
     { label: 'Amount', value: amount, type: 'text' },
     { label: 'Payment Option', value: data.payment_option, type: 'text' },
     { label: 'Status', value: data.status_name, type: 'text' },
     { label: 'Transaction Date', value: data.created_at, type: 'text' },
-  ];
-
-  if (props.filters.type === 'revenue') {
-    details.push({
+    {
       label: 'Driver',
       value: data.driver_username,
       type: 'text',
-    });
-  } else {
-    details.push(
-      { label: 'Vehicle', value: data.vehicle_plate, type: 'text' },
-      { label: 'Inventory', value: data.inventory_name, type: 'text' },
-      { label: 'Category', value: data.inventory_category, type: 'text' },
-      { label: 'Description', value: data.description, type: 'text' },
-      {
-        label: 'Maintenance Date',
-        value: data.maintenance_date,
-        type: 'text',
-      },
-    );
-  }
-
-  if (data.payment_date) {
-    details.push({
+    },
+    {
       label: 'Paid Date',
       value: data.payment_date,
       type: 'text',
-    });
-  }
-  if (data.notes) {
-    details.push({ label: 'Notes', value: data.notes, type: 'text' });
-  }
+    },
+    { label: 'Notes', value: data.notes, type: 'text' },
+  ];
 
   return details;
 });
 
 const openDetails = (id: number) => {
-  transactionModal.open(id, {
-    params: { type: props.filters.type },
-  });
+  transactionModal.open(id);
 };
 
 // --- Modal State ---
@@ -187,8 +150,6 @@ const formatCurrency = (amount: number): string => {
 
 // Computed columns for the data table
 const transactionColumns = computed<ColumnDef<TransactionRow>[]>(() => {
-  const isRevenue = selectedType.value === 'revenue';
-
   const columns: ColumnDef<TransactionRow>[] = [
     {
       accessorKey: 'invoice_no',
@@ -199,14 +160,12 @@ const transactionColumns = computed<ColumnDef<TransactionRow>[]>(() => {
       accessorKey: 'franchise_name',
       header: 'Franchise',
     },
-    ...(isRevenue
-      ? [
-          {
-            accessorKey: 'driver_username',
-            header: 'Driver',
-          },
-        ]
-      : []),
+
+    {
+      accessorKey: 'driver_username',
+      header: 'Driver',
+    },
+
     {
       accessorKey: 'date',
       header: 'Date',
@@ -282,10 +241,7 @@ const updateFilters = () => {
   router.get(
     superAdmin.transaction.index().url,
     {
-      type: selectedType.value,
-      service:
-        selectedType.value === 'revenue' ? selectedService.value : undefined,
-      driver: selectedType.value === 'revenue' ? selectedDriver.value : [],
+      driver: selectedDriver.value || [],
       franchise: selectedFranchise.value || [],
     },
     {
@@ -294,14 +250,6 @@ const updateFilters = () => {
     },
   );
 };
-
-// Watch all filters for changes (debounced)
-watch(
-  [selectedService, selectedType],
-  debounce(() => {
-    updateFilters();
-  }, 300),
-);
 </script>
 
 <template>
@@ -323,26 +271,6 @@ watch(
           <div
             class="grid w-full grid-cols-2 gap-3 sm:flex sm:w-auto sm:flex-row sm:flex-wrap sm:gap-4 lg:flex-nowrap"
           >
-            <Select v-model="selectedType">
-              <SelectTrigger class="w-full sm:w-[150px] sm:shrink-0">
-                <SelectValue placeholder="Filter by..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="revenue"> Revenue </SelectItem>
-                <SelectItem value="expense"> Expense </SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select v-if="selectedType === 'revenue'" v-model="selectedService">
-              <SelectTrigger class="w-full sm:w-[150px] sm:shrink-0">
-                <SelectValue placeholder="Filter by..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Trips"> Trips </SelectItem>
-                <SelectItem value="Boundary"> Boundary </SelectItem>
-              </SelectContent>
-            </Select>
-
             <MultiSelect
               class="col-span-2 w-full sm:col-span-1 sm:w-auto sm:max-w-[250px] sm:min-w-[150px] sm:flex-1"
               v-model="selectedDriver"
