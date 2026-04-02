@@ -99,9 +99,6 @@ class DatabaseSeeder extends Seeder
 
         $this->call(DriverAssignmentSeeder::class);
         $this->call(VehicleSeeder::class);
-        Vehicle::factory(10)->create([
-            'driver_id' => null
-        ]);
 
         // User::factory(30)->create(['user_type_id' => 5]);
         // $this->call(TechnicianAssignmentSeeder::class);

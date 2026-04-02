@@ -32,7 +32,6 @@ return new class extends Migration
             $table->string('mayor_permit_attachment');
             $table->string('proof_agreement_attachment');
             $table->timestamps();
-            $table->softDeletes();
         });
     }
 
