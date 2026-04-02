@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('violations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('status_id')->constrained('statuses')->onDelete('restrict');
-            $table->foreignId('franchise_id')->nullable()->constrained('franchises')->onDelete('restrict');
-            $table->foreignId('driver_id')->constrained('user_drivers')->onDelete('restrict');
+            $table->foreignId('franchise_id')->nullable()->constrained('franchises')->onDelete('cascade');
+            $table->foreignId('driver_id')->constrained('user_drivers')->onDelete('cascade');
             $table->enum('violation_type', ['Speeding', 'Reckless Driving', 'No Seatbelt', 'Expired License', 'Illegal Parking', 'Other'])->default('Other');
             $table->text('description');
             $table->date('violation_date');

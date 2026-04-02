@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('revenues', function (Blueprint $table) {
             $table->id();
             $table->foreignId('status_id')->constrained('statuses')->onDelete('restrict');
-            $table->foreignId('franchise_id')->nullable()->constrained('franchises')->onDelete('restrict');
+            $table->foreignId('franchise_id')->nullable()->constrained('franchises')->onDelete('cascade');
             $table->foreignId('driver_id')->nullable()->constrained('user_drivers')->onDelete('restrict');
-            $table->foreignId('boundary_contract_id')->nullable()->constrained('boundary_contracts')->onDelete('restrict');
+            $table->foreignId('boundary_contract_id')->nullable()->constrained('boundary_contracts')->nullOnDelete();
             $table->foreignId('payment_option_id')->nullable()->constrained('payment_options')->onDelete('restrict');
             $table->string('invoice_no', 100)->nullable()->unique();
             $table->decimal('amount', 10, 2);

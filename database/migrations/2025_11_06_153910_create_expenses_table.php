@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('expenses', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('franchise_id')->nullable()->constrained('franchises')->onDelete('restrict');
+            $table->foreignId('franchise_id')->nullable()->constrained('franchises')->onDelete('cascade');
             $table->foreignId('maintenance_id')->constrained('maintenances')->onDelete('restrict');
             $table->string('invoice_no', 100)->unique();
             $table->dateTime('payment_date')->nullable();
