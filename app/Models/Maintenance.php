@@ -41,11 +41,6 @@ class Maintenance extends Model
         return $this->belongsTo(Vehicle::class);
     }
 
-    public function technician(): BelongsTo
-    {
-        return $this->belongsTo(UserTechnician::class, 'technician_id');
-    }
-
     public function inventory(): BelongsTo
     {
         return $this->belongsTo(Inventory::class);
