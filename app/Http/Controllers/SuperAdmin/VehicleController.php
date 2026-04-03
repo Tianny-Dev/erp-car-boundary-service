@@ -87,14 +87,20 @@ class VehicleController extends Controller
         ]);
     }
 
-    public function changeStatus(Request $request, Vehicle $vehicle)
+    public function assignFranchise(Request $request, Vehicle $vehicle)
     {
         $request->validate([
-            'status' => ['required', 'string', Rule::in(['active', 'available', 'maintenance'])],
+            'franchise_id' => ['required', 'integer', 'exists:franchises,id'],
         ]);
 
-        $status = Status::where('name', $request->status)->firstOrFail();
-        $vehicle->status_id = $status->id;
+        $vehicle->loadMissing('status');
+        if ($vehicle->franchise_id !== null || $vehicle->status->name !== 'available') {
+            return back()->withErrors([
+                'franchise_id' => 'This vehicle is already assigned or is not available for assignment.'
+            ]);
+        }
+        
+        $vehicle->franchise_id = $request->franchise_id;
         $vehicle->save();
 
         return back();
@@ -204,28 +210,15 @@ class VehicleController extends Controller
         return back()->with('success', 'Vehicle updated successfully');
     }
 
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
+        $request->validate([
+            'password' => ['required', 'current_password'], 
+        ]);
+
         DB::transaction(function () use ($id) {
 
             $vehicle = Vehicle::findOrFail($id);
-
-            $vehicle->maintenances()->each(function ($maintenance) {
-                $maintenance->expenses()->delete();
-            });
-
-            $vehicle->maintenances()->delete();
-
-            $vehicle->load('boundaryContracts.revenues');
-
-            foreach ($vehicle->boundaryContracts as $contract) {
-                $contract->revenues()->delete();
-            }
-
-            $vehicle->boundaryContracts()->delete();
-
-            $vehicle->routes()->delete();
-
             $vehicle->delete();
         });
 

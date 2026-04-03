@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import DataTable from '@/components/DataTable.vue';
 import MultiSelect from '@/components/MultiSelect.vue';
+import PasswordConfirmDialog from '@/components/PasswordConfirmDialog.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -38,6 +39,7 @@ import { Head, router, useForm } from '@inertiajs/vue3';
 import { type ColumnDef } from '@tanstack/vue-table';
 import { debounce } from 'lodash-es';
 import { AlertCircleIcon, MoreHorizontal, PlusIcon } from 'lucide-vue-next';
+import type { ComponentInstance } from 'vue';
 import { computed, h, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 
@@ -212,27 +214,27 @@ const maintenanceModal = useDetailsModal<MaintenanceRow[]>({
   baseUrl: '/super-admin/vehicle',
 });
 
-// --- Change Status Modal State ---
-const isChangeModalOpen = ref(false);
+// --- Assign Franchise Modal State ---
+const isAssignModalOpen = ref(false);
 const selectedVehicle = ref<Partial<VehicleRow>>({});
 
-const changeForm = useForm({
-  status: '' as string,
+const assignForm = useForm({
+  franchise_id: null as number | null,
 });
 
-const openChangeModal = (vehicle: VehicleRow) => {
+const openAssignModal = (vehicle: VehicleRow) => {
   selectedVehicle.value = vehicle;
-  isChangeModalOpen.value = true;
+  isAssignModalOpen.value = true;
 };
 
-const handleChangeVehicle = () => {
+const handleAssignVehicle = () => {
   if (!selectedVehicle.value?.id) return;
 
-  changeForm.patch(superAdmin.vehicle.change(selectedVehicle.value.id).url, {
+  assignForm.patch(superAdmin.vehicle.assign(selectedVehicle.value.id).url, {
     onSuccess: () => {
-      changeForm.reset();
-      isChangeModalOpen.value = false;
-      toast.success('Vehicle change status successfully!');
+      assignForm.reset();
+      isAssignModalOpen.value = false;
+      toast.success('Vehicle assigned to franchise successfully!');
     },
   });
 };
@@ -240,25 +242,44 @@ const handleChangeVehicle = () => {
 // --- Delete Vehicle Modal State ---
 const isDeleteModalOpen = ref(false);
 const isDeletingVehicle = ref(false);
+const isPasswordModalOpen = ref(false);
+const passwordDialogRef = ref<ComponentInstance<
+  typeof PasswordConfirmDialog
+> | null>(null);
 
 const openDeleteModal = (vehicle: VehicleRow) => {
   selectedVehicle.value = vehicle;
   isDeleteModalOpen.value = true;
 };
 
-const confirmDelete = () => {
+const openPasswordModal = () => {
+  isDeleteModalOpen.value = false;
+  isPasswordModalOpen.value = true;
+};
+
+const confirmDelete = (password: string) => {
   if (!selectedVehicle.value) return;
   isDeletingVehicle.value = true;
 
   router.delete(
     superAdmin.vehicle.destroy(selectedVehicle.value.id as number).url,
     {
+      data: { password: password },
       preserveScroll: true,
 
       onSuccess: () => {
         isDeleteModalOpen.value = false;
         selectedVehicle.value = {};
+        isPasswordModalOpen.value = false;
         toast.success('Vehicle deleted successfully!');
+      },
+
+      onError: (errors) => {
+        if (errors.password) {
+          passwordDialogRef.value?.setError(errors.password);
+        } else {
+          toast.error('Something went wrong. Please try again.');
+        }
       },
 
       onFinish: () => {
@@ -267,12 +288,6 @@ const confirmDelete = () => {
     },
   );
 };
-
-const statuses = [
-  { value: 'active', label: 'Active' },
-  { value: 'available', label: 'Available' },
-  { value: 'maintenance', label: 'Maintenance' },
-];
 
 const createVehicle = () => {
   router.get(superAdmin.vehicle.create().url);
@@ -360,16 +375,16 @@ const vehicleColumns = computed<ColumnDef<VehicleRow>[]>(() => {
                 () => 'View Maintenance History',
               ),
               h(DropdownMenuSeparator),
-              [
-                h(
-                  DropdownMenuItem,
-                  {
-                    class: 'cursor-pointer text-blue-500 focus:text-blue-600',
-                    onClick: () => openChangeModal(vehicle),
-                  },
-                  () => 'Change Status',
-                ),
-              ],
+              !vehicle.franchise_name && vehicle.status_name === 'available'
+                ? h(
+                    DropdownMenuItem,
+                    {
+                      class: 'cursor-pointer text-blue-500 focus:text-blue-600',
+                      onClick: () => openAssignModal(vehicle),
+                    },
+                    () => 'Assign Franchise',
+                  )
+                : null,
               [
                 h(
                   DropdownMenuItem,
@@ -473,6 +488,16 @@ const vehicleColors = [
   'Magenta',
   'Purple',
 ];
+
+const selectedFranchiseName = computed(() => {
+  // Find the franchise object where the ID matches the form value
+  const franchise = props.franchises.find(
+    (f) => f.id === assignForm.franchise_id,
+  );
+
+  // Return the name if found, otherwise a placeholder
+  return franchise ? franchise.name : '...';
+});
 </script>
 
 <template>
@@ -723,50 +748,57 @@ const vehicleColors = [
     </DialogContent>
   </Dialog>
 
-  <Dialog v-model:open="isChangeModalOpen">
+  <Dialog
+    v-model:open="isAssignModalOpen"
+    @update:open="(val) => !val && assignForm.reset()"
+  >
     <DialogContent class="max-w-md font-mono">
       <DialogHeader>
-        <DialogTitle class="text-xl">Change Driver Status</DialogTitle>
+        <DialogTitle class="text-xl">Assign Vehicle to Franchise</DialogTitle>
         <DialogDescription>
-          Change the status of this vehicle plate number
-          <strong class="text-blue-500">{{
-            selectedVehicle?.plate_number
-          }}</strong
-          >. From {{ selectedVehicle?.status_name }} to
-          <em>"{{ changeForm.status }}"</em>.
+          Assign the vehicle to
+          <strong class="text-blue-500">{{ selectedFranchiseName }}</strong>
+          franchise.
         </DialogDescription>
       </DialogHeader>
 
       <div class="grid gap-4 py-4">
         <div class="grid gap-2">
-          <Label>Status</Label>
-          <Select v-model="changeForm.status">
+          <Label>Franchise</Label>
+          <Select v-model="assignForm.franchise_id">
             <SelectTrigger>
-              <SelectValue placeholder="Select status" />
+              <SelectValue placeholder="Select franchise" />
             </SelectTrigger>
             <SelectContent>
-              <template v-for="s in statuses" :key="s.value">
-                <SelectItem
-                  v-if="selectedVehicle?.status_name !== s.value"
-                  :value="s.value"
-                >
-                  {{ s.label }}
+              <template v-for="s in franchises" :key="s.id">
+                <SelectItem :value="s.id">
+                  {{ s.name }}
                 </SelectItem>
               </template>
             </SelectContent>
           </Select>
+          <span
+            v-if="assignForm.errors.franchise_id"
+            class="text-xs text-destructive"
+            >{{ assignForm.errors.franchise_id }}</span
+          >
         </div>
       </div>
 
       <DialogFooter>
-        <Button variant="outline" @click="isChangeModalOpen = false"
+        <Button
+          variant="outline"
+          @click="
+            isAssignModalOpen = false;
+            assignForm.reset();
+          "
           >Cancel</Button
         >
         <Button
-          @click="handleChangeVehicle"
-          :disabled="changeForm.processing || !changeForm.status"
+          @click="handleAssignVehicle"
+          :disabled="assignForm.processing || !assignForm.franchise_id"
         >
-          {{ changeForm.processing ? 'Changing...' : 'Confirm Change' }}
+          {{ assignForm.processing ? 'Assigning...' : 'Confirm Assign' }}
         </Button>
       </DialogFooter>
     </DialogContent>
@@ -778,11 +810,9 @@ const vehicleColors = [
         <DialogTitle>Delete Vehicle</DialogTitle>
         <DialogDescription>
           Are you sure you want to delete vehicle with plate no.
-          <span class="font-semibold">
+          <span class="font-semibold text-red-500">
             {{ selectedVehicle?.plate_number }} </span
-          >?
-          <br />
-          This action cannot be undone.
+          >? All related data will be deleted. This action cannot be undone.
         </DialogDescription>
       </DialogHeader>
 
@@ -793,7 +823,7 @@ const vehicleColors = [
 
         <Button
           variant="destructive"
-          @click="confirmDelete"
+          @click="openPasswordModal"
           :disabled="isDeletingVehicle"
         >
           {{ isDeletingVehicle ? 'Deleting...' : 'Yes, Delete' }}
@@ -801,6 +831,15 @@ const vehicleColors = [
       </DialogFooter>
     </DialogContent>
   </Dialog>
+
+  <PasswordConfirmDialog
+    ref="passwordDialogRef"
+    v-model:open="isPasswordModalOpen"
+    title="Security Check"
+    description="This action is irreversible. Please input your password to continue."
+    :processing="isDeletingVehicle"
+    @confirmed="confirmDelete"
+  />
 
   <Dialog v-model:open="maintenanceModal.isOpen.value">
     <DialogContent class="flex max-h-[80vh] max-w-4xl flex-col">
