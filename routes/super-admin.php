@@ -72,7 +72,8 @@ Route::middleware(['auth', 'verified', 'user_type:super_admin'])->prefix('super-
 
     Route::get('/boundary-contract', [BoundaryContractController::class, 'index'])->name('boundaryContract.index');
     Route::post('/boundary-contract', [BoundaryContractController::class, 'store'])->name('boundaryContract.store');
-    Route::patch('/boundary-contract/{contract}/approve', [BoundaryContractController::class, 'approve'])->name('boundaryContract.approve');
+    Route::get('/boundary-contract/{contract}/available-vehicles', [BoundaryContractController::class, 'availableVehicles'])->name('boundaryContract.availableVehicles');
+    Route::patch('/boundary-contract/{contract}/assign-vehicle', [BoundaryContractController::class, 'assignVehicle'])->name('boundaryContract.assignVehicle');
     Route::get('/boundary-contract/create', [BoundaryContractController::class, 'create'])->name('boundaryContract.create');
     Route::get('/boundary-contract/resources', [BoundaryContractController::class, 'getContractResources'])->name('boundaryContract.resources');
     Route::get('/boundary-contract/{contract}', [BoundaryContractController::class, 'show'])->name('boundaryContract.show');
