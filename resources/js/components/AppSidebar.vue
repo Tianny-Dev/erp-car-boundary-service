@@ -303,6 +303,12 @@ const navConfig: Record<string, NavItem[]> = {
       icon: FileText,
       group: 'Management',
     },
+    {
+      title: 'Gps Monitoring',
+      href: owner.gpsTracker.index(),
+      icon: Map,
+      group: 'Gps',
+    },
     // {
     //   title: 'Suspend Drivers',
     //   href: owner.suspendDrivers.index(),
