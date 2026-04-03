@@ -98,7 +98,9 @@ interface VehicleModal {
   year: string;
   color: string;
   or_cr: string;
-  franchise_id: number;
+  franchise_id?: number;
+  franchise_name?: string;
+  driver?: string;
 }
 
 const vehicleDetails = computed(() => {
@@ -106,6 +108,18 @@ const vehicleDetails = computed(() => {
   if (!data) return [];
 
   return [
+    {
+      label: 'Assigned Driver',
+      value: data.driver || '(No Driver Assigned)',
+      type: 'text',
+      class: !data.driver ? 'text-rose-500 text-xs italic' : '',
+    },
+    {
+      label: 'Franchise',
+      value: data.franchise_name || '(No Franchise Assigned)',
+      type: 'text',
+      class: !data.franchise_name ? 'text-rose-500 text-xs italic' : '',
+    },
     { label: 'Status', value: data.status, type: 'text' },
     { label: 'Plate Number', value: data.plate_number, type: 'text' },
     { label: 'Vehicle Identification Number', value: data.vin, type: 'text' },
@@ -125,7 +139,6 @@ const vehicleModal = useDetailsModal<VehicleModal>({
 // --- Edit Mode Logic ---
 const isEditMode = ref(false);
 const editForm = useForm({
-  franchise_id: null as number | null,
   plate_number: '',
   vin: '',
   brand: '',
@@ -139,7 +152,6 @@ const startEditing = () => {
   const data = vehicleModal.data.value;
   if (!data) return;
 
-  editForm.franchise_id = data.franchise_id;
   editForm.plate_number = data.plate_number;
   editForm.vin = data.vin;
   editForm.brand = data.brand;
@@ -272,6 +284,17 @@ const vehicleColumns = computed<ColumnDef<VehicleRow>[]>(() => {
     {
       accessorKey: 'franchise_name',
       header: 'Franchise',
+      cell: ({ row }) => {
+        const franchise = row.getValue('franchise_name') as string;
+        const isMissing = !franchise;
+        return h(
+          'div',
+          {
+            class: [isMissing ? 'text-rose-500 text-xs italic' : ''],
+          },
+          franchise || '(No Franchise Assigned)',
+        );
+      },
     },
     {
       accessorKey: 'vin',
@@ -535,27 +558,6 @@ const vehicleColors = [
 
         <div v-else-if="isEditMode" class="grid grid-cols-2 gap-x-6 gap-y-4">
           <div class="flex flex-col gap-1.5">
-            <Label>Franchise</Label>
-            <Select v-model="editForm.franchise_id">
-              <SelectTrigger
-                :class="{ 'border-destructive': editForm.errors.franchise_id }"
-              >
-                <SelectValue placeholder="Select Franchise" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem v-for="f in franchises" :key="f.id" :value="f.id">
-                  {{ f.name }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-            <span
-              v-if="editForm.errors.franchise_id"
-              class="text-xs text-destructive"
-              >{{ editForm.errors.franchise_id }}</span
-            >
-          </div>
-
-          <div class="flex flex-col gap-1.5">
             <Label>Plate Number</Label>
             <Input
               v-model="editForm.plate_number"
@@ -631,10 +633,10 @@ const vehicleColors = [
             </Select>
           </div>
 
-          <div class="flex flex-col gap-1.5">
+          <div class="col-span-2 gap-1.5">
             <Label
               >OR-CR
-              <span class="text-[11px]"
+              <span class="text-[11px mb-1"
                 >(Leave empty to keep current)</span
               ></Label
             >
@@ -669,7 +671,7 @@ const vehicleColors = [
               >
             </div>
 
-            <div v-else>
+            <div v-else :class="item.class">
               {{ item.value }}
             </div>
           </template>

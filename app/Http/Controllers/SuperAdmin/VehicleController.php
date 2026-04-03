@@ -13,10 +13,10 @@ use App\Models\Vehicle;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
-use Storage;
 
 class VehicleController extends Controller
 {
@@ -56,11 +56,18 @@ class VehicleController extends Controller
     {
         $query = Vehicle::with([
             'status:id,name',
-        ])->whereHas('status', fn($q) => $q->where('name', $filters['status']));
-
-        $query->whereNotNull('franchise_id')
-            ->when(!empty($filters['franchise']), fn($q) => $q->whereIn('franchise_id', $filters['franchise']))
-            ->with('franchise:id,name');
+            'franchise:id,name'
+        ]);
+        $query->whereHas('status', fn($q) => $q->where('name', $filters['status']));
+        // Apply Franchise/Driver constraints based on status
+        if ($filters['status'] !== 'available') {
+            // If NOT available, these fields MUST be present
+            $query->whereNotNull('franchise_id');
+        } 
+        // Filter by specific franchise IDs if provided
+        $query->when(!empty($filters['franchise']), function ($q) use ($filters) {
+            $q->whereIn('franchise_id', $filters['franchise']);
+        });
 
         return $query;
     }
@@ -68,7 +75,7 @@ class VehicleController extends Controller
     public function show(Vehicle $vehicle)
     {
         // Load relationships and return as JSON
-        $vehicle->loadMissing(['status:id,name']);
+        $vehicle->loadMissing(['status:id,name', 'driver.user:id,username', 'franchise:id,name']);
 
         return new VehicleResource($vehicle);
     }
@@ -149,7 +156,6 @@ class VehicleController extends Controller
     public function update(Request $request, Vehicle $vehicle)
     {
         $request->validate([
-            'franchise_id' => 'required|exists:franchises,id',
             'plate_number' => [
                 'required',
                 'string',
