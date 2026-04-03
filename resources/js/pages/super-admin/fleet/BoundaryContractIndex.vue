@@ -49,7 +49,7 @@ const props = defineProps<{
   franchises: { id: number; name: string }[];
   filters: {
     franchise: string[];
-    status: 'active' | 'retired' | 'suspended';
+    status: 'active' | 'retired' | 'suspended' | 'expired';
   };
 }>();
 
@@ -276,7 +276,9 @@ const contractColumns = computed<ColumnDef<ContractRow>[]>(() => {
         const badgeClass = {
           'bg-blue-500 hover:bg-blue-600': status === 'active',
           'bg-rose-500 hover:bg-rose-600':
-            status === 'retired' || status === 'suspended',
+            status === 'retired' ||
+            status === 'suspended' ||
+            status === 'expired',
         };
         return h('div', { class: 'text-center' }, [
           h(
@@ -371,9 +373,9 @@ watch(
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="active"> Active </SelectItem>
-                <!-- <SelectItem value="pending"> Pending </SelectItem> -->
                 <SelectItem value="retired">Retired</SelectItem>
                 <SelectItem value="suspended">Suspended</SelectItem>
+                <SelectItem value="expired">Expired</SelectItem>
               </SelectContent>
             </Select>
 
