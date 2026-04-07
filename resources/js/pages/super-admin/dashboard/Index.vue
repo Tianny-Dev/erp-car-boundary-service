@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import DataTable from '@/components/DataTable.vue';
+import PasswordConfirmDialog from '@/components/PasswordConfirmDialog.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -45,6 +46,7 @@ import {
   PlusIcon,
   UsersRoundIcon,
 } from 'lucide-vue-next';
+import type { ComponentInstance } from 'vue';
 import { computed, h, ref } from 'vue';
 import { toast } from 'vue-sonner';
 
@@ -249,24 +251,45 @@ const handleAcceptFranchise = () => {
 // --- Delete Modal State ---
 const isDeleteModalOpen = ref(false);
 const isDeletingFranchise = ref(false);
+const isPasswordModalOpen = ref(false);
+const passwordDialogRef = ref<ComponentInstance<
+  typeof PasswordConfirmDialog
+> | null>(null);
 
 const openDeleteModal = (franchise: FranchiseRow) => {
   selectedFranchise.value = franchise;
   isDeleteModalOpen.value = true;
 };
 
-const handleDeleteFranchise = () => {
+const openPasswordModal = () => {
+  isDeleteModalOpen.value = false;
+  isPasswordModalOpen.value = true;
+};
+
+// Triggered when user submits valid password string on the second modal
+const handleDeleteFranchise = (password: string) => {
   if (!selectedFranchise.value?.id) return;
 
   isDeletingFranchise.value = true;
 
   router.delete(superAdmin.franchise.destroy(selectedFranchise.value.id).url, {
+    data: { password: password }, // Pass the password securely in payload
     preserveScroll: true,
 
     onSuccess: () => {
       isDeleteModalOpen.value = false;
       selectedFranchise.value = {};
+      isPasswordModalOpen.value = false;
       toast.success('Franchise deleted successfully!');
+    },
+
+    onError: (errors) => {
+      // If server returns validation error for 'current_password' or 'password'
+      if (errors.password) {
+        passwordDialogRef.value?.setError(errors.password);
+      } else {
+        toast.error('Something went wrong. Please try again.');
+      }
     },
 
     onFinish: () => {
@@ -681,9 +704,10 @@ const filteredFranchises = computed(() => {
         >
           <template #custom-actions>
             <div class="flex w-full items-center gap-3 sm:w-auto sm:gap-4">
-              
               <Select v-model="selectedStatus">
-                <SelectTrigger class="flex-1 w-full sm:flex-none sm:w-[150px] lg:w-[200px]">
+                <SelectTrigger
+                  class="w-full flex-1 sm:w-[150px] sm:flex-none lg:w-[200px]"
+                >
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -694,10 +718,9 @@ const filteredFranchises = computed(() => {
               </Select>
 
               <Button class="shrink-0" @click="createFranchise">
-                <PlusIcon class="mr-1.5 h-4 w-4" /> 
+                <PlusIcon class="mr-1.5 h-4 w-4" />
                 <span>Add Franchise</span>
               </Button>
-              
             </div>
           </template>
         </DataTable>
@@ -737,16 +760,19 @@ const filteredFranchises = computed(() => {
         <DialogDescription class="text-md font-semibold">
           Are you sure you want to delete the franchise
           <strong class="text-red-500">{{ selectedFranchise.name }}</strong
-          >? This will also delete the owner's account.
+          >? This will also delete the owner's account and all related data.
         </DialogDescription>
       </DialogHeader>
       <DialogFooter>
-        <Button variant="outline" @click="isDeleteModalOpen = false"
+        <Button
+          variant="outline"
+          @click="isDeleteModalOpen = false"
+          :disabled="isDeletingFranchise"
           >Cancel</Button
         >
         <Button
           variant="destructive"
-          @click="handleDeleteFranchise"
+          @click="openPasswordModal"
           :disabled="isDeletingFranchise"
         >
           {{ isDeletingFranchise ? 'Deleting...' : 'Yes, Delete' }}
@@ -754,6 +780,15 @@ const filteredFranchises = computed(() => {
       </DialogFooter>
     </DialogContent>
   </Dialog>
+
+  <PasswordConfirmDialog
+    ref="passwordDialogRef"
+    v-model:open="isPasswordModalOpen"
+    title="Security Check"
+    description="This action is irreversible. Please input your password to continue."
+    :processing="isDeletingFranchise"
+    @confirmed="handleDeleteFranchise"
+  />
 
   <!-- <Dialog v-model:open="isOtpModalOpen">
       <DialogContent class="max-w-md font-mono">

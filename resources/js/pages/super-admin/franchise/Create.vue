@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import FranchiseCreateForm from '@/components/owner/franchise/FranchiseCreateForm.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
+import superAdmin from '@/routes/super-admin';
 
 defineProps<{
   genderOptions: { value: string; label: string }[];
@@ -17,6 +18,16 @@ defineProps<{
     name: string;
   };
 }>();
+
+const breadcrumbs = [
+  { title: 'Franchise Management', href: superAdmin.dashboard().url },
+  { title: 'Create Franchise' },
+] as BreadcrumbItem[];
+
+interface BreadcrumbItem {
+  title: string;
+  href: string;
+}
 </script>
 <template>
   <AppLayout :breadcrumbs="breadcrumbs">

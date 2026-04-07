@@ -17,6 +17,7 @@ class VehicleResource extends JsonResource
         return [
             'id' => $this->id,
             'franchise_id' => $this->franchise_id,
+            'franchise_name' => $this->whenLoaded('franchise', fn () => $this->franchise?->name) ?? null,
             'plate_number' => $this->plate_number,
             'vin' => $this->vin,
             'brand' => $this->brand,
@@ -27,6 +28,7 @@ class VehicleResource extends JsonResource
             'or_cr' => $this->or_cr
             ? asset('storage/vehicle_documents/' . $this->or_cr)
             : null,
+            'driver' => $this->driver->user->username ?? null,
         ];
     }
 }

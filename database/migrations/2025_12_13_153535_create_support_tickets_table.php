@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('ticket_code')->unique();
             $table->foreignId('status_id')->constrained('statuses')->onDelete('restrict');
-            $table->foreignId('user_id')->constrained()->onDelete('restrict');
-            $table->foreignId('franchise_id')->nullable()->constrained('franchises')->onDelete('restrict');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('franchise_id')->nullable()->constrained('franchises')->onDelete('cascade');
             $table->enum('type', ['Payment Dispute', 'Adjustment Request']);
             $table->text('description');
             $table->date('date');

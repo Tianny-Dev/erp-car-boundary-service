@@ -20,16 +20,15 @@ class VehicleFactory extends Factory
     public function definition(): array
     {
         // 1. Determine Status (Active: 1, Maintenance: 5, Available: 15)
-        // We weight it so we have more active vehicles for testing
         $statusId = $this->faker->randomElement([1, 1, 1, 5, 15]);
         $franchiseId = Franchise::inRandomOrder()->value('id');
         $driverId = null;
 
-        // If status is NOT Available (15), we need a driver from this franchise
+        // If we randomly rolled a status that requires a driver
         if ($statusId !== 15) {
             $driverId = DB::table('franchise_user_driver')
                 ->where('franchise_id', $franchiseId)
-                // Ensure we pick a driver not already assigned to another vehicle (optional, but good for data integrity)
+                // Look for drivers who don't have a vehicle yet
                 ->whereNotExists(function ($query) {
                     $query->select(DB::raw(1))
                         ->from('vehicles')
@@ -38,7 +37,8 @@ class VehicleFactory extends Factory
                 ->inRandomOrder()
                 ->value('user_driver_id');
 
-            // If no available driver found for this franchise, fallback to 'Available' status
+            // FALLBACK: If no unique driver is available for this franchise, 
+            // force it to be Available (15) and set driver to null.
             if (!$driverId) {
                 $statusId = 15;
             }
@@ -47,14 +47,14 @@ class VehicleFactory extends Factory
         return [
             'status_id'    => $statusId,
             'franchise_id' => $franchiseId,
-            'driver_id'    => $driverId, // Will be null if status is 15 (Available)
+            'driver_id'    => $driverId, // Will be null if status forced or rolled to 15
             'plate_number' => strtoupper($this->faker->unique()->bothify('??###??')),
             'vin'          => strtoupper(Str::random(17)),
             'brand'        => $this->faker->randomElement(['Toyota', 'Honda', 'Ford', 'Nissan', 'Hyundai']),
             'model'        => $this->faker->word(),
             'year'         => $this->faker->year(),
             'color'        => $this->faker->safeColorName(),
-            'or_cr' => fake()->imageUrl(640, 480, 'id', true),
+            'or_cr'        => fake()->imageUrl(640, 480, 'id', true),
         ];
     }
 }

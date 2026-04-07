@@ -15,9 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('status_id')->constrained('statuses')->onDelete('restrict');
             $table->foreignId('driver_id')->nullable()->constrained('user_drivers')->onDelete('restrict');
-            $table->foreignId('vehicle_id')->nullable()->constrained('vehicles')->onDelete('restrict');
+            $table->foreignId('vehicle_id')->nullable()->constrained('vehicles')->nullOnDelete();
             $table->foreignId('passenger_id')->constrained('user_passengers')->onDelete('restrict');
-            $table->foreignId('revenue_id')->nullable()->constrained('revenues')->onDelete('restrict');
+            $table->foreignId('revenue_id')->nullable()->constrained('revenues')->nullOnDelete();
             $table->dateTime('start_trip')->nullable();
             $table->dateTime('end_trip')->nullable();
             $table->decimal('start_lat', 10, 8);

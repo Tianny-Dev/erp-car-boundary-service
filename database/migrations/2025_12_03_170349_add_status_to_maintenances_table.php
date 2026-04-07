@@ -17,12 +17,6 @@ return new class extends Migration
                 ->after('vehicle_id')
                 ->constrained('statuses')
                 ->onDelete('restrict');
-
-            $table->foreignId('technician_id')
-                ->nullable()
-                ->after('status_id')
-                ->constrained('user_technicians')
-                ->onDelete('cascade');
         });
     }
 
@@ -33,7 +27,6 @@ return new class extends Migration
     {
         Schema::table('maintenances', function (Blueprint $table) {
             $table->dropForeign(['status_id']);
-            $table->dropForeign(['technician_id']);
 
             $table->dropColumn(['status_id', 'technician_id']);
         });

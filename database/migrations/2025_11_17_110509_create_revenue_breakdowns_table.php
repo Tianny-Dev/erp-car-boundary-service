@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('revenue_breakdowns', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('revenue_id')->constrained('revenues')->onDelete('restrict');
+            $table->foreignId('revenue_id')->constrained('revenues')->onDelete('cascade');
             $table->foreignId('percentage_type_id')->constrained('percentage_types')->onDelete('restrict');
             $table->decimal('total_earning');
             $table->timestamps();

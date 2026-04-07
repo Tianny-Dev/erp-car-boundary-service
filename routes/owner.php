@@ -20,6 +20,7 @@ use App\Http\Controllers\Owner\SupportCenterController;
 use App\Http\Controllers\Owner\SuspendDriverController;
 use App\Http\Controllers\Owner\VehicleController;
 use App\Http\Controllers\Owner\VehicleDriverController;
+use App\Http\Controllers\Owner\GpsTrackerController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified', 'user_type:owner', 'check.active'])->prefix('owner')->name('owner.')->group(function () {
@@ -68,5 +69,8 @@ Route::middleware(['auth', 'verified', 'user_type:owner', 'check.active'])->pref
 
     Route::get('/franchise/my-contract', [FranchiseController::class, 'myContract'])
         ->name('franchise.my-contract');
+
+    Route::get('/gps-tracker', [GpsTrackerController::class, 'index'])->name('gpsTracker.index');
+
 });
 

@@ -27,7 +27,7 @@ class BoundaryContractController extends Controller
         // 1. Validate all filters
         $validated = $request->validate([
             'franchise' => ['sometimes', 'nullable', 'array'],
-            'status' => ['sometimes', 'string', Rule::in(['active', 'retired', 'suspended'])],
+            'status' => ['sometimes', 'string', Rule::in(['active', 'retired', 'suspended', 'expired'])],
         ]);
 
         // 2. Set defaults
@@ -74,7 +74,8 @@ class BoundaryContractController extends Controller
         $contract->loadMissing([
             'driver.user:id,username,name,email,phone',
             'franchise:id,name,email,phone',
-            'status:id,name'
+            'status:id,name',
+            'vehicle:id,plate_number',
         ]);
 
         return new BoundaryContractResource($contract);
@@ -170,12 +171,30 @@ class BoundaryContractController extends Controller
         return redirect(route('super-admin.boundaryContract.index'));
     }
 
-    public function approve(BoundaryContract $contract)
+    public function availableVehicles(BoundaryContract $contract)
     {
-        $activeStatusId = Status::where('name', 'active')->firstOrFail();
+        $vehicles = Vehicle::where('franchise_id', $contract->franchise_id)
+            ->whereHas('status', fn($q) => $q->where('name', 'available'))
+            ->whereDoesntHave('boundaryContracts', fn($q) =>
+                $q->whereHas('status', fn($q2) => $q2->where('name', 'active'))
+            )
+            ->select('id', 'plate_number', 'brand', 'model', 'year')
+            ->get();
 
-        $contract->status_id = $activeStatusId->id;
-        $contract->save();
+        return response()->json($vehicles);
+    }
+
+    public function assignVehicle(Request $request, BoundaryContract $contract)
+    {
+        $validated = $request->validate([
+            'vehicle_id' => ['required', 'exists:vehicles,id'],
+        ]);
+
+        DB::transaction(function () use ($contract, $validated) {
+            $contract->update(['vehicle_id' => $validated['vehicle_id']]);
+            Vehicle::where('id', $validated['vehicle_id'])
+                ->update(['driver_id' => $contract->driver_id]);
+        });
 
         return back();
     }

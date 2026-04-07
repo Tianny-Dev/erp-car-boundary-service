@@ -33,12 +33,13 @@ import { useDetailsModal } from '@/composables/useDetailsModal';
 import AppLayout from '@/layouts/AppLayout.vue';
 import superAdmin from '@/routes/super-admin';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import { type ColumnDef } from '@tanstack/vue-table';
+import axios from 'axios';
 import { debounce } from 'lodash-es';
 import { AlertCircleIcon, MoreHorizontal, PlusIcon } from 'lucide-vue-next';
 import { computed, h, ref, watch } from 'vue';
-// import { toast } from 'vue-sonner';
+import { toast } from 'vue-sonner';
 
 // --- Define Props ---
 const props = defineProps<{
@@ -48,7 +49,7 @@ const props = defineProps<{
   franchises: { id: number; name: string }[];
   filters: {
     franchise: string[];
-    status: 'active' | 'retired' | 'suspended';
+    status: 'active' | 'retired' | 'suspended' | 'expired';
   };
 }>();
 
@@ -107,6 +108,7 @@ interface ContractModal {
   franchise_name?: string;
   franchise_email?: string;
   franchise_phone?: string;
+  vehicle_plate_number?: string;
 }
 const contractDetails = computed(() => {
   const data = contractModal.data.value;
@@ -128,6 +130,12 @@ const contractDetails = computed(() => {
     { label: 'Franchise Name', value: data.franchise_name, type: 'text' },
     { label: 'Franchise Email', value: data.franchise_email, type: 'text' },
     { label: 'Franchise Phone', value: data.franchise_phone, type: 'text' },
+    {
+      label: 'Vehicle Plate Number',
+      value: data.vehicle_plate_number || '(No Vehicle Assigned)',
+      type: 'text',
+      class: !data.vehicle_plate_number ? 'text-rose-500 text-xs italic' : '',
+    },
   ].filter((item) => item.value);
 });
 
@@ -148,34 +156,85 @@ const formatCurrency = (amount: number): string => {
   }).format(amount);
 };
 
-// --- Approve Modal State ---
-// const isApproveModalOpen = ref(false);
-// const isApprovingContract = ref(false);
-// const selectedContract = ref<Partial<ContractRow>>({});
+// --- Assign Vehicle State ---
+const isAssignMode = ref(false);
+const selectedVehicleId = ref<string>('');
+const availableVehicles = ref<
+  {
+    id: number;
+    plate_number: string;
+    brand: string;
+    model: string;
+    year: number;
+  }[]
+>([]);
+const isFetchingVehicles = ref(false);
 
-// const openApproveModal = (contract: ContractRow) => {
-//   selectedContract.value = contract;
-//   isApproveModalOpen.value = true;
-// };
+const assignForm = useForm({
+  vehicle_id: null as number | null,
+});
 
-// const handleApproveContract = () => {
-//   if (!selectedContract.value?.id) return;
-//   isApprovingContract.value = true;
+const fetchAvailableVehicles = async (contractId: number) => {
+  isFetchingVehicles.value = true;
+  availableVehicles.value = [];
+  try {
+    const response = await axios.get(
+      superAdmin.boundaryContract.availableVehicles({ contract: contractId })
+        .url,
+    );
+    availableVehicles.value = response.data;
+  } catch {
+    availableVehicles.value = [];
+  } finally {
+    isFetchingVehicles.value = false;
+  }
+};
 
-//   router.patch(
-//     superAdmin.boundaryContract.approve(selectedContract.value.id).url,
-//     {},
-//     {
-//       onSuccess: () => {
-//         isApproveModalOpen.value = false;
-//         toast.success('Contract approved successfully!');
-//       },
-//       onFinish: () => {
-//         isApprovingContract.value = false;
-//       },
-//     },
-//   );
-// };
+const openAssignMode = () => {
+  isAssignMode.value = true;
+  selectedVehicleId.value = '';
+  const contractId = contractModal.data.value?.id;
+  if (contractId) fetchAvailableVehicles(contractId);
+};
+
+const cancelAssign = () => {
+  isAssignMode.value = false;
+  selectedVehicleId.value = '';
+  assignForm.reset();
+};
+
+const confirmAssignVehicle = () => {
+  const contractId = contractModal.data.value?.id;
+  if (!contractId || !selectedVehicleId.value) return;
+
+  assignForm.vehicle_id = Number(selectedVehicleId.value);
+
+  assignForm.patch(
+    superAdmin.boundaryContract.assignVehicle({ contract: contractId }).url,
+    {
+      preserveScroll: true,
+      onSuccess: () => {
+        toast.success('Vehicle assigned successfully!');
+        // Refresh modal data to reflect the new vehicle
+        contractModal.open(contractId);
+        isAssignMode.value = false;
+        selectedVehicleId.value = '';
+        assignForm.reset();
+      },
+      onError: () => {
+        toast.error('Failed to assign vehicle.');
+      },
+    },
+  );
+};
+
+// Reset assign mode when dialog closes
+watch(
+  () => contractModal.isOpen.value,
+  (open) => {
+    if (!open) cancelAssign();
+  },
+);
 
 // Computed columns for the data table
 const contractColumns = computed<ColumnDef<ContractRow>[]>(() => {
@@ -217,7 +276,9 @@ const contractColumns = computed<ColumnDef<ContractRow>[]>(() => {
         const badgeClass = {
           'bg-blue-500 hover:bg-blue-600': status === 'active',
           'bg-rose-500 hover:bg-rose-600':
-            status === 'retired' || status === 'suspended',
+            status === 'retired' ||
+            status === 'suspended' ||
+            status === 'expired',
         };
         return h('div', { class: 'text-center' }, [
           h(
@@ -255,20 +316,6 @@ const contractColumns = computed<ColumnDef<ContractRow>[]>(() => {
                 },
                 () => 'View Contract Details',
               ),
-              // contract.status_name === 'pending'
-              //   ? [
-              //       h(DropdownMenuSeparator),
-              //       h(
-              //         DropdownMenuItem,
-              //         {
-              //           class:
-              //             'cursor-pointer text-blue-500 focus:text-blue-600',
-              //           onClick: () => openApproveModal(contract),
-              //         },
-              //         () => 'Approve Contract',
-              //       ),
-              //     ]
-              //   : null,
             ]),
           ]),
         ]);
@@ -326,9 +373,9 @@ watch(
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="active"> Active </SelectItem>
-                <!-- <SelectItem value="pending"> Pending </SelectItem> -->
                 <SelectItem value="retired">Retired</SelectItem>
                 <SelectItem value="suspended">Suspended</SelectItem>
+                <SelectItem value="expired">Expired</SelectItem>
               </SelectContent>
             </Select>
 
@@ -391,7 +438,7 @@ watch(
           >
             <template v-for="item in contractDetails" :key="item.label">
               <div class="font-medium">{{ item.label }}:</div>
-              <div>
+              <div :class="item.class">
                 {{ item.value }}
               </div>
             </template>
@@ -412,34 +459,69 @@ watch(
         </DialogDescription>
 
         <DialogFooter class="mt-5">
-          <Button variant="outline" @click="contractModal.close">Close</Button>
+          <DialogFooter class="mt-5 flex-col gap-2 sm:flex-row sm:items-center">
+            <!-- Assign Vehicle flow -->
+            <template v-if="!contractModal.data.value?.vehicle_plate_number">
+              <template v-if="isAssignMode">
+                <Select
+                  v-model="selectedVehicleId"
+                  :disabled="isFetchingVehicles || assignForm.processing"
+                >
+                  <SelectTrigger class="w-full sm:w-[220px]">
+                    <SelectValue
+                      :placeholder="
+                        isFetchingVehicles
+                          ? 'Loading vehicles...'
+                          : 'Select a vehicle'
+                      "
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <template v-if="availableVehicles.length > 0">
+                      <SelectItem
+                        v-for="v in availableVehicles"
+                        :key="v.id"
+                        :value="String(v.id)"
+                      >
+                        {{ v.plate_number }} — {{ v.brand }} {{ v.model }}
+                        {{ v.year }}
+                      </SelectItem>
+                    </template>
+                    <div
+                      v-else-if="!isFetchingVehicles"
+                      class="px-3 py-2 text-sm text-muted-foreground"
+                    >
+                      No available vehicles
+                    </div>
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="default"
+                  :disabled="!selectedVehicleId || assignForm.processing"
+                  @click="confirmAssignVehicle"
+                >
+                  {{ assignForm.processing ? 'Assigning...' : 'Confirm' }}
+                </Button>
+                <Button
+                  variant="ghost"
+                  :disabled="assignForm.processing"
+                  @click="cancelAssign"
+                >
+                  Cancel
+                </Button>
+              </template>
+              <template v-else>
+                <Button variant="default" @click="openAssignMode">
+                  Assign Vehicle
+                </Button>
+                <Button variant="outline" @click="contractModal.close"
+                  >Close</Button
+                >
+              </template>
+            </template>
+          </DialogFooter>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-
-    <!-- <Dialog v-model:open="isApproveModalOpen">
-      <DialogContent class="max-w-md font-mono">
-        <DialogHeader>
-          <DialogTitle class="text-2xl">Approve Driver?</DialogTitle>
-          <DialogDescription class="text-md font-semibold">
-            Are you sure you want to approve
-            <strong class="text-blue-500">{{ selectedContract.name }}</strong
-            >?
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button variant="outline" @click="isApproveModalOpen = false"
-            >Cancel</Button
-          >
-          <Button
-            variant="default"
-            @click="handleApproveContract"
-            :disabled="isApprovingContract"
-          >
-            {{ isApprovingContract ? 'Approving...' : 'Yes, Approve' }}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog> -->
   </AppLayout>
 </template>

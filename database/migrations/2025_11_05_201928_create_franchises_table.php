@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('franchises', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('owner_id')->constrained('user_owners')->onDelete('restrict');
+            $table->foreignId('owner_id')->constrained('user_owners')->onDelete('cascade');
             $table->foreignId('manager_id')->nullable()->constrained('user_managers')->onDelete('restrict');
             $table->foreignId('status_id')->constrained('statuses')->onDelete('restrict');
             $table->string('name')->unique();
@@ -32,7 +32,6 @@ return new class extends Migration
             $table->string('mayor_permit_attachment');
             $table->string('proof_agreement_attachment');
             $table->timestamps();
-            $table->softDeletes();
         });
     }
 

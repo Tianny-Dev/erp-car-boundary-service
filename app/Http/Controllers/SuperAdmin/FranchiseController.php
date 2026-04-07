@@ -154,9 +154,9 @@ class FranchiseController extends Controller
         ]);
 
         // 2. Transaction
-        $user = DB::transaction(function () use ($validated, $userTypeId) {
+        DB::transaction(function () use ($validated, $userTypeId) {
 
-            $pendingStatusId = 6;
+            $activeStatusId = Status::where('name', 'active')->firstOrFail()->id;
 
             // Store files
             $frontIdPath = $validated['front_valid_id_picture']->store('owner_ids', 'public');
@@ -185,7 +185,7 @@ class FranchiseController extends Controller
             // Create Owner
             $owner = UserOwner::create([
                 'id' => $user->id,
-                'status_id' => $pendingStatusId,
+                'status_id' => $activeStatusId,
                 'valid_id_type' => $validated['valid_id_type'],
                 'valid_id_number' => $validated['valid_id_number'],
                 'front_valid_id_picture' => $frontIdPath,
@@ -195,7 +195,7 @@ class FranchiseController extends Controller
             // Create Franchise
             Franchise::create([
                 'owner_id' => $owner->id,
-                'status_id' => $pendingStatusId,
+                'status_id' => $activeStatusId,
                 'name' => $validated['franchise_name'],
                 'email' => $validated['email'],
                 'phone' => $validated['phone'],
@@ -300,38 +300,33 @@ class FranchiseController extends Controller
 
     public function destroy(Request $request, string $id)
     {
-        // $request->validate([
-        //     'code' => 'required|digits:6',
-        // ]);
-
-        // $verification = ActionVerification::where([
-        //     'user_id' => $request->user()->id,
-        //     'action' => 'delete_franchise',
-        //     'code' => $request->code,
-        // ])->where('expires_at', '>', now())->first();
-
-        // if (! $verification) {
-        //     return response()->json(['message' => 'Invalid or expired verification code.'], 422);
-        // }
-
+        $request->validate([
+            'password' => ['required', 'current_password'], 
+        ]);
+        
         DB::transaction(function () use ($id) {
+            // Fetch the franchise and load up to the top level User
             $franchise = Franchise::with('owner.user')->findOrFail($id);
+            
+            // Extract related models
+            $owner = $franchise->owner;
+            $user = $owner?->user;
 
-            // $owner = $franchise->owner;
-            // $user = $owner?->user;
+            // Run the same cleanup logic for drivers and vehicles
+            $this->cleanupFranchiseOperationalData($franchise);
 
-            // // Delete children first
-            // if ($user) $user->delete();
-            // if ($owner) $owner->delete();
-
-            // Delete franchise
-            $franchise->delete();
+            // Delete the root user
+            if ($user) {
+                $user->delete();
+            } elseif ($owner) {
+                // Fallback if there is an owner record but no associated user
+                $owner->delete();
+            } else {
+                // Fallback if it's an orphaned franchise without an owner
+                $franchise->delete();
+            }
         });
 
-        // Delete verification after successful deletion
-        // $verification->delete();
-
-        // return redirect()->route('super-admin.dashboard');
         return back();
     }
 
@@ -348,5 +343,35 @@ class FranchiseController extends Controller
                 ->symbols(),
             'regex:/[\d\W_]/'
         ];
+    }
+
+    private function cleanupFranchiseOperationalData(Franchise $franchise): void
+    {
+        // Grab connected drivers from the pivot table
+        $drivers = DB::table('franchise_user_driver')
+            ->where('franchise_id', $franchise->id)
+            ->pluck('user_driver_id');
+
+        if ($drivers->isNotEmpty()) {
+            $inactiveStatusId = Status::where('name', 'inactive')->value('id');
+
+            // Make status inactive and is_verified false
+            DB::table('user_drivers')
+                ->whereIn('id', $drivers)
+                ->update([
+                    'status_id' => $inactiveStatusId,
+                    'is_verified' => false
+                ]);
+        }
+
+        // Make status available and remove driver connected
+        $availableStatusId = Status::where('name', 'available')->value('id');
+
+        DB::table('vehicles')
+            ->where('franchise_id', $franchise->id)
+            ->update([
+                'status_id' => $availableStatusId,
+                'driver_id' => null
+            ]);
     }
 }
