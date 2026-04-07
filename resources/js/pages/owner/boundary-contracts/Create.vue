@@ -170,8 +170,24 @@ const submit = () => {
                   :key="vehicle.id"
                   :value="vehicle.id"
                 >
-                  {{ vehicle.plate_number }} - {{ vehicle.brand }}
-                  {{ vehicle.model }}
+                  <div class="flex w-full items-center justify-between gap-4">
+                    <span>
+                      {{ vehicle.plate_number }} - {{ vehicle.brand }}
+                      {{ vehicle.model }}
+                    </span>
+                    <span
+                      v-if="isEditing && vehicle.id === props.contract?.vehicle"
+                      class="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-700 uppercase"
+                    >
+                      Current
+                    </span>
+                    <span
+                      v-else-if="vehicle.status === 'maintenance'"
+                      class="rounded-full bg-yellow-100 px-2 py-0.5 text-[10px] font-bold text-yellow-700 uppercase"
+                    >
+                      Maintenance
+                    </span>
+                  </div>
                 </SelectItem>
               </SelectContent>
             </Select>

@@ -174,46 +174,51 @@ public function update(StoreBoundaryContractRequest $request, BoundaryContract $
 }
 
     private function getFormData($existingContract = null)
-    {
-        $franchise = auth()->user()->ownerDetails?->franchises()->first();
-        if (!$franchise) abort(404);
+{
+    $franchise = auth()->user()->ownerDetails?->franchises()->first();
+    if (!$franchise) abort(404);
 
-        $vehicles = $franchise->vehicles()
-            ->where(function($query) use ($existingContract) {
-                // Include vehicles that are available OR currently assigned to this contract
-                $query->whereDoesntHave('boundaryContracts', function($q) {
+    $vehicles = $franchise->vehicles()
+        ->where(function($query) use ($existingContract) {
+            // 1. Core Logic: Vehicle must be marked as 'available'
+            // AND must not have an active contract
+            $query->whereHas('status', fn($s) => $s->where('name', 'available'))
+                ->whereDoesntHave('boundaryContracts', function($q) {
                     $q->whereHas('status', fn($s) => $s->where('name', 'active'));
                 });
 
-                if ($existingContract) {
-                    $query->orWhere('id', $existingContract->vehicle_id);
-                }
-            })
-            ->get()->map(fn($v) => [
-                'id' => $v->id,
-                'plate_number' => $v->plate_number,
-                'brand' => $v->brand,
-                'model' => $v->model,
-                'status' => strtolower($v->status->name),
-            ]);
+            // 2. OR if we are editing, allow the vehicle currently assigned to this contract
+            // even if its status is 'active' or 'assigned'
+            if ($existingContract) {
+                $query->orWhere('id', $existingContract->vehicle_id);
+            }
+        })
+        ->get()->map(fn($v) => [
+            'id' => $v->id,
+            'plate_number' => $v->plate_number,
+            'brand' => $v->brand,
+            'model' => $v->model,
+            'status' => strtolower($v->status->name),
+        ]);
 
-        $drivers = $franchise->drivers()
-            ->whereHas('status', fn($q) => $q->where('name', 'active'))
-            ->where(function($query) use ($existingContract) {
-                // Include drivers without active contracts OR the current driver
-                $query->whereDoesntHave('boundaryContracts', function($q) {
-                    $q->whereHas('status', fn($s) => $s->where('name', 'active'));
-                });
+    $drivers = $franchise->drivers()
+        ->whereHas('status', fn($q) => $q->where('name', 'active'))
+        ->where(function($query) use ($existingContract) {
+            // Logic for drivers: Must not have an active contract
+            $query->whereDoesntHave('boundaryContracts', function($q) {
+                $q->whereHas('status', fn($s) => $s->where('name', 'active'));
+            });
 
-                if ($existingContract) {
-                    $query->orWhere('id', $existingContract->driver_id);
-                }
-            })
-            ->with('user')->get()->map(fn($d) => [
-                'id' => $d->id,
-                'username' => $d->user?->username,
-            ]);
+            // OR allow the driver currently assigned to this specific contract
+            if ($existingContract) {
+                $query->orWhere('id', $existingContract->driver_id);
+            }
+        })
+        ->with('user')->get()->map(fn($d) => [
+            'id' => $d->id,
+            'username' => $d->user?->username,
+        ]);
 
-        return compact('vehicles', 'drivers');
-    }
+    return compact('vehicles', 'drivers');
+}
 }
