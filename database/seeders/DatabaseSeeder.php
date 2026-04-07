@@ -81,40 +81,40 @@ class DatabaseSeeder extends Seeder
         //     'phone' => '09101301920',
         // ]);
 
-        User::factory(5)->create(
-            [
-                'user_type_id' => 2,
-            ]
-        );
+        // User::factory(5)->create(
+        //     [
+        //         'user_type_id' => 2,
+        //     ]
+        // );
 
-        User::factory(10)->create(
-            [
-                'user_type_id' => 6,
-            ]
-        );
+        // User::factory(10)->create(
+        //     [
+        //         'user_type_id' => 6,
+        //     ]
+        // );
 
-        User::factory(20)->create([
-            'user_type_id' => 4,
-        ]);
+        // User::factory(20)->create([
+        //     'user_type_id' => 4,
+        // ]);
 
-        $this->call(DriverAssignmentSeeder::class);
-        $this->call(VehicleSeeder::class);
+        // $this->call(DriverAssignmentSeeder::class);
+        // $this->call(VehicleSeeder::class);
 
         // User::factory(30)->create(['user_type_id' => 5]);
         // $this->call(TechnicianAssignmentSeeder::class);
 
-        $this->call(BoundaryContractSeeder::class);
-        $this->call(RevenueSeeder::class);
+        // $this->call(BoundaryContractSeeder::class);
+        // $this->call(RevenueSeeder::class);
 
         $this->call(PercentageTypeSeeder::class);
-        $this->call(RevenueBreakdownSeeder::class);
+        // $this->call(RevenueBreakdownSeeder::class);
 
-        $this->call(InventorySeeder::class);
-        $this->call(MaintenanceSeeder::class);
+        // $this->call(InventorySeeder::class);
+        // $this->call(MaintenanceSeeder::class);
 
-        $this->call(SupportTicketSeeder::class);
+        // $this->call(SupportTicketSeeder::class);
 
-        $this->call(FeedbackSeeder::class);
+        // $this->call(FeedbackSeeder::class);
 
         $this->call([
             TaxiMetricsSeeder::class,
