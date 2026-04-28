@@ -14,8 +14,8 @@ Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.s
 
 Route::post('/contact', [ContactUsController::class, 'store'])->name('contact.store');
 
-Route::get('/account-deletion', [AccountDeletionController::class, 'index']);
-Route::post('/account-deletion', [AccountDeletionController::class, 'store']);
+Route::get('/account-deletion', [AccountDeletionController::class, 'index'])->name('account-deletion');
+Route::post('/account-deletion', [AccountDeletionController::class, 'store'])->middleware('throttle:5,60');
 
 Route::get('/inactive', function () {
     return Inertia::render('InactiveAccount');

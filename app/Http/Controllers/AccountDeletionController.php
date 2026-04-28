@@ -34,6 +34,8 @@ class AccountDeletionController extends Controller
 
         ProcessDeletionRequest::dispatch($deletionRequest);
 
-        return back()->with('success', 'Your deletion request has been submitted. You will receive a confirmation shortly.');
+        return redirect()
+            ->route('account-deletion')
+            ->with('success', 'Your deletion request has been submitted. You will receive a confirmation shortly.');
     }
 }
