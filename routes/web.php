@@ -1,10 +1,11 @@
 <?php
+use App\Http\Controllers\AccountDeletionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SuperAdmin\FranchiseContractController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\FeedbackController;
-use App\Http\Controllers\LandingPage\ContactUsController; 
+use App\Http\Controllers\LandingPage\ContactUsController;
 use Inertia\Inertia;
 
 
@@ -12,6 +13,9 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.store');
 
 Route::post('/contact', [ContactUsController::class, 'store'])->name('contact.store');
+
+Route::get('/account-deletion', [AccountDeletionController::class, 'index']);
+Route::post('/account-deletion', [AccountDeletionController::class, 'store']);
 
 Route::get('/inactive', function () {
     return Inertia::render('InactiveAccount');
@@ -46,5 +50,5 @@ require __DIR__ . '/technician.php';
 require __DIR__ . '/owner.php';
 require __DIR__ . '/manager.php';
 require __DIR__ . '/finance.php';
-require __DIR__ .'/auth.php';
-require __DIR__ .'/super-admin.php';
+require __DIR__ . '/auth.php';
+require __DIR__ . '/super-admin.php';
