@@ -26,7 +26,7 @@
 
         <div class="flex flex-wrap items-center justify-center gap-4">
           <a
-            href="https://bb88group.com/erpfranchisingmgmt/APK/DDGNS-ERP.apk"
+            href="https://ddgnserpsystem.com/APK/DDGNS-ERP.apk"
             target="_blank"
           >
             <img

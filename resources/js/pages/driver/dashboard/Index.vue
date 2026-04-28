@@ -6,7 +6,7 @@ import { Head, Link } from '@inertiajs/vue3';
 // Maintain light mode consistency
 usePageTheme('light');
 
-const apkLink = 'https://bb88group.com/erpfranchisingmgmt/APK/DDGNS-ERP.apk';
+const apkLink = 'https://ddgnserpsystem.com/APK/DDGNS-ERP.apk';
 </script>
 
 <template>
