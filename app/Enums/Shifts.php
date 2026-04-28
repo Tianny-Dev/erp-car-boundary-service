@@ -5,15 +5,15 @@ namespace App\Enums;
 enum Shifts: string
 {
     case MORNING = 'Morning';
+    case AFTERNOON = 'Afternoon';
     case EVENING = 'Evening';
-    case NIGHT = 'Night';
 
     public function label(): string
     {
         return match ($this) {
             self::MORNING => 'Morning',
+            self::AFTERNOON => 'Afternoon',
             self::EVENING => 'Evening',
-            self::NIGHT => 'Night',
         };
     }
 

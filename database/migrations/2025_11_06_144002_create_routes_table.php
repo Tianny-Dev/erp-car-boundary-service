@@ -25,6 +25,7 @@ return new class extends Migration
             $table->decimal('end_lat', 10, 8)->nullable();
             $table->decimal('end_lng', 11, 8)->nullable();
             $table->decimal('distance_km', 10, 2)->nullable();
+            $table->string('remaining_duration')->nullable();
             $table->decimal('average_speed_kmh', 6, 2)->nullable();
             $table->decimal('max_speed_kmh', 6, 2)->nullable();
             $table->text('route_path')->nullable();
